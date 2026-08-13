@@ -1,135 +1,263 @@
-// Datei: app/(tabs)/index.tsx
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// Datei: app/(tabs)/index.tsx — Premium Home Screen
+import { AppColors } from "@/constants/theme";
+import {
+  getBestHighscore,
+  getLevelTitle,
+  getNumber,
+  getStreakData,
+  getXPForLevel,
+  StorageKeys,
+} from "@/utils/storage";
 import { router, useFocusEffect } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
-const HIGHSCORE_KEY = "muell_sortieren_highscore";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 export default function HomeScreen() {
   const [highscore, setHighscore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [totalXP, setTotalXP] = useState(0);
 
   useFocusEffect(
     React.useCallback(() => {
-      AsyncStorage.getItem(HIGHSCORE_KEY).then((value) => {
-        if (value) setHighscore(parseInt(value, 10));
-      });
+      async function loadData() {
+        const [hs, sd, lvl, xp] = await Promise.all([
+          getBestHighscore(),
+          getStreakData(),
+          getNumber(StorageKeys.LEVEL),
+          getNumber(StorageKeys.TOTAL_XP),
+        ]);
+        setHighscore(hs);
+        setStreak(sd.count);
+        setLevel(lvl || 1);
+        setTotalXP(xp);
+      }
+      loadData();
     }, []),
   );
 
-  const handleLogout = () => {
-    router.replace("/login");
+  const xpForNext = getXPForLevel(level || 1);
+  const xpProgress = xpForNext > 0 ? Math.min((totalXP / xpForNext) * 100, 100) : 0;
+
+  const confirmLogout = () => {
+    Alert.alert("Ausloggen?", "Möchtest du dich wirklich abmelden?", [
+      { text: "Abbrechen", style: "cancel" },
+      { text: "Logout", style: "destructive", onPress: () => router.replace("/login") },
+    ]);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>♻️</Text>
-      <Text style={styles.title}>Müll Sortieren</Text>
-      <Text style={styles.subtitle}>DEUTSCHLAND</Text>
-      <Text style={styles.highscore}>🏆 Highscore: {highscore}</Text>
+      {/* Logo + Title */}
+      <Animated.View entering={ZoomIn.duration(500)} style={styles.logoWrap}>
+        <Text style={styles.logo}>♻️</Text>
+      </Animated.View>
+      <Animated.Text entering={FadeInDown.delay(100)} style={styles.title}>Müll Sortieren</Animated.Text>
+      <Animated.Text entering={FadeInDown.delay(200)} style={styles.subtitle}>DEUTSCHLAND</Animated.Text>
 
-      <View style={styles.menu}>
-        <MenuButton
-          emoji="🎮"
-          label="Spielen"
-          color="#2ECC71"
-          onPress={() => router.push("/(tabs)/explore")}
-        />
-        <MenuButton
-          emoji="📖"
-          label="Tutorial"
-          color="#3B82F6"
-          onPress={() => router.push("/tutorial")}
-        />
-        <MenuButton
-          emoji="🏆"
-          label="Modi"
-          color="#A855F7"
+      {/* Stats */}
+      <Animated.View entering={FadeInDown.delay(300)} style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <Text style={styles.statIcon}>🔥</Text>
+          <Text style={styles.statVal}>{streak}</Text>
+          <Text style={styles.statLbl}>Streak</Text>
+        </View>
+        <View style={[styles.statCard, styles.statCardCenter]}>
+          <Text style={styles.statIcon}>⭐</Text>
+          <Text style={styles.statVal}>{totalXP}</Text>
+          <Text style={styles.statLbl}>XP</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statIcon}>🏆</Text>
+          <Text style={styles.statVal}>{highscore}</Text>
+          <Text style={styles.statLbl}>Best</Text>
+        </View>
+      </Animated.View>
+
+      {/* Level + XP Bar */}
+      <Animated.View entering={FadeInDown.delay(400)} style={styles.levelBox}>
+        <View style={styles.levelRow}>
+          <Text style={styles.levelText}>Lvl {level || 1}</Text>
+          <Text style={styles.levelTitle}>{getLevelTitle(level || 1)}</Text>
+        </View>
+        <View style={styles.xpBar}>
+          <View style={[styles.xpFill, { width: `${xpProgress}%` }]} />
+        </View>
+        <Text style={styles.xpLabel}>{totalXP} / {xpForNext} XP</Text>
+      </Animated.View>
+
+      {/* Menu */}
+      <Animated.View entering={FadeInDown.delay(500)} style={styles.menu}>
+        <TouchableOpacity
+          style={[styles.menuBtn, { backgroundColor: AppColors.green }]}
           onPress={() => router.push("/modi")}
-        />
-        <MenuButton
-          emoji="⚙️"
-          label="Einstellungen"
-          color="#6366F1"
-          onPress={() => router.push("/einstellung")}
-        />
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutEmoji}>🚪</Text>
-          <Text style={styles.logoutText}>Logout</Text>
+          activeOpacity={0.85}
+        >
+          <Text style={styles.menuIcon}>🎮</Text>
+          <Text style={styles.menuText}>Spielen</Text>
         </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
 
-function MenuButton({
-  emoji,
-  label,
-  color,
-  onPress,
-}: {
-  emoji: string;
-  label: string;
-  color: string;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={[styles.menuButton, { backgroundColor: color }]}
-      onPress={onPress}
-    >
-      <Text style={styles.menuEmoji}>{emoji}</Text>
-      <Text style={styles.menuLabel}>{label}</Text>
-    </TouchableOpacity>
+        <View style={styles.menuRow}>
+          <TouchableOpacity
+            style={[styles.menuBtnHalf, { backgroundColor: AppColors.blue }]}
+            onPress={() => router.push("/tutorial")}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.menuIcon}>📖</Text>
+            <Text style={styles.menuTextSm}>Tutorial</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.menuBtnHalf, { backgroundColor: AppColors.indigo }]}
+            onPress={() => router.push("/einstellung")}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.menuIcon}>⚙️</Text>
+            <Text style={styles.menuTextSm}>Settings</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.logoutBtn} onPress={confirmLogout} activeOpacity={0.8}>
+          <Text style={styles.logoutText}>🚪 Logout</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0B1120",
+    backgroundColor: AppColors.bg,
     alignItems: "center",
-    paddingTop: 90,
-    paddingHorizontal: 24,
+    paddingTop: 65,
+    paddingHorizontal: 20,
   },
-  logo: { fontSize: 64, marginBottom: 12 },
-  title: { fontSize: 32, fontWeight: "800", color: "#FFFFFF" },
+  logoWrap: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: AppColors.card,
+    borderWidth: 2,
+    borderColor: AppColors.green,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+    shadowColor: AppColors.green,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  logo: { fontSize: 48 },
+  title: { fontSize: 30, fontWeight: "900", color: "#FFF", letterSpacing: -0.5 },
   subtitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2ECC71",
-    letterSpacing: 4,
-    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "800",
+    color: AppColors.green,
+    letterSpacing: 6,
+    marginTop: 2,
+    marginBottom: 20,
   },
-  highscore: {
-    color: "#F5C518",
-    fontSize: 15,
-    fontWeight: "700",
-    marginTop: 10,
-    marginBottom: 36,
-  },
-  menu: { width: "100%", gap: 16 },
-  menuButton: {
+  // Stats
+  statsRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 18,
-    paddingVertical: 18,
-    gap: 12,
+    gap: 10,
+    width: "100%",
+    marginBottom: 14,
   },
-  menuEmoji: { fontSize: 20 },
-  menuLabel: { color: "#FFFFFF", fontSize: 18, fontWeight: "700" },
-  logoutButton: {
-    flexDirection: "row",
+  statCard: {
+    flex: 1,
+    backgroundColor: AppColors.card,
+    borderRadius: 16,
+    paddingVertical: 12,
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 18,
-    paddingVertical: 18,
-    gap: 12,
-    backgroundColor: "#1E2A45",
     borderWidth: 1,
-    borderColor: "#2A3A5C",
+    borderColor: AppColors.cardBorder,
   },
-  logoutEmoji: { fontSize: 18 },
-  logoutText: { color: "#EF4444", fontSize: 17, fontWeight: "700" },
+  statCardCenter: {
+    borderColor: AppColors.green,
+    shadowColor: AppColors.green,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  statIcon: { fontSize: 18, marginBottom: 2 },
+  statVal: { color: "#FFF", fontSize: 22, fontWeight: "900" },
+  statLbl: { color: AppColors.textMuted, fontSize: 11, fontWeight: "700", marginTop: 1 },
+  // Level
+  levelBox: {
+    width: "100%",
+    backgroundColor: AppColors.card,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: AppColors.cardBorder,
+  },
+  levelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  levelText: { color: "#FFF", fontSize: 16, fontWeight: "900" },
+  levelTitle: { color: AppColors.yellow, fontSize: 13, fontWeight: "700" },
+  xpBar: {
+    width: "100%",
+    height: 8,
+    backgroundColor: AppColors.cardLight,
+    borderRadius: 99,
+    overflow: "hidden",
+    marginBottom: 4,
+  },
+  xpFill: {
+    height: "100%",
+    backgroundColor: AppColors.green,
+    borderRadius: 99,
+  },
+  xpLabel: { color: AppColors.textMuted, fontSize: 11, fontWeight: "600", textAlign: "right" },
+  // Menu
+  menu: { width: "100%", gap: 10 },
+  menuBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 16,
+    paddingVertical: 18,
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  menuRow: { flexDirection: "row", gap: 10 },
+  menuBtnHalf: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 16,
+    paddingVertical: 16,
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  menuIcon: { fontSize: 20 },
+  menuText: { color: "#FFF", fontSize: 19, fontWeight: "800" },
+  menuTextSm: { color: "#FFF", fontSize: 16, fontWeight: "700" },
+  logoutBtn: {
+    alignItems: "center",
+    paddingVertical: 14,
+    backgroundColor: AppColors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: AppColors.cardBorder,
+  },
+  logoutText: { color: AppColors.red, fontSize: 15, fontWeight: "700" },
 });
