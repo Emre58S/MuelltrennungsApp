@@ -1,6 +1,3 @@
-// ── Müll-Items Datenbank ──────────────────────────────────────────────
-// 80+ Items für abwechslungsreiches Gameplay
-
 export type Category =
   | "Restmüll"
   | "Biomüll"
@@ -582,7 +579,9 @@ export function getRoundOptions(
 ): Category[] {
   const options = new Set<Category>([correct]);
   while (options.size < Math.min(count, ALL_CATEGORIES.length)) {
-    options.add(ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)]);
+    options.add(
+      ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)],
+    );
   }
   return Array.from(options).sort(() => Math.random() - 0.5);
 }
@@ -597,11 +596,60 @@ export type BinData = {
   label: string;
 };
 
+// ── Mülltonnen (mit korrigierten Umlauten in den Kategorienamen) ──────
 export const BINS: BinData[] = [
-  { category: "Biom�ll", emoji: "??", binEmoji: "??", color: "#6D4C2A", colorLight: "#8B6B3D", glow: "#8B6B3D55", label: "Bio" },
-  { category: "Papier", emoji: "??", binEmoji: "??", color: "#1565C0", colorLight: "#1E88E5", glow: "#1E88E555", label: "Papier" },
-  { category: "Gelber Sack", emoji: "??", binEmoji: "???", color: "#F9A825", colorLight: "#FBC02D", glow: "#FBC02D55", label: "Gelb" },
-  { category: "Glas", emoji: "??", binEmoji: "??", color: "#2E7D32", colorLight: "#43A047", glow: "#43A04755", label: "Glas" },
-  { category: "Restm�ll", emoji: "?", binEmoji: "???", color: "#37474F", colorLight: "#546E7A", glow: "#546E7A55", label: "Rest" },
-  { category: "Sonderm�ll", emoji: "??", binEmoji: "??", color: "#C62828", colorLight: "#E53935", glow: "#E5393555", label: "Sonder" },
+  {
+    category: "Biomüll",
+    emoji: "🟫",
+    binEmoji: "🗑️",
+    color: "#6D4C2A",
+    colorLight: "#8B6B3D",
+    glow: "#8B6B3D55",
+    label: "Bio",
+  },
+  {
+    category: "Papier",
+    emoji: "🔵",
+    binEmoji: "🗑️",
+    color: "#1565C0",
+    colorLight: "#1E88E5",
+    glow: "#1E88E555",
+    label: "Papier",
+  },
+  {
+    category: "Gelber Sack",
+    emoji: "🟡",
+    binEmoji: "🗑️",
+    color: "#F9A825",
+    colorLight: "#FBC02D",
+    glow: "#FBC02D55",
+    label: "Gelb",
+  },
+  {
+    category: "Glas",
+    emoji: "🟢",
+    binEmoji: "🗑️",
+    color: "#2E7D32",
+    colorLight: "#43A047",
+    glow: "#43A04755",
+    label: "Glas",
+  },
+  {
+    category: "Restmüll",
+    emoji: "⚫",
+    binEmoji: "🗑️",
+    color: "#37474F",
+    colorLight: "#546E7A",
+    glow: "#546E7A55",
+    label: "Rest",
+  },
+  {
+    category: "Sondermüll",
+    emoji: "🔴",
+    binEmoji: "🗑️",
+    color: "#C62828",
+    colorLight: "#E53935",
+    glow: "#E5393555",
+    label: "Sonder",
+  },
 ];

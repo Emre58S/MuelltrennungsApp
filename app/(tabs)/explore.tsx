@@ -1,9 +1,4 @@
-// Datei: app/(tabs)/explore.tsx — Premium Drag & Drop mit Glow + Particles
-import {
-  type Item,
-  BINS,
-  getRandomItem
-} from "@/constants/items";
+import { type Item, BINS, getRandomItem } from "@/constants/items";
 import { AppColors, Radius } from "@/constants/theme";
 import {
   StorageKeys,
@@ -38,10 +33,9 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withSpring,
-  withTiming
+  withTiming,
 } from "react-native-reanimated";
 
 type Mode = "runden" | "zeit" | "endlos";
@@ -50,34 +44,56 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const ROUND_COUNT = 10;
 const TIME_LIMIT = 60;
 
-// Layout
-const BIN_COLS = 3;
-const BIN_GAP = 10;
-const BIN_PADDING = 16;
-const BIN_W = (SCREEN_W - BIN_PADDING * 2 - BIN_GAP * (BIN_COLS - 1)) / BIN_COLS;
-const BIN_H = 90;
-const BINS_Y = SCREEN_H - 260;
-const ITEM_CENTER_X = SCREEN_W / 2 - 70;
-const ITEM_CENTER_Y = 180;
+// Größere Tonnen für bessere Treffergenauigkeit
+const BIN_TOP_Y = 105;
+const BIN_SIZE = Math.min(110, (SCREEN_W - 24) / BINS.length - 6);
+const BIN_GAP = (SCREEN_W - BINS.length * BIN_SIZE) / (BINS.length + 1);
 
-function getBinPosition(index: number) {
-  const row = Math.floor(index / BIN_COLS);
-  const col = index % BIN_COLS;
-  return {
-    x: BIN_PADDING + col * (BIN_W + BIN_GAP),
-    y: BINS_Y + row * (BIN_H + BIN_GAP),
-  };
+const ITEM_START_X = SCREEN_W / 2 - 60;
+const ITEM_START_Y = SCREEN_H - 260;
+const THROW_MIN_DISTANCE = 50;
+const FLIGHT_DURATION = 420;
+const VELOCITY_WEIGHT = 0.05; // schwächer gewichtet als vorher (0.15)
+
+function getBinCenterX(index: number) {
+  return BIN_GAP + index * (BIN_SIZE + BIN_GAP) + BIN_SIZE / 2;
+}
+
+function computeTargetIndex(translationX: number, velocityX: number): number {
+  const projectedX =
+    ITEM_START_X + 60 + translationX + velocityX * VELOCITY_WEIGHT;
+  const clampedX = Math.max(BIN_GAP, Math.min(SCREEN_W - BIN_GAP, projectedX));
+
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+
+  for (let i = 0; i < BINS.length; i++) {
+    const distance = Math.abs(getBinCenterX(i) - clampedX);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = i;
+    }
+  }
+
+  return closestIndex;
 }
 
 export default function GameScreen() {
   const params = useLocalSearchParams<{ mode?: string }>();
-  const mode: Mode = (params.mode as Mode) || "runden";
+  const mode: Mode =
+    params.mode === "zeit" ||
+    params.mode === "endlos" ||
+    params.mode === "runden"
+      ? params.mode
+      : "runden";
   const highscoreKey = getHighscoreKey(mode);
 
-  const correctSound = useAudioPlayer(require("../../assets/sounds/correct.mp3"));
+  const correctSound = useAudioPlayer(
+    require("../../assets/sounds/correct.mp3"),
+  );
   const wrongSound = useAudioPlayer(require("../../assets/sounds/wrong.mp3"));
-  const [soundEnabled, setSoundEnabled] = useState(true);
 
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
   const [highscore, setHighscore] = useState(0);
@@ -90,61 +106,54 @@ export default function GameScreen() {
   const [earnedXP, setEarnedXP] = useState(0);
   const [showFact, setShowFact] = useState<string | null>(null);
   const [streakUpdated, setStreakUpdated] = useState(false);
-  const [activeBin, setActiveBin] = useState<number>(-1);
-  const [particles, setParticles] = useState<{ id: number; x: number; y: number; emoji: string }[]>([]);
+  const [isThrowing, setIsThrowing] = useState(false);
+  const [aimIndex, setAimIndex] = useState<number>(-1);
+  const [particles, setParticles] = useState<
+    { id: number; x: number; y: number; emoji: string }[]
+  >([]);
+
   const particleId = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Animated values
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
+  const itemX = useSharedValue(ITEM_START_X);
+  const itemY = useSharedValue(0);
   const itemScale = useSharedValue(1);
   const itemOpacity = useSharedValue(1);
   const itemRotation = useSharedValue(0);
-  const floatY = useSharedValue(0);
+  const dragX = useSharedValue(0);
+  const dragY = useSharedValue(0);
   const bgFlash = useSharedValue(0);
-  const binScales = BINS.map(() => useSharedValue(1));
-  const binGlows = BINS.map(() => useSharedValue(0));
   const progressWidth = useSharedValue(0);
-
-  // Floating animation
-  useEffect(() => {
-    floatY.value = withRepeat(
-      withSequence(
-        withTiming(-6, { duration: 1200 }),
-        withTiming(6, { duration: 1200 }),
-      ),
-      -1,
-      true,
-    );
-  }, []);
 
   useEffect(() => {
     getNumber(highscoreKey).then(setHighscore);
     getBoolean(StorageKeys.SOUND_ENABLED, true).then(setSoundEnabled);
   }, [highscoreKey]);
 
-  // Progress bar
   useEffect(() => {
     if (mode === "runden") {
-      progressWidth.value = withTiming((round / ROUND_COUNT) * 100, { duration: 400 });
+      progressWidth.value = withTiming((round / ROUND_COUNT) * 100, {
+        duration: 400,
+      });
     }
-  }, [round, mode]);
+  }, [round, mode, progressWidth]);
 
-  // Timer
   useEffect(() => {
     if (mode === "zeit" && !finished) {
       timerRef.current = setInterval(() => {
-        setTimeLeft((t) => {
-          if (t <= 1) {
-            clearInterval(timerRef.current!);
+        setTimeLeft((time) => {
+          if (time <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
             setFinished(true);
             return 0;
           }
-          return t - 1;
+          return time - 1;
         });
       }, 1000);
-      return () => { if (timerRef.current) clearInterval(timerRef.current); };
+
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
     }
   }, [mode, finished]);
 
@@ -152,175 +161,264 @@ export default function GameScreen() {
     const emojis = ["✨", "⭐", "💫", "🌟", "♻️"];
     const newParticles = Array.from({ length: 6 }, () => ({
       id: particleId.current++,
-      x: x + (Math.random() - 0.5) * 100,
-      y: y + (Math.random() - 0.5) * 80,
+      x: x + (Math.random() - 0.5) * 90,
+      y: y + (Math.random() - 0.5) * 70,
       emoji: emojis[Math.floor(Math.random() * emojis.length)],
     }));
-    setParticles((p) => [...p, ...newParticles]);
+
+    setParticles((old) => [...old, ...newParticles]);
     setTimeout(() => {
-      setParticles((p) => p.filter((pp) => !newParticles.find((np) => np.id === pp.id)));
+      setParticles((old) =>
+        old.filter(
+          (particle) =>
+            !newParticles.some((newParticle) => newParticle.id === particle.id),
+        ),
+      );
     }, 800);
   }, []);
 
-  const resetItem = useCallback(() => {
-    translateX.value = 0;
-    translateY.value = 0;
+  const resetItemPosition = useCallback(() => {
+    dragX.value = 0;
+    dragY.value = 0;
+    itemX.value = ITEM_START_X;
+    itemY.value = 0;
     itemScale.value = withSpring(1);
     itemOpacity.value = withTiming(1, { duration: 200 });
     itemRotation.value = withSpring(0);
-  }, []);
+    setAimIndex(-1);
+  }, [dragX, dragY, itemX, itemY, itemScale, itemOpacity, itemRotation]);
 
   const nextRound = useCallback(() => {
     if (mode === "runden" && round >= ROUND_COUNT) {
       setFinished(true);
       return;
     }
-    const next = getRandomItem(currentItem);
-    setCurrentItem(next);
+
+    setCurrentItem(getRandomItem(currentItem));
     setFeedback(null);
     setShowFact(null);
-    setActiveBin(-1);
-    resetItem();
-    setRound((r) => r + 1);
-  }, [round, currentItem, mode, resetItem]);
+    setIsThrowing(false);
+    resetItemPosition();
+    setRound((oldRound) => oldRound + 1);
+  }, [round, currentItem, mode, resetItemPosition]);
 
   useEffect(() => {
-    if (finished) {
-      (async () => {
-        if (score > highscore) {
-          setHighscore(score);
-          setIsNewHighscore(true);
-          await setNumber(highscoreKey, score);
-        } else { setIsNewHighscore(false); }
-        await addXP(earnedXP);
-        if (!streakUpdated) { await updateStreak(); setStreakUpdated(true); }
-      })();
-    }
-  }, [finished]);
+    if (!finished) return;
 
-  const handleDrop = useCallback((binIndex: number) => {
-    if (feedback || finished) return;
-    const bin = BINS[binIndex];
-    const isCorrect = bin.category === currentItem.category;
-    const binPos = getBinPosition(binIndex);
-
-    if (isCorrect) {
-      const newCombo = combo + 1;
-      setCombo(newCombo);
-      const comboBonus = newCombo >= 3 ? 5 : newCombo >= 5 ? 10 : 0;
-      setScore((s) => s + 10 + comboBonus);
-      setEarnedXP((e) => e + 10 + comboBonus);
-      setFeedback("correct");
-
-      // Item shrinks into bin
-      itemScale.value = withTiming(0, { duration: 250 });
-      itemOpacity.value = withTiming(0, { duration: 250 });
-      itemRotation.value = withTiming(360, { duration: 300 });
-
-      // Bin bounce + glow
-      binScales[binIndex].value = withSequence(
-        withTiming(1.2, { duration: 100 }),
-        withSpring(1, { damping: 6, stiffness: 200 }),
-      );
-      binGlows[binIndex].value = withSequence(
-        withTiming(1, { duration: 100 }),
-        withTiming(0, { duration: 600 }),
-      );
-
-      // Screen flash green
-      bgFlash.value = withSequence(
-        withTiming(1, { duration: 80 }),
-        withTiming(0, { duration: 300 }),
-      );
-
-      // Particles!
-      spawnParticles(binPos.x + BIN_W / 2, binPos.y);
-
-      if (soundEnabled) { correctSound.seekTo(0); correctSound.play(); }
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      if (currentItem.fact && Math.random() < 0.35) {
-        setShowFact(currentItem.fact);
-      }
-      setTimeout(nextRound, showFact ? 1600 : 900);
-    } else {
-      setCombo(0);
-      setFeedback("wrong");
-
-      // Bin shake
-      binScales[binIndex].value = withSequence(
-        withTiming(0.85, { duration: 50 }),
-        withTiming(1.15, { duration: 50 }),
-        withTiming(0.9, { duration: 50 }),
-        withSpring(1, { damping: 8 }),
-      );
-
-      // Screen flash red
-      bgFlash.value = withSequence(
-        withTiming(-1, { duration: 80 }),
-        withTiming(0, { duration: 400 }),
-      );
-
-      // Item bounce back
-      translateX.value = withSpring(0, { damping: 10, stiffness: 150 });
-      translateY.value = withSpring(0, { damping: 10, stiffness: 150 });
-      itemScale.value = withSpring(1);
-      itemRotation.value = withSequence(
-        withTiming(-15, { duration: 50 }),
-        withTiming(15, { duration: 50 }),
-        withTiming(-10, { duration: 50 }),
-        withSpring(0),
-      );
-
-      if (soundEnabled) { wrongSound.seekTo(0); wrongSound.play(); }
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-
-      setTimeout(() => setFeedback(null), 1000);
-    }
-  }, [feedback, finished, currentItem, combo, soundEnabled, nextRound, showFact]);
-
-  const checkBinHit = useCallback((absX: number, absY: number): number => {
-    for (let i = 0; i < BINS.length; i++) {
-      const pos = getBinPosition(i);
-      if (absX >= pos.x && absX <= pos.x + BIN_W && absY >= pos.y && absY <= pos.y + BIN_H) {
-        return i;
-      }
-    }
-    return -1;
-  }, []);
-
-  const dragGesture = Gesture.Pan()
-    .onStart(() => {
-      itemScale.value = withSpring(1.15);
-    })
-    .onUpdate((e) => {
-      translateX.value = e.translationX;
-      translateY.value = e.translationY;
-      itemRotation.value = e.translationX * 0.05;
-      const absX = ITEM_CENTER_X + 70 + e.translationX;
-      const absY = ITEM_CENTER_Y + 50 + e.translationY;
-      const hit = checkBinHit(absX, absY);
-      runOnJS(setActiveBin)(hit);
-    })
-    .onEnd((e) => {
-      itemScale.value = withSpring(1);
-      const absX = ITEM_CENTER_X + 70 + e.translationX;
-      const absY = ITEM_CENTER_Y + 50 + e.translationY;
-      const hit = checkBinHit(absX, absY);
-      if (hit >= 0) {
-        runOnJS(handleDrop)(hit);
+    (async () => {
+      if (score > highscore) {
+        setHighscore(score);
+        setIsNewHighscore(true);
+        await setNumber(highscoreKey, score);
       } else {
-        translateX.value = withSpring(0, { damping: 12 });
-        translateY.value = withSpring(0, { damping: 12 });
-        itemRotation.value = withSpring(0);
-        runOnJS(setActiveBin)(-1);
+        setIsNewHighscore(false);
       }
+
+      await addXP(earnedXP);
+
+      if (!streakUpdated) {
+        await updateStreak();
+        setStreakUpdated(true);
+      }
+    })();
+  }, [finished, score, highscore, earnedXP, highscoreKey, streakUpdated]);
+
+  const evaluateThrow = useCallback(
+    (targetBinIndex: number) => {
+      try {
+        if (finished) return;
+
+        const bin = BINS[targetBinIndex];
+        if (!bin) throw new Error(`Kein Bin für Index ${targetBinIndex}`);
+        if (!currentItem || !currentItem.category) {
+          throw new Error("currentItem ungültig");
+        }
+
+        const isCorrect = bin.category === currentItem.category;
+        const binCenterX = getBinCenterX(targetBinIndex);
+
+        console.log(
+          "Item:",
+          currentItem.category,
+          "Ziel-Bin:",
+          bin.category,
+          "Treffer:",
+          isCorrect,
+        );
+
+        if (isCorrect) {
+          const newCombo = combo + 1;
+          const comboBonus = newCombo >= 5 ? 10 : newCombo >= 3 ? 5 : 0;
+
+          setCombo(newCombo);
+          setScore((oldScore) => oldScore + 10 + comboBonus);
+          setEarnedXP((oldXP) => oldXP + 10 + comboBonus);
+          setFeedback("correct");
+
+          bgFlash.value = withSequence(
+            withTiming(1, { duration: 80 }),
+            withTiming(0, { duration: 300 }),
+          );
+
+          spawnParticles(binCenterX, BIN_TOP_Y + BIN_SIZE / 2);
+
+          if (soundEnabled) {
+            correctSound.seekTo(0);
+            correctSound.play();
+          }
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+          if (currentItem.fact && Math.random() < 0.35) {
+            setShowFact(currentItem.fact);
+          }
+
+          setTimeout(nextRound, 900);
+        } else {
+          setCombo(0);
+          setFeedback("wrong");
+
+          bgFlash.value = withSequence(
+            withTiming(-1, { duration: 80 }),
+            withTiming(0, { duration: 400 }),
+          );
+
+          if (soundEnabled) {
+            wrongSound.seekTo(0);
+            wrongSound.play();
+          }
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+          setTimeout(() => {
+            setFeedback(null);
+            setIsThrowing(false);
+            resetItemPosition();
+          }, 1000);
+        }
+      } catch (error) {
+        console.error("Fehler in evaluateThrow:", error);
+        setFeedback(null);
+        setIsThrowing(false);
+        resetItemPosition();
+      }
+    },
+    [
+      finished,
+      currentItem,
+      combo,
+      soundEnabled,
+      correctSound,
+      wrongSound,
+      spawnParticles,
+      nextRound,
+      resetItemPosition,
+      bgFlash,
+    ],
+  );
+
+  const startThrow = useCallback(
+    (targetBinIndex: number) => {
+      if (isThrowing || feedback || finished) return;
+
+      setIsThrowing(true);
+
+      const targetCenterX = getBinCenterX(targetBinIndex);
+
+      itemX.value = withTiming(targetCenterX - 60, {
+        duration: FLIGHT_DURATION,
+      });
+      itemY.value = withTiming(-(ITEM_START_Y - BIN_TOP_Y - BIN_SIZE / 2), {
+        duration: FLIGHT_DURATION,
+      });
+      itemRotation.value = withTiming(360, { duration: FLIGHT_DURATION });
+      itemScale.value = withSequence(
+        withTiming(1.1, { duration: FLIGHT_DURATION * 0.4 }),
+        withTiming(0.7, { duration: FLIGHT_DURATION * 0.6 }),
+      );
+      dragX.value = withTiming(0, { duration: FLIGHT_DURATION });
+      dragY.value = withTiming(0, { duration: FLIGHT_DURATION });
+      itemOpacity.value = withTiming(0, { duration: FLIGHT_DURATION });
+
+      setTimeout(() => {
+        evaluateThrow(targetBinIndex);
+      }, FLIGHT_DURATION + 20);
+    },
+    [
+      isThrowing,
+      feedback,
+      finished,
+      itemX,
+      itemY,
+      itemRotation,
+      itemScale,
+      dragX,
+      dragY,
+      itemOpacity,
+      evaluateThrow,
+    ],
+  );
+
+  // Live-Zielvorschau während des Ziehens
+  const updateAimPreview = useCallback(
+    (translationX: number, translationY: number) => {
+      if (-translationY > 20) {
+        const index = computeTargetIndex(translationX, 0);
+        setAimIndex(index);
+      } else {
+        setAimIndex(-1);
+      }
+    },
+    [],
+  );
+
+  const handleSwipeEnd = useCallback(
+    (
+      translationX: number,
+      translationY: number,
+      velocityX: number,
+      velocityY: number,
+    ) => {
+      try {
+        const swipedUpEnough = -translationY > THROW_MIN_DISTANCE;
+        const flungUpEnough = velocityY < -250;
+
+        if (!swipedUpEnough && !flungUpEnough) {
+          dragX.value = withSpring(0, { damping: 12 });
+          dragY.value = withSpring(0, { damping: 12 });
+          itemRotation.value = withSpring(0);
+          setAimIndex(-1);
+          return;
+        }
+
+        const targetIndex = computeTargetIndex(translationX, velocityX);
+        setAimIndex(-1);
+        startThrow(targetIndex);
+      } catch (error) {
+        console.error("Fehler in handleSwipeEnd:", error);
+      }
+    },
+    [dragX, dragY, itemRotation, startThrow],
+  );
+
+  const throwGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      dragX.value = event.translationX;
+      dragY.value = event.translationY;
+      itemRotation.value = event.translationX * 0.08;
+      runOnJS(updateAimPreview)(event.translationX, event.translationY);
+    })
+    .onEnd((event) => {
+      runOnJS(handleSwipeEnd)(
+        event.translationX,
+        event.translationY,
+        event.velocityX,
+        event.velocityY,
+      );
     });
 
   const itemAnimStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value + floatY.value },
+      { translateX: itemX.value - ITEM_START_X + dragX.value },
+      { translateY: itemY.value + dragY.value },
       { scale: itemScale.value },
       { rotate: `${itemRotation.value}deg` },
     ],
@@ -341,23 +439,35 @@ export default function GameScreen() {
   }));
 
   const restart = () => {
-    setRound(1); setScore(0); setTimeLeft(TIME_LIMIT);
-    setCombo(0); setEarnedXP(0); setFeedback(null);
-    setShowFact(null); setFinished(false); setActiveBin(-1);
-    setCurrentItem(getRandomItem()); resetItem();
+    setRound(1);
+    setScore(0);
+    setTimeLeft(TIME_LIMIT);
+    setCombo(0);
+    setEarnedXP(0);
+    setFeedback(null);
+    setShowFact(null);
+    setFinished(false);
+    setIsThrowing(false);
+    setStreakUpdated(false);
+    setCurrentItem(getRandomItem());
+    resetItemPosition();
     progressWidth.value = withTiming(0, { duration: 200 });
   };
 
-  const modeLabel = mode === "zeit" ? "⏱️ ZEIT" : mode === "endlos" ? "♾️ ENDLOS" : "🔢 RUNDEN";
+  const modeLabel =
+    mode === "zeit" ? "⏱️ ZEIT" : mode === "endlos" ? "♾️ ENDLOS" : "🔢 RUNDEN";
 
-  // ── End Screen ────────────────────────────────────────────────────
   if (finished) {
     return (
       <View style={styles.container}>
-        <Animated.View entering={ZoomIn.duration(400)} style={styles.endContent}>
+        <Animated.View
+          entering={ZoomIn.duration(400)}
+          style={styles.endContent}
+        >
           <Text style={styles.endEmoji}>🏆</Text>
           <Text style={styles.endTitle}>{score} Punkte</Text>
           <Text style={styles.endXP}>+{earnedXP} XP verdient</Text>
+
           {isNewHighscore ? (
             <Animated.Text entering={ZoomIn.delay(300)} style={styles.newHS}>
               🎉 Neuer Highscore!
@@ -365,10 +475,19 @@ export default function GameScreen() {
           ) : (
             <Text style={styles.oldHS}>Highscore: {highscore}</Text>
           )}
-          <TouchableOpacity style={styles.playAgain} onPress={restart} activeOpacity={0.85}>
+
+          <TouchableOpacity
+            style={styles.playAgain}
+            onPress={restart}
+            activeOpacity={0.85}
+          >
             <Text style={styles.playAgainText}>🔄 Nochmal</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.push("/(tabs)")}>
+
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.push("/(tabs)")}
+          >
             <Text style={styles.backBtnText}>Zurück</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -376,13 +495,13 @@ export default function GameScreen() {
     );
   }
 
-  // ── Game Screen ───────────────────────────────────────────────────
   return (
     <GestureHandlerRootView style={styles.container}>
-      {/* BG Flash overlay */}
-      <Animated.View style={[styles.flashOverlay, bgFlashStyle]} pointerEvents="none" />
+      <Animated.View
+        style={[styles.flashOverlay, bgFlashStyle]}
+        pointerEvents="none"
+      />
 
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.modeTag}>{modeLabel}</Text>
@@ -391,24 +510,31 @@ export default function GameScreen() {
           </View>
         </View>
 
-        {/* Progress Bar */}
         {mode === "runden" && (
           <View style={styles.progressBar}>
             <Animated.View style={[styles.progressFill, progressStyle]} />
-            <Text style={styles.progressLabel}>{round}/{ROUND_COUNT}</Text>
+            <Text style={styles.progressLabel}>
+              {round}/{ROUND_COUNT}
+            </Text>
           </View>
         )}
+
         {mode === "zeit" && (
           <View style={styles.timerBar}>
-            <View style={[styles.timerFill, { width: `${(timeLeft / TIME_LIMIT) * 100}%` }]} />
+            <View
+              style={[
+                styles.timerFill,
+                { width: `${(timeLeft / TIME_LIMIT) * 100}%` },
+              ]}
+            />
             <Text style={styles.timerLabel}>{timeLeft}s</Text>
           </View>
         )}
+
         {mode === "endlos" && (
           <Text style={styles.roundLabel}>Runde {round}</Text>
         )}
 
-        {/* Combo */}
         {combo >= 3 && (
           <Animated.View entering={ZoomIn} style={styles.comboBadge}>
             <Text style={styles.comboText}>🔥 {combo}× Combo!</Text>
@@ -416,9 +542,81 @@ export default function GameScreen() {
         )}
       </View>
 
-      {/* Draggable Item */}
-      <View style={[styles.itemZone, { top: ITEM_CENTER_Y - 10, left: ITEM_CENTER_X }]}>
-        <GestureDetector gesture={dragGesture}>
+      {/* Mülltonnen-Reihe: echte Tonnen-Optik in Kategoriefarbe */}
+      <View style={styles.binsRow}>
+        {BINS.map((bin, index) => {
+          const isAimed = aimIndex === index;
+          return (
+            <View
+              key={bin.category}
+              style={[
+                styles.binCard,
+                {
+                  width: BIN_SIZE,
+                  height: BIN_SIZE,
+                  backgroundColor: bin.color,
+                  borderColor: isAimed ? "#FFFFFF" : bin.colorLight,
+                  borderWidth: isAimed ? 3 : 2,
+                  transform: [{ scale: isAimed ? 1.08 : 1 }],
+                },
+              ]}
+            >
+              <Text style={styles.binIcon}>🗑️</Text>
+              <Text style={styles.binLabel} numberOfLines={1}>
+                {bin.label}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+
+      {feedback === "correct" && (
+        <Animated.View
+          entering={FadeIn.duration(150)}
+          exiting={FadeOut}
+          style={styles.feedbackBox}
+        >
+          <Text style={styles.feedbackGood}>✅ Richtig!</Text>
+        </Animated.View>
+      )}
+
+      {feedback === "wrong" && (
+        <Animated.View
+          entering={FadeIn.duration(150)}
+          exiting={FadeOut}
+          style={styles.feedbackBox}
+        >
+          <Text style={styles.feedbackBad}>❌ → {currentItem.category}</Text>
+        </Animated.View>
+      )}
+
+      {showFact && (
+        <Animated.View entering={SlideInUp.delay(200)} style={styles.factBox}>
+          <Text style={styles.factText}>💡 {showFact}</Text>
+        </Animated.View>
+      )}
+
+      {particles.map((particle) => (
+        <Animated.Text
+          key={particle.id}
+          entering={ZoomIn.duration(200)}
+          exiting={FadeOut.duration(500)}
+          style={[styles.particle, { left: particle.x, top: particle.y }]}
+        >
+          {particle.emoji}
+        </Animated.Text>
+      ))}
+
+      {!feedback && !isThrowing && round <= 2 && (
+        <View style={styles.hintBox}>
+          <Text style={styles.hintText}>⬆️ Wische nach oben, um zu werfen</Text>
+        </View>
+      )}
+
+      <View
+        style={[styles.itemZone, { top: ITEM_START_Y, left: ITEM_START_X }]}
+      >
+        <GestureDetector gesture={throwGesture}>
           <Animated.View style={[styles.itemCard, itemAnimStyle]}>
             <Text style={styles.itemEmoji}>{currentItem.emoji}</Text>
             <Text style={styles.itemName}>{currentItem.name}</Text>
@@ -426,82 +624,11 @@ export default function GameScreen() {
         </GestureDetector>
       </View>
 
-      {/* Feedback */}
-      {feedback === "correct" && (
-        <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut} style={styles.feedbackBox}>
-          <Text style={styles.feedbackGood}>✅ Richtig!</Text>
-        </Animated.View>
-      )}
-      {feedback === "wrong" && (
-        <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut} style={styles.feedbackBox}>
-          <Text style={styles.feedbackBad}>❌ → {currentItem.category}</Text>
-        </Animated.View>
-      )}
-      {showFact && (
-        <Animated.View entering={SlideInUp.delay(200)} style={styles.factBox}>
-          <Text style={styles.factText}>💡 {showFact}</Text>
-        </Animated.View>
-      )}
-
-      {/* Particles */}
-      {particles.map((p) => (
-        <Animated.Text
-          key={p.id}
-          entering={ZoomIn.duration(200)}
-          exiting={FadeOut.duration(500)}
-          style={[styles.particle, { left: p.x, top: p.y }]}
-        >
-          {p.emoji}
-        </Animated.Text>
-      ))}
-
-      {/* Instruction */}
-      {!feedback && combo < 1 && round <= 2 && (
-        <View style={styles.hintBox}>
-          <Text style={styles.hintText}>⬇️ Ziehe in die richtige Tonne</Text>
-        </View>
-      )}
-
-      {/* Bins */}
-      {BINS.map((bin, i) => {
-        const pos = getBinPosition(i);
-        const isActive = activeBin === i;
-
-        const binStyle = useAnimatedStyle(() => ({
-          transform: [{ scale: binScales[i].value }],
-          shadowOpacity: binGlows[i].value * 0.8,
-          shadowRadius: binGlows[i].value * 20,
-        }));
-
-        return (
-          <Animated.View
-            key={bin.category}
-            style={[
-              styles.bin,
-              {
-                position: "absolute",
-                left: pos.x,
-                top: pos.y,
-                width: BIN_W,
-                height: BIN_H,
-                backgroundColor: isActive ? bin.colorLight : bin.color,
-                borderColor: isActive ? "#FFFFFF" : bin.colorLight,
-                borderWidth: isActive ? 3 : 1.5,
-                shadowColor: bin.colorLight,
-              },
-              binStyle,
-            ]}
-          >
-            <Text style={styles.binIcon}>{bin.binEmoji}</Text>
-            <Text style={styles.binLabel}>{bin.label}</Text>
-            {isActive && <View style={[styles.binGlow, { backgroundColor: bin.glow }]} />}
-          </Animated.View>
-        );
-      })}
-
-      {/* Endlos: Beenden */}
       {mode === "endlos" && (
-        <TouchableOpacity style={styles.endBtn} onPress={() => setFinished(true)}>
+        <TouchableOpacity
+          style={styles.endBtn}
+          onPress={() => setFinished(true)}
+        >
           <Text style={styles.endBtnText}>Beenden</Text>
         </TouchableOpacity>
       )}
@@ -510,18 +637,11 @@ export default function GameScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: AppColors.bg,
-  },
-  flashOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 50,
-  },
-  // Header
+  container: { flex: 1, backgroundColor: AppColors.bg },
+  flashOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 50 },
   header: {
     paddingTop: 55,
-    paddingHorizontal: BIN_PADDING,
+    paddingHorizontal: 16,
     alignItems: "center",
     zIndex: 5,
   },
@@ -549,12 +669,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: Radius.pill,
   },
-  scoreText: {
-    color: AppColors.green,
-    fontSize: 16,
-    fontWeight: "900",
-  },
-  // Progress
+  scoreText: { color: AppColors.green, fontSize: 16, fontWeight: "900" },
   progressBar: {
     width: "100%",
     height: 24,
@@ -606,7 +721,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
   },
-  // Combo
   comboBadge: {
     marginTop: 6,
     backgroundColor: "#FF6D0044",
@@ -616,23 +730,49 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: AppColors.orange,
   },
-  comboText: {
-    color: AppColors.orange,
-    fontSize: 15,
-    fontWeight: "900",
-  },
-  // Item
-  itemZone: {
+  comboText: { color: AppColors.orange, fontSize: 15, fontWeight: "900" },
+
+  binsRow: {
     position: "absolute",
-    zIndex: 20,
+    top: BIN_TOP_Y,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: BIN_GAP,
+    zIndex: 5,
   },
+  binCard: {
+    borderRadius: 18,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  binIcon: { fontSize: 30 },
+  binLabel: {
+    color: "#FFF",
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.3,
+    paddingHorizontal: 2,
+    textShadowColor: "rgba(0,0,0,0.5)",
+    textShadowRadius: 3,
+  },
+
+  itemZone: { position: "absolute", zIndex: 20 },
   itemCard: {
     backgroundColor: AppColors.card,
     borderRadius: 24,
     paddingVertical: 24,
     paddingHorizontal: 20,
     alignItems: "center",
-    width: 140,
+    width: 120,
     borderWidth: 1.5,
     borderColor: AppColors.cardBorder,
     shadowColor: "#000",
@@ -641,18 +781,18 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 12,
   },
-  itemEmoji: { fontSize: 52, marginBottom: 8 },
+  itemEmoji: { fontSize: 48, marginBottom: 8 },
   itemName: {
     color: "#FFF",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "700",
     textAlign: "center",
-    lineHeight: 17,
+    lineHeight: 16,
   },
-  // Feedback
+
   feedbackBox: {
     position: "absolute",
-    top: 150,
+    top: 260,
     alignSelf: "center",
     zIndex: 30,
   },
@@ -682,7 +822,7 @@ const styles = StyleSheet.create({
   },
   factBox: {
     position: "absolute",
-    top: 195,
+    top: 305,
     left: 24,
     right: 24,
     alignItems: "center",
@@ -704,48 +844,13 @@ const styles = StyleSheet.create({
   },
   hintBox: {
     position: "absolute",
-    top: 155,
+    top: BIN_TOP_Y + BIN_SIZE + 20,
     alignSelf: "center",
     zIndex: 5,
   },
-  hintText: {
-    color: AppColors.textMuted,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  // Particles
-  particle: {
-    position: "absolute",
-    fontSize: 22,
-    zIndex: 40,
-  },
-  // Bins
-  bin: {
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  binIcon: { fontSize: 28 },
-  binLabel: {
-    color: "#FFF",
-    fontSize: 11,
-    fontWeight: "900",
-    letterSpacing: 0.5,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowRadius: 4,
-    textShadowOffset: { width: 0, height: 1 },
-  },
-  binGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 16,
-    opacity: 0.4,
-  },
-  // End
+  hintText: { color: AppColors.textMuted, fontSize: 13, fontWeight: "600" },
+  particle: { position: "absolute", fontSize: 22, zIndex: 40 },
+
   endBtn: {
     position: "absolute",
     bottom: 30,
@@ -758,12 +863,27 @@ const styles = StyleSheet.create({
     borderColor: AppColors.red,
   },
   endBtnText: { color: AppColors.red, fontWeight: "700", fontSize: 14 },
-  // End Screen
-  endContent: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
+
+  endContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+  },
   endEmoji: { fontSize: 80, marginBottom: 12 },
   endTitle: { color: "#FFF", fontSize: 36, fontWeight: "900", marginBottom: 4 },
-  endXP: { color: AppColors.yellow, fontSize: 18, fontWeight: "700", marginBottom: 8 },
-  newHS: { color: AppColors.yellow, fontSize: 22, fontWeight: "900", marginBottom: 32 },
+  endXP: {
+    color: AppColors.yellow,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  newHS: {
+    color: AppColors.yellow,
+    fontSize: 22,
+    fontWeight: "900",
+    marginBottom: 32,
+  },
   oldHS: { color: AppColors.textMuted, fontSize: 16, marginBottom: 32 },
   playAgain: {
     backgroundColor: AppColors.green,
@@ -781,5 +901,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: AppColors.cardBorder,
   },
-  backBtnText: { color: AppColors.textSecondary, fontSize: 16, fontWeight: "700" },
+  backBtnText: {
+    color: AppColors.textSecondary,
+    fontSize: 16,
+    fontWeight: "700",
+  },
 });
