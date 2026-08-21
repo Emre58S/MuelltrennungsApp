@@ -26,6 +26,7 @@ import {
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import Animated, {
+  Easing,
   FadeIn,
   FadeOut,
   SlideInUp,
@@ -44,24 +45,33 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const ROUND_COUNT = 10;
 const TIME_LIMIT = 60;
 
-// Größere Tonnen für bessere Treffergenauigkeit
-const BIN_TOP_Y = 105;
-const BIN_SIZE = Math.min(110, (SCREEN_W - 24) / BINS.length - 6);
-const BIN_GAP = (SCREEN_W - BINS.length * BIN_SIZE) / (BINS.length + 1);
+// ── Tonnen-Layout: größer + mehr Abstand für leichteres Treffen ──────
+const BIN_TOP_Y = 120;
+const BIN_COUNT = BINS.length;
+const BIN_W = Math.min(120, (SCREEN_W - 32) / BIN_COUNT + 4);
+const BIN_BODY_H = BIN_W * 1.05;
+const BIN_LID_H = 13;
+const BIN_TOTAL_H = BIN_LID_H + BIN_BODY_H + 14;
+const BIN_GAP = Math.max(8, (SCREEN_W - BIN_COUNT * BIN_W) / (BIN_COUNT + 1));
 
-const ITEM_START_X = SCREEN_W / 2 - 60;
-const ITEM_START_Y = SCREEN_H - 260;
+// Großzügige Trefferzone zusätzlich zur sichtbaren Tonnenbreite
+const AIM_TOLERANCE = BIN_W * 0.55;
+
+const ITEM_START_X = SCREEN_W / 2 - 50;
+const ITEM_START_Y = SCREEN_H - 250;
 const THROW_MIN_DISTANCE = 50;
-const FLIGHT_DURATION = 420;
-const VELOCITY_WEIGHT = 0.05; // schwächer gewichtet als vorher (0.15)
+const FLIGHT_DURATION = 620;
+const VELOCITY_WEIGHT = 0.05;
+const ARC_HEIGHT = 90;
 
 function getBinCenterX(index: number) {
-  return BIN_GAP + index * (BIN_SIZE + BIN_GAP) + BIN_SIZE / 2;
+  return BIN_GAP + index * (BIN_W + BIN_GAP) + BIN_W / 2;
 }
 
+// Findet die nächstgelegene Tonne, mit erweiterter Toleranzzone
 function computeTargetIndex(translationX: number, velocityX: number): number {
   const projectedX =
-    ITEM_START_X + 60 + translationX + velocityX * VELOCITY_WEIGHT;
+    ITEM_START_X + 50 + translationX + velocityX * VELOCITY_WEIGHT;
   const clampedX = Math.max(BIN_GAP, Math.min(SCREEN_W - BIN_GAP, projectedX));
 
   let closestIndex = 0;
@@ -76,6 +86,75 @@ function computeTargetIndex(translationX: number, velocityX: number): number {
   }
 
   return closestIndex;
+}
+
+type BinVisualProps = {
+  color: string;
+  colorLight: string;
+  colorDark: string;
+  label: string;
+  isAimed: boolean;
+  width: number;
+};
+
+function BinVisual({
+  color,
+  colorLight,
+  colorDark,
+  label,
+  isAimed,
+  width,
+}: BinVisualProps) {
+  return (
+    <View style={[styles.binWrapper, { width }]}>
+      <View
+        style={[
+          styles.binGlowRing,
+          {
+            opacity: isAimed ? 1 : 0,
+            borderColor: colorLight,
+            width: width + 20,
+            height: BIN_TOTAL_H + 20,
+          },
+        ]}
+      />
+
+      <View
+        style={[
+          styles.binLid,
+          {
+            width: width * 0.92,
+            height: BIN_LID_H,
+            backgroundColor: colorDark,
+          },
+        ]}
+      />
+
+      <View
+        style={[
+          styles.binBody,
+          {
+            width,
+            height: BIN_BODY_H,
+            backgroundColor: color,
+            borderColor: colorDark,
+          },
+        ]}
+      >
+        <View style={[styles.binHighlight, { backgroundColor: colorLight }]} />
+        <Text style={styles.binLabel} numberOfLines={1}>
+          {label}
+        </Text>
+      </View>
+
+      <View
+        style={[
+          styles.binBase,
+          { width: width * 0.7, backgroundColor: colorDark },
+        ]}
+      />
+    </View>
+  );
 }
 
 export default function GameScreen() {
@@ -117,7 +196,8 @@ export default function GameScreen() {
 
   const itemX = useSharedValue(ITEM_START_X);
   const itemY = useSharedValue(0);
-  const itemScale = useSharedValue(1);
+  const itemScaleX = useSharedValue(1);
+  const itemScaleY = useSharedValue(1);
   const itemOpacity = useSharedValue(1);
   const itemRotation = useSharedValue(0);
   const dragX = useSharedValue(0);
@@ -162,7 +242,7 @@ export default function GameScreen() {
     const newParticles = Array.from({ length: 6 }, () => ({
       id: particleId.current++,
       x: x + (Math.random() - 0.5) * 90,
-      y: y + (Math.random() - 0.5) * 70,
+      y: y + (Math.random() - 0.5) * 60,
       emoji: emojis[Math.floor(Math.random() * emojis.length)],
     }));
 
@@ -182,11 +262,21 @@ export default function GameScreen() {
     dragY.value = 0;
     itemX.value = ITEM_START_X;
     itemY.value = 0;
-    itemScale.value = withSpring(1);
+    itemScaleX.value = withSpring(1);
+    itemScaleY.value = withSpring(1);
     itemOpacity.value = withTiming(1, { duration: 200 });
     itemRotation.value = withSpring(0);
     setAimIndex(-1);
-  }, [dragX, dragY, itemX, itemY, itemScale, itemOpacity, itemRotation]);
+  }, [
+    dragX,
+    dragY,
+    itemX,
+    itemY,
+    itemScaleX,
+    itemScaleY,
+    itemOpacity,
+    itemRotation,
+  ]);
 
   const nextRound = useCallback(() => {
     if (mode === "runden" && round >= ROUND_COUNT) {
@@ -260,7 +350,7 @@ export default function GameScreen() {
             withTiming(0, { duration: 300 }),
           );
 
-          spawnParticles(binCenterX, BIN_TOP_Y + BIN_SIZE / 2);
+          spawnParticles(binCenterX, BIN_TOP_Y + BIN_TOTAL_H / 2);
 
           if (soundEnabled) {
             correctSound.seekTo(0);
@@ -322,18 +412,39 @@ export default function GameScreen() {
       setIsThrowing(true);
 
       const targetCenterX = getBinCenterX(targetBinIndex);
+      const targetY = -(ITEM_START_Y - BIN_TOP_Y - BIN_TOTAL_H / 2);
+      const peakY = targetY - ARC_HEIGHT;
 
-      itemX.value = withTiming(targetCenterX - 60, {
+      itemX.value = withTiming(targetCenterX - 50, {
         duration: FLIGHT_DURATION,
+        easing: Easing.out(Easing.quad),
       });
-      itemY.value = withTiming(-(ITEM_START_Y - BIN_TOP_Y - BIN_SIZE / 2), {
-        duration: FLIGHT_DURATION,
-      });
-      itemRotation.value = withTiming(360, { duration: FLIGHT_DURATION });
-      itemScale.value = withSequence(
-        withTiming(1.1, { duration: FLIGHT_DURATION * 0.4 }),
-        withTiming(0.7, { duration: FLIGHT_DURATION * 0.6 }),
+
+      itemY.value = withSequence(
+        withTiming(peakY, {
+          duration: FLIGHT_DURATION * 0.45,
+          easing: Easing.out(Easing.quad),
+        }),
+        withTiming(targetY, {
+          duration: FLIGHT_DURATION * 0.55,
+          easing: Easing.in(Easing.quad),
+        }),
       );
+
+      itemRotation.value = withTiming(420, {
+        duration: FLIGHT_DURATION,
+        easing: Easing.linear,
+      });
+
+      itemScaleY.value = withSequence(
+        withTiming(1, { duration: FLIGHT_DURATION * 0.85 }),
+        withTiming(0.6, { duration: FLIGHT_DURATION * 0.15 }),
+      );
+      itemScaleX.value = withSequence(
+        withTiming(1, { duration: FLIGHT_DURATION * 0.85 }),
+        withTiming(1.3, { duration: FLIGHT_DURATION * 0.15 }),
+      );
+
       dragX.value = withTiming(0, { duration: FLIGHT_DURATION });
       dragY.value = withTiming(0, { duration: FLIGHT_DURATION });
       itemOpacity.value = withTiming(0, { duration: FLIGHT_DURATION });
@@ -349,7 +460,8 @@ export default function GameScreen() {
       itemX,
       itemY,
       itemRotation,
-      itemScale,
+      itemScaleX,
+      itemScaleY,
       dragX,
       dragY,
       itemOpacity,
@@ -357,7 +469,6 @@ export default function GameScreen() {
     ],
   );
 
-  // Live-Zielvorschau während des Ziehens
   const updateAimPreview = useCallback(
     (translationX: number, translationY: number) => {
       if (-translationY > 20) {
@@ -419,7 +530,8 @@ export default function GameScreen() {
     transform: [
       { translateX: itemX.value - ITEM_START_X + dragX.value },
       { translateY: itemY.value + dragY.value },
-      { scale: itemScale.value },
+      { scaleX: itemScaleX.value },
+      { scaleY: itemScaleY.value },
       { rotate: `${itemRotation.value}deg` },
     ],
     opacity: itemOpacity.value,
@@ -542,32 +654,20 @@ export default function GameScreen() {
         )}
       </View>
 
-      {/* Mülltonnen-Reihe: echte Tonnen-Optik in Kategoriefarbe */}
-      <View style={styles.binsRow}>
-        {BINS.map((bin, index) => {
-          const isAimed = aimIndex === index;
-          return (
-            <View
-              key={bin.category}
-              style={[
-                styles.binCard,
-                {
-                  width: BIN_SIZE,
-                  height: BIN_SIZE,
-                  backgroundColor: bin.color,
-                  borderColor: isAimed ? "#FFFFFF" : bin.colorLight,
-                  borderWidth: isAimed ? 3 : 2,
-                  transform: [{ scale: isAimed ? 1.08 : 1 }],
-                },
-              ]}
-            >
-              <Text style={styles.binIcon}>🗑️</Text>
-              <Text style={styles.binLabel} numberOfLines={1}>
-                {bin.label}
-              </Text>
-            </View>
-          );
-        })}
+      <View style={[styles.shelf, { top: BIN_TOP_Y + BIN_TOTAL_H - 6 }]} />
+
+      <View style={[styles.binsRow, { top: BIN_TOP_Y, gap: BIN_GAP }]}>
+        {BINS.map((bin, index) => (
+          <BinVisual
+            key={bin.category}
+            color={bin.color}
+            colorLight={bin.colorLight}
+            colorDark={bin.color}
+            label={bin.label}
+            isAimed={aimIndex === index}
+            width={BIN_W}
+          />
+        ))}
       </View>
 
       {feedback === "correct" && (
@@ -613,11 +713,12 @@ export default function GameScreen() {
         </View>
       )}
 
+      {/* Item ohne Kasten – nur Emoji + Name freistehend */}
       <View
         style={[styles.itemZone, { top: ITEM_START_Y, left: ITEM_START_X }]}
       >
         <GestureDetector gesture={throwGesture}>
-          <Animated.View style={[styles.itemCard, itemAnimStyle]}>
+          <Animated.View style={[styles.itemFree, itemAnimStyle]}>
             <Text style={styles.itemEmoji}>{currentItem.emoji}</Text>
             <Text style={styles.itemName}>{currentItem.name}</Text>
           </Animated.View>
@@ -732,67 +833,99 @@ const styles = StyleSheet.create({
   },
   comboText: { color: AppColors.orange, fontSize: 15, fontWeight: "900" },
 
+  shelf: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#00000055",
+    zIndex: 3,
+  },
+
   binsRow: {
     position: "absolute",
-    top: BIN_TOP_Y,
     left: 0,
     right: 0,
     flexDirection: "row",
     justifyContent: "center",
-    gap: BIN_GAP,
     zIndex: 5,
   },
-  binCard: {
-    borderRadius: 18,
-    borderWidth: 2,
+  binWrapper: {
     alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
+  },
+  binGlowRing: {
+    position: "absolute",
+    top: -6,
+    borderRadius: 20,
+    borderWidth: 3,
+    zIndex: -1,
+  },
+  binLid: {
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+    zIndex: 2,
+  },
+  binBody: {
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingBottom: 8,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  binIcon: { fontSize: 30 },
+  binHighlight: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "35%",
+    height: "100%",
+    opacity: 0.25,
+  },
   binLabel: {
     color: "#FFF",
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "900",
     letterSpacing: 0.3,
-    paddingHorizontal: 2,
-    textShadowColor: "rgba(0,0,0,0.5)",
+    textShadowColor: "rgba(0,0,0,0.6)",
     textShadowRadius: 3,
+  },
+  binBase: {
+    height: 6,
+    borderRadius: 3,
+    marginTop: -2,
+    opacity: 0.8,
   },
 
   itemZone: { position: "absolute", zIndex: 20 },
-  itemCard: {
-    backgroundColor: AppColors.card,
-    borderRadius: 24,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+  // Kein Hintergrund, kein Rahmen, kein Schatten mehr – Item schwebt frei
+  itemFree: {
     alignItems: "center",
-    width: 120,
-    borderWidth: 1.5,
-    borderColor: AppColors.cardBorder,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    width: 110,
   },
-  itemEmoji: { fontSize: 48, marginBottom: 8 },
+  itemEmoji: { fontSize: 62, marginBottom: 4 },
   itemName: {
     color: "#FFF",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
     textAlign: "center",
-    lineHeight: 16,
+    lineHeight: 17,
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowRadius: 4,
+    textShadowOffset: { width: 0, height: 1 },
   },
 
   feedbackBox: {
     position: "absolute",
-    top: 260,
+    top: 280,
     alignSelf: "center",
     zIndex: 30,
   },
@@ -822,7 +955,7 @@ const styles = StyleSheet.create({
   },
   factBox: {
     position: "absolute",
-    top: 305,
+    top: 320,
     left: 24,
     right: 24,
     alignItems: "center",
@@ -844,7 +977,7 @@ const styles = StyleSheet.create({
   },
   hintBox: {
     position: "absolute",
-    top: BIN_TOP_Y + BIN_SIZE + 20,
+    top: BIN_TOP_Y + BIN_TOTAL_H + 24,
     alignSelf: "center",
     zIndex: 5,
   },
