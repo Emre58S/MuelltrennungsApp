@@ -1,98 +1,148 @@
-// Datei: app/tutorial.tsx — mit Sondermüll-Kategorie
+// Datei: app/tutorial.tsx
+
 import { router } from "expo-router";
-import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
 import { AppColors, FontSize, Radius, Spacing } from "@/constants/theme";
 
-type TutorialCategory = {
-  emoji: string;
-  name: string;
-  color: string;
-  description: string;
-  examples: string;
-};
-
-const CATEGORIES: TutorialCategory[] = [
-  {
-    emoji: "🟫",
-    name: "Biomüll",
-    color: "#8B5E34",
-    description: "Alle organischen, kompostierbaren Abfälle.",
-    examples: "Obst- & Gemüsereste, Kaffeesatz, Eierschalen, Laub, altes Brot",
-  },
-  {
-    emoji: "🔵",
-    name: "Papier",
-    color: "#3B82F6",
-    description: "Sauberes Papier, Pappe und Karton.",
-    examples: "Zeitungen, Kartons, Briefumschläge, Bücher, Eierkartons",
-  },
-  {
-    emoji: "🟡",
-    name: "Gelber Sack",
-    color: "#F5C518",
-    description: "Verpackungen aus Kunststoff, Metall oder Verbundstoffen.",
-    examples: "Joghurtbecher, Konservendosen, Getränkekartons, Plastikflaschen, Alufolie",
-  },
-  {
-    emoji: "🟢",
-    name: "Glas",
-    color: "#2ECC71",
-    description: "Leere Glasverpackungen, nach Farben sortiert.",
-    examples: "Weinflaschen, Marmeladengläser, Gurkengläser, Senfgläser",
-  },
-  {
-    emoji: "⚫",
-    name: "Restmüll",
-    color: "#4B5563",
-    description: "Alles, was nicht recycelt werden kann.",
-    examples: "Zigarettenkippen, kaputtes Geschirr, Windeln, Kassenzettel, Staubsaugerbeutel",
-  },
-  {
-    emoji: "🔴",
-    name: "Sondermüll",
-    color: "#EF4444",
-    description: "Gefährliche Stoffe, die separat entsorgt werden müssen.",
-    examples: "Batterien, alte Handys, Farbreste, Medikamente, Energiesparlampen",
-  },
-];
-
 export default function TutorialScreen() {
+  const startClassic = () => {
+    router.push({
+      pathname: "/(tabs)/explore",
+      params: { mode: "classic" },
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.logo}>📖</Text>
-        <Text style={styles.title}>Tutorial</Text>
-        <Text style={styles.subtitle}>So funktioniert die Mülltrennung</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.logo}>♻️</Text>
+          <Text style={styles.title}>So funktioniert's</Text>
+          <Text style={styles.subtitle}>
+            Sortiere den Müll in den richtigen Mülleimer.
+          </Text>
+        </View>
 
-        {CATEGORIES.map((cat) => (
-          <View key={cat.name} style={[styles.card, { borderLeftColor: cat.color }]}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardEmoji}>{cat.emoji}</Text>
-              <Text style={styles.cardName}>{cat.name}</Text>
-            </View>
-            <Text style={styles.cardDescription}>{cat.description}</Text>
-            <Text style={styles.cardExamples}>Beispiele: {cat.examples}</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardIcon}>🎯</Text>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Dein Ziel</Text>
+            <Text style={styles.cardText}>
+              Wirf jeden Gegenstand mit einer Wischbewegung nach oben in den
+              passenden Mülleimer.
+            </Text>
           </View>
-        ))}
+        </View>
 
-        <Text style={styles.hint}>
-          Im Spiel siehst du einen Gegenstand und musst die richtige Tonne
-          auswählen. Richtige Antworten geben 10 XP, und bei 3+ richtigen
-          hintereinander bekommst du einen Combo-Bonus! 🔥
-        </Text>
+        <Text style={styles.sectionTitle}>Die drei Kategorien</Text>
+
+        <View style={styles.categoryCard}>
+          <Text style={styles.categoryEmoji}>🟫</Text>
+          <View style={styles.categoryContent}>
+            <Text style={styles.categoryTitle}>Biomüll</Text>
+            <Text style={styles.categoryText}>
+              Zum Beispiel Bananenschalen, Kaffeesatz und Pflanzenreste.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.categoryCard}>
+          <Text style={styles.categoryEmoji}>🟡</Text>
+          <View style={styles.categoryContent}>
+            <Text style={styles.categoryTitle}>Gelber Sack</Text>
+            <Text style={styles.categoryText}>
+              Leere Verpackungen aus Kunststoff, Metall und Verbundmaterial.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.categoryCard}>
+          <Text style={styles.categoryEmoji}>⚫</Text>
+          <View style={styles.categoryContent}>
+            <Text style={styles.categoryTitle}>Restmüll</Text>
+            <Text style={styles.categoryText}>
+              Alles, was nicht in Biomüll oder Gelben Sack gehört.
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>Punkte & Combo</Text>
+
+        <View style={styles.card}>
+          <Text style={styles.cardIcon}>🔥</Text>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Combo aufbauen</Text>
+            <Text style={styles.cardText}>
+              Mehrere richtige Würfe hintereinander erhöhen deinen Multiplikator
+              und bringen deutlich mehr Punkte.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardIcon}>⭐</Text>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Perfekt treffen</Text>
+            <Text style={styles.cardText}>
+              Triff die Öffnung möglichst genau. Ein perfekter Treffer gibt dir
+              die meisten Punkte.
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>Weitere Spielmodi</Text>
+
+        <View style={styles.modeInfo}>
+          <Text style={styles.modeInfoTitle}>🌱 Leicht</Text>
+          <Text style={styles.modeInfoText}>Nur einfache Gegenstände.</Text>
+        </View>
+
+        <View style={styles.modeInfo}>
+          <Text style={styles.modeInfoTitle}>🔥 Schwer</Text>
+          <Text style={styles.modeInfoText}>
+            Schwierigere Gegenstände und weniger Zielhilfe.
+          </Text>
+        </View>
+
+        <View style={styles.modeInfo}>
+          <Text style={styles.modeInfoTitle}>⏱️ Zeitmodus</Text>
+          <Text style={styles.modeInfoText}>
+            60 Sekunden – schaffe so viele Punkte wie möglich.
+          </Text>
+        </View>
+
+        <View style={styles.tipBox}>
+          <Text style={styles.tipIcon}>💡</Text>
+          <Text style={styles.tipText}>
+            Tipp: Lieber kontrolliert werfen als hektisch wischen. Präzise
+            Treffer bauen schneller eine hohe Combo auf.
+          </Text>
+        </View>
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.startButton}
-        onPress={() => router.push({ pathname: "/(tabs)/explore", params: { mode: "runden" } })}
-      >
-        <Text style={styles.startButtonText}>🎮 Jetzt spielen</Text>
-      </TouchableOpacity>
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.playButton}
+          onPress={startClassic}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.playButtonText}>🎮 Jetzt spielen</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.back()}>
-        <Text style={styles.backText}>Zurück zum Menü</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8}>
+          <Text style={styles.backText}>Zurück zum Menü</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -101,47 +151,189 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: AppColors.bg,
-    paddingTop: 60,
+  },
+
+  scrollContent: {
     paddingHorizontal: Spacing.lg,
+    paddingTop: 55,
+    paddingBottom: 165,
   },
-  scrollContent: { alignItems: "center", paddingBottom: 20 },
-  logo: { fontSize: 48, marginBottom: Spacing.sm },
-  title: { fontSize: FontSize.title, fontWeight: "800", color: AppColors.textPrimary },
-  subtitle: { fontSize: FontSize.md, color: AppColors.textSecondary, marginTop: Spacing.xs, marginBottom: Spacing.lg },
-  card: {
-    width: "100%",
-    backgroundColor: AppColors.card,
-    borderRadius: Radius.lg,
-    borderLeftWidth: 5,
-    padding: Spacing.md,
-    marginBottom: Spacing.md - 2,
+
+  header: {
+    alignItems: "center",
+    marginBottom: 28,
   },
-  cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 6, gap: Spacing.sm },
-  cardEmoji: { fontSize: 20 },
-  cardName: { color: AppColors.textPrimary, fontSize: 17, fontWeight: "700" },
-  cardDescription: { color: AppColors.textSubtle, fontSize: FontSize.md, marginBottom: 6 },
-  cardExamples: { color: AppColors.textMuted, fontSize: FontSize.sm, fontStyle: "italic" },
-  hint: {
-    color: AppColors.textSecondary,
-    fontSize: FontSize.sm,
+
+  logo: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+
+  title: {
+    color: AppColors.textPrimary,
+    fontSize: FontSize.title,
+    fontWeight: "900",
     textAlign: "center",
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
+  },
+
+  subtitle: {
+    color: AppColors.textSecondary,
+    fontSize: FontSize.md,
+    textAlign: "center",
+    marginTop: 7,
     lineHeight: 20,
   },
-  startButton: {
+
+  sectionTitle: {
+    color: AppColors.textPrimary,
+    fontSize: FontSize.lg,
+    fontWeight: "900",
+    marginTop: 24,
+    marginBottom: 10,
+  },
+
+  card: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: AppColors.card,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: AppColors.cardBorder,
+    padding: 14,
+    marginBottom: 10,
+  },
+
+  cardIcon: {
+    fontSize: 25,
+    marginRight: 11,
+  },
+
+  cardContent: {
+    flex: 1,
+  },
+
+  cardTitle: {
+    color: AppColors.textPrimary,
+    fontSize: FontSize.md,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+
+  cardText: {
+    color: AppColors.textSecondary,
+    fontSize: FontSize.sm,
+    lineHeight: 19,
+  },
+
+  categoryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: AppColors.card,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: AppColors.cardBorder,
+    padding: 14,
+    marginBottom: 10,
+  },
+
+  categoryEmoji: {
+    fontSize: 26,
+    marginRight: 12,
+  },
+
+  categoryContent: {
+    flex: 1,
+  },
+
+  categoryTitle: {
+    color: AppColors.textPrimary,
+    fontSize: FontSize.md,
+    fontWeight: "900",
+    marginBottom: 3,
+  },
+
+  categoryText: {
+    color: AppColors.textSecondary,
+    fontSize: FontSize.sm,
+    lineHeight: 18,
+  },
+
+  modeInfo: {
+    backgroundColor: AppColors.card,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: AppColors.cardBorder,
+    padding: 14,
+    marginBottom: 10,
+  },
+
+  modeInfoTitle: {
+    color: AppColors.textPrimary,
+    fontSize: FontSize.md,
+    fontWeight: "900",
+    marginBottom: 3,
+  },
+
+  modeInfoText: {
+    color: AppColors.textSecondary,
+    fontSize: FontSize.sm,
+    lineHeight: 18,
+  },
+
+  tipBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: AppColors.card,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: AppColors.cardBorder,
+    padding: 14,
+    marginTop: 8,
+  },
+
+  tipIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+
+  tipText: {
+    flex: 1,
+    color: AppColors.textMuted,
+    fontSize: FontSize.sm,
+    lineHeight: 18,
+  },
+
+  footer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: AppColors.bg,
+    borderTopWidth: 1,
+    borderTopColor: AppColors.cardBorder,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 12,
+    paddingBottom: 24,
+  },
+
+  playButton: {
     backgroundColor: AppColors.green,
     borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
     alignItems: "center",
-    marginTop: Spacing.sm,
+    paddingVertical: 15,
+    marginBottom: 10,
   },
-  startButtonText: { color: AppColors.textPrimary, fontWeight: "700", fontSize: FontSize.lg },
+
+  playButtonText: {
+    color: AppColors.textPrimary,
+    fontSize: FontSize.lg,
+    fontWeight: "900",
+  },
+
   backText: {
     color: AppColors.textSecondary,
+    fontSize: FontSize.sm,
+    fontWeight: "700",
     textAlign: "center",
-    marginTop: Spacing.md,
-    marginBottom: 20,
-    fontSize: FontSize.md,
   },
 });
