@@ -6,12 +6,14 @@ export type Category =
   | "Glas"
   | "Sondermüll";
 
+export type MainGameCategory = "Restmüll" | "Biomüll" | "Gelber Sack";
+
 export type Item = {
   emoji: string;
   name: string;
   category: Category;
   difficulty: "leicht" | "mittel" | "schwer";
-  fact?: string; // Lern-Tipp der nach richtiger Antwort angezeigt wird
+  fact?: string;
 };
 
 export const ITEMS: Item[] = [
@@ -515,6 +517,7 @@ export const ITEMS: Item[] = [
 ];
 
 // ── Kategorie-Farben ────────────────────────────────────────────────
+
 export const CATEGORY_COLORS: Record<Category, string> = {
   Restmüll: "#4B5563",
   Biomüll: "#8B5E34",
@@ -542,14 +545,30 @@ export const ALL_CATEGORIES: Category[] = [
   "Sondermüll",
 ];
 
+// ── Hauptspiel ──────────────────────────────────────────────────────
+// Im 3D-Spiel verwenden wir aktuell nur:
+// Biomüll, Gelber Sack und Restmüll.
+
+export function getMainGameItems(): Item[] {
+  return ITEMS.filter(
+    (item) =>
+      item.category === "Biomüll" ||
+      item.category === "Gelber Sack" ||
+      item.category === "Restmüll",
+  );
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────
+
 export function getRandomItem(exclude?: Item): Item {
   let next = ITEMS[Math.floor(Math.random() * ITEMS.length)];
   let attempts = 0;
+
   while (exclude && next.name === exclude.name && attempts < 50) {
     next = ITEMS[Math.floor(Math.random() * ITEMS.length)];
     attempts++;
   }
+
   return next;
 }
 
@@ -564,12 +583,15 @@ export function getRandomItemByDifficulty(
   exclude?: Item,
 ): Item {
   const pool = getItemsByDifficulty(difficulty);
+
   let next = pool[Math.floor(Math.random() * pool.length)];
   let attempts = 0;
+
   while (exclude && next.name === exclude.name && attempts < 50) {
     next = pool[Math.floor(Math.random() * pool.length)];
     attempts++;
   }
+
   return next;
 }
 
@@ -578,11 +600,13 @@ export function getRoundOptions(
   count: number = 4,
 ): Category[] {
   const options = new Set<Category>([correct]);
+
   while (options.size < Math.min(count, ALL_CATEGORIES.length)) {
     options.add(
       ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)],
     );
   }
+
   return Array.from(options).sort(() => Math.random() - 0.5);
 }
 
@@ -596,7 +620,8 @@ export type BinData = {
   label: string;
 };
 
-// ── Mülltonnen (mit korrigierten Umlauten in den Kategorienamen) ──────
+// ── Mülltonnen ──────────────────────────────────────────────────────
+
 export const BINS: BinData[] = [
   {
     category: "Biomüll",

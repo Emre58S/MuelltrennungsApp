@@ -1,3 +1,4 @@
+// Datei: utils/storage.ts — erweitert um Level-Berechnung, Highscore-, Streak- und Wurf-Speicherung
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Storage Keys ──────────────────────────────────────────────────────
@@ -22,7 +23,7 @@ type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
 export async function getItem(key: StorageKey): Promise<string | null> {
   try {
     return await AsyncStorage.getItem(key);
-  } catch (error) {
+  } catch (error: unknown) {
     console.warn(`[Storage] Fehler beim Lesen von "${key}":`, error);
     return null;
   }
@@ -31,7 +32,7 @@ export async function getItem(key: StorageKey): Promise<string | null> {
 export async function setItem(key: StorageKey, value: string): Promise<void> {
   try {
     await AsyncStorage.setItem(key, value);
-  } catch (error) {
+  } catch (error: unknown) {
     console.warn(`[Storage] Fehler beim Schreiben von "${key}":`, error);
   }
 }
@@ -63,9 +64,18 @@ export async function setBoolean(
 export async function removeItems(keys: StorageKey[]): Promise<void> {
   try {
     await AsyncStorage.multiRemove(keys);
-  } catch (error) {
+  } catch (error: unknown) {
     console.warn(`[Storage] Fehler beim Löschen:`, error);
   }
+}
+
+// Schreibzugriffe laufen nacheinander, damit sich schnelle Würfe nicht überschreiben.
+let writeQueue: Promise<unknown> = Promise.resolve();
+
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+  const run = writeQueue.then(task);
+  writeQueue = run.catch(() => undefined);
+  return run;
 }
 
 // ── Highscore Helpers ─────────────────────────────────────────────────
@@ -89,6 +99,22 @@ export async function getBestHighscore(): Promise<number> {
   return Math.max(runden, zeit, endlos);
 }
 
+/** Speichert den Wert nur, wenn er besser ist. Gibt zurück, ob es ein neuer Bestwert war. */
+export function saveHighscore(
+  mode: "runden" | "zeit" | "endlos",
+  score: number,
+): Promise<boolean> {
+  return enqueue(async () => {
+    const key = getHighscoreKey(mode);
+    const current = await getNumber(key);
+    if (score > current) {
+      await setNumber(key, score);
+      return true;
+    }
+    return false;
+  });
+}
+
 // ── Streak Helpers ────────────────────────────────────────────────────
 export async function getStreakData(): Promise<{
   count: number;
@@ -101,11 +127,19 @@ export async function getStreakData(): Promise<{
   return { count, lastDate };
 }
 
+/** Streak für die Anzeige: 0, wenn weder heute noch gestern gespielt wurde. */
+export async function getActiveStreak(): Promise<number> {
+  const { count, lastDate } = await getStreakData();
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  return lastDate === today || lastDate === yesterday ? count : 0;
+}
+
 export async function updateStreak(): Promise<{
   newCount: number;
   isNewDay: boolean;
 }> {
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split("T")[0];
   const { count, lastDate } = await getStreakData();
 
   if (lastDate === today) {
@@ -123,30 +157,67 @@ export async function updateStreak(): Promise<{
   return { newCount, isNewDay: true };
 }
 
-// ── XP Helpers ────────────────────────────────────────────────────────
+// ── XP / Level Helpers ────────────────────────────────────────────────
+
+/** XP, die für den Aufstieg von `level` auf `level + 1` nötig sind. */
 export function getXPForLevel(level: number): number {
   return Math.floor(100 * Math.pow(1.3, level - 1));
+}
+
+/** Gesamt-XP, ab der `level` beginnt (Level 1 beginnt bei 0). */
+export function getXPToReachLevel(level: number): number {
+  let total = 0;
+  for (let l = 1; l < level; l++) total += getXPForLevel(l);
+  return total;
+}
+
+export function getLevelFromXP(totalXP: number): number {
+  let xp = Math.max(totalXP, 0);
+  let level = 1;
+  let needed = getXPForLevel(level);
+
+  while (xp >= needed && level < 999) {
+    xp -= needed;
+    level++;
+    needed = getXPForLevel(level);
+  }
+
+  return level;
+}
+
+/** Alles, was die Startseite für die Fortschrittsanzeige braucht. */
+export function getLevelProgress(totalXP: number) {
+  const level = getLevelFromXP(totalXP);
+  const levelStartXP = getXPToReachLevel(level);
+  const range = getXPForLevel(level);
+  const nextLevelXP = levelStartXP + range;
+  const xpIntoLevel = Math.max(totalXP - levelStartXP, 0);
+
+  return {
+    level,
+    levelStartXP,
+    nextLevelXP,
+    xpIntoLevel,
+    progress: Math.min(xpIntoLevel / Math.max(range, 1), 1),
+    xpRemaining: Math.max(nextLevelXP - totalXP, 0),
+  };
 }
 
 export async function addXP(
   amount: number,
 ): Promise<{ totalXP: number; level: number; leveledUp: boolean }> {
   const currentXP = await getNumber(StorageKeys.TOTAL_XP);
-  const currentLevel = await getNumber(StorageKeys.LEVEL);
-  const level = currentLevel || 1;
+  const oldLevel = getLevelFromXP(currentXP);
 
-  const newXP = currentXP + amount;
-  await setNumber(StorageKeys.TOTAL_XP, newXP);
+  const newXP = currentXP + Math.max(0, Math.round(amount));
+  const level = getLevelFromXP(newXP);
 
-  // Check Level-Up
-  const xpNeeded = getXPForLevel(level);
-  if (newXP >= xpNeeded) {
-    const newLevel = level + 1;
-    await setNumber(StorageKeys.LEVEL, newLevel);
-    return { totalXP: newXP, level: newLevel, leveledUp: true };
-  }
+  await Promise.all([
+    setNumber(StorageKeys.TOTAL_XP, newXP),
+    setNumber(StorageKeys.LEVEL, level),
+  ]);
 
-  return { totalXP: newXP, level, leveledUp: false };
+  return { totalXP: newXP, level, leveledUp: level > oldLevel };
 }
 
 export function getLevelTitle(level: number): string {
@@ -156,4 +227,30 @@ export function getLevelTitle(level: number): string {
   if (level >= 10) return "📦 Sortier-Profi";
   if (level >= 5) return "🌱 Müll-Kenner";
   return "🔰 Müll-Anfänger";
+}
+
+// ── Ergebnis eines Wurfs speichern ────────────────────────────────────
+
+/**
+ * Wird nach jedem Wurf aufgerufen: Streak aktualisieren, Statistik zählen, XP vergeben.
+ */
+export function recordThrow(params: {
+  correct: boolean;
+  xp: number;
+}): Promise<{ totalXP: number; level: number; leveledUp: boolean }> {
+  return enqueue(async () => {
+    await updateStreak();
+
+    const [played, correct] = await Promise.all([
+      getNumber(StorageKeys.TOTAL_PLAYED),
+      getNumber(StorageKeys.TOTAL_CORRECT),
+    ]);
+
+    await Promise.all([
+      setNumber(StorageKeys.TOTAL_PLAYED, played + 1),
+      setNumber(StorageKeys.TOTAL_CORRECT, correct + (params.correct ? 1 : 0)),
+    ]);
+
+    return addXP(params.xp);
+  });
 }

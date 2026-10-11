@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 
 // ── Zentrale Farbpalette ──────────────────────────────────────────────
+
 export const AppColors = {
   // Hintergründe
   bg: "#0B1120",
@@ -33,6 +34,7 @@ export const AppColors = {
 } as const;
 
 // ── Spacing ───────────────────────────────────────────────────────────
+
 export const Spacing = {
   xs: 4,
   sm: 8,
@@ -43,6 +45,7 @@ export const Spacing = {
 } as const;
 
 // ── Border Radius ─────────────────────────────────────────────────────
+
 export const Radius = {
   sm: 8,
   md: 12,
@@ -53,6 +56,7 @@ export const Radius = {
 } as const;
 
 // ── Font Sizes ────────────────────────────────────────────────────────
+
 export const FontSize = {
   xs: 12,
   sm: 13,
@@ -65,7 +69,8 @@ export const FontSize = {
   hero: 32,
 } as const;
 
-// ── Alte Colors-Struktur (Kompatibilität mit Tab-Layout) ──────────────
+// ── Alte Colors-Struktur (Kompatibilität mit bestehenden Komponenten) ─
+
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
 
