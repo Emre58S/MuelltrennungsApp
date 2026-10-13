@@ -63,11 +63,15 @@ export const PreviewItem = memo(function PreviewItem({
     );
   });
 
-  return (
-    <group ref={ref} position={position} scale={0.001}>
-      <TrashObject3D item={item} />
-    </group>
-  );
+ return (
+  <group
+    ref={ref}
+    position={[position.x, position.y, position.z]}
+    scale={0.001}
+  >
+    <TrashObject3D item={item} />
+  </group>
+);
 });
 
 /* ── Flugbahn-Vorschau ─────────────────────────────────────── */
@@ -281,18 +285,23 @@ export function ThrownItem({
   });
 
   return (
-    <>
-      <instancedMesh
-        ref={trailRef}
-        args={[undefined, undefined, TRAIL]}
-        material={trailMat}
-        frustumCulled={false}
-      >
-        <sphereGeometry args={[1, 8, 6]} />
-      </instancedMesh>
-      <group ref={ref} position={start} scale={startScale}>
-        <TrashObject3D item={item} />
-      </group>
-    </>
-  );
+  <>
+    <instancedMesh
+      ref={trailRef}
+      args={[undefined, undefined, TRAIL]}
+      material={trailMat}
+      frustumCulled={false}
+    >
+      <sphereGeometry args={[1, 8, 6]} />
+    </instancedMesh>
+
+    <group
+      ref={ref}
+      position={[start.x, start.y, start.z]}
+      scale={startScale}
+    >
+      <TrashObject3D item={item} />
+    </group>
+  </>
+);
 }
