@@ -1,7 +1,4 @@
 // Datei: app/modi.tsx — Design v2
-//
-// Drei große, klar unterscheidbare Karten. „Üben“ steht oben und ist
-// empfohlen: erst ohne Druck lernen, dann steigern.
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -16,13 +13,14 @@ import { type GameMode, MODES, startGame } from "@/constants/modes";
 import { Radius, Spacing, type ThemeColors } from "@/constants/theme";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 
-/** Akzent pro Modus – aus dem Theme, damit hell/dunkel stimmen. */
 function modeColors(mode: GameMode, c: ThemeColors) {
   switch (mode) {
     case "endless":
       return { bg: c.primarySoft, fg: c.onPrimarySoft };
+
     case "survival":
       return { bg: c.infoSoft, fg: c.info };
+
     case "time":
       return { bg: c.goldSoft, fg: c.onGoldSoft };
   }
@@ -32,6 +30,14 @@ export default function ModiScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { t } = useI18n();
+
+  function handleBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/");
+    }
+  }
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
@@ -50,13 +56,17 @@ export default function ModiScreen() {
             <IconButton
               icon="chevron-left"
               label={t("common.back")}
-              onPress={() => router.back()}
+              onPress={handleBack}
             />
+
             <View style={styles.flex}>
               <AppText variant="title" accessibilityRole="header">
                 {t("modes.title")}
               </AppText>
-              <AppText tone="textSecondary">{t("modes.subtitle")}</AppText>
+
+              <AppText tone="textSecondary">
+                {t("modes.subtitle")}
+              </AppText>
             </View>
           </View>
         </FadeIn>
@@ -93,22 +103,29 @@ export default function ModiScreen() {
                       </AppText>
                     </View>
                   )}
+
                   <AppText variant="heading">{title}</AppText>
                   <AppText tone="textSecondary">{desc}</AppText>
                 </View>
 
-                <Feather name="chevron-right" size={24} color={colors.textMuted} />
+                <Feather
+                  name="chevron-right"
+                  size={24}
+                  color={colors.textMuted}
+                />
               </Card>
             </FadeIn>
           );
         })}
 
-        {/* Steuerung */}
         <FadeIn delay={260}>
-          <Card style={[styles.hintCard, { backgroundColor: colors.surfaceAlt }]}>
+          <Card
+            style={[styles.hintCard, { backgroundColor: colors.surfaceAlt }]}
+          >
             <AppText variant="overline" tone="textMuted">
               {t("modes.howTo").toUpperCase()}
             </AppText>
+
             <HintRow icon="arrow-up" text={t("modes.swipeUp")} />
             <HintRow icon="target" text={t("modes.swipeLeft")} />
           </Card>
@@ -126,20 +143,31 @@ function HintRow({
   text: string;
 }) {
   const { colors } = useAppTheme();
+
   return (
     <View style={styles.hintRow}>
       <View style={[styles.hintIcon, { backgroundColor: colors.surface }]}>
         <Feather name={icon} size={20} color={colors.text} />
       </View>
+
       <AppText style={styles.flex}>{text}</AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.md },
-  flex: { flex: 1 },
+  screen: {
+    flex: 1,
+  },
+
+  content: {
+    paddingHorizontal: Spacing.md + 4,
+    gap: Spacing.md,
+  },
+
+  flex: {
+    flex: 1,
+  },
 
   header: {
     flexDirection: "row",
@@ -154,6 +182,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingVertical: Spacing.lg,
   },
+
   modeIcon: {
     width: 60,
     height: 60,
@@ -161,6 +190,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   badge: {
     alignSelf: "flex-start",
     paddingHorizontal: Spacing.sm,
@@ -169,8 +199,18 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
 
-  hintCard: { gap: Spacing.md, borderWidth: 0, marginTop: Spacing.sm },
-  hintRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  hintCard: {
+    gap: Spacing.md,
+    borderWidth: 0,
+    marginTop: Spacing.sm,
+  },
+
+  hintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+
   hintIcon: {
     width: 40,
     height: 40,
