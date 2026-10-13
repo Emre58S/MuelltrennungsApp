@@ -175,18 +175,19 @@ export const Environment = memo(function Environment({
 }) {
   const p = PALETTE[scheme];
   const skyBase = useMemo(() => new THREE.Color(p.sky), [p.sky]);
-  const sky = useMemo(() => new THREE.Color(p.sky), [p.sky]);
+  const skyRef = useRef<THREE.Color>(null);
   const feverAmount = useRef(0);
 
   useFrame((state, delta) => {
     feverAmount.current = THREE.MathUtils.damp(feverAmount.current, fever ? 1 : 0, 3, delta);
     const pulse = calm ? 0.5 : 0.5 + Math.sin(state.clock.elapsedTime * 5) * 0.5;
-    sky.copy(skyBase).lerp(FEVER_SKY, feverAmount.current * (0.35 + pulse * 0.25));
+    skyRef.current?.copy(skyBase).lerp(FEVER_SKY, feverAmount.current * (0.35 + pulse * 0.25));
   });
 
   return (
     <>
-      <primitive object={sky} attach="background" />
+      {/* Bewährt aus der alten Version: <color attach="background"> */}
+      <color ref={skyRef} attach="background" args={[p.sky]} />
       <ambientLight intensity={p.ambient} />
       <hemisphereLight args={[p.hemiSky, p.hemiGround, 0.6]} />
       <directionalLight

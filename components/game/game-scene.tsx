@@ -12,6 +12,8 @@ import { BIN_OPENING_Y, type GameLayout } from "@/game/layout";
 
 import { type Burst, Effects } from "./effects";
 import { Environment } from "./environment";
+import { devLog } from "@/utils/dev-error-reporter";
+
 import { type FxRef, stepFx } from "./fx";
 import { AimGuide, PreviewItem, ThrownItem } from "./items";
 import { type BinEvent, TrashBin } from "./trash-bin";
@@ -31,11 +33,16 @@ const END_SCALE = 0.5;
 function CameraRig({ layout, fx, calm }: { layout: GameLayout; fx: FxRef; calm: boolean }) {
   const rig = useRef({
     intro: calm ? 1 : 0,
+    logged: false,
     look: layout.camera.target.clone(),
     pos: layout.camera.position.clone().add(new THREE.Vector3(0, 1.6, 3.5)),
   });
 
   useFrame((state, rawDelta) => {
+    if (!rig.current.logged) {
+      rig.current.logged = true;
+      devLog("FRAME", "erstes Bild", JSON.stringify(layout.camera.position), JSON.stringify(layout.camera.target));
+    }
     const delta = Math.min(rawDelta, 0.05);
     const offset = stepFx(fx.current, delta, state.clock.elapsedTime);
 

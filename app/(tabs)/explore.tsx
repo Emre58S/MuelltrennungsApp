@@ -20,7 +20,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -48,6 +48,7 @@ import {
 import { type BinEvent } from "@/components/game/trash-bin";
 import { IconButton } from "@/components/ui/icon-button";
 import { type Item } from "@/constants/items";
+import { devLog } from "@/utils/dev-error-reporter";
 import { type GameMode } from "@/constants/modes";
 import { Spacing } from "@/constants/theme";
 import {
@@ -173,10 +174,12 @@ function GameRound({
   const pool = useMemo(() => getItemsForBins(bins), [bins]);
   const [bag] = useState(() => ({ current: [] as Item[] }));
 
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  // Bildschirmgröße direkt nehmen statt messen: onLayout lieferte auf iOS
+  // während des Screen-Übergangs falsche Maße (z. B. 1003×278) → Kamera zu nah.
+  const { width: screenW, height: screenH } = useWindowDimensions();
   const layout = useMemo(
-    () => computeLayout(size.w || 1, size.h || 1, bins.length),
-    [size, bins.length],
+    () => computeLayout(screenW, screenH, bins.length),
+    [screenW, screenH, bins.length],
   );
 
   /* ── Spielzustand ──────────────────────────────────────── */
@@ -499,7 +502,7 @@ function GameRound({
 
   /* ── Darstellung ───────────────────────────────────────── */
 
-  const ready = size.w > 0;
+  const ready = screenW > 0 && screenH > 0;
   const praiseTop = (layout.binRects[0]?.y ?? 200) - 80;
   const endTitle =
     mode === "time" ? t("game.end.timeUp") : t("game.end.over");
@@ -507,14 +510,17 @@ function GameRound({
 
   return (
     <GestureDetector gesture={gesture}>
-      <View
-        style={styles.root}
-        onLayout={(e) =>
-          setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })
-        }
-      >
+      <View style={[styles.root, { width: screenW, height: screenH }]}>
         {ready && (
-          <Canvas shadows camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }} gl={{ antialias: true }}>
+          <Canvas
+            style={{ position: "absolute", left: 0, top: 0, width: screenW, height: screenH }}
+            shadows
+            camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
+            gl={{ antialias: true }}
+            onCreated={(s) =>
+              devLog("CANVAS", "erstellt", s.size.width, s.size.height, "screen", screenW, screenH)
+            }
+          >
             <GameScene
               layout={layout}
               bins={bins}

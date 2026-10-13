@@ -15,7 +15,9 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { AppSettingsProvider, useAppSettings } from "@/providers/app-settings";
+import { installDevErrorReporter } from "@/utils/dev-error-reporter";
 
+installDevErrorReporter();
 SplashScreen.preventAutoHideAsync();
 
 function RootStack({ fontsDone }: { fontsDone: boolean }) {
