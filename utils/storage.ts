@@ -15,6 +15,10 @@ export const StorageKeys = {
   TOTAL_PLAYED: "muell_total_played",
   HAS_SEEN_TUTORIAL: "muell_has_seen_tutorial",
   USER_NAME: "muell_user_name",
+  THEME_MODE: "muell_theme_mode",
+  LANGUAGE: "muell_language",
+  LAST_MODE: "muell_last_mode",
+  REDUCE_MOTION: "muell_reduce_motion",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
