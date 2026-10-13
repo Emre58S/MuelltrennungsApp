@@ -1,17 +1,13 @@
-// Datei: app/(tabs)/_layout.tsx — Clean UI v6
+// Datei: app/(tabs)/_layout.tsx — Design v2
 
 import { Feather } from "@expo/vector-icons";
 import { Tabs, usePathname } from "expo-router";
-import { type ComponentProps, useMemo } from "react";
+import { type ComponentProps } from "react";
 import { type ColorValue, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const C = {
-  bar: "#101816",
-  border: "#22302B",
-  active: "#8FD3A6",
-  inactive: "#66756E",
-};
+import { FontFamily } from "@/constants/theme";
+import { useAppTheme, useI18n } from "@/providers/app-settings";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 
@@ -19,14 +15,16 @@ function TabIcon({
   name,
   color,
   focused,
+  activeBg,
 }: {
   name: IconName;
   color: ColorValue;
   focused: boolean;
+  activeBg: string;
 }) {
   return (
-    <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Feather name={name} size={20} color={color} />
+    <View style={[styles.iconWrap, focused && { backgroundColor: activeBg }]}>
+      <Feather name={name} size={22} color={color} />
     </View>
   );
 }
@@ -34,29 +32,31 @@ function TabIcon({
 export default function TabLayout() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
+  const { t } = useI18n();
   const hideTabs = pathname.includes("/explore");
 
   const bottomInset = Math.max(insets.bottom, 8);
-
-  const tabBarStyle = useMemo(
-    () => [
-      styles.tabBar,
-      { height: 64 + bottomInset, paddingBottom: bottomInset },
-      hideTabs && styles.hiddenTabBar,
-    ],
-    [bottomInset, hideTabs],
-  );
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: C.active,
-        tabBarInactiveTintColor: C.inactive,
-        tabBarStyle,
+        tabBarActiveTintColor: colors.onPrimarySoft,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            height: 68 + bottomInset,
+            paddingBottom: bottomInset,
+          },
+          hideTabs && styles.hidden,
+        ],
         tabBarLabelStyle: styles.label,
-        tabBarItemStyle: styles.item,
         tabBarHideOnKeyboard: true,
+        sceneStyle: { backgroundColor: colors.bg },
       }}
     >
       <Tabs.Screen
@@ -64,16 +64,26 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="home" color={color} focused={focused} />
+            <TabIcon
+              name="home"
+              color={color}
+              focused={focused}
+              activeBg={colors.primarySoft}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="spielen"
         options={{
-          title: "Spielen",
+          title: t("home.play"),
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="play-circle" color={color} focused={focused} />
+            <TabIcon
+              name="play-circle"
+              color={color}
+              focused={focused}
+              activeBg={colors.primarySoft}
+            />
           ),
         }}
       />
@@ -83,24 +93,14 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: C.bar,
-    borderTopColor: C.border,
-    borderTopWidth: 1,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 8,
-    elevation: 0,
-  },
-  hiddenTabBar: { display: "none" },
-  label: { fontSize: 11, fontWeight: "800", marginTop: 2 },
-  item: { paddingTop: 0 },
+  tabBar: { borderTopWidth: 1, paddingTop: 8, elevation: 0 },
+  hidden: { display: "none" },
+  label: { fontSize: 12, fontFamily: FontFamily.semibold, marginTop: 2 },
   iconWrap: {
-    width: 54,
-    height: 30,
-    borderRadius: 15,
+    width: 56,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
-  iconWrapActive: { backgroundColor: "rgba(143,211,166,0.14)" },
 });

@@ -1,19 +1,27 @@
-// Datei: app/einstellung.tsx — Clean UI v6 (nutzt weiterhin den zentralen Storage)
+// Datei: app/einstellung.tsx — Design v2
+//
+// Aussehen und Sprache stehen oben: Wer kein Deutsch kann, muss die
+// Sprache sofort finden. Sprachen werden in ihrer eigenen Schrift gezeigt.
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { type ComponentProps, useEffect, useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AppText } from "@/components/ui/app-text";
+import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
+import { Segmented } from "@/components/ui/segmented";
+import { Radius, Spacing, TOUCH_MIN } from "@/constants/theme";
+import { LANGUAGES } from "@/i18n";
+import {
+  type LanguageSetting,
+  type ThemeMode,
+  useAppSettings,
+  useAppTheme,
+  useI18n,
+} from "@/providers/app-settings";
 import {
   getBoolean,
   removeItems,
@@ -21,26 +29,20 @@ import {
   StorageKeys,
 } from "@/utils/storage";
 
-type IconName = React.ComponentProps<typeof Feather>["name"];
-
-const C = {
-  bg: "#0C1211",
-  surface: "#141C1A",
-  surfaceRaised: "#1A2522",
-  border: "#25332F",
-  borderSoft: "#1F2B28",
-  text: "#F3F5F1",
-  textSoft: "#C0C9C4",
-  textMuted: "#83908A",
-  green: "#3DA66B",
-  greenSoft: "#D7F0E0",
-  danger: "#D9827B",
-  dangerBg: "rgba(217,130,123,0.1)",
-  dangerBorder: "rgba(217,130,123,0.28)",
-};
+type IconName = ComponentProps<typeof Feather>["name"];
 
 export default function EinstellungenScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
+  const { t } = useI18n();
+  const {
+    themeMode,
+    setThemeMode,
+    languageSetting,
+    setLanguage,
+    reduceMotionSetting,
+    setReduceMotion,
+  } = useAppSettings();
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
@@ -58,159 +60,249 @@ export default function EinstellungenScreen() {
     setBoolean(StorageKeys.SOUND_ENABLED, value);
   };
 
-  const resetHighscores = () => {
-    Alert.alert(
-      "Highscores zurücksetzen?",
-      "Alle gespeicherten Bestwerte werden unwiderruflich gelöscht.",
-      [
-        { text: "Abbrechen", style: "cancel" },
-        {
-          text: "Zurücksetzen",
-          style: "destructive",
-          onPress: async () => {
-            await removeItems([
-              StorageKeys.HIGHSCORE_RUNDEN,
-              StorageKeys.HIGHSCORE_ZEIT,
-              StorageKeys.HIGHSCORE_ENDLOS,
-            ]);
-            Alert.alert("Erledigt", "Alle Highscores wurden zurückgesetzt.");
-          },
+  const confirmDelete = (
+    title: string,
+    message: string,
+    keys: Parameters<typeof removeItems>[0],
+  ) => {
+    Alert.alert(title, message, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("settings.reset.button"),
+        style: "destructive",
+        onPress: async () => {
+          await removeItems(keys);
+          Alert.alert(t("settings.done"));
         },
-      ],
-    );
+      },
+    ]);
   };
 
-  const resetProgress = () => {
-    Alert.alert(
-      "Gesamten Fortschritt zurücksetzen?",
-      "XP, Level, Streak und Highscores werden gelöscht.",
-      [
-        { text: "Abbrechen", style: "cancel" },
-        {
-          text: "Alles zurücksetzen",
-          style: "destructive",
-          onPress: async () => {
-            await removeItems([
-              StorageKeys.HIGHSCORE_RUNDEN,
-              StorageKeys.HIGHSCORE_ZEIT,
-              StorageKeys.HIGHSCORE_ENDLOS,
-              StorageKeys.TOTAL_XP,
-              StorageKeys.LEVEL,
-              StorageKeys.STREAK_COUNT,
-              StorageKeys.STREAK_LAST_DATE,
-              StorageKeys.TOTAL_CORRECT,
-              StorageKeys.TOTAL_PLAYED,
-            ]);
-            Alert.alert(
-              "Erledigt",
-              "Dein gesamter Fortschritt wurde zurückgesetzt.",
-            );
-          },
-        },
-      ],
-    );
-  };
+  const highscoreKeys = [
+    StorageKeys.HIGHSCORE_RUNDEN,
+    StorageKeys.HIGHSCORE_ZEIT,
+    StorageKeys.HIGHSCORE_ENDLOS,
+  ];
 
   const confirmLogout = () => {
-    Alert.alert("Ausloggen?", "Möchtest du dich wirklich abmelden?", [
-      { text: "Abbrechen", style: "cancel" },
+    Alert.alert(t("settings.logout"), t("settings.logout.confirm"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Logout",
+        text: t("settings.logout"),
         style: "destructive",
         onPress: () => router.replace("/login"),
       },
     ]);
   };
 
+  const languageOptions: { value: LanguageSetting; label: string; flag: string }[] =
+    [
+      { value: "system", label: t("settings.language.system"), flag: "📱" },
+      ...LANGUAGES.map((l) => ({ value: l.code, label: l.nativeName, flag: l.flag })),
+    ];
+
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: Math.max(insets.top + 12, 24),
-            paddingBottom: insets.bottom + 28,
+            paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg),
+            paddingBottom: insets.bottom + Spacing.lg,
           },
         ]}
       >
-        {/* Kopfbereich */}
         <View style={styles.header}>
-          <Pressable
+          <IconButton
+            icon="chevron-left"
+            label={t("common.back")}
             onPress={() => router.back()}
-            hitSlop={8}
-            style={({ pressed }) => [
-              styles.backButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Feather name="chevron-left" size={24} color={C.text} />
-          </Pressable>
-
-          <View style={styles.headerText}>
-            <Text style={styles.eyebrow}>APP</Text>
-            <Text style={styles.title}>Einstellungen</Text>
-            <Text style={styles.subtitle}>Passe das Spiel an dich an.</Text>
+          />
+          <View style={styles.flex}>
+            <AppText variant="title" accessibilityRole="header">
+              {t("settings.title")}
+            </AppText>
+            <AppText tone="textSecondary">{t("settings.subtitle")}</AppText>
           </View>
         </View>
+
+        {/* Sprache */}
+        <SectionLabel text={t("settings.language")} />
+        <Card style={styles.group}>
+          {languageOptions.map((opt, i) => {
+            const selected = opt.value === languageSetting;
+            return (
+              <Pressable
+                key={opt.value}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
+                accessibilityLabel={opt.label}
+                onPress={() => setLanguage(opt.value)}
+                style={({ pressed }) => [
+                  styles.row,
+                  i > 0 && { borderTopWidth: 1, borderTopColor: colors.border },
+                  pressed && { backgroundColor: colors.surfaceAlt },
+                ]}
+              >
+                <AppText style={styles.flag}>{opt.flag}</AppText>
+                <AppText variant="bodyStrong" style={styles.flex}>
+                  {opt.label}
+                </AppText>
+                {selected && (
+                  <Feather name="check-circle" size={24} color={colors.primary} />
+                )}
+              </Pressable>
+            );
+          })}
+        </Card>
+
+        {/* Aussehen */}
+        <SectionLabel text={t("settings.appearance")} />
+        <Segmented<ThemeMode>
+          value={themeMode}
+          onChange={setThemeMode}
+          options={[
+            { value: "system", label: t("settings.theme.system") },
+            { value: "light", label: t("settings.theme.light") },
+            { value: "dark", label: t("settings.theme.dark") },
+          ]}
+        />
 
         {/* Allgemein */}
-        <Text style={styles.sectionLabel}>ALLGEMEIN</Text>
-        <View style={styles.group}>
-          <View style={styles.row}>
-            <View style={styles.iconChip}>
-              <Feather
-                name={soundEnabled ? "volume-2" : "volume-x"}
-                size={18}
-                color={C.greenSoft}
-              />
-            </View>
-            <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>Sound</Text>
-              <Text style={styles.rowSubtitle}>
-                {soundEnabled ? "Soundeffekte an" : "Soundeffekte aus"}
-              </Text>
-            </View>
-            <Switch
-              value={soundEnabled}
-              onValueChange={toggleSound}
-              trackColor={{ false: "#3A4642", true: C.green }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-        </View>
+        <SectionLabel text={t("settings.general")} />
+        <Card style={styles.group}>
+          <SwitchRow
+            icon={soundEnabled ? "volume-2" : "volume-x"}
+            title={t("settings.sound")}
+            subtitle={t(soundEnabled ? "settings.sound.on" : "settings.sound.off")}
+            value={soundEnabled}
+            onChange={toggleSound}
+          />
+          <SwitchRow
+            icon="wind"
+            title={t("settings.reduceMotion")}
+            subtitle={t("settings.reduceMotion.desc")}
+            value={reduceMotionSetting}
+            onChange={setReduceMotion}
+            divider
+          />
+        </Card>
 
         {/* Daten */}
-        <Text style={styles.sectionLabel}>DATEN</Text>
-        <View style={styles.group}>
+        <SectionLabel text={t("settings.data")} />
+        <Card style={styles.group}>
           <ActionRow
             icon="trash-2"
-            title="Highscores zurücksetzen"
-            subtitle="Löscht alle Bestwerte"
-            onPress={resetHighscores}
+            title={t("settings.resetScores")}
+            subtitle={t("settings.resetScores.desc")}
+            onPress={() =>
+              confirmDelete(
+                t("settings.resetScores"),
+                t("settings.resetScores.confirm"),
+                highscoreKeys,
+              )
+            }
           />
-          <View style={styles.separator} />
           <ActionRow
             icon="alert-triangle"
-            title="Fortschritt zurücksetzen"
-            subtitle="XP, Level, Streak und Highscores"
+            title={t("settings.resetAll")}
+            subtitle={t("settings.resetAll.desc")}
             danger
-            onPress={resetProgress}
+            divider
+            onPress={() =>
+              confirmDelete(t("settings.resetAll"), t("settings.resetAll.confirm"), [
+                ...highscoreKeys,
+                StorageKeys.TOTAL_XP,
+                StorageKeys.LEVEL,
+                StorageKeys.STREAK_COUNT,
+                StorageKeys.STREAK_LAST_DATE,
+                StorageKeys.TOTAL_CORRECT,
+                StorageKeys.TOTAL_PLAYED,
+              ])
+            }
           />
-        </View>
+        </Card>
 
         {/* Konto */}
-        <Text style={styles.sectionLabel}>KONTO</Text>
-        <View style={styles.group}>
+        <SectionLabel text={t("settings.account")} />
+        <Card style={styles.group}>
           <ActionRow
             icon="log-out"
-            title="Ausloggen"
-            subtitle="Von diesem Gerät abmelden"
-            danger
+            title={t("settings.logout")}
+            subtitle={t("settings.logout.desc")}
             onPress={confirmLogout}
           />
-        </View>
+        </Card>
       </ScrollView>
+    </View>
+  );
+}
+
+function SectionLabel({ text }: { text: string }) {
+  return (
+    <AppText
+      variant="overline"
+      tone="textMuted"
+      accessibilityRole="header"
+      style={styles.sectionLabel}
+    >
+      {text.toUpperCase()}
+    </AppText>
+  );
+}
+
+function RowIcon({ icon, danger }: { icon: IconName; danger?: boolean }) {
+  const { colors } = useAppTheme();
+  return (
+    <View
+      style={[
+        styles.iconChip,
+        { backgroundColor: danger ? colors.warningSoft : colors.surfaceAlt },
+      ]}
+    >
+      <Feather name={icon} size={20} color={danger ? colors.danger : colors.text} />
+    </View>
+  );
+}
+
+function SwitchRow({
+  icon,
+  title,
+  subtitle,
+  value,
+  onChange,
+  divider,
+}: {
+  icon: IconName;
+  title: string;
+  subtitle: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  divider?: boolean;
+}) {
+  const { colors } = useAppTheme();
+  return (
+    <View
+      style={[
+        styles.row,
+        divider && { borderTopWidth: 1, borderTopColor: colors.border },
+      ]}
+    >
+      <RowIcon icon={icon} />
+      <View style={styles.flex}>
+        <AppText variant="bodyStrong">{title}</AppText>
+        <AppText variant="caption" tone="textMuted">
+          {subtitle}
+        </AppText>
+      </View>
+      <Switch
+        accessibilityLabel={title}
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ false: colors.border, true: colors.primary }}
+        thumbColor="#FFFFFF"
+      />
     </View>
   );
 }
@@ -220,116 +312,74 @@ function ActionRow({
   title,
   subtitle,
   danger,
+  divider,
   onPress,
 }: {
   icon: IconName;
   title: string;
   subtitle: string;
   danger?: boolean;
+  divider?: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      style={({ pressed }) => [
+        styles.row,
+        divider && { borderTopWidth: 1, borderTopColor: colors.border },
+        pressed && { backgroundColor: colors.surfaceAlt },
+      ]}
     >
-      <View style={[styles.iconChip, danger && styles.iconChipDanger]}>
-        <Feather
-          name={icon}
-          size={18}
-          color={danger ? C.danger : C.greenSoft}
-        />
-      </View>
-      <View style={styles.rowText}>
-        <Text style={[styles.rowTitle, danger && { color: C.danger }]}>
+      <RowIcon icon={icon} danger={danger} />
+      <View style={styles.flex}>
+        <AppText variant="bodyStrong" tone={danger ? "danger" : "text"}>
           {title}
-        </Text>
-        <Text style={styles.rowSubtitle}>{subtitle}</Text>
+        </AppText>
+        <AppText variant="caption" tone="textMuted">
+          {subtitle}
+        </AppText>
       </View>
-      <Feather name="chevron-right" size={18} color={C.textMuted} />
+      <Feather name="chevron-right" size={20} color={colors.textMuted} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.bg },
-  content: { paddingHorizontal: 20 },
+  screen: { flex: 1 },
+  content: { paddingHorizontal: Spacing.md + 4 },
+  flex: { flex: 1 },
 
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 26 },
-  backButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 15,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 13,
+  header: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
   },
-  headerText: { flex: 1 },
-  eyebrow: {
-    color: C.textMuted,
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 2.3,
-  },
-  title: {
-    color: C.text,
-    fontSize: 27,
-    lineHeight: 31,
-    fontWeight: "900",
-    letterSpacing: -0.6,
-    marginTop: 2,
-  },
-  subtitle: { color: C.textSoft, fontSize: 12, marginTop: 3 },
 
   sectionLabel: {
-    color: C.textMuted,
-    fontSize: 10,
-    fontWeight: "900",
-    letterSpacing: 1.8,
-    marginBottom: 9,
-    marginLeft: 4,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+    marginLeft: Spacing.xs,
   },
-  group: {
-    backgroundColor: C.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: C.border,
-    overflow: "hidden",
-    marginBottom: 24,
-  },
+  group: { padding: 0, overflow: "hidden" },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    gap: Spacing.md,
+    minHeight: TOUCH_MIN + 16,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
   },
-  rowPressed: { backgroundColor: "rgba(255,255,255,0.03)" },
-  separator: {
-    height: 1,
-    backgroundColor: C.borderSoft,
-    marginLeft: 66,
-  },
+  flag: { fontSize: 24, lineHeight: 30 },
   iconChip: {
     width: 40,
     height: 40,
-    borderRadius: 13,
-    backgroundColor: C.surfaceRaised,
-    borderWidth: 1,
-    borderColor: C.borderSoft,
+    borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
   },
-  iconChipDanger: {
-    backgroundColor: C.dangerBg,
-    borderColor: C.dangerBorder,
-  },
-  rowText: { flex: 1 },
-  rowTitle: { color: C.text, fontSize: 15, fontWeight: "800" },
-  rowSubtitle: { color: C.textMuted, fontSize: 11, marginTop: 2 },
-
-  pressed: { opacity: 0.85, transform: [{ scale: 0.993 }] },
 });
