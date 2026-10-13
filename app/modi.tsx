@@ -110,7 +110,7 @@ export default function ModiScreen() {
               {t("modes.howTo").toUpperCase()}
             </AppText>
             <HintRow icon="arrow-up" text={t("modes.swipeUp")} />
-            <HintRow icon="arrow-left" text={t("modes.swipeLeft")} />
+            <HintRow icon="target" text={t("modes.swipeLeft")} />
           </Card>
         </FadeIn>
       </ScrollView>
@@ -122,7 +122,7 @@ function HintRow({
   icon,
   text,
 }: {
-  icon: "arrow-up" | "arrow-left";
+  icon: "arrow-up" | "target";
   text: string;
 }) {
   const { colors } = useAppTheme();
