@@ -39,10 +39,11 @@ import {
   getActiveStreak,
   getHighscoreKey,
   getLevelProgress,
+  getModeStats,
   getNumber,
+  type ModeStatsMap,
   StorageKeys,
 } from "@/utils/storage";
-import { getModeStats, ModeStatsMap } from "@/utils/utils/storage";
 
 const HIGHSCORE_MODE = {
   endless: "endlos",
