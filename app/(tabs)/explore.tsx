@@ -72,6 +72,7 @@ import {
   getHighscoreKey,
   getLevelFromXP,
   getNumber,
+  recordRound,
   recordThrow,
   saveHighscore,
   StorageKeys,
@@ -84,18 +85,6 @@ const HIGHSCORE_MODE = {
   survival: "runden",
   time: "zeit",
 } as const;
-
-async function recordRound(
-  mode: GameMode,
-  stats: {
-    maxStreak: number;
-    throws: number;
-    correct: number;
-  },
-): Promise<void> {
-  void mode;
-  void stats;
-}
 
 export default function GameScreen() {
   const { mode: rawMode } = useLocalSearchParams<{ mode?: string }>();
