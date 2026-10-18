@@ -18,6 +18,7 @@ export const StorageKeys = {
   THEME_MODE: "muell_theme_mode",
   LANGUAGE: "muell_language",
   LAST_MODE: "muell_last_mode",
+  MODE_STATS: "muell_mode_stats",
   REDUCE_MOTION: "muell_reduce_motion",
 } as const;
 
@@ -116,6 +117,74 @@ export function saveHighscore(
       return true;
     }
     return false;
+  });
+}
+
+// ── Statistik pro Modus ───────────────────────────────────────────────
+
+export type ModeKey = "endless" | "survival" | "time";
+
+export type ModeStats = {
+  games: number;
+  bestStreak: number;
+  bestCorrect: number;
+  throws: number;
+  correct: number;
+};
+
+export type ModeStatsMap = Record<ModeKey, ModeStats>;
+
+const EMPTY_MODE_STATS: ModeStats = {
+  games: 0,
+  bestStreak: 0,
+  bestCorrect: 0,
+  throws: 0,
+  correct: 0,
+};
+
+function emptyModeStatsMap(): ModeStatsMap {
+  return {
+    endless: { ...EMPTY_MODE_STATS },
+    survival: { ...EMPTY_MODE_STATS },
+    time: { ...EMPTY_MODE_STATS },
+  };
+}
+
+export async function getModeStats(): Promise<ModeStatsMap> {
+  const base = emptyModeStatsMap();
+  const raw = await getItem(StorageKeys.MODE_STATS);
+  if (!raw) return base;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<ModeStatsMap>;
+    return {
+      endless: { ...base.endless, ...parsed.endless },
+      survival: { ...base.survival, ...parsed.survival },
+      time: { ...base.time, ...parsed.time },
+    };
+  } catch {
+    return base;
+  }
+}
+
+/** Wird einmal pro beendeter Runde aufgerufen. */
+export function recordRound(
+  mode: ModeKey,
+  round: { maxStreak: number; throws: number; correct: number },
+): Promise<void> {
+  return enqueue(async () => {
+    const all = await getModeStats();
+    const m = all[mode];
+
+    all[mode] = {
+      games: m.games + 1,
+      bestStreak: Math.max(m.bestStreak, round.maxStreak),
+      bestCorrect: Math.max(m.bestCorrect, round.correct),
+      throws: m.throws + round.throws,
+      correct: m.correct + round.correct,
+    };
+
+    await setItem(StorageKeys.MODE_STATS, JSON.stringify(all));
   });
 }
 
