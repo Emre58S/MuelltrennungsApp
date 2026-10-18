@@ -39,7 +39,9 @@ export function EndScreen({
   const { reduceMotion } = useAppSettings();
 
   const [enter] = useState(() => new Animated.Value(reduceMotion ? 1 : 0));
-  const [counter] = useState(() => new Animated.Value(reduceMotion ? stats.score : 0));
+  const [counter] = useState(
+    () => new Animated.Value(reduceMotion ? stats.score : 0),
+  );
   const [shown, setShown] = useState(reduceMotion ? stats.score : 0);
 
   useEffect(() => {
@@ -62,7 +64,8 @@ export function EndScreen({
     return () => counter.removeListener(id);
   }, [enter, counter, stats.score, reduceMotion]);
 
-  const accuracy = stats.throws > 0 ? Math.round((stats.correct / stats.throws) * 100) : 0;
+  const accuracy =
+    stats.throws > 0 ? Math.round((stats.correct / stats.throws) * 100) : 0;
 
   // Jedes falsch sortierte Item nur einmal
   const unique = mistakes.filter(
@@ -70,21 +73,39 @@ export function EndScreen({
   );
 
   return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.overlay }]}>
+    <View
+      style={[StyleSheet.absoluteFill, { backgroundColor: colors.overlay }]}
+    >
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + Spacing.lg, paddingBottom: insets.bottom + Spacing.lg },
+          {
+            paddingTop: insets.top + Spacing.lg,
+            paddingBottom: insets.bottom + Spacing.lg,
+          },
         ]}
       >
         <Animated.View
           style={[
             styles.card,
-            { backgroundColor: colors.surface, opacity: enter, transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }] },
+            {
+              backgroundColor: colors.surface,
+              opacity: enter,
+              transform: [
+                {
+                  scale: enter.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.85, 1],
+                  }),
+                },
+              ],
+            },
           ]}
           accessibilityViewIsModal
         >
-          <AppText style={styles.bigEmoji}>{accuracy >= 80 ? "🏆" : accuracy >= 50 ? "🌟" : "💪"}</AppText>
+          <AppText style={styles.bigEmoji}>
+            {accuracy >= 80 ? "🏆" : accuracy >= 50 ? "🌟" : "💪"}
+          </AppText>
           <AppText variant="title" center accessibilityRole="header">
             {accuracy >= 50 ? t("game.end.great") : title}
           </AppText>
@@ -108,9 +129,15 @@ export function EndScreen({
           )}
 
           <View style={[styles.stats, { backgroundColor: colors.surfaceAlt }]}>
-            <Stat value={`🔥 ${stats.maxStreak}`} label={t("game.end.bestStreak")} />
+            <Stat
+              value={`🔥 ${stats.maxStreak}`}
+              label={t("game.end.bestStreak")}
+            />
             <Stat value={`${accuracy}%`} label={t("game.end.accuracy")} />
-            <Stat value={`⭐ ${stats.perfects}`} label={t("game.end.perfects")} />
+            <Stat
+              value={`⭐ ${stats.perfects}`}
+              label={t("game.end.perfects")}
+            />
             <Stat value={`+${xpEarned}`} label={t("common.xp")} />
           </View>
 
@@ -128,7 +155,9 @@ export function EndScreen({
                   <AppText style={styles.flex} numberOfLines={2}>
                     {m.item.name}
                   </AppText>
-                  <View style={[styles.binPill, { backgroundColor: m.bin.color }]}>
+                  <View
+                    style={[styles.binPill, { backgroundColor: m.bin.color }]}
+                  >
                     <AppText variant="caption" color={m.bin.onColor}>
                       {m.bin.icon} {t(m.bin.labelKey)}
                     </AppText>
@@ -138,8 +167,19 @@ export function EndScreen({
             </View>
           )}
 
-          <Button title={t("game.end.again")} icon="rotate-ccw" size="lg" onPress={onAgain} style={styles.fullWidth} />
-          <Button title={t("game.end.menu")} variant="ghost" onPress={onMenu} style={styles.fullWidth} />
+          <Button
+            title={t("game.end.again")}
+            icon="rotate-ccw"
+            size="lg"
+            onPress={onAgain}
+            style={styles.fullWidth}
+          />
+          <Button
+            title={t("game.end.menu")}
+            variant="ghost"
+            onPress={onMenu}
+            style={styles.fullWidth}
+          />
         </Animated.View>
       </ScrollView>
     </View>
@@ -148,11 +188,21 @@ export function EndScreen({
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <View style={styles.stat} accessible accessibilityLabel={`${label}: ${value}`}>
+    <View
+      style={styles.stat}
+      accessible
+      accessibilityLabel={`${label}: ${value}`}
+    >
       <AppText variant="bodyStrong" numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </AppText>
-      <AppText variant="caption" tone="textMuted" center numberOfLines={1} adjustsFontSizeToFit>
+      <AppText
+        variant="caption"
+        tone="textMuted"
+        center
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
         {label}
       </AppText>
     </View>
@@ -160,11 +210,29 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: Spacing.md },
-  card: { borderRadius: Radius.xxl, padding: Spacing.lg, alignItems: "center", gap: Spacing.sm },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: Spacing.md,
+  },
+  card: {
+    borderRadius: Radius.xxl,
+    padding: Spacing.lg,
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
   bigEmoji: { fontSize: 52, lineHeight: 62 },
-  score: { fontSize: 56, lineHeight: 64, marginTop: Spacing.sm, fontVariant: ["tabular-nums"] },
-  pill: { paddingHorizontal: Spacing.md, paddingVertical: 6, borderRadius: Radius.pill },
+  score: {
+    fontSize: 56,
+    lineHeight: 64,
+    marginTop: Spacing.sm,
+    fontVariant: ["tabular-nums"],
+  },
+  pill: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+  },
   stats: {
     flexDirection: "row",
     alignSelf: "stretch",
@@ -183,6 +251,10 @@ const styles = StyleSheet.create({
   },
   rowEmoji: { fontSize: 24, lineHeight: 30 },
   flex: { flex: 1 },
-  binPill: { paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.sm },
+  binPill: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
+  },
   fullWidth: { alignSelf: "stretch", marginTop: Spacing.xs },
 });
