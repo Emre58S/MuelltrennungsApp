@@ -1,5 +1,3 @@
-// Datei: app/(tabs)/index.tsx
-
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { type ComponentProps, useCallback, useRef, useState } from "react";
@@ -80,59 +78,38 @@ const BIN_PALETTE: Record<
     body: string;
     side: string;
     lid: string;
+    handle: string;
     badge: string;
     ink: string;
     icon: IconName;
   }
 > = {
   bio: {
-    body: "#986544",
-    side: "#71452F",
-    lid: "#B28059",
-    badge: "#F8EAD9",
-    ink: "#795037",
+    body: "#A27453",
+    side: "#8B6044",
+    lid: "#BB906A",
+    handle: "#896044",
+    badge: "#F6EBDD",
+    ink: "#805A3E",
     icon: "feather",
   },
   gelb: {
-    body: "#E6B82E",
-    side: "#B88C17",
-    lid: "#F6D15B",
-    badge: "#FFF3CC",
-    ink: "#8B6812",
+    body: "#E8BE3A",
+    side: "#D0A52A",
+    lid: "#F6D569",
+    handle: "#B58E23",
+    badge: "#FFF4CF",
+    ink: "#99751C",
     icon: "package",
   },
   rest: {
-    body: "#647381",
-    side: "#455460",
-    lid: "#82939E",
-    badge: "#EAF0F3",
-    ink: "#4C5D69",
+    body: "#72818C",
+    side: "#61717D",
+    lid: "#91A0A9",
+    handle: "#5E6F7A",
+    badge: "#EAF0F1",
+    ink: "#546772",
     icon: "trash-2",
-  },
-};
-
-const SCENE_PALETTE: Record<
-  GameMode,
-  {
-    accent: string;
-    ink: string;
-    icon: IconName;
-  }
-> = {
-  endless: {
-    accent: "#52B78A",
-    ink: "#91D9AF",
-    icon: "feather",
-  },
-  survival: {
-    accent: "#548CA8",
-    ink: "#A9D2E4",
-    icon: "shield",
-  },
-  time: {
-    accent: "#4FA5AA",
-    ink: "#F5D78B",
-    icon: "clock",
   },
 };
 
@@ -161,8 +138,8 @@ function formatAccuracy(
 }
 
 /**
- * Ausschließlich Menü-Illustration.
- * Keine Änderung an den Tonnen im eigentlichen Spiel.
+ * Tonnenzeichnung ausschließlich für das Menü.
+ * Die Tonnen im eigentlichen Spiel bleiben unverändert.
  */
 function IllustratedBin({ kind }: { kind: BinKind }) {
   const palette = BIN_PALETTE[kind];
@@ -173,9 +150,8 @@ function IllustratedBin({ kind }: { kind: BinKind }) {
       <View style={styles.binShadowInner} />
 
       <View style={[styles.binBody, { backgroundColor: palette.body }]}>
-        <View style={styles.binHighlight} />
-
         <View style={[styles.binSide, { backgroundColor: palette.side }]} />
+        <View style={styles.binHighlight} />
 
         <View style={[styles.binBadge, { backgroundColor: palette.badge }]}>
           <Feather name={palette.icon} size={22} color={palette.ink} />
@@ -184,11 +160,12 @@ function IllustratedBin({ kind }: { kind: BinKind }) {
         <View style={[styles.binBottom, { backgroundColor: palette.side }]} />
       </View>
 
+      <View style={styles.binLidShadow} />
+      <View style={[styles.binHandle, { backgroundColor: palette.handle }]} />
+
       <View style={[styles.binLid, { backgroundColor: palette.lid }]}>
         <View style={styles.lidHighlight} />
       </View>
-
-      <View style={[styles.binHandle, { backgroundColor: palette.side }]} />
 
       <View style={[styles.binWheel, styles.leftWheel]} />
       <View style={[styles.binWheel, styles.rightWheel]} />
@@ -227,21 +204,24 @@ function Plant({
 }
 
 function ModeEmblem({ mode }: { mode: GameMode }) {
-  const scene = SCENE_PALETTE[mode];
+  const { colors } = useAppTheme();
+
+  const icon: IconName =
+    mode === "endless" ? "feather" : mode === "survival" ? "shield" : "clock";
 
   return (
     <View style={styles.modeEmblem}>
       {mode === "time" && (
         <View
-          style={[styles.stopwatchButton, { backgroundColor: scene.ink }]}
+          style={[styles.stopwatchButton, { backgroundColor: colors.gold }]}
         />
       )}
 
-      <Feather name={scene.icon} size={34} color={scene.ink} />
+      <Feather name={icon} size={34} color={colors.onPrimarySoft} />
 
       {mode === "survival" && (
         <View style={styles.shieldCheck}>
-          <Feather name="check" size={13} color={scene.ink} />
+          <Feather name="check" size={13} color={colors.onPrimarySoft} />
         </View>
       )}
     </View>
@@ -249,20 +229,21 @@ function ModeEmblem({ mode }: { mode: GameMode }) {
 }
 
 function SceneAccent({ mode }: { mode: GameMode }) {
-  const scene = SCENE_PALETTE[mode];
+  const { colors } = useAppTheme();
+  const ink = colors.onPrimarySoft;
 
   if (mode === "endless") {
     return (
       <View style={styles.sceneAccent}>
         <View style={styles.smallLeaf}>
-          <Feather name="feather" size={18} color={scene.ink} />
+          <Feather name="feather" size={18} color={ink} />
         </View>
 
         <View
           style={[
             styles.pathDash,
             styles.pathDashOne,
-            { backgroundColor: scene.ink },
+            { backgroundColor: ink },
           ]}
         />
 
@@ -270,12 +251,12 @@ function SceneAccent({ mode }: { mode: GameMode }) {
           style={[
             styles.pathDash,
             styles.pathDashTwo,
-            { backgroundColor: scene.ink },
+            { backgroundColor: ink },
           ]}
         />
 
         <View style={styles.pathArrow}>
-          <Feather name="arrow-down-left" size={12} color={scene.ink} />
+          <Feather name="arrow-down-left" size={12} color={ink} />
         </View>
       </View>
     );
@@ -285,11 +266,11 @@ function SceneAccent({ mode }: { mode: GameMode }) {
     return (
       <View style={styles.sceneAccent}>
         <View style={styles.sparkOne}>
-          <Feather name="plus" size={15} color={scene.ink} />
+          <Feather name="plus" size={15} color={ink} />
         </View>
 
         <View style={styles.sparkTwo}>
-          <Feather name="plus" size={10} color={scene.ink} />
+          <Feather name="plus" size={10} color={ink} />
         </View>
       </View>
     );
@@ -298,14 +279,14 @@ function SceneAccent({ mode }: { mode: GameMode }) {
   return (
     <View style={styles.sceneAccent}>
       <View style={styles.flyingPackage}>
-        <Feather name="package" size={20} color={scene.ink} />
+        <Feather name="package" size={20} color={colors.gold} />
       </View>
 
       <View
         style={[
           styles.speedLine,
           styles.speedLineOne,
-          { backgroundColor: scene.ink },
+          { backgroundColor: ink },
         ]}
       />
 
@@ -313,7 +294,7 @@ function SceneAccent({ mode }: { mode: GameMode }) {
         style={[
           styles.speedLine,
           styles.speedLineTwo,
-          { backgroundColor: scene.ink },
+          { backgroundColor: ink },
         ]}
       />
 
@@ -321,7 +302,7 @@ function SceneAccent({ mode }: { mode: GameMode }) {
         style={[
           styles.speedLine,
           styles.speedLineThree,
-          { backgroundColor: scene.ink },
+          { backgroundColor: ink },
         ]}
       />
     </View>
@@ -330,7 +311,6 @@ function SceneAccent({ mode }: { mode: GameMode }) {
 
 function MenuIllustration({ mode }: { mode: GameMode }) {
   const { colors } = useAppTheme();
-  const scene = SCENE_PALETTE[mode];
 
   return (
     <View
@@ -339,40 +319,23 @@ function MenuIllustration({ mode }: { mode: GameMode }) {
       importantForAccessibility="no-hide-descendants"
       style={[styles.illustration, { backgroundColor: colors.surface }]}
     >
-      <View style={[styles.sceneTint, { backgroundColor: scene.accent }]} />
-
-      {/* Dezenter Hintergrund */}
-      <View
-        style={[
-          styles.hill,
-          styles.hillLeft,
-          { backgroundColor: scene.accent },
-        ]}
-      />
+      <View style={[styles.sceneTint, { backgroundColor: colors.primary }]} />
 
       <View
-        style={[
-          styles.hill,
-          styles.hillRight,
-          { backgroundColor: scene.accent },
-        ]}
+        style={[styles.sceneGround, { backgroundColor: colors.onPrimarySoft }]}
       />
 
-      {/* Flacher, zurückhaltender Boden */}
-      <View style={[styles.sceneGround, { backgroundColor: scene.accent }]} />
-
-      {/* Motiv in jedem Modus an derselben Position */}
       <ModeEmblem mode={mode} />
       <SceneAccent mode={mode} />
 
       {mode === "endless" && (
         <>
           <View style={styles.plantLeft}>
-            <Plant color="#69A87C" />
+            <Plant color={colors.onPrimarySoft} />
           </View>
 
           <View style={styles.plantRight}>
-            <Plant color="#528A69" mirrored />
+            <Plant color={colors.onPrimarySoft} mirrored />
           </View>
         </>
       )}
@@ -501,7 +464,6 @@ export default function HomeScreen() {
   const { t, formatNumber } = useI18n();
 
   const [scores, setScores] = useState<Scores>(INITIAL_SCORES);
-
   const [modeStats, setModeStats] = useState<ModeStatsMap>(INITIAL_STATS);
 
   const [mode, setMode] = useState<GameMode>("endless");
@@ -639,7 +601,6 @@ export default function HomeScreen() {
         ]}
       >
         <View style={styles.container}>
-          {/* Kopfzeile */}
           <View style={styles.header}>
             <View style={styles.progressSummary}>
               <View style={styles.progressLabels}>
@@ -705,7 +666,6 @@ export default function HomeScreen() {
           <MenuIllustration mode={mode} />
 
           <View style={styles.playSection}>
-            {/* Moduswahl */}
             <View
               accessibilityRole="radiogroup"
               accessibilityLabel="Spielmodus"
@@ -739,7 +699,6 @@ export default function HomeScreen() {
               {modeDescription}
             </AppText>
 
-            {/* Rekorde ohne wiederholte Moduszeile */}
             <View style={[styles.records, { borderColor: colors.border }]}>
               <View style={styles.recordsRow} accessibilityLiveRegion="polite">
                 <RecordValue
@@ -769,7 +728,6 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {/* Reihenfolge bleibt erhalten */}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${t("home.play")} – ${modeTitle}`}
@@ -801,7 +759,6 @@ export default function HomeScreen() {
             </Pressable>
           </View>
 
-          {/* Aufklappbare Statistik */}
           <View style={[styles.details, { borderColor: colors.border }]}>
             <Pressable
               accessibilityRole="button"
@@ -897,7 +854,6 @@ export default function HomeScreen() {
             )}
           </View>
 
-          {/* Bestehender Faktbereich */}
           {dailyFact && (
             <View style={[styles.fact, { backgroundColor: colors.surface }]}>
               <View
@@ -985,10 +941,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
 
-  // Illustration
+  // Überarbeitete Menü-Illustration
   illustration: {
-    height: 182,
-    borderRadius: 32,
+    height: 210,
+    borderRadius: 30,
     overflow: "hidden",
     alignItems: "center",
   },
@@ -998,36 +954,19 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    opacity: 0.09,
-  },
-  hill: {
-    position: "absolute",
-    width: 220,
-    height: 110,
-    borderRadius: 110,
-    opacity: 0.035,
-  },
-  hillLeft: {
-    left: -70,
-    bottom: -28,
-    transform: [{ rotate: "-12deg" }],
-  },
-  hillRight: {
-    right: -80,
-    bottom: -10,
-    transform: [{ rotate: "12deg" }],
+    opacity: 0.07,
   },
   sceneGround: {
     position: "absolute",
-    width: "82%",
-    maxWidth: 330,
-    height: 28,
+    width: "84%",
+    maxWidth: 350,
+    height: 35,
     bottom: 20,
-    borderRadius: 160,
-    opacity: 0.1,
+    borderRadius: 175,
+    opacity: 0.13,
   },
 
-  // Gleich positionierte Modusmotive
+  // Modusmotive
   modeEmblem: {
     position: "absolute",
     top: 22,
@@ -1036,7 +975,7 @@ const styles = StyleSheet.create({
     height: 38,
     alignItems: "center",
     justifyContent: "center",
-    opacity: 0.9,
+    opacity: 0.8,
   },
   stopwatchButton: {
     position: "absolute",
@@ -1057,7 +996,7 @@ const styles = StyleSheet.create({
     left: "16%",
     width: 64,
     height: 34,
-    opacity: 0.65,
+    opacity: 0.45,
   },
   smallLeaf: {
     position: "absolute",
@@ -1127,14 +1066,14 @@ const styles = StyleSheet.create({
     width: 12,
   },
 
-  // Tonnen
+  // Größere, überarbeitete Tonnen
   binGroup: {
     position: "absolute",
-    bottom: 32,
+    bottom: 35,
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "center",
-    gap: 13,
+    gap: 16,
   },
   leftBinRotation: {
     transform: [{ rotate: "-3deg" }],
@@ -1146,28 +1085,28 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "3deg" }],
   },
   bin: {
-    width: 63,
-    height: 85,
+    width: 70,
+    height: 96,
   },
   binShadowOuter: {
     position: "absolute",
-    bottom: -5,
-    left: 2,
-    width: 59,
-    height: 10,
-    borderRadius: 30,
+    bottom: -3,
+    left: 6,
+    width: 58,
+    height: 8,
+    borderRadius: 26,
     backgroundColor: "#000000",
-    opacity: 0.035,
+    opacity: 0.04,
   },
   binShadowInner: {
     position: "absolute",
-    bottom: -2,
-    left: 8,
-    width: 47,
+    bottom: -1,
+    left: 11,
+    width: 48,
     height: 5,
-    borderRadius: 24,
+    borderRadius: 21,
     backgroundColor: "#000000",
-    opacity: 0.08,
+    opacity: 0.075,
   },
   binBody: {
     position: "absolute",
@@ -1175,8 +1114,8 @@ const styles = StyleSheet.create({
     left: 5,
     right: 3,
     bottom: 5,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
     borderBottomLeftRadius: 11,
     borderBottomRightRadius: 11,
     overflow: "hidden",
@@ -1186,26 +1125,26 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    width: 10,
-    opacity: 0.65,
+    width: 7,
+    opacity: 0.5,
   },
   binHighlight: {
     position: "absolute",
-    left: 4,
-    top: 6,
+    left: 5,
+    top: 10,
     width: 3,
-    height: 43,
-    borderRadius: 2,
+    height: 24,
+    borderRadius: 3,
     backgroundColor: "#FFFFFF",
-    opacity: 0.14,
+    opacity: 0.13,
   },
   binBadge: {
     position: "absolute",
-    left: 9,
-    top: 19,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    left: 11,
+    top: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1214,8 +1153,27 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 5,
-    opacity: 0.24,
+    height: 4,
+    opacity: 0.18,
+  },
+  binLidShadow: {
+    position: "absolute",
+    top: 13,
+    left: 5,
+    right: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: "#000000",
+    opacity: 0.1,
+  },
+  binHandle: {
+    position: "absolute",
+    top: 0,
+    left: 26,
+    width: 19,
+    height: 6,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   },
   binLid: {
     position: "absolute",
@@ -1229,35 +1187,26 @@ const styles = StyleSheet.create({
   lidHighlight: {
     position: "absolute",
     top: 1,
-    left: 4,
-    right: 5,
+    left: 6,
+    width: 30,
     height: 2,
     borderRadius: 2,
     backgroundColor: "#FFFFFF",
-    opacity: 0.22,
-  },
-  binHandle: {
-    position: "absolute",
-    top: 0,
-    left: 23,
-    width: 18,
-    height: 6,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    opacity: 0.18,
   },
   binWheel: {
     position: "absolute",
     bottom: 0,
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderRadius: 3,
-    backgroundColor: "#25332F",
+    backgroundColor: "#304039",
   },
   leftWheel: {
-    left: 11,
+    left: 12,
   },
   rightWheel: {
-    right: 8,
+    right: 9,
   },
 
   // Pflanzen im Übungsmodus
@@ -1265,13 +1214,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 35,
     left: "8%",
-    opacity: 0.65,
+    opacity: 0.28,
   },
   plantRight: {
     position: "absolute",
     bottom: 35,
     right: "8%",
-    opacity: 0.5,
+    opacity: 0.22,
   },
   plant: {
     width: 24,
@@ -1334,7 +1283,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
   },
 
-  // Kompaktere Rekorde
+  // Rekorde
   records: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
