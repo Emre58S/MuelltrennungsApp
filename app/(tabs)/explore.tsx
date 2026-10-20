@@ -762,7 +762,7 @@ function GameRound({
                   feverProgress={(stats.streak % FEVER_EVERY) / FEVER_EVERY}
                   fever={fever}
                 />
-                {mode === "endless" && stats.throws > 0 ? (
+                {mode === "endless" && !daily && stats.throws > 0 ? (
                   <HudButton
                     label={t("game.finish")}
                     onPress={() => setFinished(true)}
