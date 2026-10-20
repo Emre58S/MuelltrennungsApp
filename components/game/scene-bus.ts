@@ -23,6 +23,8 @@ export type ThrowSpec = {
   perfect: boolean;
   /** Goldene Spur (Perfekt oder Fieber). */
   glow: boolean;
+  /** Wischstärke 0.8…1.3: höher = kräftiger, flacherer Wurf (Standard 1). */
+  power?: number;
 };
 
 export type SceneBus = {

@@ -43,28 +43,38 @@ import {
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout } from "@/game/layout";
 import {
   aimFromDrag,
-  drawFromBag,
+  DAILY_COUNT,
+  dailyItems,
   FEVER_EVERY,
   FEVER_SECONDS,
   getMultiplier,
   getPoints,
   type HitResult,
   INITIAL_STATS,
+  itemWeight,
+  pickItem,
+  recentLimit,
   statsReducer,
   XP_PER_RESULT,
 } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import { devLog } from "@/utils/dev-error-reporter";
+import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import {
+  EMPTY_ITEM_STAT,
   flushThrowRecords,
   getHighscoreKey,
+  getItemStats,
   getLevelFromXP,
   getNumber,
+  getTodayDaily,
+  type ItemStats,
   queueThrowRecord,
   recordRound,
+  saveDaily,
   saveHighscore,
   StorageKeys,
+  todayKey,
 } from "@/utils/storage";
 import { Canvas } from "@react-three/fiber/native";
 import { setAudioModeAsync } from "expo-audio";
@@ -79,7 +89,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { PixelRatio, StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  PixelRatio,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -102,9 +117,17 @@ const HIGHSCORE_MODE = {
 } as const;
 
 export default function GameScreen() {
-  const { mode: rawMode } = useLocalSearchParams<{ mode?: string }>();
-  const mode: GameMode =
-    rawMode === "survival" || rawMode === "time" ? rawMode : "endless";
+  const { mode: rawMode, daily: rawDaily } = useLocalSearchParams<{
+    mode?: string;
+    daily?: string;
+  }>();
+  // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
+  const daily = rawDaily === "1";
+  const mode: GameMode = daily
+    ? "endless"
+    : rawMode === "survival" || rawMode === "time"
+      ? rawMode
+      : "endless";
   const router = useRouter();
   const { colors } = useAppTheme();
   const [xp, setXp] = useState<number | null>(null);
@@ -145,8 +168,9 @@ export default function GameScreen() {
     >
       {xp !== null && level !== null && (
         <GameRound
-          key={`${round}-${level}-${mode}`}
+          key={`${round}-${level}-${mode}-${daily}`}
           mode={mode}
+          daily={daily}
           level={level}
           startXp={xp}
           onAgain={playAgain}
@@ -158,16 +182,41 @@ export default function GameScreen() {
 }
 
 type Praised = { id: number; text: string; gold: boolean };
+type Picker = { recent: string[]; dailyIndex: number };
+
+/** Nächstes Item: Tagesaufgabe der Reihe nach, sonst lernend gewichtet. */
+function drawItem(
+  picker: Picker,
+  pool: Item[],
+  dailyList: Item[] | null,
+  stats: ItemStats,
+  throws: number,
+): Item | null {
+  if (dailyList) return dailyList[picker.dailyIndex++] ?? null;
+  const now = Date.now();
+  const item = pickItem(
+    pool,
+    (i) => itemWeight(i, stats[i.name], throws, now),
+    picker.recent,
+  );
+  if (item) {
+    picker.recent.push(item.name);
+    while (picker.recent.length > recentLimit(pool.length)) picker.recent.shift();
+  }
+  return item;
+}
 type Learn = { id: number; item: Item; bin: Mistake["bin"] };
 
 function GameRound({
   mode,
+  daily,
   level,
   startXp,
   onAgain,
   onExit,
 }: {
   mode: GameMode;
+  daily: boolean;
   level: number;
   startXp: number;
   onAgain: () => void;
@@ -182,9 +231,13 @@ function GameRound({
   useEffect(() => {
     fx.current.calm = reduceMotion;
   }, [reduceMotion]);
-  const bins = useMemo(() => getBinsForLevel(level), [level]);
+  // Tagesaufgabe immer mit den 3 Grund-Tonnen – damit sie für alle gleich ist.
+  const bins = useMemo(() => getBinsForLevel(daily ? 1 : level), [daily, level]);
   const pool = useMemo(() => getItemsForBins(bins), [bins]);
-  const [bag] = useState(() => ({ current: [] as Item[] }));
+  const dailyQueue = useMemo(
+    () => (daily ? dailyItems(pool, todayKey()) : []),
+    [daily, pool],
+  );
   const { width: screenW, height: screenH } = useWindowDimensions();
   const layout = useMemo(
     () => computeLayout(screenW, screenH, bins.length),
@@ -194,13 +247,19 @@ function GameRound({
   // Synchroner Spiegel von `stats`: bei schnellen Würfen landen mehrere Items,
   // bevor React neu gerendert hat – dann wäre `stats` im Handler veraltet.
   const liveStats = useRef(INITIAL_STATS);
+  // Lernstand pro Item: oft falsch Sortiertes kommt häufiger (siehe itemWeight)
+  const itemStats = useRef<ItemStats>({});
+  const [picker] = useState<Picker>(() => ({ recent: [], dailyIndex: 0 }));
+  const dailyList = daily ? dailyQueue : null;
   const [currentItem, setCurrentItemState] = useState<Item | null>(() =>
-    drawFromBag(bag, pool),
+    drawItem(picker, pool, dailyList, {}, 0),
   );
   // Das nächste Item steht unsichtbar bereit (Modell schon aufgebaut).
   const [nextItem, setNextItemState] = useState<Item | null>(() =>
-    drawFromBag(bag, pool, currentItem?.name),
+    drawItem(picker, pool, dailyList, {}, 0),
   );
+  const drawNext = () =>
+    drawItem(picker, pool, dailyList, itemStats.current, liveStats.current.throws);
   const nextRef = useRef<Item | null>(nextItem);
   const itemRef = useRef<Item | null>(currentItem);
   const setCurrentItem = useCallback((item: Item | null) => {
@@ -250,8 +309,14 @@ function GameRound({
   useEffect(() => {
     refreshSfxSetting();
     preloadSfx();
-    getNumber(getHighscoreKey(HIGHSCORE_MODE[mode])).then(setBestBefore);
-  }, [mode]);
+    getItemStats()
+      .then((s) => {
+        itemStats.current = { ...s, ...itemStats.current };
+      })
+      .catch(() => undefined);
+    if (daily) getTodayDaily().then((d) => setBestBefore(d?.score ?? 0));
+    else getNumber(getHighscoreKey(HIGHSCORE_MODE[mode])).then(setBestBefore);
+  }, [mode, daily]);
   const timerRunning =
     mode === "time" && timerStarted && !finished && timeLeft > 0;
   useEffect(() => {
@@ -279,17 +344,24 @@ function GameRound({
   }, [mode, timerStarted, timeLeft, later]);
   const showEnd = finished;
   const savedRound = useRef(false);
-  const latest = useRef({ mode });
+  const latest = useRef({ mode, daily });
   useLayoutEffect(() => {
-    latest.current = { mode };
+    latest.current = { mode, daily };
   });
   // Runde speichern (Statistik + Bestwert) – am Ende oder beim Verlassen.
   const commitRound = useCallback(() => {
     if (savedRound.current) return;
     const s = liveStats.current;
-    const { mode: m } = latest.current;
+    const { mode: m, daily: d } = latest.current;
     if (s.throws === 0) return;
     savedRound.current = true;
+    if (d) {
+      saveDaily({ date: todayKey(), score: s.score, correct: s.correct, total: s.throws }).catch(
+        () => undefined,
+      );
+      flushThrowRecords().catch(() => undefined);
+      return;
+    }
     recordRound(m, {
       maxStreak: s.maxStreak,
       throws: s.throws,
@@ -332,7 +404,7 @@ function GameRound({
       });
     }, FEVER_SECONDS * 1000);
   }, [later]);
-  const throwTo = (binIndex: number, perfect: boolean) => {
+  const throwTo = (binIndex: number, perfect: boolean, power = 1) => {
     const l = lock.current;
     const item = itemRef.current;
     if (!item || l.ended || finished) return;
@@ -348,19 +420,20 @@ function GameRound({
       hit,
       perfect: hit && perfect,
       glow: (hit && perfect) || feverRef.current,
+      power,
     };
     throwMap.current.set(spec.id, spec);
     queueThrow(bus.current, spec);
 
     // Nächstes Item ist schon aufgebaut → sofort zeigen. Das übernächste
     // erst kurz danach aufbauen, nicht im selben Moment wie den Wurf.
-    const upcoming = nextRef.current ?? drawFromBag(bag, pool, item.name);
+    const upcoming = nextRef.current ?? drawNext();
     nextRef.current = null;
     setNextItemState(null);
     setCurrentItem(upcoming);
     later(() => {
       if (nextRef.current) return;
-      const following = drawFromBag(bag, pool, itemRef.current?.name);
+      const following = drawNext();
       nextRef.current = following;
       setNextItemState(following);
     }, 300);
@@ -392,6 +465,16 @@ function GameRound({
     const after = statsReducer(before, action);
     liveStats.current = after;
     dispatch(action);
+    // Lernstand sofort lokal mitführen (Gewichtung passt sich in der Runde an)
+    const old = itemStats.current[ts.item.name] ?? EMPTY_ITEM_STAT;
+    itemStats.current[ts.item.name] = ts.hit
+      ? { ...old, correct: old.correct + 1, streak: old.streak + 1 }
+      : { ...old, wrong: old.wrong + 1, streak: 0, lastWrong: Date.now() };
+    if (daily && after.throws >= DAILY_COUNT && !l.ended) {
+      l.ended = true;
+      setAim(bus.current, null);
+      later(() => setFinished(true), 900);
+    }
     queueBinEvent(
       bus.current,
       i,
@@ -445,7 +528,9 @@ function GameRound({
       if (ts.perfect || streakNow % 5 === 0) {
         setPraise({
           id,
-          text: ts.perfect ? t("game.perfect") : `${t(praiseKey)} ×${streakNow}`,
+          text: ts.perfect
+            ? t("game.perfect")
+            : `${t(praiseKey)} ×${streakNow}`,
           gold: ts.perfect,
         });
         later(() => {
@@ -453,6 +538,11 @@ function GameRound({
         }, 900);
       }
       if (streakNow % FEVER_EVERY === 0) startFever();
+      // Jede 5er-Serie: die anderen Tonnen hüpfen mit
+      if (streakNow % 5 === 0)
+        bins.forEach((_, k) => {
+          if (k !== i) queueBinEvent(bus.current, k, "peek");
+        });
     } else {
       sfx("wrong");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
@@ -479,7 +569,7 @@ function GameRound({
     // XP + Level-Aufstieg lokal berechnen; gespeichert wird gebündelt.
     const xp = XP_PER_RESULT[result];
     setXpEarned((v) => v + xp);
-    queueThrowRecord({ correct: ts.hit, xp });
+    queueThrowRecord({ correct: ts.hit, xp, item: ts.item.name });
     xpTotal.current += xp;
     const newLevel = getLevelFromXP(xpTotal.current);
     if (newLevel > levelNow.current) {
@@ -498,7 +588,7 @@ function GameRound({
   };
   const handlers = useRef({
     aim: (_dx: number, _dy: number) => {},
-    release: (_dx: number, _dy: number) => {},
+    release: (_dx: number, _dy: number, _vy: number) => {},
     cancel: () => {},
     tap: (_x: number, _y: number) => {},
     throwTo: (_i: number) => {},
@@ -516,10 +606,12 @@ function GameRound({
           Haptics.selectionAsync().catch(() => undefined);
         }
       },
-      release: (dx, dy) => {
+      release: (dx, dy, vy) => {
         const aim = aimFromDrag(dx, dy, layout.binAngles);
         setAim(bus.current, null);
-        if (aim) throwTo(aim.binIndex, aim.perfect);
+        // Schneller Wisch → kräftigere, flachere Bahn; langsamer → höherer Bogen
+        const power = Math.min(Math.max(0.8 + -vy / 5000, 0.8), 1.3);
+        if (aim) throwTo(aim.binIndex, aim.perfect, power);
       },
       cancel: () => setAim(bus.current, null),
       tap: (x, y) => {
@@ -546,7 +638,7 @@ function GameRound({
     [],
   );
   const onRelease = useCallback(
-    (dx: number, dy: number) => handlers.current.release(dx, dy),
+    (dx: number, dy: number, vy: number) => handlers.current.release(dx, dy, vy),
     [],
   );
   const onCancel = useCallback(() => handlers.current.cancel(), []);
@@ -564,7 +656,7 @@ function GameRound({
         onAim(e.translationX, e.translationY);
       })
       .onEnd((e) => {
-        onRelease(e.translationX, e.translationY);
+        onRelease(e.translationX, e.translationY, e.velocityY);
       })
       .onFinalize(onCancel);
     const tap = Gesture.Tap()

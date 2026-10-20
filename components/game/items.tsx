@@ -319,7 +319,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.slowed = false;
     s.started = now;
     s.target.copy(openings[spec.binIndex] ?? start);
-    s.arc = arcFor(start, s.target);
+    // Kräftiger Wisch → flacherer Bogen, sanfter Wisch → höherer Bogen
+    s.arc = arcFor(start, s.target) * (1.35 - (spec.power ?? 1) * 0.35);
     s.trail.forEach((v) => v.copy(start));
     s.head = 0;
     s.trailShown = true;

@@ -155,3 +155,102 @@ export function drawFromBag(
   }
   return pool[0];
 }
+
+/* ── Lernende Item-Auswahl ─────────────────────────────────── */
+
+/** Lernstand eines Items (Teilmenge von ItemStat in utils/storage). */
+export type LearnStat = { wrong: number; streak: number; lastWrong: number };
+
+const DAY_MS = 86_400_000;
+/** So viele Würfe dauert das Aufwärmen, bis schwere Items voll dabei sind. */
+const WARMUP_THROWS = 15;
+
+/**
+ * Wie oft ein Item drankommen soll:
+ *  - oft falsch → häufiger (verblasst mit richtigen Antworten in Folge)
+ *  - kürzlich falsch → extra häufig (Wiederholung, solange noch unsicher)
+ *  - sicher gekonnt → seltener
+ *  - noch nie gesehen → leicht bevorzugt (Sammelbuch füllen)
+ *  - Schwierigkeit steigt in der Runde: erst leicht, dann mehr „Fallen“
+ */
+export function itemWeight(
+  item: Item,
+  stat: LearnStat | undefined,
+  throws: number,
+  now: number,
+): number {
+  let w = 1;
+  if (stat) {
+    w += (Math.min(stat.wrong, 5) * 0.8) / (1 + stat.streak);
+    if (stat.lastWrong > 0 && now - stat.lastWrong < 3 * DAY_MS && stat.streak < 2) w += 1.5;
+    if (stat.streak >= 4) w *= 0.5;
+  } else {
+    w += 0.3;
+  }
+  const ramp = Math.min(throws / WARMUP_THROWS, 1);
+  if (item.difficulty === "schwer") w *= 0.25 + ramp;
+  else if (item.difficulty === "mittel") w *= 0.6 + ramp * 0.5;
+  else w *= 1.3 - ramp * 0.5;
+  return w;
+}
+
+/** Gewichtete Auswahl; die letzten Items (`recent`) kommen nicht direkt wieder. */
+export function pickItem(
+  pool: Item[],
+  weightOf: (item: Item) => number,
+  recent: string[],
+  rand: () => number = Math.random,
+): Item | null {
+  if (pool.length === 0) return null;
+  const fresh = pool.filter((i) => !recent.includes(i.name));
+  const list = fresh.length > 0 ? fresh : pool;
+  const weights = list.map((i) => Math.max(weightOf(i), 0.01));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = rand() * total;
+  for (let i = 0; i < list.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return list[i];
+  }
+  return list[list.length - 1];
+}
+
+/** Wie viele zuletzt gezeigte Items gesperrt sind (abhängig von der Pool-Größe). */
+export function recentLimit(poolSize: number) {
+  return Math.max(0, Math.min(4, poolSize - 1));
+}
+
+/* ── Tagesaufgabe ──────────────────────────────────────────── */
+
+export const DAILY_COUNT = 10;
+
+function hashString(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/** Kleiner, reproduzierbarer Zufallsgenerator (mulberry32). */
+export function seededRandom(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Die Items der Tagesaufgabe: für alle gleich (nur vom Datum abhängig). */
+export function dailyItems(pool: Item[], date: string, count = DAILY_COUNT): Item[] {
+  const rand = seededRandom(hashString(`daily:${date}`));
+  const sorted = [...pool].sort((a, b) => a.name.localeCompare(b.name));
+  for (let i = sorted.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+  }
+  return sorted.slice(0, Math.min(count, sorted.length));
+}
