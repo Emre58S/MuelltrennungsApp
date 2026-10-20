@@ -280,6 +280,8 @@ function GameRound({
   const [hasThrown, setHasThrown] = useState(false);
   const [finished, setFinished] = useState(false);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
+  // Ergebnis pro Wurf (nur Tagesaufgabe: für die Teilen-Kästchen)
+  const [results, setResults] = useState<HitResult[]>([]);
   const [xpEarned, setXpEarned] = useState(0);
   const [bestBefore, setBestBefore] = useState<number | null>(null);
   const xpTotal = useRef(startXp);
@@ -465,6 +467,7 @@ function GameRound({
     const after = statsReducer(before, action);
     liveStats.current = after;
     dispatch(action);
+    if (daily) setResults((r) => [...r, result]);
     // Lernstand sofort lokal mitführen (Gewichtung passt sich in der Runde an)
     const old = itemStats.current[ts.item.name] ?? EMPTY_ITEM_STAT;
     itemStats.current[ts.item.name] = ts.hit
@@ -805,7 +808,10 @@ function GameRound({
           <EndScreen
             title={endTitle}
             stats={stats}
+            startXp={startXp}
             xpEarned={xpEarned}
+            daily={daily}
+            results={results}
             newBest={newBest}
             mistakes={mistakes}
             onAgain={onAgain}
