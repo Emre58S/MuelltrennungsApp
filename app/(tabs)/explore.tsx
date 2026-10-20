@@ -308,10 +308,17 @@ function GameRound({
     throwMap.current.set(ts.id, ts);
     setThrowStates((list) => [...list, ts]);
     const upcoming = nextRef.current ?? drawFromBag(bag, pool, item.name);
-    const following = drawFromBag(bag, pool, upcoming?.name);
-    nextRef.current = following;
-    setNextItemState(following);
+    nextRef.current = null;
+    setNextItemState(null);
     setCurrentItem(upcoming);
+    // Das übernächste Item erst kurz nach dem Wurf aufbauen, nicht im selben
+    // Moment wie das fliegende Item.
+    later(() => {
+      if (nextRef.current) return;
+      const following = drawFromBag(bag, pool, itemRef.current?.name);
+      nextRef.current = following;
+      setNextItemState(following);
+    }, 300);
     setPraise(null);
     sfx("throw", { rate: perfect ? 1.1 : 1 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(

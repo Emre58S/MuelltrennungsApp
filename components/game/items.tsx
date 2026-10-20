@@ -3,7 +3,7 @@
 // und das geworfene Item (Flug mit Leuchtspur → Einsinken oder Abprallen).
 
 import { useFrame } from "@react-three/fiber/native";
-import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
@@ -16,6 +16,11 @@ export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
 }
 
 /* ── Vorschau ──────────────────────────────────────────────── */
+
+/** Fertig aufgebaute Vorschau-Modelle (nach Item-Name). Der Wurf klont sie
+ *  (teilt Geometrie + Material), statt das Modell per React neu aufzubauen –
+ *  das ist bei Schnellwürfen der entscheidende Unterschied. */
+const previewModels = new Map<string, THREE.Object3D>();
 
 export const PreviewItem = memo(function PreviewItem({
   item,
@@ -34,8 +39,18 @@ export const PreviewItem = memo(function PreviewItem({
   fx: FxRef;
 }) {
   const ref = useRef<THREE.Group>(null);
+  const modelRef = useRef<THREE.Group>(null);
   const age = useRef(0);
   const aim = useRef(0);
+
+  useEffect(() => {
+    const model = modelRef.current;
+    if (!model) return;
+    previewModels.set(item.name, model);
+    return () => {
+      if (previewModels.get(item.name) === model) previewModels.delete(item.name);
+    };
+  }, [item.name]);
   const lean = useRef(0);
 
   useFrame((state, rawDelta) => {
@@ -78,7 +93,9 @@ export const PreviewItem = memo(function PreviewItem({
     position={[position.x, position.y, position.z]}
     scale={0.001}
   >
-    <TrashObject3D item={item} />
+    <group ref={modelRef}>
+      <TrashObject3D item={item} />
+    </group>
   </group>
 );
 });
@@ -177,6 +194,8 @@ export function ThrownItem({
 }) {
   const ref = useRef<THREE.Group>(null);
   const trailRef = useRef<THREE.InstancedMesh>(null);
+  // Beim ersten Render noch vorhanden (die Vorschau wird erst im Commit entfernt).
+  const [model] = useState(() => previewModels.get(item.name)?.clone(true) ?? null);
   const st = useRef({
     phase: "flight" as Phase,
     t: 0,
@@ -328,7 +347,7 @@ export function ThrownItem({
       position={[start.x, start.y, start.z]}
       scale={startScale}
     >
-      <TrashObject3D item={item} />
+      {model ? <primitive object={model} /> : <TrashObject3D item={item} />}
     </group>
   </>
 );
