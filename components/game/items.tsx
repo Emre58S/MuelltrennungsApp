@@ -8,7 +8,7 @@ import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
 
-import { easeOutBack, flightPoint, type FxRef, setLook, slowMotion } from "./fx";
+import { easeOutBack, flightPoint, type FxRef, setLook, slowMotion, trackFlying } from "./fx";
 import { TrashObject3D } from "./models";
 
 export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
@@ -202,10 +202,10 @@ export function ThrownItem({
   useEffect(() => {
     const s = st.current;
     const f = fx.current;
-    f.flying += 1;
+    trackFlying(f, 1);
     s.counted = true;
     return () => {
-      if (s.counted) f.flying -= 1;
+      if (s.counted) trackFlying(f, -1);
     };
   }, [fx]);
 
@@ -240,7 +240,7 @@ export function ThrownItem({
       if (s.t >= 1) {
         if (s.counted) {
           s.counted = false;
-          fx.current.flying -= 1;
+          trackFlying(fx.current, -1);
         }
         if (!s.landed) {
           s.landed = true;

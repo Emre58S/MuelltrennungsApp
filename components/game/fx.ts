@@ -48,6 +48,11 @@ export function slowMotion(fx: Fx, ms: number) {
   fx.slowCooldownUntil = now + ms + 1200;
 }
 
+/** Wurf startet (+1) bzw. ist gelandet/entfernt (−1). */
+export function trackFlying(fx: Fx, delta: 1 | -1) {
+  fx.flying = Math.max(0, fx.flying + delta);
+}
+
 /** Zeitlupe sofort beenden (z. B. wenn der nächste Wurf losgeht). */
 export function cancelSlowMotion(fx: Fx) {
   fx.slowUntil = 0;
