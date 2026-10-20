@@ -77,6 +77,11 @@ export const G = {
     ) => new THREE.CylinderGeometry(rt, rb, h, seg, 1, open, ts, tl),
   ),
 
+  dodeca: memoGeo(
+    "dodeca",
+    (r: number) => new THREE.DodecahedronGeometry(r, 0),
+  ),
+
   ball: memoGeo(
     "ball",
     (

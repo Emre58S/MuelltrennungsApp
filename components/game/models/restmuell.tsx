@@ -1,8 +1,6 @@
 // Datei: components/game/models/restmuell.tsx
 // Modelle: Restmüll (inkl. Fallback-Modell)
 
-import * as THREE from "three";
-
 import {
   G,
   Part,
@@ -926,7 +924,7 @@ export function renderRestmuellModel(key: string, name: string) {
       return (
         <group rotation={[0.2, 0.3, -0.12]}>
           <Part
-            geo={new THREE.DodecahedronGeometry(0.28, 0)}
+            geo={G.dodeca(0.28)}
             color="#94A3B8"
             roughness={0.7}
             metalness={0.15}
