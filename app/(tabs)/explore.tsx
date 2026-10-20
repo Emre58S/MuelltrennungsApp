@@ -201,7 +201,8 @@ function drawItem(
   );
   if (item) {
     picker.recent.push(item.name);
-    while (picker.recent.length > recentLimit(pool.length)) picker.recent.shift();
+    while (picker.recent.length > recentLimit(pool.length))
+      picker.recent.shift();
   }
   return item;
 }
@@ -232,7 +233,10 @@ function GameRound({
     fx.current.calm = reduceMotion;
   }, [reduceMotion]);
   // Tagesaufgabe immer mit den 3 Grund-Tonnen – damit sie für alle gleich ist.
-  const bins = useMemo(() => getBinsForLevel(daily ? 1 : level), [daily, level]);
+  const bins = useMemo(
+    () => getBinsForLevel(daily ? 1 : level),
+    [daily, level],
+  );
   const pool = useMemo(() => getItemsForBins(bins), [bins]);
   const dailyQueue = useMemo(
     () => (daily ? dailyItems(pool, todayKey()) : []),
@@ -259,7 +263,13 @@ function GameRound({
     drawItem(picker, pool, dailyList, {}, 0),
   );
   const drawNext = () =>
-    drawItem(picker, pool, dailyList, itemStats.current, liveStats.current.throws);
+    drawItem(
+      picker,
+      pool,
+      dailyList,
+      itemStats.current,
+      liveStats.current.throws,
+    );
   const nextRef = useRef<Item | null>(nextItem);
   const itemRef = useRef<Item | null>(currentItem);
   const setCurrentItem = useCallback((item: Item | null) => {
@@ -358,9 +368,12 @@ function GameRound({
     if (s.throws === 0) return;
     savedRound.current = true;
     if (d) {
-      saveDaily({ date: todayKey(), score: s.score, correct: s.correct, total: s.throws }).catch(
-        () => undefined,
-      );
+      saveDaily({
+        date: todayKey(),
+        score: s.score,
+        correct: s.correct,
+        total: s.throws,
+      }).catch(() => undefined);
       flushThrowRecords().catch(() => undefined);
       return;
     }
@@ -641,7 +654,8 @@ function GameRound({
     [],
   );
   const onRelease = useCallback(
-    (dx: number, dy: number, vy: number) => handlers.current.release(dx, dy, vy),
+    (dx: number, dy: number, vy: number) =>
+      handlers.current.release(dx, dy, vy),
     [],
   );
   const onCancel = useCallback(() => handlers.current.cancel(), []);
