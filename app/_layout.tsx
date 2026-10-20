@@ -12,6 +12,8 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 import { AppSettingsProvider, useAppSettings } from "@/providers/app-settings";
@@ -54,9 +56,16 @@ export default function RootLayout() {
   });
 
   return (
-    <AppSettingsProvider>
-      {/* Bei Schriftfehler trotzdem starten (dann mit Systemschrift). */}
-      <RootStack fontsDone={fontsLoaded || !!fontError} />
-    </AppSettingsProvider>
+    // Gesten-Wurzel für die ganze App (Menü und Spiel nutzen Wisch-Gesten).
+    <GestureHandlerRootView style={styles.root}>
+      <AppSettingsProvider>
+        {/* Bei Schriftfehler trotzdem starten (dann mit Systemschrift). */}
+        <RootStack fontsDone={fontsLoaded || !!fontError} />
+      </AppSettingsProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});
