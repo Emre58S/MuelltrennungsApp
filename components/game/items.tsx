@@ -19,12 +19,15 @@ export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
 
 export const PreviewItem = memo(function PreviewItem({
   item,
+  visible = true,
   position,
   scale,
   aimTarget,
   fx,
 }: {
   item: Item;
+  /** false = bereits aufgebaut, aber noch unsichtbar (nächstes Item). */
+  visible?: boolean;
   position: THREE.Vector3;
   scale: number;
   aimTarget: THREE.Vector3 | null;
@@ -38,6 +41,11 @@ export const PreviewItem = memo(function PreviewItem({
   useFrame((state, rawDelta) => {
     const g = ref.current;
     if (!g) return;
+    g.visible = visible;
+    if (!visible) {
+      age.current = 0;
+      return;
+    }
     const delta = Math.min(rawDelta, 0.05);
     age.current += delta;
     const t = state.clock.elapsedTime;

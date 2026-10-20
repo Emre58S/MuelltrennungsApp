@@ -169,6 +169,12 @@ function GameRound({
   const [currentItem, setCurrentItemState] = useState<Item | null>(() =>
     drawFromBag(bag, pool),
   );
+  // Das übernächste Item wird unsichtbar schon aufgebaut, damit beim Wurf nur
+  // noch ein Modell (das fliegende) neu entsteht – wichtig bei Schnellwürfen.
+  const [nextItem, setNextItemState] = useState<Item | null>(() =>
+    drawFromBag(bag, pool, currentItem?.name),
+  );
+  const nextRef = useRef<Item | null>(nextItem);
   const itemRef = useRef<Item | null>(currentItem);
   const setCurrentItem = useCallback((item: Item | null) => {
     itemRef.current = item;
@@ -301,7 +307,11 @@ function GameRound({
     };
     throwMap.current.set(ts.id, ts);
     setThrowStates((list) => [...list, ts]);
-    setCurrentItem(drawFromBag(bag, pool, item.name));
+    const upcoming = nextRef.current ?? drawFromBag(bag, pool, item.name);
+    const following = drawFromBag(bag, pool, upcoming?.name);
+    nextRef.current = following;
+    setNextItemState(following);
+    setCurrentItem(upcoming);
     setPraise(null);
     sfx("throw", { rate: perfect ? 1.1 : 1 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -582,6 +592,7 @@ function GameRound({
               fx={fx}
               calm={reduceMotion}
               previewItem={showEnd ? null : currentItem}
+              nextItem={showEnd ? null : nextItem}
               aimIndex={aimIndex}
               throws={throwStates}
               binEvents={binEvents}

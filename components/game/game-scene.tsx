@@ -99,6 +99,7 @@ export const GameScene = memo(function GameScene({
   fx,
   calm,
   previewItem,
+  nextItem,
   aimIndex,
   throws,
   binEvents,
@@ -114,6 +115,7 @@ export const GameScene = memo(function GameScene({
   fx: FxRef;
   calm: boolean;
   previewItem: Item | null;
+  nextItem: Item | null;
   aimIndex: number | null;
   throws: ThrowState[];
   binEvents: (BinEvent | null)[];
@@ -153,15 +155,20 @@ export const GameScene = memo(function GameScene({
         />
       ))}
 
-      {previewItem && (
-        <PreviewItem
-          key={previewItem.name}
-          item={previewItem}
-          position={layout.item.position}
-          scale={layout.item.scale}
-          aimTarget={aimTarget}
-          fx={fx}
-        />
+      {/* Das nächste Item steht unsichtbar bereit (gleicher key → kein Neuaufbau) */}
+      {[previewItem, nextItem && nextItem.name !== previewItem?.name ? nextItem : null].map(
+        (it, i) =>
+          it && (
+            <PreviewItem
+              key={it.name}
+              item={it}
+              visible={i === 0}
+              position={layout.item.position}
+              scale={layout.item.scale}
+              aimTarget={aimTarget}
+              fx={fx}
+            />
+          ),
       )}
 
       <AimGuide
