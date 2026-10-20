@@ -100,7 +100,8 @@ export function ModelWarmup({
 
   if (batch.length === 0) return null;
   return (
-    <group position={at} scale={0.0001}>
+    // Position als Array (R3F-eigene three-Kopie erkennt unseren Vector3 nicht)
+    <group position={[at.x, at.y, at.z]} scale={0.0001}>
       {batch.map((item, i) => (
         <group
           key={item.name}

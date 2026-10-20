@@ -253,7 +253,7 @@ function partMaterial(
         new THREE.MeshLambertMaterial({
           color: metallic ? lighten(color, 0.1) : color,
           flatShading: true,
-          emissive,
+          ...(emissive ? { emissive } : {}),
           ...common,
         });
     materialCache.set(key, material);

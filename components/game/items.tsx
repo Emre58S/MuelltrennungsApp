@@ -91,7 +91,14 @@ export const PreviewItem = memo(function PreviewItem({
   });
 
   return (
-    <group ref={ref} position={position} scale={0.001} visible={false}>
+    // Positionen als Array: R3F nutzt eine eigene three-Kopie (CJS), ein
+    // Vector3 aus unserem Import würde nicht erkannt („read-only position“).
+    <group
+      ref={ref}
+      position={[position.x, position.y, position.z]}
+      scale={0.001}
+      visible={false}
+    >
       <ItemModel item={item} />
     </group>
   );
