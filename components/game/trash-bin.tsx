@@ -1,6 +1,13 @@
-// Datei: components/game/trash-bin.tsx
-// Die Tonne als „Charakter“: atmet leicht, hebt sich und öffnet den Deckel,
-// wenn sie anvisiert wird, hüpft beim Treffer und schüttelt sich bei Fehlern.
+// Datei: components/game/trash-bin.tsx — Low-Poly-Tonne
+//
+// Schlichte, realistische 240-Liter-Tonne im Low-Poly-Stil (facettierte
+// Kanten, flache Schattierung). Ruhige, klare Rückmeldung:
+//  - Zielen: Tonne hebt sich leicht, Deckel öffnet sich, Ring am Boden leuchtet
+//  - Treffer: federt kurz, Deckel klappt einmal auf/zu
+//  - Fehler: kurzes Kopfschütteln, Deckel bleibt zu
+//  - Einladen (Menü): Deckel lupft kurz, Tonne hüpft leicht
+//
+// Zustand kommt über den SceneBus (kein Re-Render pro Wurf).
 
 import { useFrame } from "@react-three/fiber/native";
 import { memo, useEffect, useMemo, useRef } from "react";
@@ -9,207 +16,194 @@ import * as THREE from "three";
 import { type BinDef } from "@/game/bins";
 
 import { type FxRef } from "./fx";
+import { lowpoly, lowpolyOwn, roundedFrustum, roundedSlab } from "./materials";
+import { type BusRef, isBinActive, takeBinEvent } from "./scene-bus";
 
-export type BinEvent = { type: "hit" | "perfect" | "reject"; id: number };
+const LID_OPEN = 1.0;
+const BODY_Y = 0.08;
+const BODY_H = 1.42;
+const BOTTOM = { w: 0.9, d: 0.84 };
+const TOP = { w: 1.06, d: 1.0 };
 
-const LID_OPEN = Math.PI * 0.62;
-const LID_IDLE = 0.08;
+function frontZ(y: number) {
+  const k = (y - BODY_Y) / BODY_H;
+  return (BOTTOM.d + (TOP.d - BOTTOM.d) * k) / 2;
+}
+const TAPER = Math.atan((TOP.d - BOTTOM.d) / 2 / BODY_H);
+
+// seg = 1 → abgeschrägte statt runde Ecken: typischer Low-Poly-Look
+const GEO = {
+  body: roundedFrustum(BOTTOM, TOP, BODY_H, 0.12, 1),
+  inset: roundedSlab(0.68, 0.9, 0.014, 0.08, 1),
+  rim: roundedSlab(1.12, 1.06, 0.07, 0.12, 1),
+  opening: roundedSlab(0.92, 0.84, 0.02, 0.1, 1),
+  lid: roundedSlab(1.16, 1.1, 0.06, 0.13, 1),
+  grip: new THREE.BoxGeometry(0.5, 0.05, 0.06),
+  wheel: new THREE.CylinderGeometry(0.17, 0.17, 0.11, 8),
+  hub: new THREE.CylinderGeometry(0.07, 0.07, 0.12, 6),
+  axle: new THREE.CylinderGeometry(0.03, 0.03, 1.0, 6),
+  pad: new THREE.CircleGeometry(0.8, 8),
+  blob: new THREE.CircleGeometry(0.62, 16),
+  ring: new THREE.RingGeometry(0.72, 0.86, 8),
+};
+
+const SHARED = {
+  dark: new THREE.MeshBasicMaterial({ color: "#22262B" }),
+  // Günstiger Boden-Schatten statt Echtzeit-Schatten (flüssiger auf Handys)
+  blob: new THREE.MeshBasicMaterial({ color: "#000000", transparent: true, opacity: 0.22, depthWrite: false }),
+  wheel: lowpoly("#2E3238"),
+  hub: lowpoly("#A7ADB3"),
+};
+
+function shade(hex: string, amount: number) {
+  return `#${new THREE.Color(hex).offsetHSL(0, 0, amount).getHexString()}`;
+}
 
 export const TrashBin = memo(function TrashBin({
   bin,
   x,
   z,
   index,
-  aimed,
-  event,
   fx,
+  bus,
 }: {
   bin: BinDef;
   x: number;
   z: number;
   index: number;
-  aimed: boolean;
-  event: BinEvent | null;
   fx: FxRef;
+  bus: BusRef;
 }) {
   const rootRef = useRef<THREE.Group>(null);
   const lidRef = useRef<THREE.Group>(null);
   const ringRef = useRef<THREE.Mesh>(null);
-  const beamRef = useRef<THREE.Mesh>(null);
-  const anim = useRef({ hit: 0, reject: 0, lift: 0, lastId: -1 });
+  const anim = useRef({ hit: 0, reject: 0, lift: 0, peek: 0 });
 
   const mats = useMemo(
     () => ({
-      body: new THREE.MeshStandardMaterial({ color: bin.color, roughness: 0.7 }),
-      light: new THREE.MeshStandardMaterial({
-        color: bin.colorLight,
-        roughness: 0.6,
-      }),
-      dark: new THREE.MeshStandardMaterial({ color: "#11161C", roughness: 1 }),
-      wheel: new THREE.MeshStandardMaterial({ color: "#1A1A1A", roughness: 1 }),
-      plate: new THREE.MeshStandardMaterial({ color: "#FFFFFF", roughness: 0.5 }),
-      pad: new THREE.MeshStandardMaterial({
-        color: bin.colorLight,
-        roughness: 0.9,
-        transparent: true,
-        opacity: 0.55,
-      }),
-      ring: new THREE.MeshBasicMaterial({
+      body: lowpolyOwn(bin.color),
+      inset: lowpoly(shade(bin.color, -0.06)),
+      lid: lowpoly(shade(bin.color, 0.06)),
+      rim: lowpoly(shade(bin.color, -0.03)),
+      pad: new THREE.MeshBasicMaterial({
         color: bin.colorLight,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.28,
         depthWrite: false,
       }),
-      beam: new THREE.MeshBasicMaterial({
-        color: bin.colorLight,
+      ring: new THREE.MeshBasicMaterial({
+        color: "#FFFFFF",
         transparent: true,
         opacity: 0,
         depthWrite: false,
-        side: THREE.DoubleSide,
       }),
     }),
     [bin],
   );
-
-  useEffect(() => () => Object.values(mats).forEach((m) => m.dispose()), [mats]);
-
-  useEffect(() => {
-    if (!event || event.id === anim.current.lastId) return;
-    anim.current.lastId = event.id;
-    if (event.type === "reject") anim.current.reject = 1;
-    else anim.current.hit = event.type === "perfect" ? 1.4 : 1;
-  }, [event]);
+  useEffect(
+    () => () => {
+      mats.body.dispose();
+      mats.pad.dispose();
+      mats.ring.dispose();
+    },
+    [mats],
+  );
 
   useFrame((state, rawDelta) => {
     const root = rootRef.current;
     const lid = lidRef.current;
     if (!root || !lid) return;
 
-    const delta = Math.min(rawDelta, 0.05) * fx.current.timeScale;
+    const f = fx.current;
+    const delta = Math.min(rawDelta, 0.05) * f.timeScale;
     const t = state.clock.elapsedTime;
     const a = anim.current;
 
-    a.lift = THREE.MathUtils.damp(a.lift, aimed ? 1 : 0, 14, delta);
-    a.hit = Math.max(0, a.hit - delta * 2.6);
-    a.reject = Math.max(0, a.reject - delta * 1.8);
+    const event = takeBinEvent(bus.current, index);
+    if (event === "reject") a.reject = 1;
+    else if (event === "peek") a.peek = f.calm ? 0 : 1;
+    else if (event) a.hit = event === "perfect" ? 1.3 : 1;
 
-    // Atmen + Anheben beim Zielen
-    const breathe = fx.current.calm ? 0 : Math.sin(t * 1.8 + index * 1.3) * 0.012;
-    root.position.y = breathe + a.lift * 0.14;
+    const aimed = isBinActive(bus.current, index);
+    a.lift = THREE.MathUtils.damp(a.lift, aimed ? 1 : 0, 12, delta);
+    a.hit = Math.max(0, a.hit - delta * 2.8);
+    a.reject = Math.max(0, a.reject - delta * 2.2);
+    a.peek = Math.max(0, a.peek - delta * 1.6);
 
-    // Treffer: Stauchen/Strecken (Squash & Stretch)
-    const hitWave = a.hit > 0 ? Math.sin((1 - a.hit / 1.4) * Math.PI * 3) * a.hit : 0;
-    const sy = 1 + a.lift * 0.05 - hitWave * 0.12;
-    const sxz = 1 + a.lift * 0.05 + hitWave * 0.08;
-    root.scale.set(sxz, sy, sxz);
+    // Einladen: kleiner Hüpfer (Sinusbogen über die Dauer des Lupfens)
+    const hop = a.peek > 0 ? Math.sin((1 - a.peek) * Math.PI) * 0.12 : 0;
+    root.position.y = a.lift * 0.07 + hop;
 
-    // Fehler: Kopfschütteln
-    root.rotation.z = a.reject > 0 ? Math.sin(t * 38) * 0.09 * a.reject : 0;
+    // Treffer: einmal weich federn
+    const wave = a.hit > 0 ? Math.sin((1 - a.hit / 1.3) * Math.PI * 2) * a.hit : 0;
+    root.scale.set(1 + wave * 0.04, 1 - wave * 0.06, 1 + wave * 0.04);
+    // Fehler: kurzes Kopfschütteln
+    root.rotation.z = a.reject > 0 && !f.calm ? Math.sin(t * 28) * 0.1 * a.reject : 0;
+    // Fehler: kurz ducken (zusätzlich zum Kopfschütteln)
+    if (a.reject > 0) root.scale.y *= 1 - Math.sin(a.reject * Math.PI) * 0.05;
 
-    // Deckel: offen beim Zielen, klappert beim Treffer, zu beim Fehler
-    let lidTarget = aimed ? LID_OPEN : LID_IDLE;
-    if (a.hit > 0) lidTarget = LID_OPEN * (0.6 + Math.abs(Math.sin(t * 22)) * 0.4);
-    if (a.reject > 0.3) lidTarget = 0;
-    lid.rotation.x = THREE.MathUtils.damp(lid.rotation.x, lidTarget, 16, delta);
+    // Deckel: offen beim Zielen, einmal auf/zu beim Treffer, zu bei Fehler
+    let lidTarget = aimed ? LID_OPEN : 0;
+    if (a.hit > 0.3) lidTarget = LID_OPEN * 0.7;
+    if (a.peek > 0.15 && !aimed) lidTarget = LID_OPEN * 0.55 * Math.sin((1 - a.peek) * Math.PI);
+    if (a.reject > 0.2) lidTarget = 0;
+    lid.rotation.x = -THREE.MathUtils.damp(-lid.rotation.x, lidTarget, 16, delta);
 
-    // Leuchtring + Lichtkegel beim Zielen
     if (ringRef.current) {
-      const pulse = 1 + Math.sin(t * 7) * 0.05;
       ringRef.current.visible = a.lift > 0.02;
-      ringRef.current.scale.setScalar((0.85 + a.lift * 0.25) * pulse);
-      mats.ring.opacity = a.lift * 0.9;
-    }
-    if (beamRef.current) {
-      beamRef.current.visible = a.lift > 0.02 || a.hit > 0;
-      mats.beam.opacity = Math.max(a.lift * 0.18, a.hit * 0.35);
+      ringRef.current.scale.setScalar(0.92 + a.lift * 0.12);
+      mats.ring.opacity = a.lift * 0.7;
     }
     mats.body.emissive.set(bin.color);
-    mats.body.emissiveIntensity = a.lift * 0.25 + a.hit * 0.5;
-    mats.light.emissive.set(bin.colorLight);
-    mats.light.emissiveIntensity = a.lift * 0.2 + a.hit * 0.45;
+    mats.body.emissiveIntensity = a.lift * 0.14 + a.hit * 0.22;
   });
+
+  const zInset = frontZ(0.68) + 0.004;
 
   return (
     <group position={[x, 0, z]}>
-      {/* Farbiger Stellplatz + Leuchtring (bewegen sich nicht mit) */}
-      <mesh position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]} material={mats.pad}>
-        <circleGeometry args={[0.72, 32]} />
-      </mesh>
+      <mesh geometry={GEO.pad} material={mats.pad} position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 8]} />
+      <mesh geometry={GEO.blob} material={SHARED.blob} position={[0.06, 0.016, -0.04]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 0.9, 1]} />
       <mesh
         ref={ringRef}
-        position={[0, 0.02, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
+        geometry={GEO.ring}
         material={mats.ring}
+        position={[0, 0.02, 0]}
+        rotation={[-Math.PI / 2, 0, Math.PI / 8]}
         visible={false}
-      >
-        <ringGeometry args={[0.66, 0.8, 40]} />
-      </mesh>
-      <mesh ref={beamRef} position={[0, 2.4, 0]} material={mats.beam} visible={false}>
-        <cylinderGeometry args={[0.5, 0.62, 1.6, 24, 1, true]} />
-      </mesh>
+      />
 
       <group ref={rootRef}>
-        <group rotation={[0, Math.PI, 0]}>
-          {/* Korpus */}
-          <mesh position={[0, 0.8, 0]} castShadow receiveShadow material={mats.body}>
-            <boxGeometry args={[1.08, 1.5, 0.88]} />
-          </mesh>
-          <mesh position={[0, 0.78, -0.456]} material={mats.light}>
-            <boxGeometry args={[0.91, 1.18, 0.028]} />
-          </mesh>
-          {/* Weißes Schild vorn – sofort als „Beschriftung“ lesbar */}
-          <mesh position={[0, 1.05, -0.474]} material={mats.plate}>
-            <boxGeometry args={[0.74, 0.3, 0.012]} />
-          </mesh>
-          <mesh position={[0, 1.05, -0.482]} material={mats.body}>
-            <boxGeometry args={[0.6, 0.16, 0.012]} />
-          </mesh>
-          {[-0.29, 0.29].map((rx) => (
-            <mesh key={rx} position={[rx, 0.5, -0.476]} material={mats.body}>
-              <boxGeometry args={[0.02, 0.5, 0.018]} />
-            </mesh>
-          ))}
+        <mesh geometry={GEO.body} material={mats.body} position={[0, BODY_Y, 0]} castShadow receiveShadow />
 
-          {/* Oberkante + dunkle Öffnung */}
-          <mesh position={[0, 1.53, 0]} castShadow material={mats.light}>
-            <boxGeometry args={[1.12, 0.14, 0.94]} />
-          </mesh>
-          <mesh position={[0, 1.6, -0.02]} material={mats.dark}>
-            <boxGeometry args={[0.96, 0.12, 0.72]} />
-          </mesh>
-
-          {/* Griffe */}
-          {[-0.56, 0.56].map((gx) => (
-            <mesh key={gx} position={[gx, 1.04, -0.08]} material={mats.light}>
-              <boxGeometry args={[0.08, 0.5, 0.13]} />
-            </mesh>
-          ))}
-
-          {/* Deckel – Pivot hinten */}
-          <group ref={lidRef} position={[0, 1.66, 0.5]} rotation={[LID_IDLE, 0, 0]}>
-            <mesh position={[0, 0.03, -0.44]} castShadow material={mats.light}>
-              <boxGeometry args={[1.16, 0.12, 0.9]} />
-            </mesh>
-            <mesh position={[0, 0.1, -0.42]} material={mats.body}>
-              <boxGeometry args={[1.0, 0.03, 0.68]} />
-            </mesh>
-            <mesh position={[0, 0.03, -0.9]} material={mats.light}>
-              <boxGeometry args={[0.4, 0.08, 0.08]} />
-            </mesh>
-          </group>
-
-          {/* Räder */}
-          {[-0.43, 0.43].map((wx) => (
-            <mesh
-              key={wx}
-              position={[wx, 0.13, 0.38]}
-              rotation={[0, 0, Math.PI / 2]}
-              material={mats.wheel}
-            >
-              <cylinderGeometry args={[0.15, 0.15, 0.12, 16]} />
-            </mesh>
-          ))}
+        {/* Eingelassene Front + Griffleiste */}
+        <group position={[0, 0.68, zInset]} rotation={[Math.PI / 2 + TAPER, 0, 0]}>
+          <mesh geometry={GEO.inset} material={mats.inset} />
         </group>
+        <mesh geometry={GEO.grip} material={mats.rim} position={[0, 1.36, frontZ(1.36) + 0.02]} />
+
+        {/* Rand + Öffnung */}
+        <group position={[0, BODY_Y + BODY_H - 0.02, 0]}>
+          <mesh geometry={GEO.rim} material={mats.rim} castShadow />
+          <mesh geometry={GEO.opening} material={SHARED.dark} position={[0, 0.06, 0]} />
+        </group>
+
+        {/* Deckel – Scharnier hinten */}
+        <group ref={lidRef} position={[0, BODY_Y + BODY_H + 0.04, -TOP.d / 2 - 0.03]}>
+          <group position={[0, 0, 0.55]}>
+            <mesh geometry={GEO.lid} material={mats.lid} castShadow />
+            <mesh geometry={GEO.grip} material={mats.rim} position={[0, 0.03, 0.57]} />
+          </group>
+        </group>
+
+        {/* Räder + Achse */}
+        <mesh geometry={GEO.axle} material={SHARED.wheel} position={[0, 0.17, -0.36]} rotation={[0, 0, Math.PI / 2]} />
+        {[-0.48, 0.48].map((wx) => (
+          <group key={wx} position={[wx, 0.17, -0.36]} rotation={[0, 0, Math.PI / 2]}>
+            <mesh geometry={GEO.wheel} material={SHARED.wheel} castShadow />
+            <mesh geometry={GEO.hub} material={SHARED.hub} />
+          </group>
+        ))}
       </group>
     </group>
   );

@@ -13,6 +13,8 @@ import { type BinDef } from "@/game/bins";
 import { type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 
+import { type BusRef, useAim } from "./scene-bus";
+
 /* ── Hilfen ────────────────────────────────────────────────── */
 
 /** Startet beim Mount (bzw. bei neuem key) eine Animation 0 → 1. */
@@ -55,7 +57,20 @@ function HudSurface({ children, style }: { children: ReactNode; style?: object }
 
 /* ── Punkte + Serie ────────────────────────────────────────── */
 
-export function ScoreBadge({ score, streak, multiplier }: { score: number; streak: number; multiplier: number }) {
+export function ScoreBadge({
+  score,
+  streak,
+  multiplier,
+  feverProgress,
+  fever,
+}: {
+  score: number;
+  streak: number;
+  multiplier: number;
+  /** 0…1: wie nah die Serie am nächsten Fieber ist. */
+  feverProgress: number;
+  fever: boolean;
+}) {
   const { t, formatNumber } = useI18n();
   const { colors } = useAppTheme();
   const pulse = usePulse(score);
@@ -71,6 +86,18 @@ export function ScoreBadge({ score, streak, multiplier }: { score: number; strea
           <AppText variant="title" style={styles.scoreValue}>
             {formatNumber(score)}
           </AppText>
+          {/* Serie → Fieber: füllt sich mit jedem Treffer, golden im Fieber */}
+          <View style={[styles.feverMeter, { backgroundColor: colors.surfaceAlt }]}>
+            <View
+              style={[
+                styles.feverMeterFill,
+                {
+                  width: `${Math.round((fever ? 1 : feverProgress) * 100)}%`,
+                  backgroundColor: fever ? "#FFB300" : colors.primary,
+                },
+              ]}
+            />
+          </View>
         </HudSurface>
       </Animated.View>
 
@@ -161,22 +188,24 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
 export function BinLabels({
   bins,
   rects,
-  aimIndex,
+  bus,
   onActivate,
 }: {
   bins: BinDef[];
   rects: ScreenRect[];
-  aimIndex: number | null;
+  bus: BusRef;
   onActivate: (index: number) => void;
 }) {
   const { t } = useI18n();
+  // Nur die Schilder rendern beim Zielen neu – nicht die ganze Spielrunde.
+  const aimIndex = useAim(bus);
   return (
     <>
       {bins.map((bin, i) => {
         const r = rects[i];
         if (!r) return null;
         const aimed = aimIndex === i;
-        const width = Math.max(r.w + 14, 84);
+        const width = Math.max(r.w + 10, 84);
         return (
           <View
             key={bin.key}
@@ -193,12 +222,14 @@ export function BinLabels({
                 top: r.y + r.h + 6,
                 width,
                 backgroundColor: bin.color,
-                transform: [{ scale: aimed ? 1.12 : 1 }],
+                transform: [{ scale: aimed ? 1.1 : 1 }, { translateY: aimed ? -4 : 0 }],
               },
-              aimed && styles.binLabelAimed,
+              aimed && [styles.binLabelAimed, { shadowColor: bin.colorLight }],
             ]}
           >
-            <AppText style={styles.binIcon}>{bin.icon}</AppText>
+            <View style={styles.binIconBubble}>
+              <AppText style={styles.binIcon}>{bin.icon}</AppText>
+            </View>
             <AppText
               variant="label"
               color={bin.onColor}
@@ -321,24 +352,27 @@ export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
 
 /* ── Lob + fliegende Punkte + Banner ───────────────────────── */
 
+/** Lob nach Treffer: klare, große Schrift mit weichem Leuchten (hochwertig statt Comic). */
 export function Praise({ text, gold }: { text: string; gold: boolean }) {
-  const { colors } = useAppTheme();
-  const enter = useEnter(300);
+  const enter = useEnter(340);
   return (
     <Animated.View
       pointerEvents="none"
       style={[
         styles.praise,
         {
-          opacity: enter.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 1, 1] }),
-          transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }],
+          opacity: enter.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0, 1, 1] }),
+          transform: [
+            { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) },
+            { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) },
+          ],
         },
       ]}
     >
       <AppText
         variant="display"
-        color={gold ? "#FFD54A" : "#FFFFFF"}
-        style={[styles.praiseText, { textShadowColor: gold ? "#7A4A00" : colors.primaryPressed }]}
+        color={gold ? "#FFE082" : "#FFFFFF"}
+        style={[styles.praiseText, { textShadowColor: gold ? "rgba(255,170,0,0.85)" : "rgba(0,0,0,0.45)" }]}
       >
         {text}
       </AppText>
@@ -440,6 +474,8 @@ const styles = StyleSheet.create({
   scoreWrap: { alignItems: "center", gap: 6 },
   scoreCard: { alignItems: "center", paddingHorizontal: Spacing.lg, paddingVertical: 6, minWidth: 130 },
   scoreValue: { fontVariant: ["tabular-nums"] },
+  feverMeter: { alignSelf: "stretch", height: 5, borderRadius: 3, overflow: "hidden", marginTop: 2, marginBottom: 2 },
+  feverMeterFill: { height: "100%", borderRadius: 3 },
   streakChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -469,15 +505,32 @@ const styles = StyleSheet.create({
   binLabel: {
     position: "absolute",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    borderRadius: Radius.md,
+    gap: 4,
+    paddingTop: 6,
+    paddingBottom: 7,
+    paddingHorizontal: 6,
+    borderRadius: Radius.lg,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.85)",
+    borderColor: "rgba(255,255,255,0.7)",
     ...shadow,
   },
-  binLabelAimed: { borderColor: "#FFFFFF", borderWidth: 3 },
-  binIcon: { fontSize: 20, lineHeight: 24 },
+  binLabelAimed: {
+    borderColor: "#FFFFFF",
+    borderWidth: 3,
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 10,
+  },
+  binIconBubble: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+  },
+  binIcon: { fontSize: 18, lineHeight: 22 },
   binText: { lineHeight: 18 },
 
   itemWrap: { alignItems: "center", gap: Spacing.sm },
@@ -515,8 +568,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
   },
 
-  praise: { position: "absolute", left: 0, right: 0, alignItems: "center" },
-  praiseText: { textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 0, fontSize: 44, lineHeight: 52 },
+  praise: { position: "absolute", left: 0, right: 0, alignItems: "center", justifyContent: "center", height: 120 },
+  praiseText: { fontSize: 42, lineHeight: 50, textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 14 },
 
   float: { position: "absolute", width: 120 },
   floatText: {

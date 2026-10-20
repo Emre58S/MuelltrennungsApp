@@ -17,7 +17,7 @@ export type BinDef = {
   icon: string;
 };
 
-const light = (hex: string, amount = 0.22) => {
+export const light = (hex: string, amount = 0.22) => {
   const n = parseInt(hex.slice(1), 16);
   const mix = (c: number) => Math.round(c + (255 - c) * amount);
   const r = mix(n >> 16);

@@ -28,6 +28,7 @@ import {
   setBoolean,
   StorageKeys,
 } from "@/utils/storage";
+import { setSfxEnabled } from "@/utils/sfx";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 
@@ -47,8 +48,8 @@ export default function EinstellungenScreen() {
 
   useEffect(() => {
     let active = true;
-    getBoolean(StorageKeys.SOUND_ENABLED, true).then((value) => {
-      if (active) setSoundEnabled(value);
+    getBoolean(StorageKeys.SOUND_ENABLED, true).then((sound) => {
+      if (active) setSoundEnabled(sound);
     });
     return () => {
       active = false;
@@ -57,6 +58,7 @@ export default function EinstellungenScreen() {
 
   const toggleSound = (value: boolean) => {
     setSoundEnabled(value);
+    setSfxEnabled(value);
     setBoolean(StorageKeys.SOUND_ENABLED, value);
   };
 

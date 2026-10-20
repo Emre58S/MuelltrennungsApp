@@ -1,536 +1,279 @@
+// Datei: app/(tabs)/index.tsx — Titelbild-Menü
+//
+// Die Spielwelt IST das Menü: Die drei Tonnen stehen für die drei Spielmodi.
+// Ein Gegenstand schwebt davor – wirf ihn in eine Tonne (wischen wie im
+// Spiel) oder tippe auf Tonne bzw. Schild, und der Modus startet mit einem
+// echten Wurf samt Konfetti. Im Leerlauf lupfen die Tonnen nacheinander den
+// Deckel und der Gegenstand wechselt – so lernt man die Geste schon hier.
+// „Weiter“ wirft in die Tonne des zuletzt gespielten Modus.
+
 import { Feather } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
-import { type ComponentProps, useCallback, useRef, useState } from "react";
+import { Canvas } from "@react-three/fiber/native";
+import * as Haptics from "expo-haptics";
+import { router, useFocusEffect, useIsFocused } from "expo-router";
 import {
-  ActivityIndicator,
+  type ComponentProps,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Animated,
+  Easing,
+  PixelRatio,
   Pressable,
-  ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { createFx, shake } from "@/components/game/fx";
+import { MenuScene } from "@/components/game/menu-scene";
+import {
+  type BusRef,
+  createBus,
+  queueBinEvent,
+  queueBurst,
+  queueThrow,
+  resetBus,
+  setAim,
+  setLandHandler,
+  useAim,
+} from "@/components/game/scene-bus";
 import { AppText } from "@/components/ui/app-text";
-import { IconButton } from "@/components/ui/icon-button";
-import { ITEMS } from "@/constants/items";
+import { Scrim } from "@/components/ui/scrim";
+import { type Item } from "@/constants/items";
 import {
   type GameMode,
   getLastMode,
   getModeConfig,
   MODES,
+  startDaily,
   startGame,
 } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
-import { useAppTheme, useI18n } from "@/providers/app-settings";
+import { ALL_BINS, type BinDef, getBinsForLevel, getItemsForBins, light } from "@/game/bins";
+import { aimFromDrag, drawFromBag } from "@/game/logic";
+import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/game/layout";
+import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import {
+  type DailyResult,
+  flushThrowRecords,
   getActiveStreak,
   getHighscoreKey,
   getLevelProgress,
-  getModeStats,
   getNumber,
-  type ModeStatsMap,
+  getTodayDaily,
   StorageKeys,
 } from "@/utils/storage";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 type Scores = Record<GameMode, number>;
-type BinKind = "bio" | "gelb" | "rest";
 
-const HIGHSCORE_MODE = {
-  endless: "endlos",
-  survival: "runden",
-  time: "zeit",
+const HIGHSCORE_MODE = { endless: "endlos", survival: "runden", time: "zeit" } as const;
+const ANTIALIAS = PixelRatio.get() < 3;
+/** Leerlauf: so oft wechselt der Gegenstand bzw. lupft eine Tonne den Deckel. */
+const ITEM_CYCLE_MS = 4200;
+const PEEK_MS = 2300;
+/** Nach dem Landen kurz das Konfetti zeigen, dann starten. */
+const LAUNCH_DELAY_MS = 420;
+
+// Text über der Szene: immer hell mit Schatten (Kontrast auf hellem & dunklem Himmel)
+const ON_SCENE = "#FFFFFF";
+const ON_SCENE_SOFT = "rgba(255,255,255,0.88)";
+const TEXT_SHADOW = {
+  textShadowColor: "rgba(0,0,0,0.55)",
+  textShadowOffset: { width: 0, height: 2 },
+  textShadowRadius: 6,
 } as const;
 
-const INITIAL_SCORES: Scores = {
-  endless: 0,
-  survival: 0,
-  time: 0,
+/** Farbe pro Modus – Tonne, Schild und Flugbahn (nicht nur Farbe: Icon + Text). */
+const MODE_COLOR: Record<GameMode, { fill: string; on: string }> = {
+  endless: { fill: "#2FA86E", on: "#FFFFFF" },
+  survival: { fill: "#3D82D9", on: "#FFFFFF" },
+  time: { fill: "#E3A92E", on: "#2B1D00" },
 };
 
-const INITIAL_STATS: ModeStatsMap = {
-  endless: {
-    games: 0,
-    bestStreak: 0,
-    bestCorrect: 0,
-    throws: 0,
-    correct: 0,
-  },
-  survival: {
-    games: 0,
-    bestStreak: 0,
-    bestCorrect: 0,
-    throws: 0,
-    correct: 0,
-  },
-  time: {
-    games: 0,
-    bestStreak: 0,
-    bestCorrect: 0,
-    throws: 0,
-    correct: 0,
-  },
-};
+/** Die Menü-Tonnen: echte Tonnen-Modelle in Modus-Farben, Reihenfolge wie MODES. */
+const MENU_BINS: BinDef[] = MODES.map((m, i) => {
+  const base = ALL_BINS[i + 1] ?? ALL_BINS[0];
+  const c = MODE_COLOR[m.mode];
+  return { ...base, color: c.fill, colorLight: light(c.fill, 0.3), onColor: c.on };
+});
 
-const BIN_PALETTE: Record<
-  BinKind,
-  {
-    body: string;
-    side: string;
-    lid: string;
-    handle: string;
-    badge: string;
-    ink: string;
-    icon: IconName;
-  }
-> = {
-  bio: {
-    body: "#A27453",
-    side: "#8B6044",
-    lid: "#BB906A",
-    handle: "#896044",
-    badge: "#F6EBDD",
-    ink: "#805A3E",
-    icon: "feather",
-  },
-  gelb: {
-    body: "#E8BE3A",
-    side: "#D0A52A",
-    lid: "#F6D569",
-    handle: "#B58E23",
-    badge: "#FFF4CF",
-    ink: "#99751C",
-    icon: "package",
-  },
-  rest: {
-    body: "#72818C",
-    side: "#61717D",
-    lid: "#91A0A9",
-    handle: "#5E6F7A",
-    badge: "#EAF0F1",
-    ink: "#546772",
-    icon: "trash-2",
-  },
-};
-
-function pickDailyFact() {
-  const candidates = ITEMS.filter((item) => Boolean(item.fact));
-
-  if (candidates.length === 0) return null;
-
-  const day = Math.floor(Date.now() / 86_400_000);
-  return candidates[day % candidates.length];
-}
-
-function formatAccuracy(
-  correct: number,
-  throws: number,
-  formatNumber: (value: number) => string,
-) {
-  if (throws === 0) return "—";
-
-  const percentage = Math.min(
-    100,
-    Math.max(0, Math.round((correct / throws) * 100)),
-  );
-
-  return `${formatNumber(percentage)} %`;
-}
-
-/**
- * Tonnenzeichnung ausschließlich für das Menü.
- * Die Tonnen im eigentlichen Spiel bleiben unverändert.
- */
-function IllustratedBin({ kind }: { kind: BinKind }) {
-  const palette = BIN_PALETTE[kind];
-
-  return (
-    <View style={styles.bin}>
-      <View style={styles.binShadowOuter} />
-      <View style={styles.binShadowInner} />
-
-      <View style={[styles.binBody, { backgroundColor: palette.body }]}>
-        <View style={[styles.binSide, { backgroundColor: palette.side }]} />
-        <View style={styles.binHighlight} />
-
-        <View style={[styles.binBadge, { backgroundColor: palette.badge }]}>
-          <Feather name={palette.icon} size={22} color={palette.ink} />
-        </View>
-
-        <View style={[styles.binBottom, { backgroundColor: palette.side }]} />
-      </View>
-
-      <View style={styles.binLidShadow} />
-      <View style={[styles.binHandle, { backgroundColor: palette.handle }]} />
-
-      <View style={[styles.binLid, { backgroundColor: palette.lid }]}>
-        <View style={styles.lidHighlight} />
-      </View>
-
-      <View style={[styles.binWheel, styles.leftWheel]} />
-      <View style={[styles.binWheel, styles.rightWheel]} />
-    </View>
-  );
-}
-
-function Plant({
-  color,
-  mirrored = false,
-}: {
-  color: string;
-  mirrored?: boolean;
-}) {
-  return (
-    <View style={[styles.plant, mirrored && styles.mirrored]}>
-      <View style={[styles.plantStem, { backgroundColor: color }]} />
-
-      <View
-        style={[
-          styles.plantLeaf,
-          styles.plantLeafLeft,
-          { backgroundColor: color },
-        ]}
-      />
-
-      <View
-        style={[
-          styles.plantLeaf,
-          styles.plantLeafRight,
-          { backgroundColor: color },
-        ]}
-      />
-    </View>
-  );
-}
-
-function ModeEmblem({ mode }: { mode: GameMode }) {
-  const { colors } = useAppTheme();
-
-  const icon: IconName =
-    mode === "endless" ? "feather" : mode === "survival" ? "shield" : "clock";
-
-  return (
-    <View style={styles.modeEmblem}>
-      {mode === "time" && (
-        <View
-          style={[styles.stopwatchButton, { backgroundColor: colors.gold }]}
-        />
-      )}
-
-      <Feather name={icon} size={34} color={colors.onPrimarySoft} />
-
-      {mode === "survival" && (
-        <View style={styles.shieldCheck}>
-          <Feather name="check" size={13} color={colors.onPrimarySoft} />
-        </View>
-      )}
-    </View>
-  );
-}
-
-function SceneAccent({ mode }: { mode: GameMode }) {
-  const { colors } = useAppTheme();
-  const ink = colors.onPrimarySoft;
-
-  if (mode === "endless") {
-    return (
-      <View style={styles.sceneAccent}>
-        <View style={styles.smallLeaf}>
-          <Feather name="feather" size={18} color={ink} />
-        </View>
-
-        <View
-          style={[
-            styles.pathDash,
-            styles.pathDashOne,
-            { backgroundColor: ink },
-          ]}
-        />
-
-        <View
-          style={[
-            styles.pathDash,
-            styles.pathDashTwo,
-            { backgroundColor: ink },
-          ]}
-        />
-
-        <View style={styles.pathArrow}>
-          <Feather name="arrow-down-left" size={12} color={ink} />
-        </View>
-      </View>
-    );
-  }
-
-  if (mode === "survival") {
-    return (
-      <View style={styles.sceneAccent}>
-        <View style={styles.sparkOne}>
-          <Feather name="plus" size={15} color={ink} />
-        </View>
-
-        <View style={styles.sparkTwo}>
-          <Feather name="plus" size={10} color={ink} />
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.sceneAccent}>
-      <View style={styles.flyingPackage}>
-        <Feather name="package" size={20} color={colors.gold} />
-      </View>
-
-      <View
-        style={[
-          styles.speedLine,
-          styles.speedLineOne,
-          { backgroundColor: ink },
-        ]}
-      />
-
-      <View
-        style={[
-          styles.speedLine,
-          styles.speedLineTwo,
-          { backgroundColor: ink },
-        ]}
-      />
-
-      <View
-        style={[
-          styles.speedLine,
-          styles.speedLineThree,
-          { backgroundColor: ink },
-        ]}
-      />
-    </View>
-  );
-}
-
-function MenuIllustration({ mode }: { mode: GameMode }) {
-  const { colors } = useAppTheme();
-
-  return (
-    <View
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={[styles.illustration, { backgroundColor: colors.surface }]}
-    >
-      <View style={[styles.sceneTint, { backgroundColor: colors.primary }]} />
-
-      <View
-        style={[styles.sceneGround, { backgroundColor: colors.onPrimarySoft }]}
-      />
-
-      <ModeEmblem mode={mode} />
-      <SceneAccent mode={mode} />
-
-      {mode === "endless" && (
-        <>
-          <View style={styles.plantLeft}>
-            <Plant color={colors.onPrimarySoft} />
-          </View>
-
-          <View style={styles.plantRight}>
-            <Plant color={colors.onPrimarySoft} mirrored />
-          </View>
-        </>
-      )}
-
-      <View style={styles.binGroup}>
-        <View style={styles.leftBinRotation}>
-          <IllustratedBin kind="bio" />
-        </View>
-
-        <View style={styles.middleBinPosition}>
-          <IllustratedBin kind="gelb" />
-        </View>
-
-        <View style={styles.rightBinRotation}>
-          <IllustratedBin kind="rest" />
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function ModeOption({
-  title,
-  fullTitle,
-  icon,
-  selected,
-  onPress,
-}: {
-  title: string;
-  fullTitle: string;
-  icon: IconName;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const { colors } = useAppTheme();
-
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityLabel={fullTitle}
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.modeOption,
-        {
-          backgroundColor: selected ? colors.primarySoft : "transparent",
-        },
-        pressed && styles.pressed,
-      ]}
-    >
-      <Feather
-        name={icon}
-        size={18}
-        color={selected ? colors.onPrimarySoft : colors.textMuted}
-      />
-
-      <AppText
-        variant="label"
-        center
-        style={[
-          styles.modeTitle,
-          {
-            color: selected ? colors.onPrimarySoft : colors.textSecondary,
-          },
-        ]}
-      >
-        {title}
-      </AppText>
-    </Pressable>
-  );
-}
-
-function RecordValue({
-  icon,
-  label,
-  value,
-}: {
-  icon: IconName;
-  label: string;
-  value: string;
-}) {
-  const { colors } = useAppTheme();
-
-  return (
-    <View
-      accessible
-      accessibilityLabel={`${label}: ${value}`}
-      style={styles.recordValue}
-    >
-      <View style={styles.recordLabel}>
-        <Feather name={icon} size={15} color={colors.textMuted} />
-
-        <AppText variant="caption" tone="textMuted" style={styles.shrink}>
-          {label}
-        </AppText>
-      </View>
-
-      <AppText variant="number" style={styles.number}>
-        {value}
-      </AppText>
-    </View>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View
-      accessible
-      accessibilityLabel={`${label}: ${value}`}
-      style={styles.detailRow}
-    >
-      <AppText tone="textSecondary" style={styles.flex}>
-        {label}
-      </AppText>
-
-      <AppText variant="bodyStrong" style={styles.detailValue}>
-        {value}
-      </AppText>
-    </View>
-  );
-}
+const MENU_POOL: Item[] = getItemsForBins(getBinsForLevel(1));
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useAppTheme();
+  const { width, height } = useWindowDimensions();
+  const { colors, scheme } = useAppTheme();
+  const { reduceMotion } = useAppSettings();
   const { t, formatNumber } = useI18n();
+  // Nur zeichnen, wenn sichtbar – sonst liefen Menü- und Spiel-3D gleichzeitig.
+  const focused = useIsFocused();
 
-  const [scores, setScores] = useState<Scores>(INITIAL_SCORES);
-  const [modeStats, setModeStats] = useState<ModeStatsMap>(INITIAL_STATS);
-
-  const [mode, setMode] = useState<GameMode>("endless");
+  const [scores, setScores] = useState<Scores>({ endless: 0, survival: 0, time: 0 });
+  const [lastMode, setLastMode] = useState<GameMode>("endless");
   const [totalXP, setTotalXP] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [dailyFact, setDailyFact] = useState(pickDailyFact);
+  const [loaded, setLoaded] = useState(false);
+  const [daily, setDaily] = useState<DailyResult | null>(null);
 
-  const selectionVersion = useRef(0);
+  const fx = useRef(createFx());
+  const bus = useRef(createBus());
+  useEffect(() => {
+    fx.current.calm = reduceMotion;
+  }, [reduceMotion]);
+
+  // Kleine Handys (z. B. iPhone SE): alles etwas enger
+  const compact = height < 740;
+  const layout = useMemo(
+    () =>
+      computeLayout(width, height, MENU_BINS.length, {
+        binsNdcY: compact ? 0.46 : 0.4,
+        itemNdcY: compact ? -0.14 : -0.28,
+        itemWidth: 0.22,
+      }),
+    [width, height, compact],
+  );
+
+  /* ── Schwebender Gegenstand (+ unsichtbar vorbereiteter nächster) ── */
+  const [bag] = useState(() => ({ current: [] as Item[] }));
+  const [item, setItemState] = useState<Item | null>(() => drawFromBag(bag, MENU_POOL));
+  const [nextItem, setNextItem] = useState<Item | null>(() =>
+    drawFromBag(bag, MENU_POOL, item?.name),
+  );
+  const itemRef = useRef(item);
+  const nextRef = useRef(nextItem);
+  const advanceItem = useCallback(() => {
+    const upcoming = nextRef.current ?? drawFromBag(bag, MENU_POOL, itemRef.current?.name);
+    const following = drawFromBag(bag, MENU_POOL, upcoming?.name);
+    itemRef.current = upcoming;
+    nextRef.current = following;
+    setItemState(upcoming);
+    setNextItem(following);
+  }, [bag]);
+
+  /* ── Start per Wurf ─────────────────────────────────────────── */
   const starting = useRef(false);
+  const pendingMode = useRef<GameMode | null>(null);
+  const throwId = useRef(0);
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const later = useCallback((fn: () => void, ms: number) => {
+    const id = setTimeout(() => {
+      timers.current.delete(id);
+      fn();
+    }, ms);
+    timers.current.add(id);
+  }, []);
+  useEffect(() => {
+    const set = timers.current;
+    return () => set.forEach(clearTimeout);
+  }, []);
 
+  const go = useCallback((mode: GameMode) => {
+    if (pendingMode.current !== mode) return;
+    pendingMode.current = null;
+    startGame(mode);
+  }, []);
+
+  const launch = useCallback(
+    (mode: GameMode) => {
+      if (starting.current) return;
+      starting.current = true;
+      pendingMode.current = mode;
+      setAim(bus.current, null);
+      const binIndex = MODES.findIndex((m) => m.mode === mode);
+      const current = itemRef.current;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+
+      if (!current || reduceMotion || binIndex < 0) {
+        sfx("tap");
+        go(mode);
+        return;
+      }
+      sfx("throw");
+      queueThrow(bus.current, {
+        id: ++throwId.current,
+        item: current,
+        binIndex,
+        hit: true,
+        perfect: false,
+        glow: true,
+      });
+      advanceItem();
+      // Sicherheitsnetz, falls die Szene den Wurf nicht abspielt
+      later(() => go(mode), 1400);
+    },
+    [advanceItem, go, later, reduceMotion],
+  );
+
+  // Landung: Konfetti, Ton – dann starten
+  const onLand = useRef((_id: number) => {});
+  useLayoutEffect(() => {
+    onLand.current = () => {
+      const mode = pendingMode.current;
+      if (!mode) return;
+      const i = MODES.findIndex((m) => m.mode === mode);
+      const bin = MENU_BINS[i];
+      queueBinEvent(bus.current, i, "perfect");
+      queueBurst(bus.current, {
+        id: throwId.current,
+        x: layout.bins[i].x,
+        y: BIN_OPENING_Y + 0.15,
+        z: layout.bins[i].z + 0.1,
+        colors: [bin.color, bin.colorLight, "#FFFFFF", "#FFD54A"],
+        count: 26,
+        power: 1.15,
+        ring: true,
+      });
+      shake(fx.current, 0.03);
+      sfx("land");
+      sfxStreak(3);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      later(() => go(mode), LAUNCH_DELAY_MS);
+    };
+  });
+
+  /* ── Beim Zurückkommen: frisch starten + Fortschritt laden ───── */
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      const versionAtStart = selectionVersion.current;
-
       starting.current = false;
-      setLoadError(false);
-      setDailyFact(pickDailyFact());
+      pendingMode.current = null;
+      resetBus(bus.current);
+      setLandHandler(bus.current, (id) => onLand.current(id));
+      refreshSfxSetting();
 
-      async function loadHome() {
-        try {
-          const [
-            endless,
-            survival,
-            time,
-            storedStats,
-            activeStreak,
-            xp,
-            lastMode,
-          ] = await Promise.all([
+      // Erst gesammelte Würfe der letzten Runde schreiben, dann lesen
+      flushThrowRecords()
+        .then(() =>
+          Promise.all([
             getNumber(getHighscoreKey(HIGHSCORE_MODE.endless)),
             getNumber(getHighscoreKey(HIGHSCORE_MODE.survival)),
             getNumber(getHighscoreKey(HIGHSCORE_MODE.time)),
-            getModeStats(),
             getActiveStreak(),
             getNumber(StorageKeys.TOTAL_XP),
             getLastMode(),
-          ]);
-
+            getTodayDaily(),
+          ]),
+        )
+        .then(([endless, survival, time, activeStreak, xp, mode, today]) => {
           if (!active) return;
-
+          setDaily(today);
           setScores({ endless, survival, time });
-          setModeStats(storedStats);
           setStreak(activeStreak);
           setTotalXP(xp);
-
-          if (selectionVersion.current === versionAtStart) {
-            setMode(lastMode);
-          }
-        } catch (error) {
-          if (!active) return;
-
-          setLoadError(true);
-
-          console.warn(
-            "[Home] Fortschritt konnte nicht geladen werden:",
-            error,
-          );
-        } finally {
-          if (active) setLoading(false);
-        }
-      }
-
-      void loadHome();
+          setLastMode(mode);
+        })
+        .catch((error) => console.warn("[Home] Fortschritt konnte nicht geladen werden:", error))
+        .finally(() => active && setLoaded(true));
 
       return () => {
         active = false;
@@ -538,853 +281,546 @@ export default function HomeScreen() {
     }, []),
   );
 
-  const selectMode = (nextMode: GameMode) => {
-    selectionVersion.current += 1;
-    setMode(nextMode);
-  };
+  /* ── Leerlauf: Gegenstand wechseln, Tonnen laden zum Werfen ein ─ */
+  useEffect(() => {
+    if (!focused || reduceMotion) return;
+    let peek = 0;
+    const idle = () => !starting.current && bus.current.aim === null;
+    const cycle = setInterval(() => {
+      if (idle()) advanceItem();
+    }, ITEM_CYCLE_MS);
+    const peeker = setInterval(() => {
+      if (!idle()) return;
+      queueBinEvent(bus.current, peek % MENU_BINS.length, "peek");
+      peek += 1;
+    }, PEEK_MS);
+    return () => {
+      clearInterval(cycle);
+      clearInterval(peeker);
+    };
+  }, [focused, reduceMotion, advanceItem]);
 
-  const handleStart = () => {
-    if (loading || starting.current) return;
-
-    starting.current = true;
-
-    try {
-      startGame(mode);
-    } catch (error) {
-      starting.current = false;
-
-      console.warn("[Home] Spielstart fehlgeschlagen:", error);
-    }
-  };
-
-  const current = getModeConfig(mode);
-  const modeTitle = t(current.titleKey);
-  const modeDescription = t(current.descKey);
-  const selectedStats = modeStats[mode];
-
-  const { level, progress, xpRemaining } = getLevelProgress(totalXP);
-
-  const progressPercent = Math.min(
-    100,
-    Math.max(0, Math.round(progress * 100)),
+  /* ── Geste: wie im Spiel zur Tonne wischen ──────────────────── */
+  const handlers = useRef({
+    aim: (_dx: number, _dy: number) => {},
+    release: (_dx: number, _dy: number) => {},
+  });
+  useLayoutEffect(() => {
+    handlers.current = {
+      aim: (dx, dy) => {
+        if (starting.current) return;
+        const idx = aimFromDrag(dx, dy, layout.binAngles)?.binIndex ?? null;
+        if (idx === bus.current.aim) return;
+        setAim(bus.current, idx);
+        if (idx !== null) {
+          sfx("aim");
+          Haptics.selectionAsync().catch(() => undefined);
+        }
+      },
+      release: (dx, dy) => {
+        const aim = aimFromDrag(dx, dy, layout.binAngles);
+        setAim(bus.current, null);
+        if (aim) launch(MODES[aim.binIndex].mode);
+      },
+    };
+  });
+  const onAim = useCallback((dx: number, dy: number) => handlers.current.aim(dx, dy), []);
+  const onRelease = useCallback((dx: number, dy: number) => handlers.current.release(dx, dy), []);
+  const onCancel = useCallback(() => setAim(bus.current, null), []);
+  /* eslint-disable react-hooks/refs */
+  const gesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .runOnJS(true)
+        .minDistance(6)
+        .onUpdate((e) => onAim(e.translationX, e.translationY))
+        .onEnd((e) => onRelease(e.translationX, e.translationY))
+        .onFinalize(onCancel),
+    [onAim, onRelease, onCancel],
   );
+  /* eslint-enable react-hooks/refs */
 
-  const scoreValue = loading || loadError ? "—" : formatNumber(scores[mode]);
-
-  const specialLabel = mode === "time" ? "Treffer-Rekord" : "Beste Serie";
-
-  const specialValue =
-    loading || loadError
-      ? "—"
-      : formatNumber(
-          mode === "time"
-            ? selectedStats.bestCorrect
-            : selectedStats.bestStreak,
-        );
-
-  const accuracy = formatAccuracy(
-    selectedStats.correct,
-    selectedStats.throws,
-    formatNumber,
-  );
+  const { level, progress } = getLevelProgress(totalXP);
+  const lastTitle = t(getModeConfig(lastMode).titleKey);
+  const firstRect = layout.binRects[0];
+  // Wisch-Fläche: von den Tonnen bis unter den Gegenstand
+  const swipeTop = Math.max((firstRect?.y ?? 0) - 20, insets.top + 90);
+  const swipeBottom = layout.item.screen.y + 90;
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + Spacing.sm,
-            paddingBottom: insets.bottom + Spacing.lg,
-          },
-        ]}
-      >
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <View style={styles.progressSummary}>
-              <View style={styles.progressLabels}>
-                <AppText variant="bodyStrong">
-                  {t("common.level")} {loading ? "—" : formatNumber(level)}
-                </AppText>
+      {focused && (
+        <Canvas
+          style={{ position: "absolute", left: 0, top: 0, width, height }}
+          shadows={false}
+          camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
+          gl={{ antialias: ANTIALIAS }}
+        >
+          <MenuScene
+            layout={layout}
+            bins={MENU_BINS}
+            scheme={scheme}
+            calm={reduceMotion}
+            fx={fx}
+            bus={bus}
+            item={item}
+            nextItem={nextItem}
+            warmItems={MENU_POOL}
+          />
+        </Canvas>
+      )}
 
-                <View
-                  accessible
-                  accessibilityLabel={`Tägliche Spielserie: ${formatNumber(streak)} Tage`}
-                  style={styles.streak}
-                >
-                  <Feather name="sun" size={14} color={colors.gold} />
+      <Scrim edge="top" height={insets.top + 150} maxOpacity={0.42} />
+      <Scrim edge="bottom" height={300 + insets.bottom} maxOpacity={0.8} />
 
-                  <AppText variant="caption" tone="textMuted">
-                    {loading ? "—" : formatNumber(streak)}{" "}
-                    {streak === 1 ? "Tag" : "Tage"}
-                  </AppText>
-                </View>
-              </View>
+      {/* Wisch-Fläche hinter den Schildern */}
+      <GestureDetector gesture={gesture}>
+        <View
+          style={[styles.swipeArea, { top: swipeTop, height: swipeBottom - swipeTop }]}
+          accessible={false}
+        />
+      </GestureDetector>
 
-              <View
-                accessible
-                accessibilityRole="progressbar"
-                accessibilityLabel={t("home.progress")}
-                accessibilityValue={{
-                  min: 0,
-                  max: 100,
-                  now: loading ? 0 : progressPercent,
-                }}
-                style={[
-                  styles.progressTrack,
-                  { backgroundColor: colors.surfaceAlt },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      backgroundColor: colors.primary,
-                      width: `${loading ? 0 : progressPercent}%`,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-
-            <View style={styles.headerActions}>
-              <IconButton
-                icon="help-circle"
-                label={t("home.tutorial")}
-                onPress={() => router.push("/tutorial")}
-              />
-
-              <IconButton
-                icon="settings"
-                label={t("home.settings")}
-                onPress={() => router.push("/einstellung")}
-              />
-            </View>
+      {/* Kopf: Logo links, Fortschritt rechts */}
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]} pointerEvents="box-none">
+        <View
+          style={styles.logo}
+          accessible
+          accessibilityRole="header"
+          accessibilityLabel={`${t("home.titleTop")} ${t("home.titleBottom")}`}
+        >
+          <View style={[styles.logoBadge, { backgroundColor: colors.primary }]}>
+            <AppText style={styles.logoIcon}>♻️</AppText>
           </View>
-
-          <MenuIllustration mode={mode} />
-
-          <View style={styles.playSection}>
-            <View
-              accessibilityRole="radiogroup"
-              accessibilityLabel="Spielmodus"
-              style={[
-                styles.modeSelector,
-                { backgroundColor: colors.surfaceAlt },
-              ]}
-            >
-              {MODES.map((item) => {
-                const fullTitle = t(item.titleKey);
-
-                return (
-                  <ModeOption
-                    key={item.mode}
-                    title={item.mode === "time" ? "Zeit" : fullTitle}
-                    fullTitle={fullTitle}
-                    icon={item.icon}
-                    selected={item.mode === mode}
-                    onPress={() => selectMode(item.mode)}
-                  />
-                );
-              })}
-            </View>
-
-            <AppText
-              variant="caption"
-              tone="textSecondary"
-              center
-              style={styles.modeDescription}
-            >
-              {modeDescription}
+          <View>
+            <AppText variant="title" color={ON_SCENE} style={[styles.logoTop, TEXT_SHADOW]}>
+              {t("home.titleTop").toUpperCase()}
             </AppText>
-
-            <View style={[styles.records, { borderColor: colors.border }]}>
-              <View style={styles.recordsRow} accessibilityLiveRegion="polite">
-                <RecordValue
-                  icon="award"
-                  label="Punkte-Rekord"
-                  value={scoreValue}
-                />
-
-                <View
-                  style={[
-                    styles.recordDivider,
-                    { backgroundColor: colors.border },
-                  ]}
-                />
-
-                <RecordValue
-                  icon={mode === "time" ? "clock" : "trending-up"}
-                  label={specialLabel}
-                  value={specialValue}
-                />
-              </View>
-
-              {loadError && (
-                <AppText variant="caption" tone="textMuted" center>
-                  Statistik momentan nicht verfügbar.
-                </AppText>
-              )}
-            </View>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${t("home.play")} – ${modeTitle}`}
-              accessibilityState={{
-                disabled: loading,
-                busy: loading,
-              }}
-              disabled={loading}
-              onPress={handleStart}
-              style={({ pressed }) => [
-                styles.playButton,
-                {
-                  backgroundColor: pressed
-                    ? colors.primaryPressed
-                    : colors.primary,
-                  opacity: loading ? 0.65 : 1,
-                },
-              ]}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.onPrimary} />
-              ) : (
-                <Feather name="play" size={23} color={colors.onPrimary} />
-              )}
-
-              <AppText variant="heading" style={{ color: colors.onPrimary }}>
-                {t("home.play")}
-              </AppText>
-            </Pressable>
+            <AppText variant="display" color={ON_SCENE} style={[styles.logoBottom, TEXT_SHADOW]}>
+              {t("home.titleBottom").toUpperCase()}
+            </AppText>
           </View>
+        </View>
 
-          <View style={[styles.details, { borderColor: colors.border }]}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Deine Statistik"
-              accessibilityState={{ expanded }}
-              onPress={() => setExpanded((value) => !value)}
-              style={({ pressed }) => [
-                styles.detailsToggle,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Feather
-                name="bar-chart-2"
-                size={19}
-                color={colors.textSecondary}
-              />
-
-              <AppText variant="label" style={styles.flex}>
-                Deine Statistik
+        <View
+          style={styles.levelChip}
+          accessible
+          accessibilityLabel={`${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}`}
+        >
+          <View style={styles.levelRow}>
+            <AppText variant="label" color={ON_SCENE}>
+              Lv {loaded ? level : "—"}
+            </AppText>
+            {streak > 0 && (
+              <AppText variant="caption" color={ON_SCENE_SOFT}>
+                🔥 {streak}
               </AppText>
-
-              <Feather
-                name={expanded ? "chevron-up" : "chevron-down"}
-                size={20}
-                color={colors.textMuted}
-              />
-            </Pressable>
-
-            {expanded && (
-              <View
-                style={[
-                  styles.detailsContent,
-                  { borderTopColor: colors.border },
-                ]}
-              >
-                <AppText variant="bodyStrong" style={styles.detailsHeading}>
-                  {modeTitle}
-                </AppText>
-
-                <DetailRow
-                  label="Runden"
-                  value={
-                    loading || loadError
-                      ? "—"
-                      : formatNumber(selectedStats.games)
-                  }
-                />
-
-                <DetailRow
-                  label="Trefferquote"
-                  value={loading || loadError ? "—" : accuracy}
-                />
-
-                <DetailRow
-                  label="Richtig sortiert"
-                  value={
-                    loading || loadError
-                      ? "—"
-                      : formatNumber(selectedStats.correct)
-                  }
-                />
-
-                <DetailRow
-                  label="Gewertete Würfe"
-                  value={
-                    loading || loadError
-                      ? "—"
-                      : formatNumber(selectedStats.throws)
-                  }
-                />
-
-                <View
-                  style={[
-                    styles.totalProgress,
-                    { borderTopColor: colors.border },
-                  ]}
-                >
-                  <DetailRow
-                    label="Gesamt-XP · alle Modi"
-                    value={loading || loadError ? "—" : formatNumber(totalXP)}
-                  />
-
-                  {!loading && !loadError && (
-                    <AppText variant="caption" tone="textMuted">
-                      {t("home.xpToNext", {
-                        xp: formatNumber(xpRemaining),
-                        level: level + 1,
-                      })}
-                    </AppText>
-                  )}
-                </View>
-              </View>
             )}
           </View>
-
-          {dailyFact && (
-            <View style={[styles.fact, { backgroundColor: colors.surface }]}>
-              <View
-                style={[styles.factIcon, { backgroundColor: colors.infoSoft }]}
-              >
-                <Feather name="info" size={18} color={colors.info} />
-              </View>
-
-              <View style={styles.factText}>
-                <AppText variant="overline" tone="textMuted">
-                  {t("home.factTitle")}
-                </AppText>
-
-                <AppText variant="label" tone="textSecondary">
-                  {dailyFact.fact}
-                </AppText>
-              </View>
-            </View>
-          )}
+          <View style={styles.levelTrack}>
+            <View
+              style={[
+                styles.levelFill,
+                { width: `${Math.round(progress * 100)}%`, backgroundColor: colors.primary },
+              ]}
+            />
+          </View>
         </View>
-      </ScrollView>
+      </View>
+
+      {/* Die Tonnen = die Modi: Tipp-Fläche über jeder Tonne + Schild darunter */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none" accessibilityRole="menu" accessibilityLabel={t("home.modesLabel")}>
+        {MODES.map((m, i) => (
+          <ModeBin
+            key={m.mode}
+            rect={layout.binRects[i]}
+            bus={bus}
+            index={i}
+            color={MODE_COLOR[m.mode]}
+            icon={m.icon}
+            title={t(m.titleKey)}
+            description={t(m.descKey)}
+            record={loaded && scores[m.mode] > 0 ? formatNumber(scores[m.mode]) : null}
+            recordLabel={t("home.record")}
+            last={loaded && m.mode === lastMode}
+            compact={compact}
+            startLabel={t("home.startMode", { mode: t(m.titleKey) })}
+            onPress={() => launch(m.mode)}
+          />
+        ))}
+      </View>
+
+      {/* Unten im Daumenbereich: Hinweis, Weiter, Nebenaktionen */}
+      <View style={[styles.menu, { paddingBottom: insets.bottom + Spacing.sm }]} pointerEvents="box-none">
+        {!compact && <ThrowHint text={t("home.throwHint")} calm={reduceMotion} />}
+
+        {/* Tagesaufgabe: jeden Tag 10 feste Gegenstände */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t("home.daily")}. ${
+            daily
+              ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
+              : t("home.dailyNew")
+          }`}
+          onPress={() => {
+            if (starting.current) return;
+            starting.current = true;
+            sfx("tap");
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+            startDaily();
+          }}
+          style={({ pressed }) => [styles.daily, pressed && styles.pressed]}
+        >
+          <View style={styles.dailyIcon}>
+            <Feather name={daily ? "check" : "calendar"} size={18} color="#3A2500" />
+          </View>
+          <View style={styles.flex}>
+            <AppText variant="label" color={ON_SCENE}>
+              {t("home.daily")}
+            </AppText>
+            <AppText variant="caption" color={ON_SCENE_SOFT} numberOfLines={1}>
+              {daily
+                ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
+                : t("home.dailyNew")}
+            </AppText>
+          </View>
+          <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t("home.continue")}: ${lastTitle}`}
+          onPress={() => launch(lastMode)}
+          style={({ pressed }) => [
+            styles.continue,
+            { backgroundColor: pressed ? colors.primaryPressed : colors.primary },
+            pressed && styles.pressed,
+          ]}
+        >
+          <View style={styles.continueIcon}>
+            <Feather name="play" size={22} color={colors.primary} />
+          </View>
+          <View style={styles.flex}>
+            <AppText variant="heading" tone="onPrimary">
+              {t("home.continue")}
+            </AppText>
+            <AppText variant="caption" tone="onPrimary">
+              {lastTitle}
+              {loaded && scores[lastMode] > 0 ? `  ·  🏆 ${formatNumber(scores[lastMode])}` : ""}
+            </AppText>
+          </View>
+          <Feather name="chevron-right" size={24} color={colors.onPrimary} />
+        </Pressable>
+
+        <View style={styles.footer}>
+          <FooterLink icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
+          <View style={styles.footerDot} />
+          <FooterLink icon="book-open" label={t("home.book")} onPress={() => router.push("/sammelbuch")} />
+          <View style={styles.footerDot} />
+          <FooterLink icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
+        </View>
+      </View>
     </View>
   );
 }
 
+/* ── Bausteine ─────────────────────────────────────────────── */
+
+/** Tipp-Fläche über einer Menü-Tonne + Schild mit Modus, Beschreibung, Rekord. */
+function ModeBin({
+  rect,
+  bus,
+  index,
+  color,
+  icon,
+  title,
+  description,
+  record,
+  recordLabel,
+  last,
+  compact,
+  startLabel,
+  onPress,
+}: {
+  rect: ScreenRect | undefined;
+  bus: BusRef;
+  index: number;
+  color: { fill: string; on: string };
+  icon: IconName;
+  title: string;
+  description: string;
+  record: string | null;
+  recordLabel: string;
+  last: boolean;
+  compact: boolean;
+  startLabel: string;
+  onPress: () => void;
+}) {
+  const aimed = useAim(bus) === index;
+  if (!rect) return null;
+  const width = Math.max(rect.w + 6, 96);
+  const left = rect.x + rect.w / 2 - width / 2;
+
+  return (
+    <>
+      {/* Unsichtbare Tipp-Fläche über der 3D-Tonne */}
+      <Pressable
+        accessible={false}
+        onPress={onPress}
+        style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
+      />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${startLabel}. ${description}${record ? `. ${recordLabel} ${record}` : ""}`}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.modeSign,
+          {
+            left,
+            top: rect.y + rect.h + 4,
+            width,
+            backgroundColor: color.fill,
+            transform: [{ scale: aimed ? 1.1 : pressed ? 0.96 : 1 }, { translateY: aimed ? -4 : 0 }],
+          },
+          aimed && [styles.modeSignAimed, { shadowColor: color.fill }],
+        ]}
+      >
+        {last && (
+          <View style={styles.lastBadge}>
+            <Feather name="rotate-ccw" size={10} color="#1B2420" />
+          </View>
+        )}
+        <View style={styles.modeIcon}>
+          <Feather name={icon} size={16} color={color.fill} />
+        </View>
+        <AppText
+          variant="label"
+          color={color.on}
+          center
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          style={styles.modeTitle}
+        >
+          {title}
+        </AppText>
+        {!compact && (
+          <AppText variant="caption" color={color.on} center style={styles.modeRecord}>
+            {record ? `🏆 ${record}` : " "}
+          </AppText>
+        )}
+      </Pressable>
+    </>
+  );
+}
+
+/** „Wirf in eine Tonne …“ mit sanft hüpfendem Pfeil. */
+function ThrowHint({ text, calm }: { text: string; calm: boolean }) {
+  const [v] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (calm) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(v, { toValue: 1, duration: 520, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(v, { toValue: 0, duration: 520, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [v, calm]);
+
+  return (
+    <View style={styles.hint} pointerEvents="none">
+      <Animated.View
+        style={{ transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}
+      >
+        <Feather name="arrow-up" size={16} color={ON_SCENE} />
+      </Animated.View>
+      <AppText variant="label" color={ON_SCENE} style={TEXT_SHADOW}>
+        {text}
+      </AppText>
+    </View>
+  );
+}
+
+function FooterLink({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      hitSlop={8}
+      style={({ pressed }) => [styles.footerLink, pressed && { opacity: 0.6 }]}
+    >
+      <Feather name={icon} size={18} color={ON_SCENE_SOFT} />
+      <AppText variant="label" color={ON_SCENE_SOFT}>
+        {label}
+      </AppText>
+    </Pressable>
+  );
+}
+
+const shadow = {
+  shadowColor: "#000",
+  shadowOpacity: 0.22,
+  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 5,
+};
+
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-  },
-  container: {
-    width: "100%",
-    maxWidth: 520,
-    alignSelf: "center",
-    gap: Spacing.lg,
-  },
-  flex: {
-    flex: 1,
-    minWidth: 0,
-  },
-  shrink: {
-    flexShrink: 1,
-  },
+  screen: { flex: 1 },
+  flex: { flex: 1 },
+  swipeArea: { position: "absolute", left: 0, right: 0 },
 
-  // Kopfzeile
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    minHeight: 56,
-  },
-  progressSummary: {
-    flex: 1,
-    minWidth: 0,
-    gap: Spacing.sm,
-  },
-  progressLabels: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: Spacing.sm,
-  },
-  streak: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
-  progressTrack: {
-    width: "100%",
-    maxWidth: 200,
-    height: 6,
-    borderRadius: Radius.pill,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: Radius.pill,
-  },
-
-  // Überarbeitete Menü-Illustration
-  illustration: {
-    height: 210,
-    borderRadius: 30,
-    overflow: "hidden",
-    alignItems: "center",
-  },
-  sceneTint: {
     position: "absolute",
     top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    opacity: 0.07,
+    left: Spacing.md + 4,
+    right: Spacing.md,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
   },
-  sceneGround: {
-    position: "absolute",
-    width: "84%",
-    maxWidth: 350,
-    height: 35,
-    bottom: 20,
-    borderRadius: 175,
-    opacity: 0.13,
-  },
-
-  // Modusmotive
-  modeEmblem: {
-    position: "absolute",
-    top: 22,
-    right: "14%",
-    width: 38,
-    height: 38,
+  logo: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  logoBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    opacity: 0.8,
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    ...shadow,
   },
-  stopwatchButton: {
-    position: "absolute",
-    top: -2,
-    left: 15,
-    width: 9,
-    height: 4,
-    borderRadius: 2,
-  },
-  shieldCheck: {
-    position: "absolute",
-    top: 12,
-    left: 13,
-  },
-  sceneAccent: {
-    position: "absolute",
-    top: 28,
-    left: "16%",
-    width: 64,
-    height: 34,
-    opacity: 0.45,
-  },
-  smallLeaf: {
-    position: "absolute",
-    top: 0,
-    right: 6,
-    transform: [{ rotate: "15deg" }],
-  },
-  pathDash: {
-    position: "absolute",
-    width: 6,
-    height: 2,
-    borderRadius: 2,
-    opacity: 0.7,
-  },
-  pathDashOne: {
-    top: 17,
-    left: 31,
-    transform: [{ rotate: "-38deg" }],
-  },
-  pathDashTwo: {
-    top: 23,
-    left: 21,
-    transform: [{ rotate: "-45deg" }],
-  },
-  pathArrow: {
-    position: "absolute",
-    top: 24,
-    left: 7,
-    opacity: 0.8,
-  },
-  sparkOne: {
-    position: "absolute",
-    top: 2,
-    left: 10,
-  },
-  sparkTwo: {
-    position: "absolute",
-    top: 19,
-    right: 5,
-    opacity: 0.65,
-  },
-  flyingPackage: {
-    position: "absolute",
-    top: 3,
-    right: 0,
-    transform: [{ rotate: "-16deg" }],
-  },
-  speedLine: {
-    position: "absolute",
-    height: 2,
-    borderRadius: 2,
-    opacity: 0.7,
-  },
-  speedLineOne: {
-    top: 7,
-    left: 7,
-    width: 16,
-  },
-  speedLineTwo: {
-    top: 14,
-    left: 0,
-    width: 22,
-  },
-  speedLineThree: {
-    top: 21,
-    left: 11,
-    width: 12,
-  },
+  logoIcon: { fontSize: 28, lineHeight: 34 },
+  logoTop: { fontSize: 22, lineHeight: 24, letterSpacing: 3 },
+  logoBottom: { fontSize: 34, lineHeight: 38, letterSpacing: 0.5 },
 
-  // Größere, überarbeitete Tonnen
-  binGroup: {
-    position: "absolute",
-    bottom: 35,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    gap: 16,
-  },
-  leftBinRotation: {
-    transform: [{ rotate: "-3deg" }],
-  },
-  middleBinPosition: {
-    marginBottom: 3,
-  },
-  rightBinRotation: {
-    transform: [{ rotate: "3deg" }],
-  },
-  bin: {
-    width: 70,
-    height: 96,
-  },
-  binShadowOuter: {
-    position: "absolute",
-    bottom: -3,
-    left: 6,
-    width: 58,
-    height: 8,
-    borderRadius: 26,
-    backgroundColor: "#000000",
-    opacity: 0.04,
-  },
-  binShadowInner: {
-    position: "absolute",
-    bottom: -1,
-    left: 11,
-    width: 48,
-    height: 5,
-    borderRadius: 21,
-    backgroundColor: "#000000",
-    opacity: 0.075,
-  },
-  binBody: {
-    position: "absolute",
-    top: 12,
-    left: 5,
-    right: 3,
-    bottom: 5,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
-    borderBottomLeftRadius: 11,
-    borderBottomRightRadius: 11,
-    overflow: "hidden",
-  },
-  binSide: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 7,
-    opacity: 0.5,
-  },
-  binHighlight: {
-    position: "absolute",
-    left: 5,
-    top: 10,
-    width: 3,
-    height: 24,
-    borderRadius: 3,
-    backgroundColor: "#FFFFFF",
-    opacity: 0.13,
-  },
-  binBadge: {
-    position: "absolute",
-    left: 11,
-    top: 22,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  binBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    opacity: 0.18,
-  },
-  binLidShadow: {
-    position: "absolute",
-    top: 13,
-    left: 5,
-    right: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: "#000000",
-    opacity: 0.1,
-  },
-  binHandle: {
-    position: "absolute",
-    top: 0,
-    left: 26,
-    width: 19,
-    height: 6,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  binLid: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 5,
-    height: 10,
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  lidHighlight: {
-    position: "absolute",
-    top: 1,
-    left: 6,
-    width: 30,
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: "#FFFFFF",
-    opacity: 0.18,
-  },
-  binWheel: {
-    position: "absolute",
-    bottom: 0,
-    width: 7,
-    height: 7,
-    borderRadius: 3,
-    backgroundColor: "#304039",
-  },
-  leftWheel: {
-    left: 12,
-  },
-  rightWheel: {
-    right: 9,
-  },
-
-  // Pflanzen im Übungsmodus
-  plantLeft: {
-    position: "absolute",
-    bottom: 35,
-    left: "8%",
-    opacity: 0.28,
-  },
-  plantRight: {
-    position: "absolute",
-    bottom: 35,
-    right: "8%",
-    opacity: 0.22,
-  },
-  plant: {
-    width: 24,
-    height: 32,
-  },
-  mirrored: {
-    transform: [{ scaleX: -1 }],
-  },
-  plantStem: {
-    position: "absolute",
-    bottom: 0,
-    left: 11,
-    width: 2,
-    height: 24,
-    borderRadius: 2,
-  },
-  plantLeaf: {
-    position: "absolute",
-    width: 13,
-    height: 7,
-    borderTopLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-  plantLeafLeft: {
-    left: 0,
-    top: 13,
-    transform: [{ rotate: "32deg" }],
-  },
-  plantLeafRight: {
-    right: 0,
-    top: 5,
-    transform: [{ rotate: "-30deg" }],
-  },
-
-  // Moduswahl
-  playSection: {
-    gap: Spacing.md,
-  },
-  modeSelector: {
-    flexDirection: "row",
-    padding: 4,
-    gap: 4,
-    borderRadius: Radius.xl,
-  },
-  modeOption: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 62,
-    borderRadius: Radius.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-    paddingVertical: Spacing.sm,
-    gap: 5,
-  },
-  modeTitle: {
-    flexShrink: 1,
-  },
-  modeDescription: {
-    paddingHorizontal: Spacing.sm,
-  },
-
-  // Rekorde
-  records: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingVertical: Spacing.md,
-    gap: Spacing.sm,
-  },
-  recordsRow: {
-    flexDirection: "row",
+  levelChip: {
     alignItems: "stretch",
-  },
-  recordValue: {
-    flex: 1,
-    minWidth: 0,
-    alignItems: "center",
-    paddingHorizontal: Spacing.sm,
-    gap: 4,
-  },
-  recordLabel: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
     gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: Radius.lg,
+    backgroundColor: "rgba(0,0,0,0.32)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
   },
-  recordDivider: {
-    width: StyleSheet.hairlineWidth,
-    marginVertical: Spacing.sm,
+  levelRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.sm },
+  levelTrack: {
+    width: 72,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(255,255,255,0.25)",
+    overflow: "hidden",
   },
-  number: {
-    fontVariant: ["tabular-nums"],
-    textAlign: "center",
+  levelFill: { height: "100%", borderRadius: 3 },
+
+  modeSign: {
+    position: "absolute",
+    alignItems: "center",
+    gap: 3,
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingHorizontal: 6,
+    borderRadius: Radius.lg,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.75)",
+    ...shadow,
   },
-  playButton: {
-    minHeight: 62,
-    borderRadius: Radius.xl,
-    flexDirection: "row",
+  modeSignAimed: {
+    borderColor: "#FFFFFF",
+    borderWidth: 3,
+    shadowOpacity: 0.95,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 12,
+  },
+  modeIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    gap: Spacing.sm + 4,
+    backgroundColor: "#FFFFFF",
+  },
+  modeTitle: { lineHeight: 17 },
+  modeRecord: { opacity: 0.92 },
+  lastBadge: {
+    position: "absolute",
+    top: -7,
+    right: -7,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFD54A",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
 
-  // Statistik
-  details: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  detailsToggle: {
-    minHeight: 58,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm + 4,
-    paddingVertical: Spacing.md,
-  },
-  detailsContent: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
-    gap: Spacing.sm + 4,
-  },
-  detailsHeading: {
-    marginBottom: Spacing.xs,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: Spacing.md,
-  },
-  detailValue: {
-    flexShrink: 1,
-    textAlign: "right",
-    fontVariant: ["tabular-nums"],
-  },
-  totalProgress: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: Spacing.md,
-    marginTop: Spacing.xs,
+  menu: {
+    position: "absolute",
+    left: Spacing.md,
+    right: Spacing.md,
+    bottom: 0,
     gap: Spacing.sm,
   },
-
-  // Faktbereich
-  fact: {
+  daily: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    borderRadius: Radius.xl,
-    padding: Spacing.md,
-    gap: Spacing.sm + 4,
+    alignItems: "center",
+    gap: Spacing.sm,
+    minHeight: 52,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.lg,
+    backgroundColor: "rgba(0,0,0,0.34)",
+    borderWidth: 1,
+    borderColor: "rgba(255,213,74,0.55)",
   },
-  factIcon: {
+  dailyIcon: {
     width: 34,
     height: 34,
-    borderRadius: Radius.md,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#FFD54A",
   },
-  factText: {
-    flex: 1,
-    minWidth: 0,
-    gap: Spacing.xs,
+  hint: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 4,
   },
-  pressed: {
-    opacity: 0.7,
+  continue: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    minHeight: 64,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.xl,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.5)",
+    ...shadow,
   },
+  continueIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm + 2,
+  },
+  footerLink: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 },
+  footerDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: ON_SCENE_SOFT },
+
+  pressed: { transform: [{ scale: 0.98 }] },
 });

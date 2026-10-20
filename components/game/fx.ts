@@ -8,21 +8,55 @@ export type Fx = {
   /** 1 = normal, < 1 = Zeitlupe. Alle Animationen multiplizieren delta damit. */
   timeScale: number;
   slowUntil: number;
+  /** Frühestens ab hier darf eine neue Zeitlupe starten (kein Dauer-Bremsen). */
+  slowCooldownUntil: number;
+  /** Anzahl gerade fliegender Würfe – Zeitlupe nur bei einem einzelnen. */
+  flying: number;
   shake: number;
   shakeAxis: "x" | "y";
   /** Für weniger Bewegung: Wackeln/Zeitlupe aus. */
   calm: boolean;
+  /** Wohin die Tonnen-Augen schauen (aktueller Gegenstand). */
+  lookAt: THREE.Vector3;
 };
 
 export type FxRef = { readonly current: Fx };
 
 export function createFx(): Fx {
-  return { timeScale: 1, slowUntil: 0, shake: 0, shakeAxis: "y", calm: false };
+  return {
+    timeScale: 1,
+    slowUntil: 0,
+    slowCooldownUntil: 0,
+    flying: 0,
+    shake: 0,
+    shakeAxis: "y",
+    calm: false,
+    lookAt: new THREE.Vector3(0, 1, 5),
+  };
+}
+
+/** Gegenstand meldet seine Position → Tonnen schauen ihn an. */
+export function setLook(fx: Fx, position: THREE.Vector3) {
+  fx.lookAt.copy(position);
 }
 
 export function slowMotion(fx: Fx, ms: number) {
-  if (fx.calm) return;
-  fx.slowUntil = performance.now() + ms;
+  const now = performance.now();
+  // Bei Schnellwürfen würde die Zeitlupe alle fliegenden Items bremsen.
+  if (fx.calm || fx.flying > 1 || now < fx.slowCooldownUntil) return;
+  fx.slowUntil = now + ms;
+  fx.slowCooldownUntil = now + ms + 1200;
+}
+
+/** Wurf startet (+1) bzw. ist gelandet/entfernt (−1). */
+export function trackFlying(fx: Fx, delta: 1 | -1) {
+  fx.flying = Math.max(0, fx.flying + delta);
+}
+
+/** Zeitlupe sofort beenden (z. B. wenn der nächste Wurf losgeht). */
+export function cancelSlowMotion(fx: Fx) {
+  fx.slowUntil = 0;
+  fx.timeScale = 1;
 }
 
 export function shake(fx: Fx, amount: number, axis: "x" | "y" = "y") {

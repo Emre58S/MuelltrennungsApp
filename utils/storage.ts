@@ -20,6 +20,8 @@ export const StorageKeys = {
   LAST_MODE: "muell_last_mode",
   MODE_STATS: "muell_mode_stats",
   REDUCE_MOTION: "muell_reduce_motion",
+  ITEM_STATS: "muell_item_stats",
+  DAILY_RESULT: "muell_daily_result",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -302,28 +304,133 @@ export function getLevelTitle(level: number): string {
   return "🔰 Müll-Anfänger";
 }
 
-// ── Ergebnis eines Wurfs speichern ────────────────────────────────────
+// ── Würfe gebündelt speichern ─────────────────────────────────────────
+// Pro Wurf zu speichern hieße ~10 Lese-/Schreibzugriffe – bei Schnellwürfen
+// unnötige Last. Stattdessen sammeln und kurz nach dem letzten Wurf (bzw.
+// beim Verlassen der Runde) in einem Rutsch schreiben. Level-Aufstiege
+// berechnet das Spiel selbst aus der Start-XP.
 
-/**
- * Wird nach jedem Wurf aufgerufen: Streak aktualisieren, Statistik zählen, XP vergeben.
- */
-export function recordThrow(params: {
-  correct: boolean;
-  xp: number;
-}): Promise<{ totalXP: number; level: number; leveledUp: boolean }> {
+const pendingThrows = { played: 0, correct: 0, xp: 0 };
+const pendingItems = new Map<string, { correct: number; wrong: number }>();
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function queueThrowRecord(params: { correct: boolean; xp: number; item?: string }) {
+  if (params.item) {
+    const p = pendingItems.get(params.item) ?? { correct: 0, wrong: 0 };
+    if (params.correct) p.correct += 1;
+    else p.wrong += 1;
+    pendingItems.set(params.item, p);
+  }
+  pendingThrows.played += 1;
+  pendingThrows.correct += params.correct ? 1 : 0;
+  pendingThrows.xp += params.xp;
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = setTimeout(() => {
+    flushThrowRecords().catch(() => undefined);
+  }, 1500);
+}
+
+/** Schreibt gesammelte Würfe; wartet außerdem auf alle laufenden Schreibvorgänge. */
+export function flushThrowRecords(): Promise<void> {
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+  if (pendingThrows.played === 0) return enqueue(async () => undefined);
+  const batch = { ...pendingThrows };
+  const items = new Map(pendingItems);
+  pendingThrows.played = 0;
+  pendingThrows.correct = 0;
+  pendingThrows.xp = 0;
+  pendingItems.clear();
   return enqueue(async () => {
+    if (items.size > 0) {
+      const all = await getItemStats();
+      const now = Date.now();
+      items.forEach((delta, name) => {
+        const old = all[name] ?? EMPTY_ITEM_STAT;
+        all[name] = {
+          correct: old.correct + delta.correct,
+          wrong: old.wrong + delta.wrong,
+          // Zuletzt falsch → bald wieder üben; richtig → Fehler „verblassen“
+          lastWrong: delta.wrong > 0 ? now : old.lastWrong,
+          streak: delta.wrong > 0 ? 0 : old.streak + delta.correct,
+        };
+      });
+      await setItem(StorageKeys.ITEM_STATS, JSON.stringify(all));
+    }
     await updateStreak();
-
     const [played, correct] = await Promise.all([
       getNumber(StorageKeys.TOTAL_PLAYED),
       getNumber(StorageKeys.TOTAL_CORRECT),
     ]);
-
     await Promise.all([
-      setNumber(StorageKeys.TOTAL_PLAYED, played + 1),
-      setNumber(StorageKeys.TOTAL_CORRECT, correct + (params.correct ? 1 : 0)),
+      setNumber(StorageKeys.TOTAL_PLAYED, played + batch.played),
+      setNumber(StorageKeys.TOTAL_CORRECT, correct + batch.correct),
     ]);
+    await addXP(batch.xp);
+  });
+}
 
-    return addXP(params.xp);
+// ── Lernstand pro Item (Sammelbuch + Wiederholung) ────────────────────
+
+export type ItemStat = {
+  correct: number;
+  wrong: number;
+  /** Zeitpunkt des letzten Fehlers (ms) oder 0. */
+  lastWrong: number;
+  /** Richtige Antworten in Folge seit dem letzten Fehler. */
+  streak: number;
+};
+export type ItemStats = Record<string, ItemStat>;
+
+export const EMPTY_ITEM_STAT: ItemStat = { correct: 0, wrong: 0, lastWrong: 0, streak: 0 };
+
+export async function getItemStats(): Promise<ItemStats> {
+  const raw = await getItem(StorageKeys.ITEM_STATS);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as ItemStats;
+  } catch {
+    return {};
+  }
+}
+
+// ── Tagesaufgabe ──────────────────────────────────────────────────────
+
+export type DailyResult = {
+  /** Datum (YYYY-MM-DD, lokale Zeit). */
+  date: string;
+  score: number;
+  correct: number;
+  total: number;
+};
+
+/** Heutiges Datum in lokaler Zeit (Tagesaufgabe wechselt um Mitternacht). */
+export function todayKey(date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** Ergebnis von heute (oder null, falls heute noch nicht gespielt). */
+export async function getTodayDaily(): Promise<DailyResult | null> {
+  const raw = await getItem(StorageKeys.DAILY_RESULT);
+  if (!raw) return null;
+  try {
+    const result = JSON.parse(raw) as DailyResult;
+    return result.date === todayKey() ? result : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Speichert das Tagesergebnis, wenn es heute das erste oder ein besseres ist. */
+export function saveDaily(result: DailyResult): Promise<void> {
+  return enqueue(async () => {
+    const current = await getTodayDaily();
+    if (current && current.score >= result.score) return;
+    await setItem(StorageKeys.DAILY_RESULT, JSON.stringify(result));
   });
 }
