@@ -57,7 +57,20 @@ function HudSurface({ children, style }: { children: ReactNode; style?: object }
 
 /* ── Punkte + Serie ────────────────────────────────────────── */
 
-export function ScoreBadge({ score, streak, multiplier }: { score: number; streak: number; multiplier: number }) {
+export function ScoreBadge({
+  score,
+  streak,
+  multiplier,
+  feverProgress,
+  fever,
+}: {
+  score: number;
+  streak: number;
+  multiplier: number;
+  /** 0…1: wie nah die Serie am nächsten Fieber ist. */
+  feverProgress: number;
+  fever: boolean;
+}) {
   const { t, formatNumber } = useI18n();
   const { colors } = useAppTheme();
   const pulse = usePulse(score);
@@ -73,6 +86,18 @@ export function ScoreBadge({ score, streak, multiplier }: { score: number; strea
           <AppText variant="title" style={styles.scoreValue}>
             {formatNumber(score)}
           </AppText>
+          {/* Serie → Fieber: füllt sich mit jedem Treffer, golden im Fieber */}
+          <View style={[styles.feverMeter, { backgroundColor: colors.surfaceAlt }]}>
+            <View
+              style={[
+                styles.feverMeterFill,
+                {
+                  width: `${Math.round((fever ? 1 : feverProgress) * 100)}%`,
+                  backgroundColor: fever ? "#FFB300" : colors.primary,
+                },
+              ]}
+            />
+          </View>
         </HudSurface>
       </Animated.View>
 
@@ -449,6 +474,8 @@ const styles = StyleSheet.create({
   scoreWrap: { alignItems: "center", gap: 6 },
   scoreCard: { alignItems: "center", paddingHorizontal: Spacing.lg, paddingVertical: 6, minWidth: 130 },
   scoreValue: { fontVariant: ["tabular-nums"] },
+  feverMeter: { alignSelf: "stretch", height: 5, borderRadius: 3, overflow: "hidden", marginTop: 2, marginBottom: 2 },
+  feverMeterFill: { height: "100%", borderRadius: 3 },
   streakChip: {
     flexDirection: "row",
     alignItems: "center",

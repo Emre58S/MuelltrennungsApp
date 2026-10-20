@@ -664,6 +664,8 @@ function GameRound({
                   score={stats.score}
                   streak={stats.streak}
                   multiplier={getMultiplier(stats.streak) * (fever ? 2 : 1)}
+                  feverProgress={(stats.streak % FEVER_EVERY) / FEVER_EVERY}
+                  fever={fever}
                 />
                 {mode === "endless" && stats.throws > 0 ? (
                   <HudButton
