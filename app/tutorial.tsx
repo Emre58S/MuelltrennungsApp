@@ -27,7 +27,7 @@ export default function TutorialScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.logo}>♻️</Text>
-          <Text style={styles.title}>So funktioniert's</Text>
+          <Text style={styles.title}>So funktioniert’s</Text>
           <Text style={styles.subtitle}>
             Sortiere den Müll in den richtigen Mülleimer.
           </Text>
