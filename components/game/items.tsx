@@ -1,15 +1,27 @@
 // Datei: components/game/items.tsx
 // Vorschau-Item (schwebt, holt beim Zielen Schwung), gepunktete Flugbahn
-// und das geworfene Item (Flug mit Leuchtspur → Einsinken oder Abprallen).
+// und die geworfenen Items (Flug mit Leuchtspur → Einsinken oder Abprallen).
+//
+// Würfe laufen in einem festen Pool (ThrowLayer): alle Plätze sind von Anfang
+// an aufgebaut, ein Wurf belegt nur einen freien Platz und hängt eine Kopie
+// des Modells ein. Kein React-Render, kein neues Mesh/Material pro Wurf.
 
 import { useFrame } from "@react-three/fiber/native";
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
 
-import { easeOutBack, flightPoint, type FxRef, setLook, slowMotion, trackFlying } from "./fx";
-import { TrashObject3D } from "./models";
+import {
+  easeOutBack,
+  flightPoint,
+  type FxRef,
+  setLook,
+  slowMotion,
+  trackFlying,
+} from "./fx";
+import { cloneModel, ItemModel } from "./model-cache";
+import { type BusRef, landThrow, type ThrowSpec, takeThrows } from "./scene-bus";
 
 export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
   return 0.9 + start.distanceTo(end) * 0.12;
@@ -17,17 +29,13 @@ export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
 
 /* ── Vorschau ──────────────────────────────────────────────── */
 
-/** Fertig aufgebaute Vorschau-Modelle (nach Item-Name). Der Wurf klont sie
- *  (teilt Geometrie + Material), statt das Modell per React neu aufzubauen –
- *  das ist bei Schnellwürfen der entscheidende Unterschied. */
-const previewModels = new Map<string, THREE.Object3D>();
-
 export const PreviewItem = memo(function PreviewItem({
   item,
   visible = true,
   position,
   scale,
-  aimTarget,
+  openings,
+  bus,
   fx,
 }: {
   item: Item;
@@ -35,22 +43,14 @@ export const PreviewItem = memo(function PreviewItem({
   visible?: boolean;
   position: THREE.Vector3;
   scale: number;
-  aimTarget: THREE.Vector3 | null;
+  /** Öffnungen der Tonnen – das Item lehnt sich zur anvisierten. */
+  openings: THREE.Vector3[];
+  bus: BusRef;
   fx: FxRef;
 }) {
   const ref = useRef<THREE.Group>(null);
-  const modelRef = useRef<THREE.Group>(null);
   const age = useRef(0);
   const aim = useRef(0);
-
-  useEffect(() => {
-    const model = modelRef.current;
-    if (!model) return;
-    previewModels.set(item.name, model);
-    return () => {
-      if (previewModels.get(item.name) === model) previewModels.delete(item.name);
-    };
-  }, [item.name]);
   const lean = useRef(0);
 
   useFrame((state, rawDelta) => {
@@ -64,54 +64,55 @@ export const PreviewItem = memo(function PreviewItem({
     const delta = Math.min(rawDelta, 0.05);
     age.current += delta;
     const t = state.clock.elapsedTime;
+    const calm = fx.current.calm;
+    const aimIndex = bus.current.aim;
+    const target = aimIndex !== null ? openings[aimIndex] : undefined;
 
-    aim.current = THREE.MathUtils.damp(aim.current, aimTarget ? 1 : 0, 12, delta);
-    const dirX = aimTarget ? THREE.MathUtils.clamp((aimTarget.x - position.x) / 2, -1, 1) : 0;
+    aim.current = THREE.MathUtils.damp(aim.current, target ? 1 : 0, 12, delta);
+    const dirX = target ? THREE.MathUtils.clamp((target.x - position.x) / 2, -1, 1) : 0;
     lean.current = THREE.MathUtils.damp(lean.current, dirX, 10, delta);
 
     // Auftauchen mit Überschwinger
-    const pop = fx.current.calm ? 1 : easeOutBack(Math.min(age.current / 0.35, 1));
+    const pop = calm ? 1 : easeOutBack(Math.min(age.current / 0.3, 1));
     // Schwung holen: beim Zielen etwas zurück/runter und kleiner
     const windUp = aim.current;
     g.scale.setScalar(scale * pop * (1 - windUp * 0.06));
     g.position.set(
       position.x - lean.current * 0.08,
-      position.y + (fx.current.calm ? 0 : Math.sin(t * 2.2) * 0.04) - windUp * 0.1,
+      position.y + (calm ? 0 : Math.sin(t * 2.2) * 0.04) - windUp * 0.1,
       position.z + windUp * 0.12,
     );
     g.rotation.set(
       0.15 - windUp * 0.25,
-      fx.current.calm ? -0.3 : -0.3 + Math.sin(t * 0.9) * 0.35,
+      calm ? -0.3 : -0.3 + Math.sin(t * 0.9) * 0.35,
       -lean.current * 0.35,
     );
     setLook(fx.current, g.position);
   });
 
- return (
-  <group
-    ref={ref}
-    position={[position.x, position.y, position.z]}
-    scale={0.001}
-  >
-    <group ref={modelRef}>
-      <TrashObject3D item={item} />
+  return (
+    <group ref={ref} position={position} scale={0.001} visible={false}>
+      <ItemModel item={item} />
     </group>
-  </group>
-);
+  );
 });
 
 /* ── Flugbahn-Vorschau ─────────────────────────────────────── */
 
 const DOTS = 14;
+const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
 
 export const AimGuide = memo(function AimGuide({
   start,
-  target,
-  color,
+  openings,
+  colors,
+  bus,
 }: {
   start: THREE.Vector3;
-  target: THREE.Vector3 | null;
-  color: string;
+  openings: THREE.Vector3[];
+  /** Punktfarbe pro Tonne. */
+  colors: string[];
+  bus: BusRef;
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const phase = useRef(0);
@@ -120,25 +121,26 @@ export const AimGuide = memo(function AimGuide({
   const q = useMemo(() => new THREE.Quaternion(), []);
   const s = useMemo(() => new THREE.Vector3(), []);
   const mat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95 }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.95 }),
     [],
   );
+  useEffect(() => () => mat.dispose(), [mat]);
 
   useFrame((_, delta) => {
     const mesh = ref.current;
     if (!mesh) return;
+    const aimIndex = bus.current.aim;
+    const target = aimIndex !== null ? openings[aimIndex] : undefined;
     mesh.visible = !!target;
-    if (!target) return;
-    mat.color.set(color);
+    if (!target || aimIndex === null) return;
+    mat.color.set(colors[aimIndex] ?? "#FFFFFF");
     phase.current = (phase.current + delta * 1.6) % 1;
     const arc = arcFor(start, target);
 
     for (let i = 0; i < DOTS; i++) {
       const t = Math.min((i + phase.current) / DOTS, 1) * 0.94;
       flightPoint(tmp, start, target, t, arc);
-      const size = 0.075 - t * 0.035;
-      s.setScalar(size);
+      s.setScalar(0.075 - t * 0.035);
       m.compose(tmp, q, s);
       mesh.setMatrixAt(i, m);
     }
@@ -148,207 +150,317 @@ export const AimGuide = memo(function AimGuide({
   return (
     <instancedMesh
       ref={ref}
-      args={[undefined, undefined, DOTS]}
-      material={mat}
+      args={[DOT_GEO, mat, DOTS]}
       frustumCulled={false}
       visible={false}
-    >
-      <sphereGeometry args={[1, 10, 8]} />
-    </instancedMesh>
+    />
   );
 });
 
-/* ── Geworfenes Item ───────────────────────────────────────── */
+/* ── Geworfene Items (Pool) ────────────────────────────────── */
 
 // Knackiger Flug: kurz genug für flüssiges Spiel, lang genug zum Mitverfolgen
 const FLIGHT_TIME = 0.42;
 const TRAIL = 10;
+/** Gleichzeitig sichtbare Würfe. Reicht für ~8 Würfe pro Sekunde. */
+const SLOTS = 6;
+const TRAIL_GEO = new THREE.SphereGeometry(1, 8, 6);
+const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
 type Phase = "flight" | "sink" | "bounce" | "fade";
 
-export function ThrownItem({
-  item,
-  start,
-  startScale,
-  target,
-  endScale,
-  hit,
-  perfect,
-  glow,
-  fx,
-  onLand,
-  onDone,
-}: {
-  item: Item;
-  start: THREE.Vector3;
-  startScale: number;
+type Slot = {
+  active: boolean;
+  spec: ThrowSpec | null;
+  phase: Phase;
+  t: number;
+  p: number;
+  landed: boolean;
+  slowed: boolean;
+  counted: boolean;
+  started: number;
+  vel: THREE.Vector3;
+  trail: THREE.Vector3[];
+  head: number;
+  trailShown: boolean;
+  model: THREE.Object3D | null;
   target: THREE.Vector3;
-  endScale: number;
-  hit: boolean;
-  perfect: boolean;
-  /** Goldene Spur (Perfekt oder Fieber). */
-  glow: boolean;
-  fx: FxRef;
-  onLand: () => void;
-  onDone: () => void;
-}) {
-  const ref = useRef<THREE.Group>(null);
-  const trailRef = useRef<THREE.InstancedMesh>(null);
-  // Beim ersten Render noch vorhanden (die Vorschau wird erst im Commit entfernt).
-  const [model] = useState(() => previewModels.get(item.name)?.clone(true) ?? null);
-  const st = useRef({
-    phase: "flight" as Phase,
+  arc: number;
+};
+
+function createSlot(): Slot {
+  return {
+    active: false,
+    spec: null,
+    phase: "flight",
     t: 0,
     p: 0,
     landed: false,
-    done: false,
     slowed: false,
     counted: false,
+    started: 0,
     vel: new THREE.Vector3(),
-    trail: Array.from({ length: TRAIL }, () => start.clone()),
+    trail: Array.from({ length: TRAIL }, () => new THREE.Vector3()),
     head: 0,
-  });
-  const arc = useMemo(() => arcFor(start, target), [start, target]);
+    trailShown: false,
+    model: null,
+    target: new THREE.Vector3(),
+    arc: 1,
+  };
+}
+
+export const ThrowLayer = memo(function ThrowLayer({
+  bus,
+  fx,
+  start,
+  startScale,
+  endScale,
+  openings,
+}: {
+  bus: BusRef;
+  fx: FxRef;
+  start: THREE.Vector3;
+  startScale: number;
+  endScale: number;
+  openings: THREE.Vector3[];
+}) {
+  const groups = useRef<(THREE.Group | null)[]>([]);
+  const trails = useRef<(THREE.InstancedMesh | null)[]>([]);
+  const slots = useMemo(() => Array.from({ length: SLOTS }, createSlot), []);
+  const trailMats = useMemo(
+    () =>
+      Array.from(
+        { length: SLOTS },
+        () =>
+          new THREE.MeshBasicMaterial({
+            color: "#FFFFFF",
+            transparent: true,
+            opacity: 0.55,
+            depthWrite: false,
+          }),
+      ),
+    [],
+  );
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const sv = useMemo(() => new THREE.Vector3(), []);
-  const trailMat = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: glow ? "#FFD54A" : "#FFFFFF",
-        transparent: true,
-        opacity: 0.55,
-        depthWrite: false,
-      }),
-    [glow],
-  );
-  useEffect(() => () => trailMat.dispose(), [trailMat]);
 
-  // Fliegende Würfe zählen (Zeitlupe gibt es nur für einen einzelnen Wurf).
-  useEffect(() => {
-    const s = st.current;
-    const f = fx.current;
-    trackFlying(f, 1);
-    s.counted = true;
-    return () => {
-      if (s.counted) trackFlying(f, -1);
-    };
-  }, [fx]);
+  useEffect(() => () => trailMats.forEach((mat) => mat.dispose()), [trailMats]);
 
   useLayoutEffect(() => {
-    const mesh = trailRef.current;
-    if (!mesh) return;
-    const zero = new THREE.Matrix4().makeScale(0, 0, 0);
-    for (let i = 0; i < TRAIL; i++) mesh.setMatrixAt(i, zero);
-    mesh.instanceMatrix.needsUpdate = true;
+    trails.current.forEach((mesh) => {
+      if (!mesh) return;
+      for (let i = 0; i < TRAIL; i++) mesh.setMatrixAt(i, ZERO);
+      mesh.instanceMatrix.needsUpdate = true;
+    });
   }, []);
 
-  useFrame((_, rawDelta) => {
-    const g = ref.current;
-    const s = st.current;
-    if (!g || s.done) return;
-    const delta = Math.min(rawDelta, 0.05) * fx.current.timeScale;
+  // Beim Abbau: noch fliegende Würfe aus dem Zähler nehmen
+  useEffect(
+    () => () => {
+      slots.forEach((s) => {
+        if (s.counted) trackFlying(fx.current, -1);
+        s.counted = false;
+      });
+    },
+    [slots, fx],
+  );
 
-    if (s.phase === "flight") {
-      s.t = Math.min(s.t + delta / FLIGHT_TIME, 1);
-      flightPoint(tmp, start, target, s.t, arc);
-      g.position.copy(tmp);
-      setLook(fx.current, tmp);
-      g.scale.setScalar(THREE.MathUtils.lerp(startScale, endScale, Math.min(s.t * 1.4, 1)));
-      g.rotation.x += delta * 9;
-      g.rotation.y += delta * 6;
+  const hideTrail = (i: number) => {
+    const mesh = trails.current[i];
+    if (!mesh) return;
+    for (let k = 0; k < TRAIL; k++) mesh.setMatrixAt(k, ZERO);
+    mesh.instanceMatrix.needsUpdate = true;
+  };
 
-      if (perfect && !s.slowed && s.t > 0.72) {
-        s.slowed = true;
-        slowMotion(fx.current, 420);
-      }
+  /** Wurf sofort abschließen (falls der Pool voll ist oder die Szene endet). */
+  const finish = (i: number) => {
+    const s = slots[i];
+    if (!s.active || !s.spec) return;
+    if (s.counted) {
+      s.counted = false;
+      trackFlying(fx.current, -1);
+    }
+    if (!s.landed) {
+      s.landed = true;
+      landThrow(bus.current, s.spec);
+    }
+    s.active = false;
+    const g = groups.current[i];
+    if (g) g.visible = false;
+    if (s.trailShown) {
+      s.trailShown = false;
+      hideTrail(i);
+    }
+  };
 
-      if (s.t >= 1) {
-        if (s.counted) {
-          s.counted = false;
-          trackFlying(fx.current, -1);
-        }
-        if (!s.landed) {
-          s.landed = true;
-          onLand();
-        }
-        s.p = 0;
-        if (hit) {
-          s.phase = "sink";
-        } else {
-          s.phase = "bounce";
-          // Abprallen Richtung Kamera
-          s.vel.set((Math.random() - 0.5) * 1.2, 3.2, 2.6);
-        }
+  const begin = (i: number, spec: ThrowSpec, now: number) => {
+    const g = groups.current[i];
+    if (!g) return;
+    const s = slots[i];
+    if (s.model) g.remove(s.model);
+    s.model = cloneModel(spec.item.name);
+    g.add(s.model);
+
+    s.active = true;
+    s.spec = spec;
+    s.phase = "flight";
+    s.t = 0;
+    s.p = 0;
+    s.landed = false;
+    s.slowed = false;
+    s.started = now;
+    s.target.copy(openings[spec.binIndex] ?? start);
+    s.arc = arcFor(start, s.target);
+    s.trail.forEach((v) => v.copy(start));
+    s.head = 0;
+    s.trailShown = true;
+    trailMats[i].color.set(spec.glow ? "#FFD54A" : "#FFFFFF");
+
+    g.position.copy(start);
+    g.scale.setScalar(startScale);
+    g.rotation.set(0, 0, 0);
+    g.visible = true;
+
+    trackFlying(fx.current, 1);
+    s.counted = true;
+  };
+
+  useFrame((state, rawDelta) => {
+    const now = state.clock.elapsedTime;
+
+    // Neue Würfe auf freie Plätze verteilen (sonst den ältesten abschließen)
+    const queued = takeThrows(bus.current);
+    for (const spec of queued) {
+      let free = slots.findIndex((s) => !s.active);
+      if (free === -1) {
+        free = 0;
+        slots.forEach((s, i) => {
+          if (s.started < slots[free].started) free = i;
+        });
+        finish(free);
       }
-    } else if (s.phase === "sink") {
-      s.p = Math.min(s.p + delta / 0.22, 1);
-      g.position.set(target.x, target.y - s.p * 0.6, target.z);
-      g.scale.setScalar(endScale * (1 - s.p * 0.85));
-      g.rotation.y += delta * 4;
-      if (s.p >= 1) s.phase = "fade";
-    } else if (s.phase === "bounce") {
-      s.vel.y -= 9.5 * delta;
-      g.position.addScaledVector(s.vel, delta);
-      g.rotation.x -= delta * 10;
-      g.rotation.z += delta * 7;
-      if (g.position.y <= 0.18 && s.vel.y < 0) {
-        g.position.y = 0.18;
-        if (Math.abs(s.vel.y) > 1.2) {
-          s.vel.y *= -0.35;
-          s.vel.x *= 0.6;
-          s.vel.z *= 0.6;
-        } else {
-          s.phase = "fade";
-          s.p = 0;
-        }
-      }
-    } else {
-      s.p = Math.min(s.p + delta / (hit ? 0.05 : 0.45), 1);
-      if (!hit) g.scale.setScalar(endScale * (1 - s.p));
-      if (s.p >= 1) {
-        s.done = true;
-        g.visible = false;
-        onDone();
-      }
+      begin(free, spec, now);
     }
 
-    // Leuchtspur
-    const mesh = trailRef.current;
-    if (mesh) {
+    const delta = Math.min(rawDelta, 0.05) * fx.current.timeScale;
+
+    for (let i = 0; i < SLOTS; i++) {
+      const s = slots[i];
+      const g = groups.current[i];
+      if (!s.active || !g || !s.spec) continue;
+      const { hit, perfect } = s.spec;
+
+      if (s.phase === "flight") {
+        s.t = Math.min(s.t + delta / FLIGHT_TIME, 1);
+        flightPoint(tmp, start, s.target, s.t, s.arc);
+        g.position.copy(tmp);
+        setLook(fx.current, tmp);
+        g.scale.setScalar(
+          THREE.MathUtils.lerp(startScale, endScale, Math.min(s.t * 1.4, 1)),
+        );
+        g.rotation.x += delta * 9;
+        g.rotation.y += delta * 6;
+
+        if (perfect && !s.slowed && s.t > 0.72) {
+          s.slowed = true;
+          slowMotion(fx.current, 420);
+        }
+
+        if (s.t >= 1) {
+          if (s.counted) {
+            s.counted = false;
+            trackFlying(fx.current, -1);
+          }
+          if (!s.landed) {
+            s.landed = true;
+            landThrow(bus.current, s.spec);
+          }
+          s.p = 0;
+          if (hit) {
+            s.phase = "sink";
+          } else {
+            s.phase = "bounce";
+            // Abprallen Richtung Kamera
+            s.vel.set((Math.random() - 0.5) * 1.2, 3.2, 2.6);
+          }
+        }
+      } else if (s.phase === "sink") {
+        s.p = Math.min(s.p + delta / 0.22, 1);
+        g.position.set(s.target.x, s.target.y - s.p * 0.6, s.target.z);
+        g.scale.setScalar(endScale * (1 - s.p * 0.85));
+        g.rotation.y += delta * 4;
+        if (s.p >= 1) s.phase = "fade";
+      } else if (s.phase === "bounce") {
+        s.vel.y -= 9.5 * delta;
+        g.position.addScaledVector(s.vel, delta);
+        g.rotation.x -= delta * 10;
+        g.rotation.z += delta * 7;
+        if (g.position.y <= 0.18 && s.vel.y < 0) {
+          g.position.y = 0.18;
+          if (Math.abs(s.vel.y) > 1.2) {
+            s.vel.y *= -0.35;
+            s.vel.x *= 0.6;
+            s.vel.z *= 0.6;
+          } else {
+            s.phase = "fade";
+            s.p = 0;
+          }
+        }
+      } else {
+        s.p = Math.min(s.p + delta / (hit ? 0.05 : 0.45), 1);
+        if (!hit) g.scale.setScalar(endScale * (1 - s.p));
+        if (s.p >= 1) {
+          finish(i);
+          continue;
+        }
+      }
+
+      // Leuchtspur (nur im Flug)
+      const mesh = trails.current[i];
+      if (!mesh) continue;
+      if (s.phase !== "flight") {
+        if (s.trailShown) {
+          s.trailShown = false;
+          hideTrail(i);
+        }
+        continue;
+      }
       s.trail[s.head].copy(g.position);
       s.head = (s.head + 1) % TRAIL;
-      const show = s.phase === "flight";
-      for (let i = 0; i < TRAIL; i++) {
-        const idx = (s.head + i) % TRAIL;
-        const k = i / TRAIL;
-        sv.setScalar(show ? 0.03 + k * (glow ? 0.09 : 0.06) : 0);
+      const glow = s.spec.glow;
+      for (let k = 0; k < TRAIL; k++) {
+        const idx = (s.head + k) % TRAIL;
+        sv.setScalar(0.03 + (k / TRAIL) * (glow ? 0.09 : 0.06));
         m.compose(s.trail[idx], q, sv);
-        mesh.setMatrixAt(i, m);
+        mesh.setMatrixAt(k, m);
       }
       mesh.instanceMatrix.needsUpdate = true;
     }
   });
 
   return (
-  <>
-    <instancedMesh
-      ref={trailRef}
-      args={[undefined, undefined, TRAIL]}
-      material={trailMat}
-      frustumCulled={false}
-    >
-      <sphereGeometry args={[1, 8, 6]} />
-    </instancedMesh>
-
-    <group
-      ref={ref}
-      position={[start.x, start.y, start.z]}
-      scale={startScale}
-    >
-      {model ? <primitive object={model} /> : <TrashObject3D item={item} />}
-    </group>
-  </>
-);
-}
+    <>
+      {trailMats.map((mat, i) => (
+        <instancedMesh
+          key={`trail-${i}`}
+          ref={(mesh) => {
+            trails.current[i] = mesh;
+          }}
+          args={[TRAIL_GEO, mat, TRAIL]}
+          frustumCulled={false}
+        />
+      ))}
+      {trailMats.map((_, i) => (
+        <group
+          key={`slot-${i}`}
+          ref={(g) => {
+            groups.current[i] = g;
+          }}
+          visible={false}
+        />
+      ))}
+    </>
+  );
+});

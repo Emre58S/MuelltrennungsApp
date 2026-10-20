@@ -13,6 +13,8 @@ import { type BinDef } from "@/game/bins";
 import { type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 
+import { type BusRef, useAim } from "./scene-bus";
+
 /* ── Hilfen ────────────────────────────────────────────────── */
 
 /** Startet beim Mount (bzw. bei neuem key) eine Animation 0 → 1. */
@@ -161,22 +163,24 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
 export function BinLabels({
   bins,
   rects,
-  aimIndex,
+  bus,
   onActivate,
 }: {
   bins: BinDef[];
   rects: ScreenRect[];
-  aimIndex: number | null;
+  bus: BusRef;
   onActivate: (index: number) => void;
 }) {
   const { t } = useI18n();
+  // Nur die Schilder rendern beim Zielen neu – nicht die ganze Spielrunde.
+  const aimIndex = useAim(bus);
   return (
     <>
       {bins.map((bin, i) => {
         const r = rects[i];
         if (!r) return null;
         const aimed = aimIndex === i;
-        const width = Math.max(r.w + 14, 84);
+        const width = Math.max(r.w + 10, 84);
         return (
           <View
             key={bin.key}
@@ -193,12 +197,14 @@ export function BinLabels({
                 top: r.y + r.h + 6,
                 width,
                 backgroundColor: bin.color,
-                transform: [{ scale: aimed ? 1.12 : 1 }],
+                transform: [{ scale: aimed ? 1.1 : 1 }, { translateY: aimed ? -4 : 0 }],
               },
-              aimed && styles.binLabelAimed,
+              aimed && [styles.binLabelAimed, { shadowColor: bin.colorLight }],
             ]}
           >
-            <AppText style={styles.binIcon}>{bin.icon}</AppText>
+            <View style={styles.binIconBubble}>
+              <AppText style={styles.binIcon}>{bin.icon}</AppText>
+            </View>
             <AppText
               variant="label"
               color={bin.onColor}
@@ -472,15 +478,32 @@ const styles = StyleSheet.create({
   binLabel: {
     position: "absolute",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    borderRadius: Radius.md,
+    gap: 4,
+    paddingTop: 6,
+    paddingBottom: 7,
+    paddingHorizontal: 6,
+    borderRadius: Radius.lg,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.85)",
+    borderColor: "rgba(255,255,255,0.7)",
     ...shadow,
   },
-  binLabelAimed: { borderColor: "#FFFFFF", borderWidth: 3 },
-  binIcon: { fontSize: 20, lineHeight: 24 },
+  binLabelAimed: {
+    borderColor: "#FFFFFF",
+    borderWidth: 3,
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 10,
+  },
+  binIconBubble: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+  },
+  binIcon: { fontSize: 18, lineHeight: 22 },
   binText: { lineHeight: 18 },
 
   itemWrap: { alignItems: "center", gap: Spacing.sm },

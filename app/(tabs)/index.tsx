@@ -1,22 +1,53 @@
 // Datei: app/(tabs)/index.tsx — Titelbild-Menü
 //
-// Vorbild: Titelbildschirme wie „Just wanted to FISH“ – die Spielwelt IST
-// das Menü. Für Hochformat angepasst: Logo oben, lebendige 3D-Szene in der
-// Mitte (führt sich selbst vor und zeigt, was in welche Tonne gehört),
-// Menü unten im Daumenbereich. Jede Zeile startet direkt – ein Tipp genügt.
+// Die Spielwelt IST das Menü: Die drei Tonnen stehen für die drei Spielmodi.
+// Ein Gegenstand schwebt davor – wirf ihn in eine Tonne (wischen wie im
+// Spiel) oder tippe auf Tonne bzw. Schild, und der Modus startet mit einem
+// echten Wurf samt Konfetti. Im Leerlauf lupfen die Tonnen nacheinander den
+// Deckel und der Gegenstand wechselt – so lernt man die Geste schon hier.
+// „Weiter“ wirft in die Tonne des zuletzt gespielten Modus.
 
 import { Feather } from "@expo/vector-icons";
 import { Canvas } from "@react-three/fiber/native";
 import * as Haptics from "expo-haptics";
 import { router, useFocusEffect, useIsFocused } from "expo-router";
-import { type ComponentProps, useCallback, useRef, useState } from "react";
-import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  type ComponentProps,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Animated,
+  Easing,
+  PixelRatio,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { createFx, shake } from "@/components/game/fx";
 import { MenuScene } from "@/components/game/menu-scene";
+import {
+  type BusRef,
+  createBus,
+  queueBinEvent,
+  queueBurst,
+  queueThrow,
+  resetBus,
+  setAim,
+  setLandHandler,
+  useAim,
+} from "@/components/game/scene-bus";
 import { AppText } from "@/components/ui/app-text";
 import { Scrim } from "@/components/ui/scrim";
-import { CAMERA_FOV } from "@/game/layout";
+import { type Item } from "@/constants/items";
 import {
   type GameMode,
   getLastMode,
@@ -25,36 +56,55 @@ import {
   startGame,
 } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
+import { ALL_BINS, type BinDef, getBinsForLevel, getItemsForBins, light } from "@/game/bins";
+import { aimFromDrag, drawFromBag } from "@/game/logic";
+import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import {
+  flushThrowRecords,
   getActiveStreak,
   getHighscoreKey,
   getLevelProgress,
   getNumber,
   StorageKeys,
 } from "@/utils/storage";
-import { refreshSfxSetting, sfx } from "@/utils/sfx";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 type Scores = Record<GameMode, number>;
 
 const HIGHSCORE_MODE = { endless: "endlos", survival: "runden", time: "zeit" } as const;
+const ANTIALIAS = PixelRatio.get() < 3;
+/** Leerlauf: so oft wechselt der Gegenstand bzw. lupft eine Tonne den Deckel. */
+const ITEM_CYCLE_MS = 4200;
+const PEEK_MS = 2300;
+/** Nach dem Landen kurz das Konfetti zeigen, dann starten. */
+const LAUNCH_DELAY_MS = 420;
 
 // Text über der Szene: immer hell mit Schatten (Kontrast auf hellem & dunklem Himmel)
 const ON_SCENE = "#FFFFFF";
-const ON_SCENE_SOFT = "rgba(255,255,255,0.86)";
+const ON_SCENE_SOFT = "rgba(255,255,255,0.88)";
 const TEXT_SHADOW = {
   textShadowColor: "rgba(0,0,0,0.55)",
   textShadowOffset: { width: 0, height: 2 },
   textShadowRadius: 6,
 } as const;
 
-/** Farbe des Icon-Kreises pro Modus (gut unterscheidbar, nicht nur über Farbe: Icon + Text). */
-const MODE_ACCENT: Record<GameMode, string> = {
-  endless: "#4CC38A",
-  survival: "#86B7F0",
-  time: "#E8C46A",
+/** Farbe pro Modus – Tonne, Schild und Flugbahn (nicht nur Farbe: Icon + Text). */
+const MODE_COLOR: Record<GameMode, { fill: string; on: string }> = {
+  endless: { fill: "#2FA86E", on: "#FFFFFF" },
+  survival: { fill: "#3D82D9", on: "#FFFFFF" },
+  time: { fill: "#E3A92E", on: "#2B1D00" },
 };
+
+/** Die Menü-Tonnen: echte Tonnen-Modelle in Modus-Farben, Reihenfolge wie MODES. */
+const MENU_BINS: BinDef[] = MODES.map((m, i) => {
+  const base = ALL_BINS[i + 1] ?? ALL_BINS[0];
+  const c = MODE_COLOR[m.mode];
+  return { ...base, color: c.fill, colorLight: light(c.fill, 0.3), onColor: c.on };
+});
+
+const MENU_POOL: Item[] = getItemsForBins(getBinsForLevel(1));
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -70,22 +120,145 @@ export default function HomeScreen() {
   const [totalXP, setTotalXP] = useState(0);
   const [streak, setStreak] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const starting = useRef(false);
 
+  const fx = useRef(createFx());
+  const bus = useRef(createBus());
+  useEffect(() => {
+    fx.current.calm = reduceMotion;
+  }, [reduceMotion]);
+
+  // Kleine Handys (z. B. iPhone SE): alles etwas enger
+  const compact = height < 740;
+  const layout = useMemo(
+    () =>
+      computeLayout(width, height, MENU_BINS.length, {
+        binsNdcY: compact ? 0.42 : 0.36,
+        itemNdcY: compact ? -0.24 : -0.34,
+        itemWidth: 0.22,
+      }),
+    [width, height, compact],
+  );
+
+  /* ── Schwebender Gegenstand (+ unsichtbar vorbereiteter nächster) ── */
+  const [bag] = useState(() => ({ current: [] as Item[] }));
+  const [item, setItemState] = useState<Item | null>(() => drawFromBag(bag, MENU_POOL));
+  const [nextItem, setNextItem] = useState<Item | null>(() =>
+    drawFromBag(bag, MENU_POOL, item?.name),
+  );
+  const itemRef = useRef(item);
+  const nextRef = useRef(nextItem);
+  const advanceItem = useCallback(() => {
+    const upcoming = nextRef.current ?? drawFromBag(bag, MENU_POOL, itemRef.current?.name);
+    const following = drawFromBag(bag, MENU_POOL, upcoming?.name);
+    itemRef.current = upcoming;
+    nextRef.current = following;
+    setItemState(upcoming);
+    setNextItem(following);
+  }, [bag]);
+
+  /* ── Start per Wurf ─────────────────────────────────────────── */
+  const starting = useRef(false);
+  const pendingMode = useRef<GameMode | null>(null);
+  const throwId = useRef(0);
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const later = useCallback((fn: () => void, ms: number) => {
+    const id = setTimeout(() => {
+      timers.current.delete(id);
+      fn();
+    }, ms);
+    timers.current.add(id);
+  }, []);
+  useEffect(() => {
+    const set = timers.current;
+    return () => set.forEach(clearTimeout);
+  }, []);
+
+  const go = useCallback((mode: GameMode) => {
+    if (pendingMode.current !== mode) return;
+    pendingMode.current = null;
+    startGame(mode);
+  }, []);
+
+  const launch = useCallback(
+    (mode: GameMode) => {
+      if (starting.current) return;
+      starting.current = true;
+      pendingMode.current = mode;
+      setAim(bus.current, null);
+      const binIndex = MODES.findIndex((m) => m.mode === mode);
+      const current = itemRef.current;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+
+      if (!current || reduceMotion || binIndex < 0) {
+        sfx("tap");
+        go(mode);
+        return;
+      }
+      sfx("throw");
+      queueThrow(bus.current, {
+        id: ++throwId.current,
+        item: current,
+        binIndex,
+        hit: true,
+        perfect: false,
+        glow: true,
+      });
+      advanceItem();
+      // Sicherheitsnetz, falls die Szene den Wurf nicht abspielt
+      later(() => go(mode), 1400);
+    },
+    [advanceItem, go, later, reduceMotion],
+  );
+
+  // Landung: Konfetti, Ton – dann starten
+  const onLand = useRef((_id: number) => {});
+  useLayoutEffect(() => {
+    onLand.current = () => {
+      const mode = pendingMode.current;
+      if (!mode) return;
+      const i = MODES.findIndex((m) => m.mode === mode);
+      const bin = MENU_BINS[i];
+      queueBinEvent(bus.current, i, "perfect");
+      queueBurst(bus.current, {
+        id: throwId.current,
+        x: layout.bins[i].x,
+        y: BIN_OPENING_Y + 0.15,
+        z: layout.bins[i].z + 0.1,
+        colors: [bin.color, bin.colorLight, "#FFFFFF", "#FFD54A"],
+        count: 26,
+        power: 1.15,
+        ring: true,
+      });
+      shake(fx.current, 0.03);
+      sfx("land");
+      sfxStreak(3);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      later(() => go(mode), LAUNCH_DELAY_MS);
+    };
+  });
+
+  /* ── Beim Zurückkommen: frisch starten + Fortschritt laden ───── */
   useFocusEffect(
     useCallback(() => {
       let active = true;
       starting.current = false;
+      pendingMode.current = null;
+      resetBus(bus.current);
+      setLandHandler(bus.current, (id) => onLand.current(id));
       refreshSfxSetting();
 
-      Promise.all([
-        getNumber(getHighscoreKey(HIGHSCORE_MODE.endless)),
-        getNumber(getHighscoreKey(HIGHSCORE_MODE.survival)),
-        getNumber(getHighscoreKey(HIGHSCORE_MODE.time)),
-        getActiveStreak(),
-        getNumber(StorageKeys.TOTAL_XP),
-        getLastMode(),
-      ])
+      // Erst gesammelte Würfe der letzten Runde schreiben, dann lesen
+      flushThrowRecords()
+        .then(() =>
+          Promise.all([
+            getNumber(getHighscoreKey(HIGHSCORE_MODE.endless)),
+            getNumber(getHighscoreKey(HIGHSCORE_MODE.survival)),
+            getNumber(getHighscoreKey(HIGHSCORE_MODE.time)),
+            getActiveStreak(),
+            getNumber(StorageKeys.TOTAL_XP),
+            getLastMode(),
+          ]),
+        )
         .then(([endless, survival, time, activeStreak, xp, mode]) => {
           if (!active) return;
           setScores({ endless, survival, time });
@@ -102,39 +275,108 @@ export default function HomeScreen() {
     }, []),
   );
 
-  const start = (mode: GameMode) => {
-    if (starting.current) return;
-    starting.current = true;
-    sfx("tap");
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
-    startGame(mode);
-  };
+  /* ── Leerlauf: Gegenstand wechseln, Tonnen laden zum Werfen ein ─ */
+  useEffect(() => {
+    if (!focused || reduceMotion) return;
+    let peek = 0;
+    const idle = () => !starting.current && bus.current.aim === null;
+    const cycle = setInterval(() => {
+      if (idle()) advanceItem();
+    }, ITEM_CYCLE_MS);
+    const peeker = setInterval(() => {
+      if (!idle()) return;
+      queueBinEvent(bus.current, peek % MENU_BINS.length, "peek");
+      peek += 1;
+    }, PEEK_MS);
+    return () => {
+      clearInterval(cycle);
+      clearInterval(peeker);
+    };
+  }, [focused, reduceMotion, advanceItem]);
+
+  /* ── Geste: wie im Spiel zur Tonne wischen ──────────────────── */
+  const handlers = useRef({
+    aim: (_dx: number, _dy: number) => {},
+    release: (_dx: number, _dy: number) => {},
+  });
+  useLayoutEffect(() => {
+    handlers.current = {
+      aim: (dx, dy) => {
+        if (starting.current) return;
+        const idx = aimFromDrag(dx, dy, layout.binAngles)?.binIndex ?? null;
+        if (idx === bus.current.aim) return;
+        setAim(bus.current, idx);
+        if (idx !== null) {
+          sfx("aim");
+          Haptics.selectionAsync().catch(() => undefined);
+        }
+      },
+      release: (dx, dy) => {
+        const aim = aimFromDrag(dx, dy, layout.binAngles);
+        setAim(bus.current, null);
+        if (aim) launch(MODES[aim.binIndex].mode);
+      },
+    };
+  });
+  const onAim = useCallback((dx: number, dy: number) => handlers.current.aim(dx, dy), []);
+  const onRelease = useCallback((dx: number, dy: number) => handlers.current.release(dx, dy), []);
+  const onCancel = useCallback(() => setAim(bus.current, null), []);
+  /* eslint-disable react-hooks/refs */
+  const gesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .runOnJS(true)
+        .minDistance(6)
+        .onUpdate((e) => onAim(e.translationX, e.translationY))
+        .onEnd((e) => onRelease(e.translationX, e.translationY))
+        .onFinalize(onCancel),
+    [onAim, onRelease, onCancel],
+  );
+  /* eslint-enable react-hooks/refs */
 
   const { level, progress } = getLevelProgress(totalXP);
   const lastTitle = t(getModeConfig(lastMode).titleKey);
-  const menuHeight = Math.min(height * 0.58, 520);
-  // Kleine Handys (z. B. iPhone SE): Untertitel ausblenden, Zeilen flacher
-  const compact = height < 740;
+  const firstRect = layout.binRects[0];
+  // Wisch-Fläche: von den Tonnen bis unter den Gegenstand
+  const swipeTop = Math.max((firstRect?.y ?? 0) - 20, insets.top + 90);
+  const swipeBottom = layout.item.screen.y + 90;
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      {/* Durchgehender, lebendiger Hintergrund */}
       {focused && (
         <Canvas
           style={{ position: "absolute", left: 0, top: 0, width, height }}
           shadows={false}
           camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
-          gl={{ antialias: true }}
+          gl={{ antialias: ANTIALIAS }}
         >
-          <MenuScene width={width} height={height} scheme={scheme} calm={reduceMotion} />
+          <MenuScene
+            layout={layout}
+            bins={MENU_BINS}
+            scheme={scheme}
+            calm={reduceMotion}
+            fx={fx}
+            bus={bus}
+            item={item}
+            nextItem={nextItem}
+            warmItems={MENU_POOL}
+          />
         </Canvas>
       )}
 
-      <Scrim edge="top" height={insets.top + 170} maxOpacity={0.45} />
-      <Scrim edge="bottom" height={menuHeight + 80} maxOpacity={0.82} />
+      <Scrim edge="top" height={insets.top + 150} maxOpacity={0.42} />
+      <Scrim edge="bottom" height={260 + insets.bottom} maxOpacity={0.78} />
 
-      {/* Kopf: Logo links, Fortschritt + Einstellungen rechts */}
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
+      {/* Wisch-Fläche hinter den Schildern */}
+      <GestureDetector gesture={gesture}>
+        <View
+          style={[styles.swipeArea, { top: swipeTop, height: swipeBottom - swipeTop }]}
+          accessible={false}
+        />
+      </GestureDetector>
+
+      {/* Kopf: Logo links, Fortschritt rechts */}
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]} pointerEvents="box-none">
         <View
           style={styles.logo}
           accessible
@@ -154,81 +396,83 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={styles.headerRight}>
-          <View
-            style={styles.levelChip}
-            accessible
-            accessibilityLabel={`${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}`}
-          >
+        <View
+          style={styles.levelChip}
+          accessible
+          accessibilityLabel={`${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}`}
+        >
+          <View style={styles.levelRow}>
             <AppText variant="label" color={ON_SCENE}>
               Lv {loaded ? level : "—"}
             </AppText>
-            <View style={styles.levelTrack}>
-              <View
-                style={[
-                  styles.levelFill,
-                  { width: `${Math.round(progress * 100)}%`, backgroundColor: colors.primary },
-                ]}
-              />
-            </View>
             {streak > 0 && (
               <AppText variant="caption" color={ON_SCENE_SOFT}>
                 🔥 {streak}
               </AppText>
             )}
           </View>
+          <View style={styles.levelTrack}>
+            <View
+              style={[
+                styles.levelFill,
+                { width: `${Math.round(progress * 100)}%`, backgroundColor: colors.primary },
+              ]}
+            />
+          </View>
         </View>
       </View>
 
-      {/* Menü unten im Daumenbereich */}
-      <View
-        style={[styles.menu, { paddingBottom: insets.bottom + Spacing.md }]}
-        accessibilityRole="menu"
-        accessibilityLabel={t("home.modesLabel")}
-      >
-        {/* Hauptaktion: dort weitermachen, wo man aufgehört hat */}
+      {/* Die Tonnen = die Modi: Tipp-Fläche über jeder Tonne + Schild darunter */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none" accessibilityRole="menu" accessibilityLabel={t("home.modesLabel")}>
+        {MODES.map((m, i) => (
+          <ModeBin
+            key={m.mode}
+            rect={layout.binRects[i]}
+            bus={bus}
+            index={i}
+            color={MODE_COLOR[m.mode]}
+            icon={m.icon}
+            title={t(m.titleKey)}
+            description={t(m.descKey)}
+            record={loaded && scores[m.mode] > 0 ? formatNumber(scores[m.mode]) : null}
+            recordLabel={t("home.record")}
+            last={loaded && m.mode === lastMode}
+            compact={compact}
+            startLabel={t("home.startMode", { mode: t(m.titleKey) })}
+            onPress={() => launch(m.mode)}
+          />
+        ))}
+      </View>
+
+      {/* Unten im Daumenbereich: Hinweis, Weiter, Nebenaktionen */}
+      <View style={[styles.menu, { paddingBottom: insets.bottom + Spacing.sm }]} pointerEvents="box-none">
+        <ThrowHint text={t("home.throwHint")} calm={reduceMotion} />
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${t("home.continue")}: ${lastTitle}`}
-          onPress={() => start(lastMode)}
+          onPress={() => launch(lastMode)}
           style={({ pressed }) => [
             styles.continue,
             { backgroundColor: pressed ? colors.primaryPressed : colors.primary },
             pressed && styles.pressed,
           ]}
         >
-          <Feather name="play" size={26} color={colors.onPrimary} />
+          <View style={styles.continueIcon}>
+            <Feather name="play" size={22} color={colors.primary} />
+          </View>
           <View style={styles.flex}>
             <AppText variant="heading" tone="onPrimary">
               {t("home.continue")}
             </AppText>
             <AppText variant="caption" tone="onPrimary">
               {lastTitle}
-              {loaded && scores[lastMode] > 0
-                ? `  ·  🏆 ${formatNumber(scores[lastMode])}`
-                : ""}
+              {loaded && scores[lastMode] > 0 ? `  ·  🏆 ${formatNumber(scores[lastMode])}` : ""}
             </AppText>
           </View>
           <Feather name="chevron-right" size={24} color={colors.onPrimary} />
         </Pressable>
 
-        {/* Die 3 Modi – direkt auf dem Hintergrund */}
-        {MODES.map((m) => (
-          <MenuRow
-            key={m.mode}
-            icon={m.icon}
-            accent={MODE_ACCENT[m.mode]}
-            title={t(m.titleKey)}
-            description={t(m.descKey)}
-            record={loaded && scores[m.mode] > 0 ? formatNumber(scores[m.mode]) : null}
-            recordLabel={t("home.record")}
-            highlight={m.mode === lastMode}
-            compact={compact}
-            onPress={() => start(m.mode)}
-          />
-        ))}
-
-        {/* Kleine Nebenaktionen */}
         <View style={styles.footer}>
           <FooterLink icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
           <View style={styles.footerDot} />
@@ -241,63 +485,119 @@ export default function HomeScreen() {
 
 /* ── Bausteine ─────────────────────────────────────────────── */
 
-function MenuRow({
+/** Tipp-Fläche über einer Menü-Tonne + Schild mit Modus, Beschreibung, Rekord. */
+function ModeBin({
+  rect,
+  bus,
+  index,
+  color,
   icon,
-  accent,
   title,
   description,
   record,
   recordLabel,
-  highlight,
+  last,
   compact,
+  startLabel,
   onPress,
 }: {
+  rect: ScreenRect | undefined;
+  bus: BusRef;
+  index: number;
+  color: { fill: string; on: string };
   icon: IconName;
-  accent: string;
   title: string;
   description: string;
   record: string | null;
   recordLabel: string;
-  highlight: boolean;
+  last: boolean;
   compact: boolean;
+  startLabel: string;
   onPress: () => void;
 }) {
+  const aimed = useAim(bus) === index;
+  if (!rect) return null;
+  const width = Math.max(rect.w + 6, 96);
+  const left = rect.x + rect.w / 2 - width / 2;
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${title}. ${description}${record ? `. ${recordLabel} ${record}` : ""}`}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        compact && styles.rowCompact,
-        highlight && styles.rowHighlight,
-        pressed && styles.rowPressed,
-      ]}
-    >
-      <View style={[styles.rowIcon, { backgroundColor: accent }]}>
-        <Feather name={icon} size={22} color="#0D1A14" />
-      </View>
-      <View style={styles.flex}>
-        <AppText variant="heading" color={ON_SCENE} style={TEXT_SHADOW}>
+    <>
+      {/* Unsichtbare Tipp-Fläche über der 3D-Tonne */}
+      <Pressable
+        accessible={false}
+        onPress={onPress}
+        style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
+      />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${startLabel}. ${description}${record ? `. ${recordLabel} ${record}` : ""}`}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.modeSign,
+          {
+            left,
+            top: rect.y + rect.h + 4,
+            width,
+            backgroundColor: color.fill,
+            transform: [{ scale: aimed ? 1.1 : pressed ? 0.96 : 1 }, { translateY: aimed ? -4 : 0 }],
+          },
+          aimed && [styles.modeSignAimed, { shadowColor: color.fill }],
+        ]}
+      >
+        {last && (
+          <View style={styles.lastBadge}>
+            <Feather name="rotate-ccw" size={10} color="#1B2420" />
+          </View>
+        )}
+        <View style={styles.modeIcon}>
+          <Feather name={icon} size={16} color={color.fill} />
+        </View>
+        <AppText
+          variant="label"
+          color={color.on}
+          center
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          style={styles.modeTitle}
+        >
           {title}
         </AppText>
         {!compact && (
-          <AppText variant="caption" color={ON_SCENE_SOFT} style={TEXT_SHADOW} numberOfLines={1}>
-            {description}
+          <AppText variant="caption" color={color.on} center style={styles.modeRecord}>
+            {record ? `🏆 ${record}` : " "}
           </AppText>
         )}
-      </View>
-      {record && (
-        <View style={styles.record}>
-          <AppText variant="caption" color={ON_SCENE_SOFT}>
-            🏆
-          </AppText>
-          <AppText variant="label" color={ON_SCENE} style={TEXT_SHADOW}>
-            {record}
-          </AppText>
-        </View>
-      )}
-    </Pressable>
+      </Pressable>
+    </>
+  );
+}
+
+/** „Wirf in eine Tonne …“ mit sanft hüpfendem Pfeil. */
+function ThrowHint({ text, calm }: { text: string; calm: boolean }) {
+  const [v] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (calm) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(v, { toValue: 1, duration: 520, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(v, { toValue: 0, duration: 520, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [v, calm]);
+
+  return (
+    <View style={styles.hint} pointerEvents="none">
+      <Animated.View
+        style={{ transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}
+      >
+        <Feather name="arrow-up" size={16} color={ON_SCENE} />
+      </Animated.View>
+      <AppText variant="label" color={ON_SCENE} style={TEXT_SHADOW}>
+        {text}
+      </AppText>
+    </View>
   );
 }
 
@@ -318,10 +618,18 @@ function FooterLink({ icon, label, onPress }: { icon: IconName; label: string; o
   );
 }
 
+const shadow = {
+  shadowColor: "#000",
+  shadowOpacity: 0.22,
+  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 5,
+};
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   flex: { flex: 1 },
+  swipeArea: { position: "absolute", left: 0, right: 0 },
 
   header: {
     position: "absolute",
@@ -341,22 +649,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 3,
     borderColor: "#FFFFFF",
+    ...shadow,
   },
   logoIcon: { fontSize: 28, lineHeight: 34 },
   logoTop: { fontSize: 22, lineHeight: 24, letterSpacing: 3 },
   logoBottom: { fontSize: 34, lineHeight: 38, letterSpacing: 0.5 },
 
-  headerRight: { alignItems: "flex-end", gap: Spacing.sm },
   levelChip: {
-    alignItems: "flex-end",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: Radius.md,
-    backgroundColor: "rgba(0,0,0,0.28)",
+    alignItems: "stretch",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: Radius.lg,
+    backgroundColor: "rgba(0,0,0,0.32)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
   },
+  levelRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.sm },
   levelTrack: {
-    width: 64,
+    width: 72,
     height: 6,
     borderRadius: 3,
     backgroundColor: "rgba(255,255,255,0.25)",
@@ -364,51 +675,89 @@ const styles = StyleSheet.create({
   },
   levelFill: { height: "100%", borderRadius: 3 },
 
+  modeSign: {
+    position: "absolute",
+    alignItems: "center",
+    gap: 3,
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingHorizontal: 6,
+    borderRadius: Radius.lg,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.75)",
+    ...shadow,
+  },
+  modeSignAimed: {
+    borderColor: "#FFFFFF",
+    borderWidth: 3,
+    shadowOpacity: 0.95,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 12,
+  },
+  modeIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  modeTitle: { lineHeight: 17 },
+  modeRecord: { opacity: 0.92 },
+  lastBadge: {
+    position: "absolute",
+    top: -7,
+    right: -7,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFD54A",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+
   menu: {
     position: "absolute",
     left: Spacing.md,
     right: Spacing.md,
     bottom: 0,
-    gap: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  hint: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 4,
   },
   continue: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
-    minHeight: 68,
-    paddingHorizontal: Spacing.lg,
+    minHeight: 64,
+    paddingHorizontal: Spacing.md,
     borderRadius: Radius.xl,
-    marginBottom: Spacing.sm,
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.5)",
+    ...shadow,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    minHeight: 62,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.lg,
-  },
-  rowCompact: { minHeight: 52 },
-  rowHighlight: { backgroundColor: "rgba(255,255,255,0.08)" },
-  rowPressed: { backgroundColor: "rgba(255,255,255,0.18)", transform: [{ scale: 0.98 }] },
-  rowIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  continueIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#FFFFFF",
   },
-  record: { alignItems: "flex-end" },
 
   footer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.md,
-    marginTop: Spacing.sm,
   },
   footerLink: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 },
   footerDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: ON_SCENE_SOFT },

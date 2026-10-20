@@ -32,11 +32,24 @@ export type GameLayout = {
   binAngles: number[];
 };
 
+export type LayoutOptions = {
+  /** Vertikale Lage der Tonnen (NDC, +1 = oben). */
+  binsNdcY?: number;
+  /** Vertikale Lage des Items vor dem Wurf (NDC). */
+  itemNdcY?: number;
+  /** Item-Breite als Anteil der Bildschirmbreite. */
+  itemWidth?: number;
+};
+
 export function computeLayout(
   width: number,
   height: number,
   binCount: number,
+  options: LayoutOptions = {},
 ): GameLayout {
+  const binsNdcY = options.binsNdcY ?? BINS_NDC_Y;
+  const itemNdcY = options.itemNdcY ?? ITEM_NDC_Y;
+  const itemWidth = options.itemWidth ?? 0.3;
   const aspect = Math.max(width, 1) / Math.max(height, 1);
   const tanV = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
   const tanH = tanV * aspect;
@@ -47,7 +60,7 @@ export function computeLayout(
   const distance = halfW / tanH + 0.6;
 
   const binsY = 0.85;
-  const target = new THREE.Vector3(0, binsY - BINS_NDC_Y * distance * tanV, 0);
+  const target = new THREE.Vector3(0, binsY - binsNdcY * distance * tanV, 0);
   const position = new THREE.Vector3(
     0,
     target.y + Math.sin(PITCH) * distance,
@@ -81,12 +94,12 @@ export function computeLayout(
   );
 
   // Item: auf dem Sichtstrahl durch (0, ITEM_NDC_Y), 38 % des Weges zur Szene.
-  const ray = new THREE.Vector3(0, ITEM_NDC_Y, 0.5).unproject(cam).sub(position).normalize();
+  const ray = new THREE.Vector3(0, itemNdcY, 0.5).unproject(cam).sub(position).normalize();
   const itemDistance = distance * 0.38;
   const itemPos = position.clone().add(ray.multiplyScalar(itemDistance));
-  // Item soll ~30 % der Bildschirmbreite einnehmen (Modelle sind ~0.55 groß).
+  // Item soll ~30 % (bzw. itemWidth) der Bildschirmbreite einnehmen (Modelle sind ~0.55 groß).
   const visibleWidth = 2 * itemDistance * tanH;
-  const itemScale = (visibleWidth * 0.3) / 0.55;
+  const itemScale = (visibleWidth * itemWidth) / 0.55;
   const itemScreen = toScreen(itemPos);
 
   const binAngles = binTops.map((top) =>

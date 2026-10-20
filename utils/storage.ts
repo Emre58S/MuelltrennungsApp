@@ -302,28 +302,46 @@ export function getLevelTitle(level: number): string {
   return "🔰 Müll-Anfänger";
 }
 
-// ── Ergebnis eines Wurfs speichern ────────────────────────────────────
+// ── Würfe gebündelt speichern ─────────────────────────────────────────
+// Pro Wurf zu speichern hieße ~10 Lese-/Schreibzugriffe – bei Schnellwürfen
+// unnötige Last. Stattdessen sammeln und kurz nach dem letzten Wurf (bzw.
+// beim Verlassen der Runde) in einem Rutsch schreiben. Level-Aufstiege
+// berechnet das Spiel selbst aus der Start-XP.
 
-/**
- * Wird nach jedem Wurf aufgerufen: Streak aktualisieren, Statistik zählen, XP vergeben.
- */
-export function recordThrow(params: {
-  correct: boolean;
-  xp: number;
-}): Promise<{ totalXP: number; level: number; leveledUp: boolean }> {
+const pendingThrows = { played: 0, correct: 0, xp: 0 };
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function queueThrowRecord(params: { correct: boolean; xp: number }) {
+  pendingThrows.played += 1;
+  pendingThrows.correct += params.correct ? 1 : 0;
+  pendingThrows.xp += params.xp;
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = setTimeout(() => {
+    flushThrowRecords().catch(() => undefined);
+  }, 1500);
+}
+
+/** Schreibt gesammelte Würfe; wartet außerdem auf alle laufenden Schreibvorgänge. */
+export function flushThrowRecords(): Promise<void> {
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+  if (pendingThrows.played === 0) return enqueue(async () => undefined);
+  const batch = { ...pendingThrows };
+  pendingThrows.played = 0;
+  pendingThrows.correct = 0;
+  pendingThrows.xp = 0;
   return enqueue(async () => {
     await updateStreak();
-
     const [played, correct] = await Promise.all([
       getNumber(StorageKeys.TOTAL_PLAYED),
       getNumber(StorageKeys.TOTAL_CORRECT),
     ]);
-
     await Promise.all([
-      setNumber(StorageKeys.TOTAL_PLAYED, played + 1),
-      setNumber(StorageKeys.TOTAL_CORRECT, correct + (params.correct ? 1 : 0)),
+      setNumber(StorageKeys.TOTAL_PLAYED, played + batch.played),
+      setNumber(StorageKeys.TOTAL_CORRECT, correct + batch.correct),
     ]);
-
-    return addXP(params.xp);
+    await addXP(batch.xp);
   });
 }

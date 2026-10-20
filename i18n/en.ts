@@ -31,6 +31,8 @@ export const en: Translations = {
   "home.continue": "Continue",
   "home.record": "Best",
   "home.modesLabel": "Choose a game mode",
+  "home.throwHint": "Throw into a bin to start",
+  "home.startMode": "Start {mode}",
 
   "mode.endless.title": "Practice",
   "mode.endless.desc": "No timer, no pressure.",

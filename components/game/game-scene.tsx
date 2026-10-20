@@ -1,6 +1,8 @@
 // Datei: components/game/game-scene.tsx
 // Setzt die 3D-Welt zusammen und steuert Kamera, Zeitlupe und Wackeln.
-// Mehrere Würfe können gleichzeitig fliegen.
+// Würfe, Konfetti und Tonnen-Reaktionen laufen über den SceneBus in festen
+// Pools – die Szene selbst rendert nur neu, wenn sich Item, Fieber oder
+// Layout ändern (nicht pro Wurf).
 
 import { useFrame } from "@react-three/fiber/native";
 import { memo, useMemo, useRef } from "react";
@@ -12,19 +14,13 @@ import { type BinDef } from "@/game/bins";
 import { BIN_OPENING_Y, type GameLayout } from "@/game/layout";
 import { devLog } from "@/utils/dev-error-reporter";
 
-import { type Burst, Effects } from "./effects";
+import { BurstLayer } from "./effects";
 import { Stage } from "./stage";
 import { type FxRef, stepFx } from "./fx";
-import { AimGuide, PreviewItem, ThrownItem } from "./items";
-import { type BinEvent, TrashBin } from "./trash-bin";
-
-export type ThrowState = {
-  id: number;
-  item: Item;
-  binIndex: number;
-  hit: boolean;
-  perfect: boolean;
-};
+import { AimGuide, PreviewItem, ThrowLayer } from "./items";
+import { ModelWarmup } from "./model-cache";
+import { type BusRef } from "./scene-bus";
+import { TrashBin } from "./trash-bin";
 
 const END_SCALE = 0.5;
 
@@ -97,32 +93,23 @@ export const GameScene = memo(function GameScene({
   scheme,
   fever,
   fx,
+  bus,
   calm,
   previewItem,
   nextItem,
-  aimIndex,
-  throws,
-  binEvents,
-  bursts,
-  onLand,
-  onThrowDone,
-  onBurstDone,
+  warmItems,
 }: {
   layout: GameLayout;
   bins: BinDef[];
   scheme: ColorScheme;
   fever: boolean;
   fx: FxRef;
+  bus: BusRef;
   calm: boolean;
   previewItem: Item | null;
   nextItem: Item | null;
-  aimIndex: number | null;
-  throws: ThrowState[];
-  binEvents: (BinEvent | null)[];
-  bursts: Burst[];
-  onLand: (id: number) => void;
-  onThrowDone: (id: number) => void;
-  onBurstDone: (id: number) => void;
+  /** Items, deren Modelle vorab aufgebaut werden (ganzer Item-Pool). */
+  warmItems: Item[];
 }) {
   const openings = useMemo(
     () =>
@@ -131,8 +118,8 @@ export const GameScene = memo(function GameScene({
       ),
     [layout],
   );
-
-  const aimTarget = aimIndex !== null ? openings[aimIndex] : null;
+  const aimColors = useMemo(() => bins.map((b) => b.colorLight), [bins]);
+  const next = nextItem && nextItem.name !== previewItem?.name ? nextItem : null;
 
   return (
     <>
@@ -146,17 +133,13 @@ export const GameScene = memo(function GameScene({
           x={layout.bins[i].x}
           z={layout.bins[i].z}
           index={i}
-          aimed={
-            aimIndex === i ||
-            throws.some((t) => t.binIndex === i && t.hit)
-          }
-          event={binEvents[i] ?? null}
           fx={fx}
+          bus={bus}
         />
       ))}
 
       {/* Das nächste Item steht unsichtbar bereit (gleicher key → kein Neuaufbau) */}
-      {[previewItem, nextItem && nextItem.name !== previewItem?.name ? nextItem : null].map(
+      {[previewItem, next].map(
         (it, i) =>
           it && (
             <PreviewItem
@@ -165,36 +148,27 @@ export const GameScene = memo(function GameScene({
               visible={i === 0}
               position={layout.item.position}
               scale={layout.item.scale}
-              aimTarget={aimTarget}
+              openings={openings}
+              bus={bus}
               fx={fx}
             />
           ),
       )}
 
-      <AimGuide
+      <AimGuide start={layout.item.position} openings={openings} colors={aimColors} bus={bus} />
+
+      <ThrowLayer
+        bus={bus}
+        fx={fx}
         start={layout.item.position}
-        target={aimTarget}
-        color={aimIndex !== null ? bins[aimIndex].colorLight : "#FFFFFF"}
+        startScale={layout.item.scale}
+        endScale={END_SCALE}
+        openings={openings}
       />
 
-      {throws.map((ts) => (
-        <ThrownItem
-          key={ts.id}
-          item={ts.item}
-          start={layout.item.position}
-          startScale={layout.item.scale}
-          target={openings[ts.binIndex]}
-          endScale={END_SCALE}
-          hit={ts.hit}
-          perfect={ts.perfect}
-          glow={ts.perfect || fever}
-          fx={fx}
-          onLand={() => onLand(ts.id)}
-          onDone={() => onThrowDone(ts.id)}
-        />
-      ))}
+      <BurstLayer bus={bus} fx={fx} />
 
-      <Effects bursts={bursts} fx={fx} onDone={onBurstDone} />
+      <ModelWarmup items={warmItems} at={layout.item.position} perFrame={2} />
     </>
   );
 });

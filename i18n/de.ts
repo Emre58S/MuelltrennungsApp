@@ -30,6 +30,8 @@ export const de = {
   "home.continue": "Weiter",
   "home.record": "Rekord",
   "home.modesLabel": "Spielmodus wählen",
+  "home.throwHint": "Wirf in eine Tonne, um zu starten",
+  "home.startMode": "{mode} starten",
 
   "mode.endless.title": "Üben",
   "mode.endless.desc": "Ohne Zeit, ohne Druck.",

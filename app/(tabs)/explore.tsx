@@ -1,9 +1,13 @@
-// Datei: app/(tabs)/explore.tsx
-// Mehrere Würfe gleichzeitig. Lernkarte nur im Üben-Modus.
-import { type Burst } from "@/components/game/effects";
+// Datei: app/(tabs)/explore.tsx — Spielrunde
+//
+// Mehrere Würfe gleichzeitig, auch sehr schnell hintereinander. Würfe,
+// Konfetti und Tonnen-Reaktionen gehen über den SceneBus direkt an die
+// 3D-Szene (feste Pools, kein Re-Render der Szene pro Wurf). React-State
+// gibt es nur noch für das, was im HUD sichtbar ist. Gespeichert wird
+// gebündelt. Lernkarte nur im Üben-Modus.
 import { EndScreen, type Mistake } from "@/components/game/end-screen";
 import { cancelSlowMotion, createFx, shake } from "@/components/game/fx";
-import { GameScene, type ThrowState } from "@/components/game/game-scene";
+import { GameScene } from "@/components/game/game-scene";
 import {
   Banner,
   BinLabels,
@@ -17,7 +21,15 @@ import {
   ScoreBadge,
   TimerBar,
 } from "@/components/game/hud";
-import { type BinEvent } from "@/components/game/trash-bin";
+import {
+  createBus,
+  queueBinEvent,
+  queueBurst,
+  queueThrow,
+  setAim,
+  setLandHandler,
+  type ThrowSpec,
+} from "@/components/game/scene-bus";
 import { IconButton } from "@/components/ui/icon-button";
 import { type Item } from "@/constants/items";
 import { type GameMode } from "@/constants/modes";
@@ -45,11 +57,12 @@ import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import { devLog } from "@/utils/dev-error-reporter";
 import {
+  flushThrowRecords,
   getHighscoreKey,
   getLevelFromXP,
   getNumber,
+  queueThrowRecord,
   recordRound,
-  recordThrow,
   saveHighscore,
   StorageKeys,
 } from "@/utils/storage";
@@ -66,7 +79,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { PixelRatio, StyleSheet, useWindowDimensions, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -75,6 +88,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ROUND_SECONDS = 60;
+/** Nach Zeitablauf: so lange dürfen fliegende Würfe noch landen. */
+const TIME_UP_GRACE_MS = 1000;
+/** Höchstens so viele „+10“ gleichzeitig. */
+const MAX_FLOATS = 5;
+/** expo-gl rendert immer in voller Auflösung. Auf 3x-Displays sind Kanten
+ *  ohnehin fein – dort Kantenglättung (MSAA) sparen, das entlastet die GPU. */
+const ANTIALIAS = PixelRatio.get() < 3;
 const HIGHSCORE_MODE = {
   endless: "endlos",
   survival: "runden",
@@ -87,12 +107,14 @@ export default function GameScreen() {
     rawMode === "survival" || rawMode === "time" ? rawMode : "endless";
   const router = useRouter();
   const { colors } = useAppTheme();
-  const [level, setLevel] = useState<number | null>(null);
+  const [xp, setXp] = useState<number | null>(null);
   const [round, setRound] = useState(0);
-  const loadLevel = useCallback(() => {
-    getNumber(StorageKeys.TOTAL_XP)
-      .then((xp) => setLevel(getLevelFromXP(xp)))
-      .catch(() => setLevel(1));
+  // Erst gesammelte Würfe schreiben, dann XP lesen (sonst veraltetes Level).
+  const loadXp = useCallback(() => {
+    flushThrowRecords()
+      .then(() => getNumber(StorageKeys.TOTAL_XP))
+      .then(setXp)
+      .catch(() => setXp(0));
   }, []);
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => undefined);
@@ -101,29 +123,32 @@ export default function GameScreen() {
   useFocusEffect(
     useCallback(() => {
       setRound((r) => r + 1);
-      loadLevel();
+      loadXp();
       return () => {
-        setLevel(null);
+        setXp(null);
       };
-    }, [loadLevel]),
+    }, [loadXp]),
   );
   const goBack = useCallback(() => {
     if (router.canGoBack()) router.back();
     else router.replace("/");
   }, [router]);
   const playAgain = useCallback(() => {
-    loadLevel();
+    setXp(null);
+    loadXp();
     setRound((r) => r + 1);
-  }, [loadLevel]);
+  }, [loadXp]);
+  const level = xp !== null ? getLevelFromXP(xp) : null;
   return (
     <GestureHandlerRootView
       style={[styles.root, { backgroundColor: colors.bg }]}
     >
-      {level !== null && (
+      {xp !== null && level !== null && (
         <GameRound
           key={`${round}-${level}-${mode}`}
           mode={mode}
           level={level}
+          startXp={xp}
           onAgain={playAgain}
           onExit={goBack}
         />
@@ -138,11 +163,13 @@ type Learn = { id: number; item: Item; bin: Mistake["bin"] };
 function GameRound({
   mode,
   level,
+  startXp,
   onAgain,
   onExit,
 }: {
   mode: GameMode;
   level: number;
+  startXp: number;
   onAgain: () => void;
   onExit: () => void;
 }) {
@@ -151,6 +178,7 @@ function GameRound({
   const { t } = useI18n();
   const { reduceMotion } = useAppSettings();
   const fx = useRef(createFx());
+  const bus = useRef(createBus());
   useEffect(() => {
     fx.current.calm = reduceMotion;
   }, [reduceMotion]);
@@ -169,8 +197,7 @@ function GameRound({
   const [currentItem, setCurrentItemState] = useState<Item | null>(() =>
     drawFromBag(bag, pool),
   );
-  // Das übernächste Item wird unsichtbar schon aufgebaut, damit beim Wurf nur
-  // noch ein Modell (das fliegende) neu entsteht – wichtig bei Schnellwürfen.
+  // Das nächste Item steht unsichtbar bereit (Modell schon aufgebaut).
   const [nextItem, setNextItemState] = useState<Item | null>(() =>
     drawFromBag(bag, pool, currentItem?.name),
   );
@@ -180,11 +207,7 @@ function GameRound({
     itemRef.current = item;
     setCurrentItemState(item);
   }, []);
-  const [throwStates, setThrowStates] = useState<ThrowState[]>([]);
-  const throwMap = useRef(new Map<number, ThrowState>());
-  const [aimIndex, setAimIndex] = useState<number | null>(null);
-  const [binEvents, setBinEvents] = useState<(BinEvent | null)[]>([]);
-  const [bursts, setBursts] = useState<Burst[]>([]);
+  const throwMap = useRef(new Map<number, ThrowSpec>());
   const [floats, setFloats] = useState<FloatText[]>([]);
   const [praise, setPraise] = useState<Praised | null>(null);
   const [learn, setLearn] = useState<Learn | null>(null);
@@ -192,17 +215,21 @@ function GameRound({
     null,
   );
   const [feverId, setFeverId] = useState<number | null>(null);
+  const feverRef = useRef(false);
   const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS);
   const [timerStarted, setTimerStarted] = useState(false);
+  const [hasThrown, setHasThrown] = useState(false);
   const [finished, setFinished] = useState(false);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [xpEarned, setXpEarned] = useState(0);
   const [bestBefore, setBestBefore] = useState<number | null>(null);
+  const xpTotal = useRef(startXp);
+  const levelNow = useRef(level);
   const fever = feverId !== null;
   const lock = useRef({
     ended: false,
     over: false,
-    aim: null as number | null,
+    timeUp: false,
     id: 0,
   });
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
@@ -242,18 +269,25 @@ function GameRound({
         () => undefined,
       );
     }
-    if (timeLeft <= 0) lock.current.ended = true;
-  }, [mode, timerStarted, timeLeft]);
-  const timeUp = mode === "time" && timeLeft <= 0;
-  const showEnd = finished || (timeUp && throwStates.length === 0);
+    if (timeLeft <= 0 && !lock.current.timeUp) {
+      // Keine neuen Würfe mehr; fliegende dürfen noch landen.
+      lock.current.timeUp = true;
+      lock.current.ended = true;
+      setAim(bus.current, null);
+      later(() => setFinished(true), TIME_UP_GRACE_MS);
+    }
+  }, [mode, timerStarted, timeLeft, later]);
+  const showEnd = finished;
   const savedRound = useRef(false);
-  const latest = useRef({ stats, mode });
+  const latest = useRef({ mode });
   useLayoutEffect(() => {
-    latest.current = { stats, mode };
+    latest.current = { mode };
   });
+  // Runde speichern (Statistik + Bestwert) – am Ende oder beim Verlassen.
   const commitRound = useCallback(() => {
     if (savedRound.current) return;
-    const { stats: s, mode: m } = latest.current;
+    const s = liveStats.current;
+    const { mode: m } = latest.current;
     if (s.throws === 0) return;
     savedRound.current = true;
     recordRound(m, {
@@ -261,9 +295,13 @@ function GameRound({
       throws: s.throws,
       correct: s.correct,
     }).catch(() => undefined);
+    if (s.score > 0)
+      saveHighscore(HIGHSCORE_MODE[m], s.score).catch(() => undefined);
+    flushThrowRecords().catch(() => undefined);
   }, []);
   useEffect(() => {
     if (!showEnd) return;
+    setAim(bus.current, null);
     commitRound();
     sfx("end");
   }, [showEnd, commitRound]);
@@ -280,46 +318,53 @@ function GameRound({
   );
   const startFever = useCallback(() => {
     const id = ++lock.current.id;
+    feverRef.current = true;
     setFeverId(id);
     sfx("fever");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => undefined,
     );
     later(() => {
-      setFeverId((f) => (f === id ? null : f));
+      setFeverId((f) => {
+        if (f !== id) return f;
+        feverRef.current = false;
+        return null;
+      });
     }, FEVER_SECONDS * 1000);
   }, [later]);
   const throwTo = (binIndex: number, perfect: boolean) => {
     const l = lock.current;
     const item = itemRef.current;
     if (!item || l.ended || finished) return;
-    l.aim = null;
-    setAimIndex(null);
+    setAim(bus.current, null);
     cancelSlowMotion(fx.current);
-    if (mode === "time") setTimerStarted(true);
+    if (mode === "time" && !timerStarted) setTimerStarted(true);
+    if (!hasThrown) setHasThrown(true);
     const hit = bins[binIndex].category === item.category;
-    const ts: ThrowState = {
+    const spec: ThrowSpec = {
       id: ++l.id,
       item,
       binIndex,
       hit,
       perfect: hit && perfect,
+      glow: (hit && perfect) || feverRef.current,
     };
-    throwMap.current.set(ts.id, ts);
-    setThrowStates((list) => [...list, ts]);
+    throwMap.current.set(spec.id, spec);
+    queueThrow(bus.current, spec);
+
+    // Nächstes Item ist schon aufgebaut → sofort zeigen. Das übernächste
+    // erst kurz danach aufbauen, nicht im selben Moment wie den Wurf.
     const upcoming = nextRef.current ?? drawFromBag(bag, pool, item.name);
     nextRef.current = null;
     setNextItemState(null);
     setCurrentItem(upcoming);
-    // Das übernächste Item erst kurz nach dem Wurf aufbauen, nicht im selben
-    // Moment wie das fliegende Item.
     later(() => {
       if (nextRef.current) return;
       const following = drawFromBag(bag, pool, itemRef.current?.name);
       nextRef.current = following;
       setNextItemState(following);
     }, 300);
-    setPraise(null);
+
     sfx("throw", { rate: perfect ? 1.1 : 1 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
       () => undefined,
@@ -328,7 +373,9 @@ function GameRound({
   const handleLand = (throwId: number) => {
     const ts = throwMap.current.get(throwId);
     if (!ts) return;
-    if (mode === "survival" && lock.current.over) return;
+    throwMap.current.delete(throwId);
+    const l = lock.current;
+    if (mode === "survival" && l.over) return;
     const i = ts.binIndex;
     const bin = bins[i];
     const result: HitResult = ts.hit
@@ -336,22 +383,20 @@ function GameRound({
         ? "perfect"
         : "correct"
       : "wrong";
+    const feverNow = feverRef.current;
     const before = liveStats.current;
-    const points = getPoints(result, before.streak, fever);
+    const points = getPoints(result, before.streak, feverNow);
     const top = layout.binTops[i];
-    const id = ++lock.current.id;
+    const id = ++l.id;
     const action = { type: "result", result, points } as const;
     const after = statsReducer(before, action);
     liveStats.current = after;
     dispatch(action);
-    setBinEvents((ev) => {
-      const next = [...ev];
-      next[i] = {
-        type: ts.hit ? (ts.perfect ? "perfect" : "hit") : "reject",
-        id,
-      };
-      return next;
-    });
+    queueBinEvent(
+      bus.current,
+      i,
+      ts.hit ? (ts.perfect ? "perfect" : "hit") : "reject",
+    );
     if (ts.hit) {
       const streakNow = after.streak;
       sfx("land");
@@ -366,29 +411,26 @@ function GameRound({
           () => undefined,
         );
       shake(fx.current, ts.perfect ? 0.05 : 0.015);
-      setBursts((b) => [
-        ...b,
-        {
-          id,
-          x: layout.bins[i].x,
-          y: BIN_OPENING_Y + 0.15,
-          z: layout.bins[i].z + 0.1,
-          colors: ts.perfect
-            ? ["#FFD54A", "#FFFFFF", bin.colorLight, "#FFB300"]
-            : [bin.color, bin.colorLight, "#FFFFFF"],
-          count: ts.perfect ? 30 : fever ? 20 : 12,
-          power: ts.perfect ? 1.25 : 1,
-          ring: ts.perfect,
-        },
-      ]);
+      queueBurst(bus.current, {
+        id,
+        x: layout.bins[i].x,
+        y: BIN_OPENING_Y + 0.15,
+        z: layout.bins[i].z + 0.1,
+        colors: ts.perfect
+          ? ["#FFD54A", "#FFFFFF", bin.colorLight, "#FFB300"]
+          : [bin.color, bin.colorLight, "#FFFFFF"],
+        count: ts.perfect ? 30 : feverNow ? 20 : 12,
+        power: ts.perfect ? 1.25 : 1,
+        ring: ts.perfect,
+      });
       setFloats((f) => [
-        ...f,
+        ...f.slice(-(MAX_FLOATS - 1)),
         {
           id,
           x: top.x,
           y: top.y,
           text: `+${points}`,
-          color: ts.perfect || fever ? "#FFD54A" : "#FFFFFF",
+          color: ts.perfect || feverNow ? "#FFD54A" : "#FFFFFF",
         },
       ]);
       const praiseKey = (
@@ -421,61 +463,54 @@ function GameRound({
       if (mode === "endless") {
         setLearn({ id, item: ts.item, bin: correctBin });
         later(() => {
-          setLearn((l) => (l?.id === id ? null : l));
+          setLearn((v) => (v?.id === id ? null : v));
         }, 1800);
       }
       setMistakes((m) => [...m, { item: ts.item, bin: correctBin }]);
       if (mode === "survival") {
-        lock.current.over = true;
-        lock.current.ended = true;
+        l.over = true;
+        l.ended = true;
+        setAim(bus.current, null);
         later(() => {
           setFinished(true);
         }, 1900);
       }
     }
+    // XP + Level-Aufstieg lokal berechnen; gespeichert wird gebündelt.
     const xp = XP_PER_RESULT[result];
     setXpEarned((v) => v + xp);
-    recordThrow({ correct: ts.hit, xp })
-      .then(({ leveledUp, level: newLevel }) => {
-        if (!leveledUp) return;
-        sfx("levelup");
-        showBanner(`⬆ ${t("game.levelUp", { level: newLevel })}`);
-        const unlocked = getUnlockAtLevel(newLevel);
-        if (unlocked)
-          later(() => {
-            showBanner(
-              `🎁 ${t("game.newBin", { bin: t(unlocked.labelKey) })}`,
-              3000,
-            );
-          }, 2400);
-      })
-      .catch(() => undefined);
-    if (points > 0)
-      saveHighscore(HIGHSCORE_MODE[mode], after.score).catch(
-        () => undefined,
-      );
-  };
-  const handleThrowDone = (throwId: number) => {
-    throwMap.current.delete(throwId);
-    setThrowStates((list) => list.filter((x) => x.id !== throwId));
+    queueThrowRecord({ correct: ts.hit, xp });
+    xpTotal.current += xp;
+    const newLevel = getLevelFromXP(xpTotal.current);
+    if (newLevel > levelNow.current) {
+      levelNow.current = newLevel;
+      sfx("levelup");
+      showBanner(`⬆ ${t("game.levelUp", { level: newLevel })}`);
+      const unlocked = getUnlockAtLevel(newLevel);
+      if (unlocked)
+        later(() => {
+          showBanner(
+            `🎁 ${t("game.newBin", { bin: t(unlocked.labelKey) })}`,
+            3000,
+          );
+        }, 2400);
+    }
   };
   const handlers = useRef({
     aim: (_dx: number, _dy: number) => {},
     release: (_dx: number, _dy: number) => {},
     cancel: () => {},
     tap: (_x: number, _y: number) => {},
+    throwTo: (_i: number) => {},
     land: (_id: number) => {},
-    done: (_id: number) => {},
   });
   useLayoutEffect(() => {
     handlers.current = {
       aim: (dx, dy) => {
-        const l = lock.current;
-        if (l.ended) return;
+        if (lock.current.ended) return;
         const idx = aimFromDrag(dx, dy, layout.binAngles)?.binIndex ?? null;
-        if (idx === l.aim) return;
-        l.aim = idx;
-        setAimIndex(idx);
+        if (idx === bus.current.aim) return;
+        setAim(bus.current, idx);
         if (idx !== null) {
           sfx("aim");
           Haptics.selectionAsync().catch(() => undefined);
@@ -483,15 +518,10 @@ function GameRound({
       },
       release: (dx, dy) => {
         const aim = aimFromDrag(dx, dy, layout.binAngles);
-        lock.current.aim = null;
-        setAimIndex(null);
+        setAim(bus.current, null);
         if (aim) throwTo(aim.binIndex, aim.perfect);
       },
-      cancel: () => {
-        if (lock.current.aim === null) return;
-        lock.current.aim = null;
-        setAimIndex(null);
-      },
+      cancel: () => setAim(bus.current, null),
       tap: (x, y) => {
         const i = layout.binRects.findIndex(
           (r) =>
@@ -502,10 +532,15 @@ function GameRound({
         );
         if (i !== -1) throwTo(i, false);
       },
+      throwTo: (i) => throwTo(i, false),
       land: handleLand,
-      done: handleThrowDone,
     };
   });
+  useEffect(() => {
+    const b = bus.current;
+    setLandHandler(b, (id) => handlers.current.land(id));
+    return () => setLandHandler(b, () => undefined);
+  }, []);
   const onAim = useCallback(
     (dx: number, dy: number) => handlers.current.aim(dx, dy),
     [],
@@ -542,22 +577,12 @@ function GameRound({
     return Gesture.Race(pan, tap);
   }, [onAim, onRelease, onCancel, onTap, showEnd]);
   /* eslint-enable react-hooks/refs */
-  const onLand = useCallback((id: number) => handlers.current.land(id), []);
-  const onThrowDone = useCallback(
-    (id: number) => handlers.current.done(id),
-    [],
-  );
-  const onBurstDone = useCallback((id: number) => {
-    setBursts((b) => b.filter((x) => x.id !== id));
-  }, []);
   const onFloatDone = useCallback((id: number) => {
     setFloats((f) => f.filter((x) => x.id !== id));
   }, []);
   const onActivateBin = useCallback(
-    (i: number) => {
-      handlers.current.tap(layout.binRects[i].x + 1, layout.binRects[i].y + 1);
-    },
-    [layout],
+    (i: number) => handlers.current.throwTo(i),
+    [],
   );
   const ready = screenW > 0 && screenH > 0;
   const praiseTop = (layout.binRects[0]?.y ?? 200) - 80;
@@ -578,7 +603,7 @@ function GameRound({
             }}
             shadows={false}
             camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
-            gl={{ antialias: true }}
+            gl={{ antialias: ANTIALIAS }}
             onCreated={(s) =>
               devLog(
                 "CANVAS",
@@ -597,16 +622,11 @@ function GameRound({
               scheme={scheme}
               fever={fever}
               fx={fx}
+              bus={bus}
               calm={reduceMotion}
               previewItem={showEnd ? null : currentItem}
               nextItem={showEnd ? null : nextItem}
-              aimIndex={aimIndex}
-              throws={throwStates}
-              binEvents={binEvents}
-              bursts={bursts}
-              onLand={onLand}
-              onThrowDone={onThrowDone}
-              onBurstDone={onBurstDone}
+              warmItems={pool}
             />
           </Canvas>
         )}
@@ -615,7 +635,7 @@ function GameRound({
             <BinLabels
               bins={bins}
               rects={layout.binRects}
-              aimIndex={aimIndex}
+              bus={bus}
               onActivate={onActivateBin}
             />
             {floats.map((f) => (
@@ -681,7 +701,7 @@ function GameRound({
                 <ItemCard
                   key={currentItem.name}
                   item={currentItem}
-                  showHint={stats.throws === 0 && throwStates.length === 0}
+                  showHint={!hasThrown}
                 />
               )}
             </View>

@@ -5,6 +5,9 @@
 //  - Zielen: Tonne hebt sich leicht, Deckel öffnet sich, Ring am Boden leuchtet
 //  - Treffer: federt kurz, Deckel klappt einmal auf/zu
 //  - Fehler: kurzes Kopfschütteln, Deckel bleibt zu
+//  - Einladen (Menü): Deckel lupft kurz, Tonne hüpft leicht
+//
+// Zustand kommt über den SceneBus (kein Re-Render pro Wurf).
 
 import { useFrame } from "@react-three/fiber/native";
 import { memo, useEffect, useMemo, useRef } from "react";
@@ -14,8 +17,7 @@ import { type BinDef } from "@/game/bins";
 
 import { type FxRef } from "./fx";
 import { lowpoly, lowpolyOwn, roundedFrustum, roundedSlab } from "./materials";
-
-export type BinEvent = { type: "hit" | "perfect" | "reject"; id: number };
+import { type BusRef, isBinActive, takeBinEvent } from "./scene-bus";
 
 const LID_OPEN = 1.0;
 const BODY_Y = 0.08;
@@ -62,22 +64,20 @@ export const TrashBin = memo(function TrashBin({
   x,
   z,
   index,
-  aimed,
-  event,
   fx,
+  bus,
 }: {
   bin: BinDef;
   x: number;
   z: number;
   index: number;
-  aimed: boolean;
-  event: BinEvent | null;
   fx: FxRef;
+  bus: BusRef;
 }) {
   const rootRef = useRef<THREE.Group>(null);
   const lidRef = useRef<THREE.Group>(null);
   const ringRef = useRef<THREE.Mesh>(null);
-  const anim = useRef({ hit: 0, reject: 0, lift: 0, lastId: -1 });
+  const anim = useRef({ hit: 0, reject: 0, lift: 0, peek: 0 });
 
   const mats = useMemo(
     () => ({
@@ -109,13 +109,6 @@ export const TrashBin = memo(function TrashBin({
     [mats],
   );
 
-  useEffect(() => {
-    if (!event || event.id === anim.current.lastId) return;
-    anim.current.lastId = event.id;
-    if (event.type === "reject") anim.current.reject = 1;
-    else anim.current.hit = event.type === "perfect" ? 1.3 : 1;
-  }, [event]);
-
   useFrame((state, rawDelta) => {
     const root = rootRef.current;
     const lid = lidRef.current;
@@ -126,11 +119,20 @@ export const TrashBin = memo(function TrashBin({
     const t = state.clock.elapsedTime;
     const a = anim.current;
 
+    const event = takeBinEvent(bus.current, index);
+    if (event === "reject") a.reject = 1;
+    else if (event === "peek") a.peek = f.calm ? 0 : 1;
+    else if (event) a.hit = event === "perfect" ? 1.3 : 1;
+
+    const aimed = isBinActive(bus.current, index);
     a.lift = THREE.MathUtils.damp(a.lift, aimed ? 1 : 0, 12, delta);
     a.hit = Math.max(0, a.hit - delta * 2.8);
     a.reject = Math.max(0, a.reject - delta * 2.2);
+    a.peek = Math.max(0, a.peek - delta * 1.6);
 
-    root.position.y = a.lift * 0.07;
+    // Einladen: kleiner Hüpfer (Sinusbogen über die Dauer des Lupfens)
+    const hop = a.peek > 0 ? Math.sin((1 - a.peek) * Math.PI) * 0.12 : 0;
+    root.position.y = a.lift * 0.07 + hop;
 
     // Treffer: einmal weich federn
     const wave = a.hit > 0 ? Math.sin((1 - a.hit / 1.3) * Math.PI * 2) * a.hit : 0;
@@ -141,6 +143,7 @@ export const TrashBin = memo(function TrashBin({
     // Deckel: offen beim Zielen, einmal auf/zu beim Treffer, zu bei Fehler
     let lidTarget = aimed ? LID_OPEN : 0;
     if (a.hit > 0.3) lidTarget = LID_OPEN * 0.7;
+    if (a.peek > 0.15 && !aimed) lidTarget = LID_OPEN * 0.55 * Math.sin((1 - a.peek) * Math.PI);
     if (a.reject > 0.2) lidTarget = 0;
     lid.rotation.x = -THREE.MathUtils.damp(-lid.rotation.x, lidTarget, 16, delta);
 
