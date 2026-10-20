@@ -134,7 +134,7 @@ const ConfettiBurst = memo(function ConfettiBurst({
         frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial roughness={0.5} emissiveIntensity={0.2} />
+        <meshLambertMaterial flatShading />
       </instancedMesh>
       {burst.ring && (
         <mesh

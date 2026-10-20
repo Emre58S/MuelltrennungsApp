@@ -135,7 +135,8 @@ export const AimGuide = memo(function AimGuide({
 
 /* ── Geworfenes Item ───────────────────────────────────────── */
 
-const FLIGHT_TIME = 0.5;
+// Knackiger Flug: kurz genug für flüssiges Spiel, lang genug zum Mitverfolgen
+const FLIGHT_TIME = 0.42;
 const TRAIL = 10;
 
 type Phase = "flight" | "sink" | "bounce" | "fade";

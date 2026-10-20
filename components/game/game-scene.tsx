@@ -102,7 +102,6 @@ export const GameScene = memo(function GameScene({
   aimIndex,
   throws,
   binEvents,
-  talkingIndex = null,
   bursts,
   onLand,
   onThrowDone,
@@ -118,7 +117,6 @@ export const GameScene = memo(function GameScene({
   aimIndex: number | null;
   throws: ThrowState[];
   binEvents: (BinEvent | null)[];
-  talkingIndex?: number | null;
   bursts: Burst[];
   onLand: (id: number) => void;
   onThrowDone: (id: number) => void;
@@ -150,7 +148,6 @@ export const GameScene = memo(function GameScene({
             aimIndex === i ||
             throws.some((t) => t.binIndex === i && t.hit)
           }
-          talking={talkingIndex === i}
           event={binEvents[i] ?? null}
           fx={fx}
         />

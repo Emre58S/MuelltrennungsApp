@@ -1,28 +1,32 @@
 // Datei: components/game/materials.ts
-// „Stylized Realism“ (wie Pixar / Fall Guys): echte Materialien – glänzendes
-// Plastik, weiches Licht – mit charmanten, leicht übertriebenen Formen.
-// Dazu Formen-Helfer für realistische Mülltonnen.
+// Low-Poly-Look (wie Crossy Road, Townscaper, Islanders): flach schattierte
+// Facetten, ruhige Pastellfarben. Lambert statt PBR → deutlich weniger
+// Rechenaufwand pro Pixel → flüssigeres Spiel.
 
 import * as THREE from "three";
 
-/** Spritzguss-Plastik wie bei echten Tonnen: satt, leicht glänzend. */
-export function plastic(
-  color: string,
-  opts: { roughness?: number; metalness?: number; opacity?: number; side?: THREE.Side } = {},
-) {
-  return new THREE.MeshStandardMaterial({
-    color,
-    roughness: opts.roughness ?? 0.42,
-    metalness: opts.metalness ?? 0,
-    transparent: (opts.opacity ?? 1) < 1,
-    opacity: opts.opacity ?? 1,
-    side: opts.side ?? THREE.FrontSide,
-  });
+const cache = new Map<string, THREE.MeshLambertMaterial>();
+
+/** Flach schattiertes Material. Gleiche Farbe = gleiches Material (geteilt). */
+export function lowpoly(color: string, opts: { emissive?: string; opacity?: number } = {}) {
+  const key = `${color}|${opts.emissive ?? ""}|${opts.opacity ?? 1}`;
+  let m = cache.get(key);
+  if (!m) {
+    m = new THREE.MeshLambertMaterial({
+      color,
+      flatShading: true,
+      emissive: opts.emissive ?? "#000000",
+      transparent: (opts.opacity ?? 1) < 1,
+      opacity: opts.opacity ?? 1,
+    });
+    cache.set(key, m);
+  }
+  return m;
 }
 
-/** Matte Natur-Oberflächen (Rasen, Holz, Laub). */
-export function matte(color: string) {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0 });
+/** Eigenes (nicht geteiltes) Material – wenn es animiert wird (z. B. Leuchten). */
+export function lowpolyOwn(color: string) {
+  return new THREE.MeshLambertMaterial({ color, flatShading: true });
 }
 
 /* ── Abgerundeter Kegelstumpf (für realistische Mülltonnen) ─────────────── */

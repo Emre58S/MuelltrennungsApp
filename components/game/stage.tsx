@@ -1,62 +1,107 @@
-// Datei: components/game/stage.tsx — aufgeräumte Bühne (Stylized Realism)
+// Datei: components/game/stage.tsx — wechselnde Low-Poly-Kulissen
 //
-// Prinzip „Overcooked“: wenige, klare Formen, ruhige Flächen – die Tonnen
-// sind die Stars. Himmel mit Verlauf, sanfte Hügel, Holzzaun, zwei runde
-// Bäume, ziehende Wolken. Hell = sonniger Tag, Dunkel = Abend mit Laterne.
-// Im Fieber-Modus glüht der Himmel orange.
+// Drei Szenen, pro Runde wechselnd: Hauswand · Ziegelwand · Garten.
+// Gestaltungsregel für Übersicht: Hinter den Tonnen (Mitte) nur ruhige
+// Flächen – Details (Fenster, Bäume, Rohre) stehen an den Seiten.
+// Stil: flach schattierte Facetten + Pastellpalette (Townscaper/Islanders).
+// Dunkel-Modus = Abenddämmerung mit warm leuchtenden Fenstern.
 
 import { useFrame } from "@react-three/fiber/native";
-import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { type ColorScheme } from "@/constants/theme";
 
-import { matte, plastic } from "./materials";
+import { lowpoly } from "./materials";
 
-const PALETTE = {
-  light: {
-    skyTop: "#7EC8F2",
-    skyHorizon: "#E6F5FF",
-    background: "#CBEAFB",
-    sun: "#FFF4C2",
-    lawn: "#8FCB6B",
-    hills: ["#7DBF5E", "#6BAF52", "#94D274"],
-    plaza: "#EEE6D6",
-    plazaEdge: "#D9CCB2",
-    fence: "#C99359",
-    trunk: "#8A5A3A",
-    leaves: ["#5DAE4F", "#4E9B45", "#6CBD5A"],
-    cloud: "#FFFFFF",
-    hemiSky: "#FFFFFF",
-    hemiGround: "#B8D9A0",
-    ambient: 0.5,
-    sunLight: 1.9,
-    rim: 1.1,
-    rimColor: "#FFF1D6",
-  },
-  dark: {
-    skyTop: "#121A3A",
-    skyHorizon: "#3E4C80",
-    background: "#26315A",
-    sun: "#F4F1DE",
-    lawn: "#3B6B47",
-    hills: ["#2F5A3C", "#284E34", "#37654A"],
-    plaza: "#7B7D88",
-    plazaEdge: "#636672",
-    fence: "#7A5A3C",
-    trunk: "#4A3424",
-    leaves: ["#2E6440", "#285A38", "#357049"],
-    cloud: "#4A5784",
-    hemiSky: "#9DB4FF",
-    hemiGround: "#2A3A30",
-    ambient: 0.45,
-    sunLight: 0.8,
-    rim: 0.9,
-    rimColor: "#9DB4FF",
-  },
-} as const;
+export type SceneKind = "haus" | "ziegel" | "garten";
+const ORDER: SceneKind[] = ["haus", "ziegel", "garten"];
+let counter = 0;
+/** Jede neue Runde zeigt die nächste Szene. */
+export function nextScene(): SceneKind {
+  return ORDER[counter++ % ORDER.length];
+}
 
-const FEVER = new THREE.Color("#FFA24A");
+type Palette = {
+  skyTop: string;
+  skyHorizon: string;
+  ground: string;
+  groundLine: string;
+  grass: string;
+  plaster: string;
+  plinth: string;
+  roof: string;
+  frame: string;
+  glass: string;
+  glassGlow: string | null;
+  bricks: string[];
+  mortar: string;
+  fence: string;
+  trunk: string;
+  leaves: string[];
+  flowers: string[];
+  metal: string;
+  cloud: string;
+  sun: number;
+  hemiSky: string;
+  hemiGround: string;
+  hemi: number;
+};
+
+const LIGHT: Palette = {
+  skyTop: "#8ECAE8",
+  skyHorizon: "#F7E6D4",
+  ground: "#E8E0D2",
+  groundLine: "#D8CDBB",
+  grass: "#A3D27F",
+  plaster: "#F1D6B4",
+  plinth: "#D9BC98",
+  roof: "#C7684C",
+  frame: "#FBF7F0",
+  glass: "#9DD0E8",
+  glassGlow: null,
+  bricks: ["#C9735B", "#B8644E", "#D3836B"],
+  mortar: "#E6D7C3",
+  fence: "#F5F0E6",
+  trunk: "#8C5E3C",
+  leaves: ["#6DBB5C", "#5AA84F", "#7FC96A"],
+  flowers: ["#F27C8A", "#F6C453", "#B58BE0"],
+  metal: "#9AA3AC",
+  cloud: "#FFFFFF",
+  sun: 1.55,
+  hemiSky: "#FFFFFF",
+  hemiGround: "#D9C7AC",
+  hemi: 1.0,
+};
+
+const DUSK: Palette = {
+  skyTop: "#2C3868",
+  skyHorizon: "#EFA286",
+  ground: "#8F8A92",
+  groundLine: "#7D7881",
+  grass: "#4F7A58",
+  plaster: "#9C8578",
+  plinth: "#7F6B62",
+  roof: "#7E4A3E",
+  frame: "#C9C2BA",
+  glass: "#FFD58A",
+  glassGlow: "#FFB347",
+  bricks: ["#8B5248", "#7C483F", "#955D51"],
+  mortar: "#9A8C82",
+  fence: "#B8B2AA",
+  trunk: "#5A3E2C",
+  leaves: ["#3E7350", "#356646", "#4A8159"],
+  flowers: ["#C66A79", "#C9A24A", "#8F72B5"],
+  metal: "#6E767E",
+  cloud: "#8D86A8",
+  sun: 0.7,
+  hemiSky: "#B8A6FF",
+  hemiGround: "#4A4040",
+  hemi: 0.8,
+};
+
+const FEVER = new THREE.Color("#FFB070");
+const WALL_Z = -2.5;
 
 function seeded(seed: number) {
   let t = seed;
@@ -68,18 +113,19 @@ function seeded(seed: number) {
   };
 }
 
-/** Himmelskuppel mit Farbverlauf (Vertex-Farben, ein Draw-Call). */
+/* ── Himmel ────────────────────────────────────────────────── */
+
 function SkyDome({ top, horizon, fever }: { top: string; horizon: string; fever: boolean }) {
   const geometry = useMemo(() => {
-    const g = new THREE.SphereGeometry(40, 24, 16);
+    const g = new THREE.SphereGeometry(40, 20, 12);
     const pos = g.attributes.position;
     const cTop = new THREE.Color(top);
     const cHor = new THREE.Color(horizon);
-    const colors = new Float32Array(pos.count * 3);
     const c = new THREE.Color();
+    const colors = new Float32Array(pos.count * 3);
     for (let i = 0; i < pos.count; i++) {
       const k = THREE.MathUtils.clamp(pos.getY(i) / 40, 0, 1);
-      c.copy(cHor).lerp(cTop, Math.pow(k, 0.6));
+      c.copy(cHor).lerp(cTop, Math.pow(k, 0.55));
       colors.set([c.r, c.g, c.b], i * 3);
     }
     g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
@@ -94,120 +140,37 @@ function SkyDome({ top, horizon, fever }: { top: string; horizon: string; fever:
   const glow = useRef(0);
   useFrame((state, delta) => {
     glow.current = THREE.MathUtils.damp(glow.current, fever ? 1 : 0, 3, delta);
-    const pulse = 0.5 + Math.sin(state.clock.elapsedTime * 5) * 0.5;
-    material.color.setRGB(1, 1, 1).lerp(FEVER, glow.current * (0.45 + pulse * 0.2));
+    const pulse = 0.5 + Math.sin(state.clock.elapsedTime * 4) * 0.5;
+    material.color.setRGB(1, 1, 1).lerp(FEVER, glow.current * (0.35 + pulse * 0.15));
   });
-
   return <mesh geometry={geometry} material={material} renderOrder={-1} />;
-}
-
-/** Holzzaun hinter der Bühne – alle Latten in einem Draw-Call. */
-const Fence = memo(function Fence({ color }: { color: string }) {
-  const ref = useRef<THREE.InstancedMesh>(null);
-  const planks = useMemo(() => {
-    const rand = seeded(11);
-    return Array.from({ length: 34 }, (_, i) => ({
-      x: -8.25 + i * 0.5,
-      h: 0.82 + (rand() - 0.5) * 0.08,
-      tilt: (rand() - 0.5) * 0.04,
-    }));
-  }, []);
-  const material = useMemo(() => matte(color), [color]);
-
-  useLayoutEffect(() => {
-    const mesh = ref.current;
-    if (!mesh) return;
-    const m = new THREE.Matrix4();
-    const q = new THREE.Quaternion();
-    planks.forEach((p, i) => {
-      q.setFromEuler(new THREE.Euler(0, 0, p.tilt));
-      m.compose(new THREE.Vector3(p.x, p.h / 2, -2.6), q, new THREE.Vector3(0.4, p.h, 0.06));
-      mesh.setMatrixAt(i, m);
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-  }, [planks]);
-
-  return (
-    <group>
-      <instancedMesh ref={ref} args={[undefined, undefined, planks.length]} material={material} castShadow>
-        <boxGeometry args={[1, 1, 1]} />
-      </instancedMesh>
-      {[0.25, 0.6].map((y) => (
-        <mesh key={y} position={[0, y, -2.66]} material={material}>
-          <boxGeometry args={[17, 0.08, 0.05]} />
-        </mesh>
-      ))}
-    </group>
-  );
-});
-
-function Tree({ x, z, s, trunk, leaf }: { x: number; z: number; s: number; trunk: string; leaf: string }) {
-  const mats = useMemo(() => ({ trunk: matte(trunk), leaf: matte(leaf) }), [trunk, leaf]);
-  const crowns: [number, number, number, number][] = [
-    [0, 2.15, 0, 0.95],
-    [0.6, 1.8, 0.15, 0.7],
-    [-0.55, 1.85, -0.1, 0.72],
-  ];
-  return (
-    <group position={[x, 0, z]} scale={s}>
-      <mesh position={[0, 0.75, 0]} material={mats.trunk} castShadow>
-        <cylinderGeometry args={[0.13, 0.2, 1.5, 10]} />
-      </mesh>
-      {crowns.map(([px, py, pz, r], i) => (
-        <group key={i} position={[px, py, pz]}>
-          <mesh material={mats.leaf} castShadow>
-            <sphereGeometry args={[r, 16, 12]} />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
-
-function Bush({ x, z, s, color }: { x: number; z: number; s: number; color: string }) {
-  const mat = useMemo(() => matte(color), [color]);
-  return (
-    <group position={[x, 0, z]} scale={s}>
-      {[
-        [0, 0.32, 0, 0.42],
-        [0.38, 0.24, 0.05, 0.32],
-        [-0.36, 0.25, 0, 0.34],
-      ].map(([px, py, pz, r], i) => (
-        <mesh key={i} position={[px, py, pz]} material={mat} castShadow>
-          <sphereGeometry args={[r, 14, 10]} />
-        </mesh>
-      ))}
-    </group>
-  );
 }
 
 const Clouds = memo(function Clouds({ color, calm }: { color: string; calm: boolean }) {
   const ref = useRef<THREE.Group>(null);
-  const mat = useMemo(() => matte(color), [color]);
+  const mat = lowpoly(color);
   useFrame((_, delta) => {
     if (!ref.current || calm) return;
     ref.current.children.forEach((c, i) => {
-      c.position.x += delta * (0.15 + i * 0.05);
-      if (c.position.x > 12) c.position.x = -12;
+      c.position.x += delta * (0.12 + i * 0.05);
+      if (c.position.x > 13) c.position.x = -13;
     });
   });
-  const clouds = [
-    { x: -5, y: 6.5, z: -14, s: 1.6 },
-    { x: 2.5, y: 7.6, z: -16, s: 2 },
-    { x: 7, y: 5.8, z: -13, s: 1.2 },
-  ];
   return (
     <group ref={ref}>
-      {clouds.map((c, i) => (
+      {[
+        { x: -5, y: 7, z: -15, s: 1.4 },
+        { x: 3, y: 8.2, z: -17, s: 1.8 },
+        { x: 8, y: 6.4, z: -14, s: 1.1 },
+      ].map((c, i) => (
         <group key={i} position={[c.x, c.y, c.z]} scale={c.s}>
           {[
             [0, 0, 0, 0.9],
-            [0.85, -0.15, 0, 0.65],
-            [-0.85, -0.2, 0, 0.6],
-            [0.35, 0.4, 0, 0.6],
+            [0.9, -0.15, 0, 0.62],
+            [-0.85, -0.2, 0, 0.58],
           ].map(([x, y, z, r], j) => (
-            <mesh key={j} position={[x, y, z]} scale={[1, 0.75, 0.6]} material={mat}>
-              <sphereGeometry args={[r, 14, 10]} />
+            <mesh key={j} position={[x, y, z]} scale={[1, 0.62, 0.6]} material={mat}>
+              <icosahedronGeometry args={[r, 0]} />
             </mesh>
           ))}
         </group>
@@ -216,74 +179,286 @@ const Clouds = memo(function Clouds({ color, calm }: { color: string; calm: bool
   );
 });
 
-const Stars = memo(function Stars() {
-  const geometry = useMemo(() => {
-    const rand = seeded(42);
-    const pts = new Float32Array(120 * 3);
-    for (let i = 0; i < 120; i++) {
-      pts[i * 3] = (rand() - 0.5) * 50;
-      pts[i * 3 + 1] = 5 + rand() * 16;
-      pts[i * 3 + 2] = -20 - rand() * 8;
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(pts, 3));
-    return g;
-  }, []);
-  return (
-    <points geometry={geometry}>
-      <pointsMaterial color="#FFFFFF" size={0.09} sizeAttenuation />
-    </points>
-  );
-});
+/* ── Bausteine ─────────────────────────────────────────────── */
 
-function StreetLamp({ x, z }: { x: number; z: number }) {
-  const pole = useMemo(() => plastic("#3A3F48", { roughness: 0.5, metalness: 0.4 }), []);
+function Tree({ x, z, s = 1, p }: { x: number; z: number; s?: number; p: Palette }) {
   return (
-    <group position={[x, 0, z]}>
-      <mesh position={[0, 1.4, 0]} material={pole}>
-        <cylinderGeometry args={[0.05, 0.07, 2.8, 8]} />
+    <group position={[x, 0, z]} scale={s}>
+      <mesh position={[0, 0.7, 0]} material={lowpoly(p.trunk)} castShadow>
+        <cylinderGeometry args={[0.1, 0.16, 1.4, 5]} />
       </mesh>
-      <mesh position={[0, 2.85, 0]}>
-        <sphereGeometry args={[0.18, 14, 10]} />
-        <meshBasicMaterial color="#FFE3A3" />
-      </mesh>
-      <pointLight position={[0, 2.7, 0.4]} intensity={9} distance={9} color="#FFD58A" />
+      {[
+        [0, 1.95, 0, 0.85, 0],
+        [0.45, 1.6, 0.2, 0.6, 1],
+        [-0.42, 1.65, -0.1, 0.62, 2],
+      ].map(([px, py, pz, r, c], i) => (
+        <mesh key={i} position={[px, py, pz]} material={lowpoly(p.leaves[c])} castShadow>
+          <icosahedronGeometry args={[r, 0]} />
+        </mesh>
+      ))}
     </group>
   );
 }
+
+function Bush({ x, z, s = 1, p }: { x: number; z: number; s?: number; p: Palette }) {
+  return (
+    <group position={[x, 0, z]} scale={s}>
+      {[
+        [0, 0.32, 0, 0.42, 0],
+        [0.38, 0.24, 0.05, 0.3, 1],
+        [-0.35, 0.25, 0, 0.32, 2],
+      ].map(([px, py, pz, r, c], i) => (
+        <mesh key={i} position={[px, py, pz]} material={lowpoly(p.leaves[c])} castShadow>
+          <icosahedronGeometry args={[r, 0]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function Flowers({ x, z, p, count = 5 }: { x: number; z: number; p: Palette; count?: number }) {
+  const items = useMemo(() => {
+    const rand = seeded(Math.round(x * 100 + z * 10 + count));
+    return Array.from({ length: count }, (_, i) => ({
+      dx: (rand() - 0.5) * 0.9,
+      dz: (rand() - 0.5) * 0.4,
+      h: 0.18 + rand() * 0.12,
+      c: p.flowers[i % p.flowers.length],
+    }));
+  }, [x, z, count, p.flowers]);
+  return (
+    <group position={[x, 0, z]}>
+      {items.map((f, i) => (
+        <group key={i} position={[f.dx, 0, f.dz]}>
+          <mesh position={[0, f.h / 2, 0]} material={lowpoly(p.leaves[1])}>
+            <cylinderGeometry args={[0.012, 0.012, f.h, 3]} />
+          </mesh>
+          <mesh position={[0, f.h, 0]} material={lowpoly(f.c)}>
+            <icosahedronGeometry args={[0.06, 0]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function Window({ x, y, p }: { x: number; y: number; p: Palette }) {
+  const glass = p.glassGlow ? lowpoly(p.glass, { emissive: p.glassGlow }) : lowpoly(p.glass);
+  return (
+    <group position={[x, y, WALL_Z + 0.16]}>
+      <mesh material={lowpoly(p.frame)}>
+        <boxGeometry args={[0.95, 1.15, 0.06]} />
+      </mesh>
+      <mesh position={[0, 0, 0.035]} material={glass}>
+        <boxGeometry args={[0.8, 1.0, 0.02]} />
+      </mesh>
+      <mesh position={[0, 0, 0.05]} material={lowpoly(p.frame)}>
+        <boxGeometry args={[0.05, 1.0, 0.02]} />
+      </mesh>
+      {/* Blumenkasten */}
+      <mesh position={[0, -0.66, 0.12]} material={lowpoly(p.roof)}>
+        <boxGeometry args={[0.9, 0.16, 0.22]} />
+      </mesh>
+      <group position={[0, -0.58, 0]}>
+        <Flowers x={0} z={0.12} p={p} count={6} />
+      </group>
+    </group>
+  );
+}
+
+function Drainpipe({ x, p }: { x: number; p: Palette }) {
+  return (
+    <group position={[x, 0, WALL_Z + 0.22]}>
+      <mesh position={[0, 1.75, 0]} material={lowpoly(p.metal)}>
+        <cylinderGeometry args={[0.07, 0.07, 3.5, 6]} />
+      </mesh>
+      <mesh position={[0, 0.08, 0.12]} rotation={[Math.PI / 2.6, 0, 0]} material={lowpoly(p.metal)}>
+        <cylinderGeometry args={[0.07, 0.09, 0.3, 6]} />
+      </mesh>
+    </group>
+  );
+}
+
+function WallLamp({ x, y, p }: { x: number; y: number; p: Palette }) {
+  return (
+    <group position={[x, y, WALL_Z + 0.2]}>
+      <mesh material={lowpoly(p.metal)}>
+        <boxGeometry args={[0.08, 0.08, 0.3]} />
+      </mesh>
+      <mesh position={[0, -0.08, 0.17]}>
+        <icosahedronGeometry args={[0.12, 0]} />
+        <meshBasicMaterial color={p.glassGlow ? "#FFE1A0" : "#FFF6DD"} />
+      </mesh>
+      {p.glassGlow && <pointLight position={[0, -0.1, 0.5]} intensity={7} distance={7} color="#FFC870" />}
+    </group>
+  );
+}
+
+/** Ziegel in einem Draw-Call (InstancedMesh mit Farbe pro Ziegel). */
+const BrickWall = memo(function BrickWall({ p }: { p: Palette }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const bricks = useMemo(() => {
+    const rand = seeded(5);
+    const list: { x: number; y: number; c: string }[] = [];
+    const w = 0.5;
+    const h = 0.22;
+    for (let row = 0; row < 15; row++) {
+      const off = row % 2 ? w / 2 : 0;
+      for (let col = -13; col <= 13; col++) {
+        list.push({
+          x: col * (w + 0.03) + off,
+          y: 0.13 + row * (h + 0.03),
+          c: p.bricks[Math.floor(rand() * p.bricks.length)],
+        });
+      }
+    }
+    return list;
+  }, [p.bricks]);
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    const c = new THREE.Color();
+    bricks.forEach((b, i) => {
+      m.makeTranslation(b.x, b.y, WALL_Z + 0.16);
+      mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, c.set(b.c));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [bricks]);
+
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, bricks.length]} receiveShadow>
+      <boxGeometry args={[0.5, 0.22, 0.08]} />
+      <meshLambertMaterial flatShading />
+    </instancedMesh>
+  );
+});
+
+/** Lattenzaun in einem Draw-Call. */
+const PicketFence = memo(function PicketFence({ p }: { p: Palette }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const count = 36;
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    for (let i = 0; i < count; i++) {
+      m.makeTranslation(-8.75 + i * 0.5, 0.5, WALL_Z);
+      mesh.setMatrixAt(i, m);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }, []);
+  const mat = lowpoly(p.fence);
+  return (
+    <group>
+      <instancedMesh ref={ref} args={[undefined, undefined, count]} material={mat} castShadow>
+        <boxGeometry args={[0.18, 1.0, 0.05]} />
+      </instancedMesh>
+      {[0.3, 0.75].map((y) => (
+        <mesh key={y} position={[0, y, WALL_Z - 0.05]} material={mat}>
+          <boxGeometry args={[18, 0.08, 0.04]} />
+        </mesh>
+      ))}
+    </group>
+  );
+});
+
+/* ── Szenen ────────────────────────────────────────────────── */
+
+function HouseScene({ p }: { p: Palette }) {
+  return (
+    <>
+      <mesh position={[0, 1.75, WALL_Z]} material={lowpoly(p.plaster)} receiveShadow>
+        <boxGeometry args={[14, 3.5, 0.3]} />
+      </mesh>
+      <mesh position={[0, 0.18, WALL_Z + 0.17]} material={lowpoly(p.plinth)}>
+        <boxGeometry args={[14, 0.36, 0.06]} />
+      </mesh>
+      <mesh position={[0, 3.6, WALL_Z + 0.15]} material={lowpoly(p.roof)} castShadow>
+        <boxGeometry args={[14, 0.26, 0.7]} />
+      </mesh>
+      <Window x={-2.55} y={2.05} p={p} />
+      <Window x={2.55} y={2.05} p={p} />
+      <Drainpipe x={-3.5} p={p} />
+      <Tree x={3.4} z={-1.7} s={1.15} p={p} />
+      <Bush x={-2.7} z={-1.9} p={p} />
+    </>
+  );
+}
+
+function BrickScene({ p }: { p: Palette }) {
+  return (
+    <>
+      <mesh position={[0, 1.9, WALL_Z]} material={lowpoly(p.mortar)}>
+        <boxGeometry args={[14, 3.8, 0.24]} />
+      </mesh>
+      <BrickWall p={p} />
+      <mesh position={[0, 3.86, WALL_Z + 0.1]} material={lowpoly(p.plinth)} castShadow>
+        <boxGeometry args={[14, 0.16, 0.5]} />
+      </mesh>
+      <Drainpipe x={2.95} p={p} />
+      <WallLamp x={-2.6} y={2.7} p={p} />
+      <Tree x={-3.5} z={-1.6} s={1.2} p={p} />
+      <Bush x={3.3} z={-1.9} s={0.9} p={p} />
+    </>
+  );
+}
+
+function GardenScene({ p }: { p: Palette }) {
+  return (
+    <>
+      <PicketFence p={p} />
+      {/* Hügel hinter dem Zaun */}
+      {[
+        [-8, -14, 8, 0],
+        [2, -17, 11, 1],
+        [11, -13, 7, 2],
+      ].map(([x, z, r, c], i) => (
+        <mesh key={i} position={[x, -r * 0.74, z]} scale={[1.6, 1, 1]} material={lowpoly(p.leaves[c])}>
+          <icosahedronGeometry args={[r, 1]} />
+        </mesh>
+      ))}
+      <Tree x={-3.4} z={-1.7} s={1.25} p={p} />
+      <Tree x={3.6} z={-2.0} s={1.4} p={p} />
+      <Tree x={0.6} z={-7.5} s={1.6} p={p} />
+      <Flowers x={-2.4} z={-1.5} p={p} count={7} />
+      <Flowers x={2.5} z={-1.4} p={p} count={7} />
+    </>
+  );
+}
+
+/* ── Bühne ─────────────────────────────────────────────────── */
 
 export const Stage = memo(function Stage({
   scheme,
   fever,
   calm,
+  kind,
 }: {
   scheme: ColorScheme;
   fever: boolean;
   calm: boolean;
+  /** Feste Szene (sonst wechselt sie pro Runde). */
+  kind?: SceneKind;
 }) {
-  const p = PALETTE[scheme];
-  const mats = useMemo(
-    () => ({
-      lawn: matte(p.lawn),
-      plaza: matte(p.plaza),
-      plazaEdge: matte(p.plazaEdge),
-      hills: p.hills.map((c) => matte(c)),
-    }),
-    [p],
-  );
+  const [scene] = useState<SceneKind>(() => kind ?? nextScene());
+  const p = scheme === "dark" ? DUSK : LIGHT;
+  const garden = scene === "garten";
 
   return (
     <>
-      <color attach="background" args={[p.background]} />
-      {/* Leichter Dunst in der Ferne → Tiefe, Vordergrund bleibt knackig */}
-      <fog attach="fog" args={[p.skyHorizon, 16, 42]} />
+      <color attach="background" args={[p.skyHorizon]} />
+      <fog attach="fog" args={[p.skyHorizon, 18, 44]} />
       <SkyDome top={p.skyTop} horizon={p.skyHorizon} fever={fever} />
 
-      <ambientLight intensity={p.ambient} />
-      <hemisphereLight args={[p.hemiSky, p.hemiGround, 0.7]} />
+      <hemisphereLight args={[p.hemiSky, p.hemiGround, p.hemi]} />
       <directionalLight
-        position={[3, 8, 6]}
-        intensity={p.sunLight}
+        position={[4, 8, 6]}
+        intensity={p.sun}
+        color="#FFF1DC"
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
@@ -295,51 +470,38 @@ export const Stage = memo(function Stage({
         shadow-bias={-0.0006}
       />
 
-      {/* Gegenlicht von hinten: Tonnen heben sich plastisch vom Hintergrund ab */}
-      <directionalLight position={[-2, 4, -8]} intensity={p.rim} color={p.rimColor} />
-
-      {/* Sonne / Mond */}
-      <mesh position={[-7, 9, -24]}>
-        <circleGeometry args={[1.6, 32]} />
-        <meshBasicMaterial color={p.sun} />
-      </mesh>
-
-      {/* Hügel am Horizont */}
-      {[
-        [-9, -16, 9, 0],
-        [2, -19, 12, 1],
-        [11, -15, 8, 2],
-        [-2, -12, 7, 0],
-      ].map(([x, z, r, c], i) => (
-        <mesh key={i} position={[x, -r * 0.72, z]} scale={[1.6, 1, 1]} material={mats.hills[c]}>
-          <sphereGeometry args={[r, 24, 14]} />
-        </mesh>
-      ))}
-
-      {/* Rasen + heller Platz als Bühne für die Tonnen */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -2]} material={mats.lawn} receiveShadow>
+      {/* Boden: Rasen + heller Platz (Garten) bzw. Gehweg-Platten (Wand-Szenen) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -4]} material={lowpoly(p.grass)} receiveShadow>
         <planeGeometry args={[60, 40]} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.006, 0.6]} scale={[1.55, 1, 1]} material={mats.plazaEdge}>
-        <circleGeometry args={[3.35, 48]} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0.6]} scale={[1.55, 1, 1]} material={mats.plaza} receiveShadow>
-        <circleGeometry args={[3.2, 48]} />
-      </mesh>
-
-      <Fence color={p.fence} />
-      <Tree x={-4.4} z={-3.6} s={1.35} trunk={p.trunk} leaf={p.leaves[0]} />
-      <Tree x={4.7} z={-4.2} s={1.55} trunk={p.trunk} leaf={p.leaves[2]} />
-      <Bush x={-2.9} z={-1.9} s={1} color={p.leaves[1]} />
-      <Bush x={3.0} z={-2.0} s={0.9} color={p.leaves[0]} />
-
-      <Clouds color={p.cloud} calm={calm} />
-      {scheme === "dark" && (
+      {garden ? (
+        <mesh
+          rotation={[-Math.PI / 2, 0, Math.PI / 8]}
+          position={[0, 0.01, 0.4]}
+          scale={[1.6, 1, 1]}
+          material={lowpoly(p.ground)}
+          receiveShadow
+        >
+          <circleGeometry args={[3.1, 8]} />
+        </mesh>
+      ) : (
         <>
-          <Stars />
-          <StreetLamp x={-3.4} z={-1.2} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 2.5]} material={lowpoly(p.ground)} receiveShadow>
+            <planeGeometry args={[30, 10]} />
+          </mesh>
+          {[-1.2, 0.9, 3].map((z) => (
+            <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.014, z]} material={lowpoly(p.groundLine)}>
+              <planeGeometry args={[30, 0.04]} />
+            </mesh>
+          ))}
         </>
       )}
+
+      {scene === "haus" && <HouseScene p={p} />}
+      {scene === "ziegel" && <BrickScene p={p} />}
+      {garden && <GardenScene p={p} />}
+
+      <Clouds color={p.cloud} calm={calm} />
     </>
   );
 });

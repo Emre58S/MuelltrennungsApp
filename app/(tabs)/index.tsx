@@ -122,7 +122,7 @@ export default function HomeScreen() {
       {focused && (
         <Canvas
           style={{ position: "absolute", left: 0, top: 0, width, height }}
-          shadows
+          shadows={false}
           camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
           gl={{ antialias: true }}
         >

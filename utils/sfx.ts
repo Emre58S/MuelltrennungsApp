@@ -1,21 +1,20 @@
-// Datei: utils/sfx.ts — Sound-Manager
+// Datei: utils/sfx.ts — dezentes Sound-Feedback
 //
-// Wann welcher Ton? (Sound-Design-Regeln)
-//  aim      neue Tonne anvisiert          leise, sofort (Orientierung)
-//  lid      Deckel geht auf               Vorfreude
-//  whoosh   Wurf                          Tempo variiert mit Schwung
-//  pop+munch Treffer                      befriedigend „Plopp + Mampf“
-//  chimeN   Serie 1…6                     steigt in der Tonleiter → „noch einer!“
-//  perfect  Perfekt-Wurf                  funkelt, ersetzt chime
-//  boing+thud Fehler                      lustig-weich, nie strafend
-//  fever    Fieber startet                Höhepunkt
-//  tick     letzte 5 Sekunden             Spannung
-//  levelup  Level-Aufstieg                Belohnung
-//  wahwah   Runde verloren (Ohne Fehler)  mit Humor statt Frust
-//  tap      Menü                          dezent
+// Wann welcher Ton? Pro Aktion höchstens 1–2 leise Töne:
+//  aim      neue Tonne anvisiert      kaum hörbares Holz-Tick
+//  throw    Wurf                      weicher Luftzug
+//  land     Gegenstand in der Tonne   dumpfes „Tock“
+//  noteN    Treffer 1…8 in Folge      Marimba, steigt in der Pentatonik → Melodie
+//  perfect  Perfekt-Wurf              zwei helle Kalimba-Töne
+//  wrong    falsche Tonne             weicher, tiefer Doppelton (nie strafend)
+//  fever    Fieber startet            Kalimba-Arpeggio
+//  levelup  Level-Aufstieg            warmes Arpeggio
+//  end      Rundenende                ruhiger Akkord
+//  tick     letzte 5 Sekunden         leises Holz
+//  tap      Menü                      dezent
 //
-// Gegen Ermüdung: gleiche Sounds werden leicht in Tonhöhe/Tempo variiert.
-// Die Sounds entstehen per Skript: scripts/generate-sfx.mjs
+// Gleiche Töne werden minimal variiert (gegen Ermüdung).
+// Die Töne entstehen per Skript: scripts/generate-sfx.mjs
 
 import { type AudioPlayer, createAudioPlayer } from "expo-audio";
 
@@ -23,49 +22,47 @@ import { getBoolean, StorageKeys } from "@/utils/storage";
 
 const SOURCES = {
   aim: require("../assets/sounds/sfx/aim.wav"),
-  lid: require("../assets/sounds/sfx/lid.wav"),
-  whoosh: require("../assets/sounds/sfx/whoosh.wav"),
-  pop: require("../assets/sounds/sfx/pop.wav"),
-  munch: require("../assets/sounds/sfx/munch.wav"),
-  chime1: require("../assets/sounds/sfx/chime1.wav"),
-  chime2: require("../assets/sounds/sfx/chime2.wav"),
-  chime3: require("../assets/sounds/sfx/chime3.wav"),
-  chime4: require("../assets/sounds/sfx/chime4.wav"),
-  chime5: require("../assets/sounds/sfx/chime5.wav"),
-  chime6: require("../assets/sounds/sfx/chime6.wav"),
+  throw: require("../assets/sounds/sfx/throw.wav"),
+  land: require("../assets/sounds/sfx/land.wav"),
+  note1: require("../assets/sounds/sfx/note1.wav"),
+  note2: require("../assets/sounds/sfx/note2.wav"),
+  note3: require("../assets/sounds/sfx/note3.wav"),
+  note4: require("../assets/sounds/sfx/note4.wav"),
+  note5: require("../assets/sounds/sfx/note5.wav"),
+  note6: require("../assets/sounds/sfx/note6.wav"),
+  note7: require("../assets/sounds/sfx/note7.wav"),
+  note8: require("../assets/sounds/sfx/note8.wav"),
   perfect: require("../assets/sounds/sfx/perfect.wav"),
-  boing: require("../assets/sounds/sfx/boing.wav"),
-  thud: require("../assets/sounds/sfx/thud.wav"),
+  wrong: require("../assets/sounds/sfx/wrong.wav"),
   fever: require("../assets/sounds/sfx/fever.wav"),
-  tick: require("../assets/sounds/sfx/tick.wav"),
   levelup: require("../assets/sounds/sfx/levelup.wav"),
-  wahwah: require("../assets/sounds/sfx/wahwah.wav"),
+  end: require("../assets/sounds/sfx/end.wav"),
+  tick: require("../assets/sounds/sfx/tick.wav"),
   tap: require("../assets/sounds/sfx/tap.wav"),
 } as const;
 
 export type SfxName = keyof typeof SOURCES;
 
-/** Mischpult: Grundlautstärke + Variation (± Anteil der Tonhöhe). */
+/** Mischpult: bewusst leise, Treffer-Melodie steht im Vordergrund. */
 const MIX: Record<SfxName, { volume: number; vary: number }> = {
-  aim: { volume: 0.25, vary: 0.04 },
-  lid: { volume: 0.35, vary: 0.06 },
-  whoosh: { volume: 0.45, vary: 0.08 },
-  pop: { volume: 0.65, vary: 0.07 },
-  munch: { volume: 0.55, vary: 0.08 },
-  chime1: { volume: 0.5, vary: 0 },
-  chime2: { volume: 0.5, vary: 0 },
-  chime3: { volume: 0.5, vary: 0 },
-  chime4: { volume: 0.5, vary: 0 },
-  chime5: { volume: 0.5, vary: 0 },
-  chime6: { volume: 0.5, vary: 0 },
-  perfect: { volume: 0.6, vary: 0 },
-  boing: { volume: 0.55, vary: 0.06 },
-  thud: { volume: 0.5, vary: 0.1 },
-  fever: { volume: 0.6, vary: 0 },
-  tick: { volume: 0.4, vary: 0 },
-  levelup: { volume: 0.6, vary: 0 },
-  wahwah: { volume: 0.55, vary: 0 },
-  tap: { volume: 0.3, vary: 0.05 },
+  aim: { volume: 0.18, vary: 0.03 },
+  throw: { volume: 0.3, vary: 0.06 },
+  land: { volume: 0.4, vary: 0.05 },
+  note1: { volume: 0.45, vary: 0 },
+  note2: { volume: 0.45, vary: 0 },
+  note3: { volume: 0.45, vary: 0 },
+  note4: { volume: 0.45, vary: 0 },
+  note5: { volume: 0.45, vary: 0 },
+  note6: { volume: 0.45, vary: 0 },
+  note7: { volume: 0.45, vary: 0 },
+  note8: { volume: 0.45, vary: 0 },
+  perfect: { volume: 0.45, vary: 0 },
+  wrong: { volume: 0.4, vary: 0.02 },
+  fever: { volume: 0.45, vary: 0 },
+  levelup: { volume: 0.5, vary: 0 },
+  end: { volume: 0.45, vary: 0 },
+  tick: { volume: 0.3, vary: 0 },
+  tap: { volume: 0.25, vary: 0.03 },
 };
 
 const players = new Map<SfxName, AudioPlayer>();
@@ -75,7 +72,7 @@ function player(name: SfxName): AudioPlayer {
   let p = players.get(name);
   if (!p) {
     p = createAudioPlayer(SOURCES[name]);
-    p.shouldCorrectPitch = false; // Tempo-Variation soll die Tonhöhe ändern
+    p.shouldCorrectPitch = false;
     players.set(name, p);
   }
   return p;
@@ -90,7 +87,6 @@ export function setSfxEnabled(value: boolean) {
   enabled = value;
 }
 
-/** Spielt einen Sound. `rate` verschiebt Tonhöhe/Tempo zusätzlich (z. B. Wurfschwung). */
 export function sfx(name: SfxName, opts: { rate?: number; volume?: number } = {}) {
   if (!enabled) return;
   try {
@@ -106,13 +102,12 @@ export function sfx(name: SfxName, opts: { rate?: number; volume?: number } = {}
   }
 }
 
-/** Serien-Glöckchen: je länger die Serie, desto höher der Ton. */
+/** Treffer-Melodie: jede Stufe der Serie eine Note höher (bis Note 8). */
 export function sfxStreak(streak: number) {
-  const step = Math.max(1, Math.min(6, streak)) as 1 | 2 | 3 | 4 | 5 | 6;
-  sfx(`chime${step}`);
+  const step = Math.max(1, Math.min(8, streak)) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  sfx(`note${step}`);
 }
 
-/** Vorladen, damit der erste Ton nicht verzögert kommt. */
 export function preloadSfx(names: SfxName[] = Object.keys(SOURCES) as SfxName[]) {
   names.forEach((n) => player(n));
 }

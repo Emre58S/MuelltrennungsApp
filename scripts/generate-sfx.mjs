@@ -1,82 +1,84 @@
 // Datei: scripts/generate-sfx.mjs
-// Erzeugt alle Spiel-Sounds per Klangsynthese als WAV (22,05 kHz, 16 Bit, mono).
+// Erzeugt das ruhige Klangset per Synthese (WAV, 22,05 kHz, 16 Bit, mono).
 // Aufruf:  node scripts/generate-sfx.mjs
-// Vorteil: keine Lizenzfragen, alles stimmig aus einem Guss, leicht anpassbar.
 //
-// Sound-Design-Regeln (siehe utils/sfx.ts):
-//  - jede Aktion bekommt innerhalb von ~50 ms ein Geräusch
-//  - Erfolg = hell, aufsteigend; Fehler = lustig-weich (Boing), nie hart/strafend
-//  - Serien steigen in der Tonleiter (Pentatonik) → „noch einer!“-Gefühl
+// Leitbild: angenehm & dezent wie Marimba/Kalimba (Alto's Adventure,
+// Monument Valley). Alle Töne liegen in C-Dur-Pentatonik → klingen
+// miteinander immer harmonisch. Fehler = weicher, tiefer Ton (nie strafend).
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const RATE = 22050;
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "assets", "sounds", "sfx");
 mkdirSync(OUT, { recursive: true });
-
-/* ── Bausteine ─────────────────────────────────────────────── */
+for (const f of readdirSync(OUT)) if (f.endsWith(".wav")) unlinkSync(join(OUT, f));
 
 const TAU = Math.PI * 2;
 const buf = (sec) => new Float32Array(Math.round(sec * RATE));
 
-let seed = 12345;
+let seed = 777;
 const noise = () => {
   seed = (seed * 1103515245 + 12345) & 0x7fffffff;
   return (seed / 0x7fffffff) * 2 - 1;
 };
 
-/** Hüllkurve: Anstieg a, Abklingen d (Sekunden), Kurvenform k. */
-const env = (t, a, d, k = 3) => (t < a ? t / a : Math.exp(-((t - a) / d) * k));
-
-/** Ton mit gleitender Frequenz (f0 → f1). */
-function tone(out, { start = 0, dur, f0, f1 = f0, vol = 0.5, a = 0.004, d = dur, k = 3, wave = "sine", vib = 0, vibRate = 6 }) {
-  let phase = 0;
-  const n = Math.round(dur * RATE);
+/** Sinus-Teilton mit exponentiellem Abklingen. */
+function partial(out, { start = 0, f, vol, decay, attack = 0.002, dur = decay * 6 }) {
   const s0 = Math.round(start * RATE);
+  const n = Math.round(dur * RATE);
   for (let i = 0; i < n && s0 + i < out.length; i++) {
     const t = i / RATE;
-    const p = t / dur;
-    const f = f0 * Math.pow(f1 / f0, p) * (1 + vib * Math.sin(TAU * vibRate * t));
-    phase += (TAU * f) / RATE;
-    let v;
-    if (wave === "sine") v = Math.sin(phase);
-    else if (wave === "tri") v = (2 / Math.PI) * Math.asin(Math.sin(phase));
-    else v = Math.sin(phase) * 0.7 + Math.sin(phase * 2) * 0.2 + Math.sin(phase * 3) * 0.1; // weicher „Saw“
-    out[s0 + i] += v * vol * env(t, a, d, k);
+    const env = t < attack ? t / attack : Math.exp(-(t - attack) / decay);
+    out[s0 + i] += Math.sin(TAU * f * t) * vol * env;
   }
 }
 
-/** Gefiltertes Rauschen (Tiefpass gleitend lp0 → lp1, 0..1). */
-function hiss(out, { start = 0, dur, vol = 0.4, a = 0.01, d = dur, k = 3, lp0 = 0.3, lp1 = lp0, hp = 0 }) {
+/** Marimba: Grundton + typische Obertöne (≈4× und ≈10×) + weicher Schlägel. */
+function marimba(out, { start = 0, f, vol = 0.5, decay = 0.22 }) {
+  partial(out, { start, f, vol, decay });
+  partial(out, { start, f: f * 3.93, vol: vol * 0.18, decay: decay * 0.25 });
+  partial(out, { start, f: f * 9.8, vol: vol * 0.05, decay: decay * 0.08 });
+  mallet(out, { start, vol: vol * 0.15 });
+}
+
+/** Kalimba: warmer Grundton, leichter Oberton, längeres Ausklingen. */
+function kalimba(out, { start = 0, f, vol = 0.45, decay = 0.4 }) {
+  partial(out, { start, f, vol, decay });
+  partial(out, { start, f: f * 2.0, vol: vol * 0.12, decay: decay * 0.4 });
+  partial(out, { start, f: f * 5.4, vol: vol * 0.04, decay: decay * 0.1 });
+}
+
+/** Kurzer, weicher Anschlag (gefiltertes Rauschen). */
+function mallet(out, { start = 0, vol = 0.1, dur = 0.012 }) {
+  const s0 = Math.round(start * RATE);
+  let low = 0;
+  for (let i = 0; i < dur * RATE && s0 + i < out.length; i++) {
+    low += 0.35 * (noise() - low);
+    out[s0 + i] += low * vol * (1 - i / (dur * RATE));
+  }
+}
+
+/** Luftzug: gefiltertes Rauschen mit Hüllkurve. */
+function air(out, { dur, vol, peak = 0.4, lp0 = 0.04, lp1 = 0.2 }) {
   let low = 0;
   let prev = 0;
-  const n = Math.round(dur * RATE);
-  const s0 = Math.round(start * RATE);
-  for (let i = 0; i < n && s0 + i < out.length; i++) {
-    const t = i / RATE;
-    const c = lp0 + (lp1 - lp0) * (t / dur);
-    low += c * (noise() - low);
-    const v = low - hp * prev;
+  for (let i = 0; i < out.length && i < dur * RATE; i++) {
+    const p = i / (dur * RATE);
+    const env = p < peak ? Math.sin((p / peak) * (Math.PI / 2)) : Math.cos(((p - peak) / (1 - peak)) * (Math.PI / 2));
+    low += (lp0 + (lp1 - lp0) * p) * (noise() - low);
+    const hp = low - prev * 0.7;
     prev = low;
-    out[s0 + i] += v * vol * env(t, a, d, k);
+    out[i] += hp * vol * env;
   }
 }
 
-/** Glocke: Grundton + unharmonische Obertöne. */
-function bell(out, { start = 0, f, vol = 0.35, dur = 0.5 }) {
-  tone(out, { start, dur, f0: f, vol, d: dur, k: 4 });
-  tone(out, { start, dur: dur * 0.6, f0: f * 2.01, vol: vol * 0.35, d: dur * 0.5, k: 4 });
-  tone(out, { start, dur: dur * 0.35, f0: f * 3.98, vol: vol * 0.12, d: dur * 0.3, k: 5 });
-}
-
-function write(name, data) {
-  // Normalisieren auf -1 dBFS, sanftes Ein-/Ausblenden gegen Knacken
+function write(name, data, level = 0.8) {
   let peak = 0;
   for (const v of data) peak = Math.max(peak, Math.abs(v));
-  const gain = peak > 0 ? 0.89 / peak : 1;
-  const fade = Math.min(64, data.length >> 2);
+  const gain = peak > 0 ? level / peak : 1;
+  const fade = Math.min(48, data.length >> 2);
   const pcm = Buffer.alloc(44 + data.length * 2);
   pcm.write("RIFF", 0);
   pcm.writeUInt32LE(36 + data.length * 2, 4);
@@ -100,129 +102,91 @@ function write(name, data) {
   console.log(`✓ ${name}.wav  ${(data.length / RATE).toFixed(2)} s`);
 }
 
-/* ── Die Sounds ────────────────────────────────────────────── */
+// C-Dur-Pentatonik, zwei Oktaven aufwärts
+const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51];
 
-// Zielen: zarter Tick, wenn eine neue Tonne anvisiert wird
-{
-  const b = buf(0.07);
-  tone(b, { dur: 0.07, f0: 1500, f1: 1200, vol: 0.5, d: 0.02, k: 3 });
-  write("aim", b);
-}
+/* ── Sounds ─────────────────────────────────────────────────── */
 
-// Deckel öffnet sich: neugieriges „Blupp“ nach oben (Vorfreude)
-{
-  const b = buf(0.16);
-  tone(b, { dur: 0.16, f0: 280, f1: 720, vol: 0.6, d: 0.1, k: 2.5 });
-  hiss(b, { dur: 0.05, vol: 0.08, lp0: 0.5 });
-  write("lid", b);
-}
-
-// Wurf: Luftzug
-{
-  const b = buf(0.36);
-  hiss(b, { dur: 0.36, vol: 0.9, a: 0.12, d: 0.2, k: 3, lp0: 0.05, lp1: 0.35, hp: 0.6 });
-  write("whoosh", b);
-}
-
-// Treffer: Korken-„Plopp“
-{
-  const b = buf(0.16);
-  tone(b, { dur: 0.12, f0: 950, f1: 240, vol: 0.8, d: 0.08, k: 3 });
-  hiss(b, { dur: 0.02, vol: 0.3, lp0: 0.8 });
-  write("pop", b);
-}
-
-// Tonne kaut: zwei knusprige Bisse + leises Brummen („Mmh“)
-{
-  const b = buf(0.48);
-  for (const s of [0, 0.17]) {
-    hiss(b, { start: s, dur: 0.09, vol: 0.55, a: 0.003, d: 0.05, lp0: 0.6, hp: 0.4 });
-    tone(b, { start: s, dur: 0.08, f0: 140, f1: 90, vol: 0.45, d: 0.06 });
-  }
-  tone(b, { start: 0.3, dur: 0.18, f0: 210, f1: 260, vol: 0.25, a: 0.03, d: 0.15, k: 2, wave: "soft", vib: 0.02 });
-  write("munch", b);
-}
-
-// Serien-Glöckchen: Pentatonik aufsteigend (C6 D6 E6 G6 A6 C7)
-[1046.5, 1174.7, 1318.5, 1568, 1760, 2093].forEach((f, i) => {
-  const b = buf(0.4);
-  bell(b, { f, vol: 0.5, dur: 0.4 });
-  write(`chime${i + 1}`, b);
-});
-
-// Perfekt: funkelndes Arpeggio
-{
-  const b = buf(0.75);
-  [1046.5, 1318.5, 1568, 2093].forEach((f, i) => bell(b, { start: i * 0.06, f, vol: 0.45, dur: 0.5 }));
-  for (let i = 0; i < 10; i++) tone(b, { start: 0.2 + i * 0.04, dur: 0.06, f0: 3000 + i * 180, vol: 0.06, d: 0.03 });
-  write("perfect", b);
-}
-
-// Falsch: weiches, lustiges „Boing“ (Feder) – nicht strafend
-{
-  const b = buf(0.55);
-  tone(b, { dur: 0.55, f0: 170, f1: 120, vol: 0.7, a: 0.005, d: 0.4, k: 2.5, vib: 0.18, vibRate: 13 });
-  tone(b, { dur: 0.3, f0: 340, f1: 240, vol: 0.18, d: 0.2, vib: 0.18, vibRate: 13 });
-  write("boing", b);
-}
-
-// Aufprall auf dem Boden
-{
-  const b = buf(0.2);
-  tone(b, { dur: 0.18, f0: 120, f1: 55, vol: 0.8, d: 0.1, k: 3 });
-  hiss(b, { dur: 0.06, vol: 0.25, lp0: 0.25 });
-  write("thud", b);
-}
-
-// Fieber: aufsteigendes Arpeggio + Luftzug
-{
-  const b = buf(1.1);
-  [523.3, 659.3, 784, 1046.5, 1318.5, 1568, 2093, 2637].forEach((f, i) =>
-    tone(b, { start: i * 0.07, dur: 0.3, f0: f, vol: 0.32, d: 0.2, wave: "tri" }),
-  );
-  hiss(b, { dur: 0.7, vol: 0.25, a: 0.4, d: 0.3, lp0: 0.05, lp1: 0.5, hp: 0.5 });
-  write("fever", b);
-}
-
-// Countdown-Tick (letzte Sekunden)
+// Zielen: kaum hörbares Holz-Tick (Orientierung, kein Lärm)
 {
   const b = buf(0.06);
-  tone(b, { dur: 0.06, f0: 1900, vol: 0.6, d: 0.015, k: 3, wave: "tri" });
-  write("tick", b);
+  partial(b, { f: 1800, vol: 0.4, decay: 0.008 });
+  mallet(b, { vol: 0.2, dur: 0.006 });
+  write("aim", b, 0.6);
 }
 
-// Level-Aufstieg: kleine Fanfare
+// Wurf: weicher, kurzer Luftzug
 {
-  const b = buf(1.2);
-  [
-    [0, 784, 0.15],
-    [0.14, 1046.5, 0.15],
-    [0.28, 1318.5, 0.15],
-    [0.42, 1568, 0.75],
-  ].forEach(([s, f, d]) => {
-    tone(b, { start: s, dur: d + 0.1, f0: f, vol: 0.35, a: 0.01, d, k: 2, wave: "tri" });
-    tone(b, { start: s, dur: d + 0.1, f0: f / 2, vol: 0.15, a: 0.01, d, k: 2, wave: "soft" });
-  });
-  write("levelup", b);
+  const b = buf(0.26);
+  air(b, { dur: 0.26, vol: 1, peak: 0.35 });
+  write("throw", b, 0.7);
 }
 
-// Runde verloren (Ohne-Fehler-Modus): lustige „Wah-wah“-Posaune
+// Treffer: dumpfes Holz-„Tock“ (Gegenstand landet in der Tonne)
 {
-  const b = buf(1.5);
-  [
-    [0, 466.2, 0.28],
-    [0.3, 440, 0.28],
-    [0.6, 415.3, 0.28],
-    [0.9, 392, 0.6],
-  ].forEach(([s, f, d], i) =>
-    tone(b, { start: s, dur: d, f0: f, f1: i === 3 ? f * 0.97 : f, vol: 0.5, a: 0.03, d, k: 1.5, wave: "soft", vib: i === 3 ? 0.03 : 0.01, vibRate: 7 }),
-  );
-  write("wahwah", b);
+  const b = buf(0.14);
+  partial(b, { f: 196, vol: 0.6, decay: 0.035 });
+  partial(b, { f: 392, vol: 0.15, decay: 0.015 });
+  mallet(b, { vol: 0.25 });
+  write("land", b, 0.75);
+}
+
+// Serien-Noten: jeder weitere Treffer eine Stufe höher → kleine Melodie
+SCALE.forEach((f, i) => {
+  const b = buf(0.6);
+  marimba(b, { f, vol: 0.5, decay: 0.2 });
+  write(`note${i + 1}`, b, 0.75);
+});
+
+// Perfekt: zwei helle Kalimba-Töne (Terz) – funkelnd, aber sanft
+{
+  const b = buf(0.9);
+  kalimba(b, { f: 1318.51, vol: 0.4, decay: 0.32 });
+  kalimba(b, { start: 0.07, f: 1567.98, vol: 0.4, decay: 0.32 });
+  write("perfect", b, 0.75);
+}
+
+// Falsch: weicher, tiefer Doppelton abwärts (G3 → E3), gedämpft
+{
+  const b = buf(0.5);
+  partial(b, { f: 196, vol: 0.5, decay: 0.09, attack: 0.008 });
+  partial(b, { start: 0.12, f: 164.81, vol: 0.5, decay: 0.12, attack: 0.008 });
+  partial(b, { start: 0.12, f: 329.63, vol: 0.08, decay: 0.05 });
+  write("wrong", b, 0.65);
+}
+
+// Fieber: schnelles Kalimba-Arpeggio aufwärts + leiser Luftzug
+{
+  const b = buf(1.1);
+  SCALE.forEach((f, i) => kalimba(b, { start: i * 0.055, f, vol: 0.35, decay: 0.3 }));
+  write("fever", b, 0.75);
+}
+
+// Level-Aufstieg: warmes Arpeggio C–E–G–C mit Nachklang
+{
+  const b = buf(1.4);
+  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => kalimba(b, { start: i * 0.11, f, vol: 0.45, decay: 0.5 }));
+  write("levelup", b, 0.8);
+}
+
+// Rundenende: ruhiger Akkord (C–E–G), angenehmer Abschluss
+{
+  const b = buf(1.6);
+  [261.63, 329.63, 392, 523.25].forEach((f, i) => kalimba(b, { start: i * 0.04, f, vol: 0.35, decay: 0.6 }));
+  write("end", b, 0.75);
+}
+
+// Countdown-Tick (letzte Sekunden): leises Holz
+{
+  const b = buf(0.05);
+  partial(b, { f: 1400, vol: 0.5, decay: 0.01 });
+  write("tick", b, 0.55);
 }
 
 // Menü-Tipp
 {
   const b = buf(0.05);
-  tone(b, { dur: 0.05, f0: 900, f1: 700, vol: 0.4, d: 0.015 });
-  write("tap", b);
+  partial(b, { f: 1046.5, vol: 0.4, decay: 0.012 });
+  mallet(b, { vol: 0.1, dur: 0.005 });
+  write("tap", b, 0.5);
 }

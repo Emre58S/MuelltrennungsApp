@@ -9,6 +9,10 @@ import { type Item } from "@/constants/items";
 
 import { EXTRA_MODEL_RULES, renderExtraModel } from "./models-extra";
 
+function lighten(hex: string, amount: number) {
+  return `#${new THREE.Color(hex).offsetHSL(0, 0, amount).getHexString()}`;
+}
+
 
 function normalizeName(name: string): string {
   return name
@@ -294,10 +298,8 @@ function Part({
   basic,
   noDepthWrite,
   color,
-  roughness = 0.8,
   metalness = 0,
   opacity = 1,
-  flat,
   double,
   emissive,
 }: PartProps) {
@@ -321,13 +323,13 @@ function Part({
           depthWrite={!noDepthWrite}
         />
       ) : (
-        <meshStandardMaterial
-          color={color}
-          roughness={roughness}
-          metalness={metalness}
+        // Low-Poly: flache Facetten (Lambert, günstig zu rendern).
+        // Metall wirkt über eine etwas hellere Farbe.
+        <meshLambertMaterial
+          color={metalness > 0.3 ? lighten(color, 0.1) : color}
+          flatShading
           transparent={transparent}
           opacity={opacity}
-          flatShading={flat}
           side={side}
           emissive={emissive}
           depthWrite={!noDepthWrite}

@@ -14,7 +14,6 @@ import {
   ItemCard,
   LearnCard,
   Praise,
-  SpeechBubble,
   ScoreBadge,
   TimerBar,
 } from "@/components/game/hud";
@@ -42,8 +41,6 @@ import {
   statsReducer,
   XP_PER_RESULT,
 } from "@/game/logic";
-import { useBinVoice } from "@/game/use-bin-voice";
-import { type TranslationKey } from "@/i18n";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import { devLog } from "@/utils/dev-error-reporter";
@@ -151,7 +148,7 @@ function GameRound({
 }) {
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { reduceMotion } = useAppSettings();
   const fx = useRef(createFx());
   useEffect(() => {
@@ -213,8 +210,7 @@ function GameRound({
       set.forEach(clearTimeout);
     };
   }, []);
-  // Sound-Design + sprechende Tonnen (siehe utils/sfx.ts, game/voice.ts)
-  const { talkingIndex, subtitle, say } = useBinVoice(bins, lang);
+  // Dezentes Sound-Feedback (siehe utils/sfx.ts)
   useEffect(() => {
     refreshSfxSetting();
     preloadSfx();
@@ -239,12 +235,6 @@ function GameRound({
     }
     if (timeLeft <= 0) lock.current.ended = true;
   }, [mode, timerStarted, timeLeft]);
-  // Sanfter Stups, wenn 9 s nichts passiert (eine zufällige Tonne meldet sich)
-  useEffect(() => {
-    if (finished || !currentItem) return;
-    const id = setTimeout(() => say(Math.floor(Math.random() * bins.length), "idle"), 9000);
-    return () => clearTimeout(id);
-  }, [currentItem, finished, bins.length, say]);
   const timeUp = mode === "time" && timeLeft <= 0;
   const showEnd = finished || (timeUp && throwStates.length === 0);
   const savedRound = useRef(false);
@@ -264,7 +254,9 @@ function GameRound({
     }).catch(() => undefined);
   }, []);
   useEffect(() => {
-    if (showEnd) commitRound();
+    if (!showEnd) return;
+    commitRound();
+    sfx("end");
   }, [showEnd, commitRound]);
   useEffect(() => commitRound, [commitRound]);
   const showBanner = useCallback(
@@ -307,7 +299,7 @@ function GameRound({
     setThrowStates((list) => [...list, ts]);
     setCurrentItem(drawFromBag(bag, pool, item.name));
     setPraise(null);
-    sfx("whoosh", { rate: perfect ? 1.15 : 1 });
+    sfx("throw", { rate: perfect ? 1.1 : 1 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
       () => undefined,
     );
@@ -337,12 +329,9 @@ function GameRound({
     });
     if (ts.hit) {
       const streakNow = stats.streak + 1;
-      sfx("pop");
-      later(() => sfx("munch"), 90);
+      sfx("land");
       if (ts.perfect) sfx("perfect");
       else sfxStreak(streakNow);
-      if (streakNow % 5 === 0) say(i, "streak", { n: streakNow });
-      else say(i, ts.perfect ? "perfect" : "correct");
       if (ts.perfect)
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
@@ -351,7 +340,7 @@ function GameRound({
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
           () => undefined,
         );
-      shake(fx.current, ts.perfect ? 0.1 : 0.035);
+      shake(fx.current, ts.perfect ? 0.05 : 0.015);
       setBursts((b) => [
         ...b,
         {
@@ -362,7 +351,7 @@ function GameRound({
           colors: ts.perfect
             ? ["#FFD54A", "#FFFFFF", bin.colorLight, "#FFB300"]
             : [bin.color, bin.colorLight, "#FFFFFF"],
-          count: ts.perfect ? 50 : fever ? 36 : 24,
+          count: ts.perfect ? 30 : fever ? 20 : 12,
           power: ts.perfect ? 1.25 : 1,
           ring: ts.perfect,
         },
@@ -385,28 +374,26 @@ function GameRound({
           "game.praise.4",
         ] as const
       )[id % 4];
-      setPraise({
-        id,
-        text: ts.perfect ? t("game.perfect") : t(praiseKey),
-        gold: ts.perfect,
-      });
-      later(() => {
-        setPraise((p) => (p?.id === id ? null : p));
-      }, 750);
+      // Dezent: Lob-Text nur bei Perfekt und bei Serien (5, 10, 15 …)
+      if (ts.perfect || streakNow % 5 === 0) {
+        setPraise({
+          id,
+          text: ts.perfect ? t("game.perfect") : `${t(praiseKey)} ×${streakNow}`,
+          gold: ts.perfect,
+        });
+        later(() => {
+          setPraise((p) => (p?.id === id ? null : p));
+        }, 900);
+      }
       const streakAfter = stats.streak + 1;
       if (streakAfter % FEVER_EVERY === 0) startFever();
     } else {
-      sfx("boing");
-      later(() => sfx("thud"), 420);
+      sfx("wrong");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
         () => undefined,
       );
-      shake(fx.current, 0.08, "x");
+      shake(fx.current, 0.04, "x");
       const correctBin = getBinByCategory(ts.item.category) ?? bin;
-      say(i, "wrong", {
-        item: ts.item.name,
-        into: t(`${correctBin.labelKey}.into` as TranslationKey),
-      });
       if (mode === "endless") {
         setLearn({ id, item: ts.item, bin: correctBin });
         later(() => {
@@ -417,7 +404,6 @@ function GameRound({
       if (mode === "survival") {
         lock.current.over = true;
         lock.current.ended = true;
-        later(() => sfx("wahwah"), 700);
         later(() => {
           setFinished(true);
         }, 1900);
@@ -468,7 +454,6 @@ function GameRound({
         setAimIndex(idx);
         if (idx !== null) {
           sfx("aim");
-          sfx("lid");
           Haptics.selectionAsync().catch(() => undefined);
         }
       },
@@ -593,7 +578,6 @@ function GameRound({
               aimIndex={aimIndex}
               throws={throwStates}
               binEvents={binEvents}
-              talkingIndex={talkingIndex}
               bursts={bursts}
               onLand={onLand}
               onThrowDone={onThrowDone}
@@ -612,14 +596,6 @@ function GameRound({
             {floats.map((f) => (
               <FloatingText key={f.id} item={f} onDone={onFloatDone} />
             ))}
-            {subtitle && layout.binTops[subtitle.binIndex] && (
-              <SpeechBubble
-                key={subtitle.id}
-                x={layout.binTops[subtitle.binIndex].x}
-                y={layout.binTops[subtitle.binIndex].y}
-                text={subtitle.text}
-              />
-            )}
 
             {praise && (
               <View

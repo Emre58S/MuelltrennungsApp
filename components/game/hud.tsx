@@ -349,32 +349,6 @@ export function Praise({ text, gold }: { text: string; gold: boolean }) {
   );
 }
 
-/** Dezenter Untertitel über der sprechenden Tonne (verdeckt das Spiel nicht). */
-export function SpeechBubble({ x, y, text }: { x: number; y: number; text: string }) {
-  const enter = useEnter(280);
-  return (
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        styles.bubbleWrap,
-        {
-          left: x - 115,
-          top: y - 86,
-          opacity: enter,
-          transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }],
-        },
-      ]}
-    >
-      <View style={styles.bubble}>
-        <AppText variant="label" color="#1E2228" center numberOfLines={3}>
-          {text}
-        </AppText>
-      </View>
-      <View style={styles.bubbleTail} />
-    </Animated.View>
-  );
-}
-
 export type FloatText = { id: number; x: number; y: number; text: string; color: string };
 
 export function FloatingText({ item, onDone }: { item: FloatText; onDone: (id: number) => void }) {
@@ -546,22 +520,6 @@ const styles = StyleSheet.create({
 
   praise: { position: "absolute", left: 0, right: 0, alignItems: "center", justifyContent: "center", height: 120 },
   praiseText: { fontSize: 42, lineHeight: 50, textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 14 },
-  bubbleWrap: { position: "absolute", width: 230, alignItems: "center" },
-  bubble: {
-    backgroundColor: "rgba(255,255,255,0.93)",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    maxWidth: 230,
-    ...shadow,
-  },
-  bubbleTail: {
-    width: 12,
-    height: 12,
-    backgroundColor: "rgba(255,255,255,0.93)",
-    transform: [{ rotate: "45deg" }],
-    marginTop: -7,
-  },
 
   float: { position: "absolute", width: 120 },
   floatText: {
