@@ -163,6 +163,9 @@ function GameRound({
     [screenW, screenH, bins.length],
   );
   const [stats, dispatch] = useReducer(statsReducer, INITIAL_STATS);
+  // Synchroner Spiegel von `stats`: bei schnellen Würfen landen mehrere Items,
+  // bevor React neu gerendert hat – dann wäre `stats` im Handler veraltet.
+  const liveStats = useRef(INITIAL_STATS);
   const [currentItem, setCurrentItemState] = useState<Item | null>(() =>
     drawFromBag(bag, pool),
   );
@@ -315,10 +318,14 @@ function GameRound({
         ? "perfect"
         : "correct"
       : "wrong";
-    const points = getPoints(result, stats.streak, fever);
+    const before = liveStats.current;
+    const points = getPoints(result, before.streak, fever);
     const top = layout.binTops[i];
     const id = ++lock.current.id;
-    dispatch({ type: "result", result, points });
+    const action = { type: "result", result, points } as const;
+    const after = statsReducer(before, action);
+    liveStats.current = after;
+    dispatch(action);
     setBinEvents((ev) => {
       const next = [...ev];
       next[i] = {
@@ -328,7 +335,7 @@ function GameRound({
       return next;
     });
     if (ts.hit) {
-      const streakNow = stats.streak + 1;
+      const streakNow = after.streak;
       sfx("land");
       if (ts.perfect) sfx("perfect");
       else sfxStreak(streakNow);
@@ -385,8 +392,7 @@ function GameRound({
           setPraise((p) => (p?.id === id ? null : p));
         }, 900);
       }
-      const streakAfter = stats.streak + 1;
-      if (streakAfter % FEVER_EVERY === 0) startFever();
+      if (streakNow % FEVER_EVERY === 0) startFever();
     } else {
       sfx("wrong");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
@@ -427,7 +433,7 @@ function GameRound({
       })
       .catch(() => undefined);
     if (points > 0)
-      saveHighscore(HIGHSCORE_MODE[mode], stats.score + points).catch(
+      saveHighscore(HIGHSCORE_MODE[mode], after.score).catch(
         () => undefined,
       );
   };

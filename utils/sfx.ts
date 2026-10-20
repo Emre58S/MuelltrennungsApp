@@ -65,16 +65,27 @@ const MIX: Record<SfxName, { volume: number; vary: number }> = {
   tap: { volume: 0.25, vary: 0.03 },
 };
 
-const players = new Map<SfxName, AudioPlayer>();
+/** Mehrere Player pro Ton, reihum: bei schnellen Würfen überlappen Töne,
+ *  statt dass ein noch laufender Ton abgeschnitten oder verschluckt wird. */
+const POOL_SIZE = 3;
+const players = new Map<SfxName, { list: AudioPlayer[]; next: number }>();
 let enabled = true;
 
 function player(name: SfxName): AudioPlayer {
-  let p = players.get(name);
-  if (!p) {
-    p = createAudioPlayer(SOURCES[name]);
-    p.shouldCorrectPitch = false;
-    players.set(name, p);
+  let pool = players.get(name);
+  if (!pool) {
+    pool = {
+      list: Array.from({ length: POOL_SIZE }, () => {
+        const p = createAudioPlayer(SOURCES[name]);
+        p.shouldCorrectPitch = false;
+        return p;
+      }),
+      next: 0,
+    };
+    players.set(name, pool);
   }
+  const p = pool.list[pool.next];
+  pool.next = (pool.next + 1) % POOL_SIZE;
   return p;
 }
 

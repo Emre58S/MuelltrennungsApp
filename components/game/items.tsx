@@ -3,7 +3,7 @@
 // und das geworfene Item (Flug mit Leuchtspur → Einsinken oder Abprallen).
 
 import { useFrame } from "@react-three/fiber/native";
-import { memo, useLayoutEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
@@ -195,6 +195,7 @@ export function ThrownItem({
       }),
     [glow],
   );
+  useEffect(() => () => trailMat.dispose(), [trailMat]);
 
   useLayoutEffect(() => {
     const mesh = trailRef.current;
