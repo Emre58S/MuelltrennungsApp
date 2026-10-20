@@ -18,8 +18,12 @@ import "react-native-reanimated";
 
 import { AppSettingsProvider, useAppSettings } from "@/providers/app-settings";
 import { installDevErrorReporter } from "@/utils/dev-error-reporter";
+import { silenceKnownWarnings } from "@/utils/silence-warnings";
 
+// Filter zuletzt einhängen: er liegt dann außen und hält harmlose
+// Bibliotheks-Warnungen auf, bevor der Reporter sie an den PC schickt.
 installDevErrorReporter();
+silenceKnownWarnings();
 SplashScreen.preventAutoHideAsync();
 
 function RootStack({ fontsDone }: { fontsDone: boolean }) {
