@@ -1,30 +1,19 @@
-// Datei: app/modi.tsx — Design v2
+// Datei: app/modi.tsx — Design v3 (Modus-Karten mit eigenen Hintergründen)
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Card } from "@/components/ui/card";
 import { FadeIn } from "@/components/ui/fade-in";
 import { IconButton } from "@/components/ui/icon-button";
-import { type GameMode, MODES, startGame } from "@/constants/modes";
-import { Radius, Spacing, type ThemeColors } from "@/constants/theme";
+import { ModeBackdrop } from "@/components/ui/mode-backdrop";
+import { ModeThemes } from "@/constants/mode-themes";
+import { type ModeConfig, MODES, startGame } from "@/constants/modes";
+import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
-
-function modeColors(mode: GameMode, c: ThemeColors) {
-  switch (mode) {
-    case "endless":
-      return { bg: c.primarySoft, fg: c.onPrimarySoft };
-
-    case "survival":
-      return { bg: c.infoSoft, fg: c.info };
-
-    case "time":
-      return { bg: c.goldSoft, fg: c.onGoldSoft };
-  }
-}
 
 export default function ModiScreen() {
   const insets = useSafeAreaInsets();
@@ -41,6 +30,24 @@ export default function ModiScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+      {/* Weiche Farbflecken hinter der Kopfzeile */}
+      <View
+        pointerEvents="none"
+        style={[
+          styles.blob,
+          styles.blobA,
+          { backgroundColor: colors.primarySoft },
+        ]}
+      />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.blob,
+          styles.blobB,
+          { backgroundColor: colors.goldSoft },
+        ]}
+      />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -64,61 +71,18 @@ export default function ModiScreen() {
                 {t("modes.title")}
               </AppText>
 
-              <AppText tone="textSecondary">
-                {t("modes.subtitle")}
-              </AppText>
+              <AppText tone="textSecondary">{t("modes.subtitle")}</AppText>
             </View>
           </View>
         </FadeIn>
 
-        {MODES.map((item, index) => {
-          const accent = modeColors(item.mode, colors);
-          const title = t(item.titleKey);
-          const desc = t(item.descKey);
+        {MODES.map((item, index) => (
+          <FadeIn key={item.mode} delay={60 + index * 70}>
+            <ModeCard item={item} />
+          </FadeIn>
+        ))}
 
-          return (
-            <FadeIn key={item.mode} delay={60 + index * 60}>
-              <Card
-                onPress={() => startGame(item.mode)}
-                accessibilityLabel={`${title}. ${desc}`}
-                style={[
-                  styles.modeCard,
-                  item.recommended && {
-                    borderColor: colors.primary,
-                    borderWidth: 2,
-                  },
-                ]}
-              >
-                <View style={[styles.modeIcon, { backgroundColor: accent.bg }]}>
-                  <Feather name={item.icon} size={28} color={accent.fg} />
-                </View>
-
-                <View style={styles.flex}>
-                  {item.recommended && (
-                    <View
-                      style={[styles.badge, { backgroundColor: colors.primary }]}
-                    >
-                      <AppText variant="overline" tone="onPrimary">
-                        {t("mode.recommended").toUpperCase()}
-                      </AppText>
-                    </View>
-                  )}
-
-                  <AppText variant="heading">{title}</AppText>
-                  <AppText tone="textSecondary">{desc}</AppText>
-                </View>
-
-                <Feather
-                  name="chevron-right"
-                  size={24}
-                  color={colors.textMuted}
-                />
-              </Card>
-            </FadeIn>
-          );
-        })}
-
-        <FadeIn delay={260}>
+        <FadeIn delay={300}>
           <Card
             style={[styles.hintCard, { backgroundColor: colors.surfaceAlt }]}
           >
@@ -132,6 +96,57 @@ export default function ModiScreen() {
         </FadeIn>
       </ScrollView>
     </View>
+  );
+}
+
+function ModeCard({ item }: { item: ModeConfig }) {
+  const { scheme } = useAppTheme();
+  const { t } = useI18n();
+
+  const theme = ModeThemes[scheme][item.mode];
+  const title = t(item.titleKey);
+  const desc = t(item.descKey);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${title}. ${desc}`}
+      onPress={() => startGame(item.mode)}
+      style={({ pressed }) => [
+        styles.modeCard,
+        {
+          borderColor: item.recommended ? theme.accent : "transparent",
+          borderWidth: item.recommended ? 2 : 0,
+        },
+        scheme === "light" && Shadow,
+        pressed && styles.pressed,
+      ]}
+    >
+      <ModeBackdrop mode={item.mode} theme={theme} />
+
+      <View style={[styles.modeIcon, { backgroundColor: theme.accent }]}>
+        <Feather name={item.icon} size={28} color={theme.onAccent} />
+      </View>
+
+      <View style={styles.flex}>
+        {item.recommended && (
+          <View style={[styles.badge, { backgroundColor: theme.accent }]}>
+            <AppText variant="overline" color={theme.onAccent}>
+              {t("mode.recommended").toUpperCase()}
+            </AppText>
+          </View>
+        )}
+
+        <AppText variant="heading" color={theme.text}>
+          {title}
+        </AppText>
+        <AppText color={theme.textSecondary}>{desc}</AppText>
+      </View>
+
+      <View style={[styles.chevron, { backgroundColor: theme.accent }]}>
+        <Feather name="chevron-right" size={22} color={theme.onAccent} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -158,7 +173,16 @@ function HintRow({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    overflow: "hidden",
   },
+
+  blob: {
+    position: "absolute",
+    borderRadius: Radius.pill,
+    opacity: 0.8,
+  },
+  blobA: { width: 260, height: 260, top: -110, right: -80 },
+  blobB: { width: 180, height: 180, top: 60, left: -90 },
 
   content: {
     paddingHorizontal: Spacing.md + 4,
@@ -180,13 +204,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
+    minHeight: 132,
     paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.xl,
+    overflow: "hidden",
   },
+
+  pressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
 
   modeIcon: {
     width: 60,
     height: 60,
     borderRadius: Radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  chevron: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
     alignItems: "center",
     justifyContent: "center",
   },
