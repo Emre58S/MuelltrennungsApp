@@ -176,6 +176,7 @@ export function ThrownItem({
     landed: false,
     done: false,
     slowed: false,
+    counted: false,
     vel: new THREE.Vector3(),
     trail: Array.from({ length: TRAIL }, () => start.clone()),
     head: 0,
@@ -196,6 +197,17 @@ export function ThrownItem({
     [glow],
   );
   useEffect(() => () => trailMat.dispose(), [trailMat]);
+
+  // Fliegende Würfe zählen (Zeitlupe gibt es nur für einen einzelnen Wurf).
+  useEffect(() => {
+    const s = st.current;
+    const f = fx.current;
+    f.flying += 1;
+    s.counted = true;
+    return () => {
+      if (s.counted) f.flying -= 1;
+    };
+  }, [fx]);
 
   useLayoutEffect(() => {
     const mesh = trailRef.current;
@@ -226,6 +238,10 @@ export function ThrownItem({
       }
 
       if (s.t >= 1) {
+        if (s.counted) {
+          s.counted = false;
+          fx.current.flying -= 1;
+        }
         if (!s.landed) {
           s.landed = true;
           onLand();

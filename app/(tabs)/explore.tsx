@@ -2,7 +2,7 @@
 // Mehrere Würfe gleichzeitig. Lernkarte nur im Üben-Modus.
 import { type Burst } from "@/components/game/effects";
 import { EndScreen, type Mistake } from "@/components/game/end-screen";
-import { createFx, shake } from "@/components/game/fx";
+import { cancelSlowMotion, createFx, shake } from "@/components/game/fx";
 import { GameScene, type ThrowState } from "@/components/game/game-scene";
 import {
   Banner,
@@ -289,6 +289,7 @@ function GameRound({
     if (!item || l.ended || finished) return;
     l.aim = null;
     setAimIndex(null);
+    cancelSlowMotion(fx.current);
     if (mode === "time") setTimerStarted(true);
     const hit = bins[binIndex].category === item.category;
     const ts: ThrowState = {

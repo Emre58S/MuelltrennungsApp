@@ -224,6 +224,43 @@ type PartProps = MatProps & {
   noDepthWrite?: boolean;
 };
 
+/** Materialien werden pro Eigenschaften-Kombination einmal erzeugt und von
+ *  allen Teilen geteilt – sonst legt jeder Wurf Dutzende neue Materialien an. */
+const materialCache = new Map<string, THREE.Material>();
+
+function partMaterial(
+  basic: boolean,
+  color: string,
+  metallic: boolean,
+  opacity: number,
+  double: boolean,
+  emissive: string | undefined,
+  noDepthWrite: boolean,
+): THREE.Material {
+  const key = `${basic}|${color}|${metallic}|${opacity}|${double}|${emissive ?? ""}|${noDepthWrite}`;
+  let material = materialCache.get(key);
+  if (!material) {
+    const common = {
+      transparent: opacity < 1,
+      opacity,
+      side: double ? THREE.DoubleSide : THREE.FrontSide,
+      depthWrite: !noDepthWrite,
+    };
+    material = basic
+      ? new THREE.MeshBasicMaterial({ color, ...common })
+      : // Low-Poly: flache Facetten (Lambert, günstig zu rendern).
+        // Metall wirkt über eine etwas hellere Farbe.
+        new THREE.MeshLambertMaterial({
+          color: metallic ? lighten(color, 0.1) : color,
+          flatShading: true,
+          emissive,
+          ...common,
+        });
+    materialCache.set(key, material);
+  }
+  return material;
+}
+
 export function Part({
   geo: geometry,
   pos,
@@ -237,39 +274,25 @@ export function Part({
   double,
   emissive,
 }: PartProps) {
-  const side = double ? THREE.DoubleSide : THREE.FrontSide;
-  const transparent = opacity < 1;
+  const material = partMaterial(
+    !!basic,
+    color,
+    metalness > 0.3,
+    opacity,
+    !!double,
+    emissive,
+    !!noDepthWrite,
+  );
 
   return (
     <mesh
       geometry={geometry}
+      material={material}
       position={pos}
       rotation={rot}
       scale={scale}
       castShadow={!basic}
-    >
-      {basic ? (
-        <meshBasicMaterial
-          color={color}
-          transparent={transparent}
-          opacity={opacity}
-          side={side}
-          depthWrite={!noDepthWrite}
-        />
-      ) : (
-        // Low-Poly: flache Facetten (Lambert, günstig zu rendern).
-        // Metall wirkt über eine etwas hellere Farbe.
-        <meshLambertMaterial
-          color={metalness > 0.3 ? lighten(color, 0.1) : color}
-          flatShading
-          transparent={transparent}
-          opacity={opacity}
-          side={side}
-          emissive={emissive}
-          depthWrite={!noDepthWrite}
-        />
-      )}
-    </mesh>
+    />
   );
 }
 
