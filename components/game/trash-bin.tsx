@@ -138,7 +138,9 @@ export const TrashBin = memo(function TrashBin({
     const wave = a.hit > 0 ? Math.sin((1 - a.hit / 1.3) * Math.PI * 2) * a.hit : 0;
     root.scale.set(1 + wave * 0.04, 1 - wave * 0.06, 1 + wave * 0.04);
     // Fehler: kurzes Kopfschütteln
-    root.rotation.z = a.reject > 0 && !f.calm ? Math.sin(t * 28) * 0.06 * a.reject : 0;
+    root.rotation.z = a.reject > 0 && !f.calm ? Math.sin(t * 28) * 0.1 * a.reject : 0;
+    // Fehler: kurz ducken (zusätzlich zum Kopfschütteln)
+    if (a.reject > 0) root.scale.y *= 1 - Math.sin(a.reject * Math.PI) * 0.05;
 
     // Deckel: offen beim Zielen, einmal auf/zu beim Treffer, zu bei Fehler
     let lidTarget = aimed ? LID_OPEN : 0;

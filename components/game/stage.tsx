@@ -5,6 +5,8 @@
 // Flächen – Details (Fenster, Bäume, Rohre) stehen an den Seiten.
 // Stil: flach schattierte Facetten + Pastellpalette (Townscaper/Islanders).
 // Dunkel-Modus = Abenddämmerung mit warm leuchtenden Fenstern.
+// Tageszeit: auch im hellen Modus abends (19–6 Uhr) Dämmerung.
+// Wetter: manchmal leichter Regen mit bedecktem Himmel (ein Draw-Call).
 
 import { useFrame } from "@react-three/fiber/native";
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -99,6 +101,27 @@ const DUSK: Palette = {
   hemiGround: "#4A4040",
   hemi: 0.8,
 };
+
+/** Bedeckter Himmel bei Regen (überschreibt nur Himmel und Licht). */
+function overcast(p: Palette): Palette {
+  const dusk = p === DUSK;
+  return {
+    ...p,
+    skyTop: dusk ? "#3A4258" : "#97A6B5",
+    skyHorizon: dusk ? "#8E8A99" : "#D9DEE3",
+    cloud: dusk ? "#6F7184" : "#E4E8EC",
+    sun: p.sun * 0.7,
+    hemi: p.hemi * 0.95,
+  };
+}
+
+export type Weather = "clear" | "rain";
+const RAIN_CHANCE = 0.22;
+
+function isEvening(date = new Date()) {
+  const h = date.getHours();
+  return h >= 19 || h < 6;
+}
 
 const FEVER = new THREE.Color("#FFB070");
 const WALL_Z = -2.5;
@@ -445,7 +468,12 @@ export const Stage = memo(function Stage({
   kind?: SceneKind;
 }) {
   const [scene] = useState<SceneKind>(() => kind ?? nextScene());
-  const p = scheme === "dark" ? DUSK : LIGHT;
+  const [weather] = useState<Weather>(() =>
+    !calm && Math.random() < RAIN_CHANCE ? "rain" : "clear",
+  );
+  const [evening] = useState(isEvening);
+  const base = scheme === "dark" || evening ? DUSK : LIGHT;
+  const p = useMemo(() => (weather === "rain" ? overcast(base) : base), [weather, base]);
   const garden = scene === "garten";
 
   return (
@@ -502,6 +530,66 @@ export const Stage = memo(function Stage({
       {garden && <GardenScene p={p} />}
 
       <Clouds color={p.cloud} calm={calm} />
+      {weather === "rain" && !calm && <Rain />}
     </>
   );
+});
+
+/* ── Regen ─────────────────────────────────────────────────── */
+
+const DROPS = 140;
+const DROP_GEO = new THREE.BoxGeometry(0.012, 0.28, 0.012);
+
+function createDrops() {
+  const rand = seeded(7);
+  return Array.from({ length: DROPS }, () => ({
+    x: -8 + rand() * 16,
+    y: rand() * 9,
+    z: -4 + rand() * 7.5,
+    speed: 7 + rand() * 3,
+  }));
+}
+
+/** Leichter Regen: dünne Striche fallen schräg, ein InstancedMesh. */
+const Rain = memo(function Rain() {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const mat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: "#D6E6F5",
+        transparent: true,
+        opacity: 0.45,
+        depthWrite: false,
+        fog: false,
+      }),
+    [],
+  );
+  useEffect(() => () => mat.dispose(), [mat]);
+  // Veränderlicher Zustand pro Frame → Ref (Rain rendert nur einmal)
+  const drops = useRef(createDrops());
+  const m = useMemo(() => new THREE.Matrix4(), []);
+  const q = useMemo(() => new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0.18)), []);
+  const pos = useMemo(() => new THREE.Vector3(), []);
+  const one = useMemo(() => new THREE.Vector3(1, 1, 1), []);
+
+  useFrame((_, rawDelta) => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const delta = Math.min(rawDelta, 0.05);
+    for (let i = 0; i < DROPS; i++) {
+      const d = drops.current[i];
+      d.y -= d.speed * delta;
+      d.x -= d.speed * delta * 0.18;
+      if (d.y < 0) {
+        d.y += 9;
+        d.x += 9 * 0.18;
+      }
+      pos.set(d.x, d.y, d.z);
+      m.compose(pos, q, one);
+      mesh.setMatrixAt(i, m);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+
+  return <instancedMesh ref={ref} args={[DROP_GEO, mat, DROPS]} frustumCulled={false} />;
 });
