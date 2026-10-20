@@ -1,0 +1,497 @@
+// Datei: components/game/models/bio.tsx
+// Modelle: Biomüll
+
+import { G, Part, LEAF_POINTS } from "./shared";
+import { type V3 } from "./shared";
+
+export function renderBioModel(key: string, name: string) {
+  switch (key) {
+    case "banana":
+      return (
+        <group rotation={[0.15, 0.2, -0.15]} scale={0.85}>
+          {/* Stielansatz und Mitte */}
+          <Part
+            geo={G.cyl(0.045, 0.06, 0.16, 10)}
+            pos={[0, 0.34, 0]}
+            rot={[0, 0, 0.1]}
+            color="#6B4A22"
+            roughness={1}
+          />
+          <Part
+            geo={G.ball(0.1, 12, 8)}
+            pos={[0, 0.2, 0]}
+            scale={[1.1, 0.8, 0.5]}
+            color="#EAB308"
+            roughness={0.8}
+          />
+          {/* drei aufgeklappte Schalenlappen */}
+          {[-1.0, 0, 1.0].map((a, i) => {
+            const len = i === 1 ? 0.54 : 0.48;
+            const dx = Math.sin(a);
+            const dy = -Math.cos(a);
+            const dist = len / 2 + 0.04;
+            const cx = dx * dist;
+            const cy = 0.2 + dy * dist;
+            const sy = len / 0.2;
+            const tip = len + 0.04;
+            const spot = 0.04 + len * 0.6;
+
+            return (
+              <group key={i}>
+                <Part
+                  geo={G.ball(0.1, 12, 8)}
+                  pos={[cx, cy, 0]}
+                  rot={[0, 0, Math.PI + a]}
+                  scale={[0.95, sy, 0.12]}
+                  color="#F2C811"
+                  roughness={0.8}
+                />
+                <Part
+                  geo={G.ball(0.1, 12, 8)}
+                  pos={[cx, cy, 0.028]}
+                  rot={[0, 0, Math.PI + a]}
+                  scale={[0.62, sy * 0.88, 0.12]}
+                  color="#FDE9A9"
+                  roughness={0.9}
+                />
+                <Part
+                  geo={G.ball(0.035, 8, 6)}
+                  pos={[dx * tip, 0.2 + dy * tip, 0]}
+                  color="#4A3216"
+                  roughness={1}
+                />
+                <Part
+                  geo={G.circle(0.02, 10)}
+                  pos={[
+                    dx * spot - dy * 0.025,
+                    0.2 + dy * spot + dx * 0.025,
+                    0.046,
+                  ]}
+                  basic
+                  color="#8A5A2B"
+                  opacity={0.6}
+                />
+              </group>
+            );
+          })}
+        </group>
+      );
+
+    case "coffee":
+      return (
+        <group rotation={[0.15, 0.35, -0.1]}>
+          {/* Kaffeefilter */}
+          <Part
+            geo={G.lathe(20, [0.02, -0.22, 0.2, 0.12, 0.26, 0.2])}
+            double
+            color="#E7D8B8"
+            roughness={1}
+          />
+          <Part
+            geo={G.torus(0.26, 0.012, 6, 20)}
+            pos={[0, 0.2, 0]}
+            rot={[Math.PI / 2, 0, 0]}
+            color="#D6C7A4"
+            roughness={1}
+          />
+          {/* Kaffeesatz */}
+          <Part
+            geo={G.crumple(0.16, 0.18, 3, 1)}
+            pos={[0, 0.1, 0]}
+            scale={[1, 0.55, 1]}
+            flat
+            color="#3B2418"
+            roughness={1}
+          />
+        </group>
+      );
+
+    case "eggshell":
+      return (
+        <group rotation={[0.2, -0.25, 0.12]}>
+          <Part
+            geo={G.ball(0.22, 9, 6, 0, Math.PI * 0.56)}
+            pos={[-0.14, 0, 0]}
+            rot={[0.2, 0.1, -0.25]}
+            double
+            flat
+            color="#F4E8CC"
+            roughness={0.9}
+          />
+          <Part
+            geo={G.ball(0.18, 8, 5, 0, Math.PI * 0.58)}
+            pos={[0.16, -0.03, 0.06]}
+            rot={[0.15, -0.2, 0.28]}
+            double
+            flat
+            color="#FFF7E8"
+            roughness={0.9}
+          />
+          <Part
+            geo={G.ball(0.1, 6, 4, 0, Math.PI * 0.5)}
+            pos={[0.02, 0.05, 0.2]}
+            rot={[1.2, 0.4, 0.2]}
+            double
+            flat
+            color="#EFE2C4"
+            roughness={0.9}
+          />
+        </group>
+      );
+
+    case "peel": {
+      const isCarrot = name.includes("karotte");
+      const c1 = isCarrot ? "#F97316" : "#C2860A";
+      const c2 = isCarrot ? "#FB923C" : "#A16207";
+      const c3 = isCarrot ? "#EA580C" : "#D9A441";
+
+      return (
+        <group rotation={[0.28, 0.2, -0.3]}>
+          <Part
+            geo={G.torus(0.23, 0.045, 6, 18, Math.PI * 1.35)}
+            scale={[1, 1, 0.5]}
+            color={c1}
+            roughness={0.9}
+          />
+          <Part
+            geo={G.torus(0.15, 0.035, 6, 14, Math.PI * 1.18)}
+            pos={[0.13, 0.08, 0.03]}
+            rot={[0.3, -0.3, 0.15]}
+            scale={[1, 1, 0.5]}
+            color={c2}
+            roughness={0.9}
+          />
+          <Part
+            geo={G.torus(0.1, 0.03, 6, 12, Math.PI * 1.5)}
+            pos={[-0.12, -0.1, 0.05]}
+            rot={[-0.4, 0.3, 0.8]}
+            scale={[1, 1, 0.5]}
+            color={c3}
+            roughness={0.9}
+          />
+        </group>
+      );
+    }
+
+    case "teabag":
+      return (
+        <group rotation={[0.1, 0.28, -0.18]}>
+          <Part
+            geo={G.box(0.3, 0.34, 0.05, 0.02)}
+            color="#D9C29A"
+            roughness={0.95}
+          />
+          <Part
+            geo={G.circle(0.075, 14)}
+            pos={[0.02, -0.03, 0.027]}
+            basic
+            color="#7A5230"
+            opacity={0.55}
+          />
+          <Part
+            geo={G.box(0.3, 0.035, 0.06, 0.01)}
+            pos={[0, 0.185, 0]}
+            color="#B89D74"
+            roughness={0.95}
+          />
+          <Part
+            geo={G.cyl(0.006, 0.006, 0.3, 6)}
+            pos={[0.05, 0.34, 0]}
+            rot={[0, 0, 0.15]}
+            color="#E5E7EB"
+          />
+          <Part
+            geo={G.box(0.14, 0.11, 0.02, 0.01)}
+            pos={[0.1, 0.52, 0]}
+            rot={[0, 0, 0.2]}
+            color="#22C55E"
+          />
+        </group>
+      );
+
+    case "bread":
+      return (
+        <group rotation={[0.15, -0.28, 0.08]}>
+          <Part
+            geo={G.ball(0.3, 20, 14)}
+            scale={[1.15, 0.7, 0.8]}
+            color="#B86629"
+            roughness={0.95}
+          />
+          {[-0.14, 0, 0.14].map((x) => (
+            <Part
+              key={x}
+              geo={G.box(0.05, 0.03, 0.2, 0.01)}
+              pos={[x, 0.2, 0.04]}
+              rot={[0.25, 0, 0.5]}
+              color="#F2C27A"
+              roughness={1}
+            />
+          ))}
+          {/* Schimmelflecken */}
+          {(
+            [
+              [0.2, 0.12, 0.15],
+              [-0.22, 0.1, 0.18],
+              [0.05, 0.2, -0.1],
+            ] as V3[]
+          ).map((p, i) => (
+            <Part
+              key={i}
+              geo={G.crumple(0.05, 0.3, i + 2, 1)}
+              pos={p}
+              flat
+              color={i === 1 ? "#9CA3AF" : "#7C9A6B"}
+              roughness={1}
+            />
+          ))}
+        </group>
+      );
+
+    case "leaves":
+      return (
+        <group rotation={[0.2, -0.25, 0.28]}>
+          {(
+            [
+              { p: [0, 0, 0], r: [-0.9, 0, 0.3], c: "#B45309" },
+              { p: [0.14, 0.04, 0.06], r: [-1.0, 0.3, -0.7], c: "#CA8A04" },
+              { p: [-0.1, 0.02, -0.08], r: [-0.8, -0.4, 1.5], c: "#9A3412" },
+            ] as { p: V3; r: V3; c: string }[]
+          ).map((leaf, i) => (
+            <group key={i} position={leaf.p} rotation={leaf.r}>
+              <Part
+                geo={G.poly(0.012, 0.004, LEAF_POINTS)}
+                double
+                color={leaf.c}
+                roughness={1}
+              />
+              <Part
+                geo={G.box(0.012, 0.5, 0.004, 0.002)}
+                pos={[0, 0, 0.01]}
+                color="#5B2A0A"
+                roughness={1}
+              />
+            </group>
+          ))}
+        </group>
+      );
+
+    case "nut":
+      return (
+        <group rotation={[0.2, 0.25, -0.12]}>
+          <Part
+            geo={G.crumple(0.16, 0.16, 5, 1)}
+            pos={[-0.13, 0, 0]}
+            scale={[1.05, 0.8, 0.9]}
+            flat
+            color="#8B5A2B"
+            roughness={1}
+          />
+          <Part
+            geo={G.crumple(0.14, 0.16, 7, 1)}
+            pos={[0.14, 0.03, 0.05]}
+            rot={[0.4, 0.5, 0.2]}
+            scale={[1, 0.8, 0.9]}
+            flat
+            color="#A66A39"
+            roughness={1}
+          />
+          <Part
+            geo={G.crumple(0.05, 0.3, 9, 0)}
+            pos={[0, -0.1, 0.18]}
+            flat
+            color="#6B4423"
+            roughness={1}
+          />
+        </group>
+      );
+
+    case "corn":
+      return (
+        <group rotation={[0.1, 0.25, -0.35]}>
+          {/* Körner (unten) */}
+          <Part
+            geo={G.cyl(0.13, 0.14, 0.3, 14)}
+            pos={[0, -0.13, 0]}
+            flat
+            color="#F5CB3D"
+            roughness={0.75}
+          />
+          {[-0.22, -0.14, -0.06].map((y) => (
+            <Part
+              key={y}
+              geo={G.torus(0.136, 0.011, 5, 14)}
+              pos={[0, y, 0]}
+              rot={[Math.PI / 2, 0, 0]}
+              color="#C99A12"
+              roughness={0.9}
+            />
+          ))}
+          {/* abgenagter Kolben (oben) */}
+          <Part
+            geo={G.cyl(0.11, 0.13, 0.28, 12)}
+            pos={[0, 0.16, 0]}
+            flat
+            color="#EBD9A0"
+            roughness={0.9}
+          />
+          {/* Lieschblätter */}
+          <Part
+            geo={G.ball(0.1, 10, 8)}
+            pos={[0.1, -0.3, 0.02]}
+            rot={[0, 0, -0.3]}
+            scale={[0.6, 2.2, 0.25]}
+            color="#65A30D"
+            roughness={0.9}
+          />
+          <Part
+            geo={G.ball(0.1, 10, 8)}
+            pos={[-0.09, -0.3, -0.03]}
+            rot={[0, 0, 0.35]}
+            scale={[0.6, 2.0, 0.25]}
+            color="#84CC16"
+            roughness={0.9}
+          />
+          <Part
+            geo={G.cyl(0.03, 0.04, 0.08, 8)}
+            pos={[0, -0.34, 0]}
+            color="#7C5A2E"
+            roughness={1}
+          />
+        </group>
+      );
+
+    case "apple":
+      return (
+        <group rotation={[0.1, 0.2, 0.1]}>
+          <Part
+            geo={G.lathe(
+              16,
+              [
+                0, -0.32, 0.1, -0.3, 0.17, -0.2, 0.11, -0.08, 0.07, 0, 0.11,
+                0.08, 0.17, 0.2, 0.1, 0.3, 0, 0.32,
+              ],
+            )}
+            color="#F4E7B8"
+            roughness={0.7}
+          />
+          <Part
+            geo={G.cyl(0.076, 0.076, 0.16, 12)}
+            color="#7A5230"
+            roughness={0.9}
+          />
+          {[0.2, -0.2].map((y) => (
+            <Part
+              key={y}
+              geo={G.torus(0.168, 0.02, 6, 16)}
+              pos={[0, y, 0]}
+              rot={[Math.PI / 2, 0, 0]}
+              color="#B91C1C"
+              roughness={0.6}
+            />
+          ))}
+          <Part
+            geo={G.cyl(0.018, 0.024, 0.12, 8)}
+            pos={[0, 0.37, 0]}
+            rot={[0, 0, -0.2]}
+            color="#5B3716"
+            roughness={1}
+          />
+        </group>
+      );
+
+    case "flower":
+      return (
+        <group rotation={[0.05, 0.2, -0.12]}>
+          <Part
+            geo={G.tube(
+              0.025,
+              [
+                0, -0.35, 0, 0, -0.1, 0, 0.06, 0.14, 0, 0.18, 0.27, 0, 0.28,
+                0.24, 0,
+              ],
+            )}
+            color="#4D7C0F"
+            roughness={0.9}
+          />
+          <Part
+            geo={G.ball(0.1, 10, 8)}
+            pos={[-0.08, -0.15, 0]}
+            rot={[0, 0, 0.8]}
+            scale={[0.5, 1.8, 0.15]}
+            color="#65742B"
+            roughness={0.9}
+          />
+          {/* hängender Blütenkopf */}
+          <group position={[0.3, 0.2, 0]} rotation={[1.0, 0.2, 0]}>
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <group key={i} rotation={[0, 0, (i * Math.PI * 2) / 7]}>
+                <Part
+                  geo={G.ball(0.07, 8, 6)}
+                  pos={[0, 0.12, 0]}
+                  scale={[0.6, 1.5, 0.25]}
+                  color={
+                    i % 3 === 0 ? "#7C4A3A" : i % 2 ? "#B96A8A" : "#A3506F"
+                  }
+                  roughness={0.9}
+                />
+              </group>
+            ))}
+            <Part geo={G.ball(0.055, 8, 6)} color="#8A5A2B" roughness={0.9} />
+          </group>
+        </group>
+      );
+
+    case "kitchenroll":
+      return (
+        <group rotation={[0.2, 0.3, -0.1]}>
+          <Part
+            geo={G.cyl(0.2, 0.2, 0.4, 24, true)}
+            double
+            color="#F8FAFC"
+            roughness={0.95}
+          />
+          <Part
+            geo={G.ring(0.062, 0.2, 24)}
+            pos={[0, 0.2, 0]}
+            rot={[-Math.PI / 2, 0, 0]}
+            color="#F1F5F9"
+            roughness={1}
+          />
+          <Part
+            geo={G.ring(0.062, 0.2, 24)}
+            pos={[0, -0.2, 0]}
+            rot={[Math.PI / 2, 0, 0]}
+            color="#F1F5F9"
+            roughness={1}
+          />
+          <Part
+            geo={G.cyl(0.062, 0.062, 0.402, 16, true)}
+            double
+            color="#B08B5B"
+            roughness={1}
+          />
+          {[-0.1, 0.1].map((y) => (
+            <Part
+              key={y}
+              geo={G.torus(0.2, 0.004, 4, 24)}
+              pos={[0, y, 0]}
+              rot={[Math.PI / 2, 0, 0]}
+              color="#CBD5E1"
+              roughness={1}
+            />
+          ))}
+          <Part
+            geo={G.wave(0.3, 0.34, 0.012, 10, 0)}
+            pos={[0.14, -0.23, 0.2]}
+            rot={[-1.2, 0, 0]}
+            double
+            color="#FFFFFF"
+            roughness={1}
+          />
+        </group>
+      );
+    default:
+      return null;
+  }
+}
