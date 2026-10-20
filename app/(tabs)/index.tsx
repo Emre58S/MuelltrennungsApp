@@ -53,6 +53,7 @@ import {
   getLastMode,
   getModeConfig,
   MODES,
+  startDaily,
   startGame,
 } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
@@ -62,11 +63,13 @@ import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/gam
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import {
+  type DailyResult,
   flushThrowRecords,
   getActiveStreak,
   getHighscoreKey,
   getLevelProgress,
   getNumber,
+  getTodayDaily,
   StorageKeys,
 } from "@/utils/storage";
 
@@ -120,6 +123,7 @@ export default function HomeScreen() {
   const [totalXP, setTotalXP] = useState(0);
   const [streak, setStreak] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [daily, setDaily] = useState<DailyResult | null>(null);
 
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -132,8 +136,8 @@ export default function HomeScreen() {
   const layout = useMemo(
     () =>
       computeLayout(width, height, MENU_BINS.length, {
-        binsNdcY: compact ? 0.42 : 0.36,
-        itemNdcY: compact ? -0.24 : -0.34,
+        binsNdcY: compact ? 0.46 : 0.4,
+        itemNdcY: compact ? -0.14 : -0.28,
         itemWidth: 0.22,
       }),
     [width, height, compact],
@@ -257,10 +261,12 @@ export default function HomeScreen() {
             getActiveStreak(),
             getNumber(StorageKeys.TOTAL_XP),
             getLastMode(),
+            getTodayDaily(),
           ]),
         )
-        .then(([endless, survival, time, activeStreak, xp, mode]) => {
+        .then(([endless, survival, time, activeStreak, xp, mode, today]) => {
           if (!active) return;
+          setDaily(today);
           setScores({ endless, survival, time });
           setStreak(activeStreak);
           setTotalXP(xp);
@@ -365,7 +371,7 @@ export default function HomeScreen() {
       )}
 
       <Scrim edge="top" height={insets.top + 150} maxOpacity={0.42} />
-      <Scrim edge="bottom" height={260 + insets.bottom} maxOpacity={0.78} />
+      <Scrim edge="bottom" height={300 + insets.bottom} maxOpacity={0.8} />
 
       {/* Wisch-Fläche hinter den Schildern */}
       <GestureDetector gesture={gesture}>
@@ -446,7 +452,40 @@ export default function HomeScreen() {
 
       {/* Unten im Daumenbereich: Hinweis, Weiter, Nebenaktionen */}
       <View style={[styles.menu, { paddingBottom: insets.bottom + Spacing.sm }]} pointerEvents="box-none">
-        <ThrowHint text={t("home.throwHint")} calm={reduceMotion} />
+        {!compact && <ThrowHint text={t("home.throwHint")} calm={reduceMotion} />}
+
+        {/* Tagesaufgabe: jeden Tag 10 feste Gegenstände */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t("home.daily")}. ${
+            daily
+              ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
+              : t("home.dailyNew")
+          }`}
+          onPress={() => {
+            if (starting.current) return;
+            starting.current = true;
+            sfx("tap");
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+            startDaily();
+          }}
+          style={({ pressed }) => [styles.daily, pressed && styles.pressed]}
+        >
+          <View style={styles.dailyIcon}>
+            <Feather name={daily ? "check" : "calendar"} size={18} color="#3A2500" />
+          </View>
+          <View style={styles.flex}>
+            <AppText variant="label" color={ON_SCENE}>
+              {t("home.daily")}
+            </AppText>
+            <AppText variant="caption" color={ON_SCENE_SOFT} numberOfLines={1}>
+              {daily
+                ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
+                : t("home.dailyNew")}
+            </AppText>
+          </View>
+          <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
+        </Pressable>
 
         <Pressable
           accessibilityRole="button"
@@ -475,6 +514,8 @@ export default function HomeScreen() {
 
         <View style={styles.footer}>
           <FooterLink icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
+          <View style={styles.footerDot} />
+          <FooterLink icon="book-open" label={t("home.book")} onPress={() => router.push("/sammelbuch")} />
           <View style={styles.footerDot} />
           <FooterLink icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
         </View>
@@ -726,6 +767,25 @@ const styles = StyleSheet.create({
     bottom: 0,
     gap: Spacing.sm,
   },
+  daily: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    minHeight: 52,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.lg,
+    backgroundColor: "rgba(0,0,0,0.34)",
+    borderWidth: 1,
+    borderColor: "rgba(255,213,74,0.55)",
+  },
+  dailyIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFD54A",
+  },
   hint: {
     flexDirection: "row",
     alignItems: "center",
@@ -757,7 +817,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.md,
+    gap: Spacing.sm + 2,
   },
   footerLink: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 },
   footerDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: ON_SCENE_SOFT },
