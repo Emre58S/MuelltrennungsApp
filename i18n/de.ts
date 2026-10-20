@@ -25,6 +25,11 @@ export const de = {
   "home.bins": "Die 3 Tonnen",
   "home.tutorial": "So geht's",
   "home.settings": "Einstellungen",
+  "home.titleTop": "Müll",
+  "home.titleBottom": "Sortieren",
+  "home.continue": "Weiter",
+  "home.record": "Rekord",
+  "home.modesLabel": "Spielmodus wählen",
 
   "mode.endless.title": "Üben",
   "mode.endless.desc": "Ohne Zeit, ohne Druck.",

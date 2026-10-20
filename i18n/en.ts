@@ -26,6 +26,11 @@ export const en: Translations = {
   "home.bins": "The 3 bins",
   "home.tutorial": "How to play",
   "home.settings": "Settings",
+  "home.titleTop": "Waste",
+  "home.titleBottom": "Sorting",
+  "home.continue": "Continue",
+  "home.record": "Best",
+  "home.modesLabel": "Choose a game mode",
 
   "mode.endless.title": "Practice",
   "mode.endless.desc": "No timer, no pressure.",
