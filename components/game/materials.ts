@@ -1,44 +1,28 @@
-// Datei: components/game/toon.ts
-// „Toon Premium“-Look: harte Schattierungsstufen (Cel-Shading) wie in
-// hochwertigen Comic-Spielen (Supercell, Zelda Wind Waker) + dunkle
-// Umrisslinien (Inverted-Hull-Technik). Ein gemeinsamer Verlauf für alles.
+// Datei: components/game/materials.ts
+// „Stylized Realism“ (wie Pixar / Fall Guys): echte Materialien – glänzendes
+// Plastik, weiches Licht – mit charmanten, leicht übertriebenen Formen.
+// Dazu Formen-Helfer für realistische Mülltonnen.
 
 import * as THREE from "three";
 
-let gradient: THREE.DataTexture | null = null;
-
-/** 3 Stufen: Schatten · Mitte · Licht. Nearest-Filter → harte Kanten. */
-export function toonGradient(): THREE.DataTexture {
-  if (gradient) return gradient;
-  const data = new Uint8Array([150, 212, 255]);
-  gradient = new THREE.DataTexture(data, data.length, 1, THREE.RedFormat);
-  gradient.minFilter = THREE.NearestFilter;
-  gradient.magFilter = THREE.NearestFilter;
-  gradient.generateMipmaps = false;
-  gradient.needsUpdate = true;
-  return gradient;
-}
-
-export function toonMaterial(
+/** Spritzguss-Plastik wie bei echten Tonnen: satt, leicht glänzend. */
+export function plastic(
   color: string,
-  opts: { transparent?: boolean; opacity?: number; side?: THREE.Side } = {},
+  opts: { roughness?: number; metalness?: number; opacity?: number; side?: THREE.Side } = {},
 ) {
-  return new THREE.MeshToonMaterial({
+  return new THREE.MeshStandardMaterial({
     color,
-    gradientMap: toonGradient(),
-    transparent: opts.transparent ?? (opts.opacity ?? 1) < 1,
+    roughness: opts.roughness ?? 0.42,
+    metalness: opts.metalness ?? 0,
+    transparent: (opts.opacity ?? 1) < 1,
     opacity: opts.opacity ?? 1,
     side: opts.side ?? THREE.FrontSide,
   });
 }
 
-let outline: THREE.MeshBasicMaterial | null = null;
-
-/** Rückseiten-Material für Umrisse: Mesh leicht vergrößert dahinter zeichnen. */
-export function outlineMaterial(): THREE.MeshBasicMaterial {
-  if (outline) return outline;
-  outline = new THREE.MeshBasicMaterial({ color: "#1E2228", side: THREE.BackSide });
-  return outline;
+/** Matte Natur-Oberflächen (Rasen, Holz, Laub). */
+export function matte(color: string) {
+  return new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0 });
 }
 
 /* ── Abgerundeter Kegelstumpf (für realistische Mülltonnen) ─────────────── */

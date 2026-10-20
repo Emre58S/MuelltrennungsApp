@@ -5,8 +5,6 @@
 
 import { type ReactElement } from "react";
 
-import { toonGradient } from "./toon";
-
 type V3 = [number, number, number];
 
 /** Spezifische Muster – nichts, was Restmüll/Gelber Sack „stehlen“ würde. */
@@ -36,6 +34,8 @@ function Box({
   pos,
   rot,
   color,
+  roughness = 0.8,
+  metalness = 0,
 }: {
   size: V3;
   pos?: V3;
@@ -47,9 +47,10 @@ function Box({
   return (
     <mesh position={pos} rotation={rot} castShadow>
       <boxGeometry args={size} />
-      <meshToonMaterial
+      <meshStandardMaterial
         color={color}
-        gradientMap={toonGradient()}
+        roughness={roughness}
+        metalness={metalness}
       />
     </mesh>
   );
@@ -62,6 +63,8 @@ function Cyl({
   pos,
   rot,
   color,
+  roughness = 0.6,
+  metalness = 0,
   opacity = 1,
 }: {
   r: number;
@@ -77,9 +80,10 @@ function Cyl({
   return (
     <mesh position={pos} rotation={rot} castShadow>
       <cylinderGeometry args={[rTop ?? r, r, h, 20]} />
-      <meshToonMaterial
+      <meshStandardMaterial
         color={color}
-        gradientMap={toonGradient()}
+        roughness={roughness}
+        metalness={metalness}
         transparent={opacity < 1}
         opacity={opacity}
       />
@@ -190,7 +194,7 @@ export function renderExtraModel(key: string): ReactElement | null {
             [-0.07, 0.07].map((z) => (
               <mesh key={`${x}-${z}`} position={[x, 0.035, z]} castShadow>
                 <sphereGeometry args={[0.045, 12, 8]} />
-                <meshToonMaterial color="#EF4444" gradientMap={toonGradient()} />
+                <meshStandardMaterial color="#EF4444" roughness={0.4} />
               </mesh>
             )),
           )}
@@ -211,7 +215,7 @@ export function renderExtraModel(key: string): ReactElement | null {
         <group rotation={[0.8, 0, 0]}>
           <mesh castShadow>
             <torusGeometry args={[0.18, 0.025, 8, 28]} />
-            <meshToonMaterial color="#F3F4F6" gradientMap={toonGradient()} />
+            <meshStandardMaterial color="#F3F4F6" roughness={0.6} />
           </mesh>
           <Box size={[0.12, 0.08, 0.16]} pos={[0.24, 0, 0]} color="#E5E7EB" />
         </group>
@@ -224,7 +228,7 @@ export function renderExtraModel(key: string): ReactElement | null {
           <Cyl r={0.015} h={0.45} pos={[0, -0.02, 0]} color="#B91C1C" />
           <mesh position={[0, -0.3, 0]} castShadow>
             <sphereGeometry args={[0.06, 12, 10]} />
-            <meshToonMaterial color="#9CA3AF" gradientMap={toonGradient()} />
+            <meshStandardMaterial color="#9CA3AF" metalness={0.8} roughness={0.2} />
           </mesh>
         </group>
       );

@@ -1,4 +1,4 @@
-// Datei: components/game/stage.tsx — aufgeräumte Toon-Bühne
+// Datei: components/game/stage.tsx — aufgeräumte Bühne (Stylized Realism)
 //
 // Prinzip „Overcooked“: wenige, klare Formen, ruhige Flächen – die Tonnen
 // sind die Stars. Himmel mit Verlauf, sanfte Hügel, Holzzaun, zwei runde
@@ -11,7 +11,7 @@ import * as THREE from "three";
 
 import { type ColorScheme } from "@/constants/theme";
 
-import { outlineMaterial, toonMaterial } from "./toon";
+import { matte, plastic } from "./materials";
 
 const PALETTE = {
   light: {
@@ -29,8 +29,10 @@ const PALETTE = {
     cloud: "#FFFFFF",
     hemiSky: "#FFFFFF",
     hemiGround: "#B8D9A0",
-    ambient: 0.55,
-    sunLight: 1.6,
+    ambient: 0.5,
+    sunLight: 1.9,
+    rim: 1.1,
+    rimColor: "#FFF1D6",
   },
   dark: {
     skyTop: "#121A3A",
@@ -49,6 +51,8 @@ const PALETTE = {
     hemiGround: "#2A3A30",
     ambient: 0.45,
     sunLight: 0.8,
+    rim: 0.9,
+    rimColor: "#9DB4FF",
   },
 } as const;
 
@@ -82,7 +86,7 @@ function SkyDome({ top, horizon, fever }: { top: string; horizon: string; fever:
     return g;
   }, [top, horizon]);
   const material = useMemo(
-    () => new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, depthWrite: false }),
+    () => new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, depthWrite: false, fog: false }),
     [],
   );
   useEffect(() => () => geometry.dispose(), [geometry]);
@@ -108,7 +112,7 @@ const Fence = memo(function Fence({ color }: { color: string }) {
       tilt: (rand() - 0.5) * 0.04,
     }));
   }, []);
-  const material = useMemo(() => toonMaterial(color), [color]);
+  const material = useMemo(() => matte(color), [color]);
 
   useLayoutEffect(() => {
     const mesh = ref.current;
@@ -138,7 +142,7 @@ const Fence = memo(function Fence({ color }: { color: string }) {
 });
 
 function Tree({ x, z, s, trunk, leaf }: { x: number; z: number; s: number; trunk: string; leaf: string }) {
-  const mats = useMemo(() => ({ trunk: toonMaterial(trunk), leaf: toonMaterial(leaf) }), [trunk, leaf]);
+  const mats = useMemo(() => ({ trunk: matte(trunk), leaf: matte(leaf) }), [trunk, leaf]);
   const crowns: [number, number, number, number][] = [
     [0, 2.15, 0, 0.95],
     [0.6, 1.8, 0.15, 0.7],
@@ -154,9 +158,6 @@ function Tree({ x, z, s, trunk, leaf }: { x: number; z: number; s: number; trunk
           <mesh material={mats.leaf} castShadow>
             <sphereGeometry args={[r, 16, 12]} />
           </mesh>
-          <mesh material={outlineMaterial()} scale={1.05}>
-            <sphereGeometry args={[r, 16, 12]} />
-          </mesh>
         </group>
       ))}
     </group>
@@ -164,7 +165,7 @@ function Tree({ x, z, s, trunk, leaf }: { x: number; z: number; s: number; trunk
 }
 
 function Bush({ x, z, s, color }: { x: number; z: number; s: number; color: string }) {
-  const mat = useMemo(() => toonMaterial(color), [color]);
+  const mat = useMemo(() => matte(color), [color]);
   return (
     <group position={[x, 0, z]} scale={s}>
       {[
@@ -182,7 +183,7 @@ function Bush({ x, z, s, color }: { x: number; z: number; s: number; color: stri
 
 const Clouds = memo(function Clouds({ color, calm }: { color: string; calm: boolean }) {
   const ref = useRef<THREE.Group>(null);
-  const mat = useMemo(() => toonMaterial(color), [color]);
+  const mat = useMemo(() => matte(color), [color]);
   useFrame((_, delta) => {
     if (!ref.current || calm) return;
     ref.current.children.forEach((c, i) => {
@@ -236,7 +237,7 @@ const Stars = memo(function Stars() {
 });
 
 function StreetLamp({ x, z }: { x: number; z: number }) {
-  const pole = useMemo(() => toonMaterial("#3A3F48"), []);
+  const pole = useMemo(() => plastic("#3A3F48", { roughness: 0.5, metalness: 0.4 }), []);
   return (
     <group position={[x, 0, z]}>
       <mesh position={[0, 1.4, 0]} material={pole}>
@@ -263,10 +264,10 @@ export const Stage = memo(function Stage({
   const p = PALETTE[scheme];
   const mats = useMemo(
     () => ({
-      lawn: toonMaterial(p.lawn),
-      plaza: toonMaterial(p.plaza),
-      plazaEdge: toonMaterial(p.plazaEdge),
-      hills: p.hills.map((c) => toonMaterial(c)),
+      lawn: matte(p.lawn),
+      plaza: matte(p.plaza),
+      plazaEdge: matte(p.plazaEdge),
+      hills: p.hills.map((c) => matte(c)),
     }),
     [p],
   );
@@ -274,6 +275,8 @@ export const Stage = memo(function Stage({
   return (
     <>
       <color attach="background" args={[p.background]} />
+      {/* Leichter Dunst in der Ferne → Tiefe, Vordergrund bleibt knackig */}
+      <fog attach="fog" args={[p.skyHorizon, 16, 42]} />
       <SkyDome top={p.skyTop} horizon={p.skyHorizon} fever={fever} />
 
       <ambientLight intensity={p.ambient} />
@@ -291,6 +294,9 @@ export const Stage = memo(function Stage({
         shadow-camera-far={30}
         shadow-bias={-0.0006}
       />
+
+      {/* Gegenlicht von hinten: Tonnen heben sich plastisch vom Hintergrund ab */}
+      <directionalLight position={[-2, 4, -8]} intensity={p.rim} color={p.rimColor} />
 
       {/* Sonne / Mond */}
       <mesh position={[-7, 9, -24]}>

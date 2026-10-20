@@ -33,6 +33,7 @@ import {
   getNumber,
   StorageKeys,
 } from "@/utils/storage";
+import { refreshSfxSetting, sfx } from "@/utils/sfx";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 type Scores = Record<GameMode, number>;
@@ -75,6 +76,7 @@ export default function HomeScreen() {
     useCallback(() => {
       let active = true;
       starting.current = false;
+      refreshSfxSetting();
 
       Promise.all([
         getNumber(getHighscoreKey(HIGHSCORE_MODE.endless)),
@@ -103,6 +105,7 @@ export default function HomeScreen() {
   const start = (mode: GameMode) => {
     if (starting.current) return;
     starting.current = true;
+    sfx("tap");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     startGame(mode);
   };

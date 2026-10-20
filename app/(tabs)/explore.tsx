@@ -42,10 +42,12 @@ import {
   statsReducer,
   XP_PER_RESULT,
 } from "@/game/logic";
+import { useBinVoice } from "@/game/use-bin-voice";
+import { type TranslationKey } from "@/i18n";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import { devLog } from "@/utils/dev-error-reporter";
 import {
-  getBoolean,
   getHighscoreKey,
   getLevelFromXP,
   getNumber,
@@ -55,7 +57,7 @@ import {
   StorageKeys,
 } from "@/utils/storage";
 import { Canvas } from "@react-three/fiber/native";
-import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
+import { setAudioModeAsync } from "expo-audio";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -149,7 +151,7 @@ function GameRound({
 }) {
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { reduceMotion } = useAppSettings();
   const fx = useRef(createFx());
   useEffect(() => {
@@ -179,8 +181,6 @@ function GameRound({
   const [bursts, setBursts] = useState<Burst[]>([]);
   const [floats, setFloats] = useState<FloatText[]>([]);
   const [praise, setPraise] = useState<Praised | null>(null);
-  // Sprechblase der Tonne bei falschem Wurf („Bäh!“)
-  const [yuck, setYuck] = useState<{ id: number; x: number; y: number } | null>(null);
   const [learn, setLearn] = useState<Learn | null>(null);
   const [banner, setBanner] = useState<{ id: number; text: string } | null>(
     null,
@@ -213,25 +213,13 @@ function GameRound({
       set.forEach(clearTimeout);
     };
   }, []);
-  const sCorrect = useAudioPlayer(require("../../assets/sounds/correct.mp3"));
-  const sHit = useAudioPlayer(require("../../assets/sounds/bin-hit.wav"));
-  const sMiss = useAudioPlayer(require("../../assets/sounds/bin-miss.wav"));
-  const soundOn = useRef(true);
+  // Sound-Design + sprechende Tonnen (siehe utils/sfx.ts, game/voice.ts)
+  const { talkingIndex, subtitle, say } = useBinVoice(bins, lang);
   useEffect(() => {
-    getBoolean(StorageKeys.SOUND_ENABLED, true).then((v) => {
-      soundOn.current = v;
-    });
+    refreshSfxSetting();
+    preloadSfx();
     getNumber(getHighscoreKey(HIGHSCORE_MODE[mode])).then(setBestBefore);
   }, [mode]);
-  const play = useCallback((player: typeof sCorrect) => {
-    if (!soundOn.current) return;
-    try {
-      player.seekTo(0);
-      player.play();
-    } catch {
-      /* Sound ist optional. */
-    }
-  }, []);
   const timerRunning =
     mode === "time" && timerStarted && !finished && timeLeft > 0;
   useEffect(() => {
@@ -243,12 +231,20 @@ function GameRound({
   }, [timerRunning]);
   useEffect(() => {
     if (mode !== "time" || !timerStarted) return;
-    if (timeLeft <= 5 && timeLeft > 0)
+    if (timeLeft <= 5 && timeLeft > 0) {
+      sfx("tick");
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
         () => undefined,
       );
+    }
     if (timeLeft <= 0) lock.current.ended = true;
   }, [mode, timerStarted, timeLeft]);
+  // Sanfter Stups, wenn 9 s nichts passiert (eine zufällige Tonne meldet sich)
+  useEffect(() => {
+    if (finished || !currentItem) return;
+    const id = setTimeout(() => say(Math.floor(Math.random() * bins.length), "idle"), 9000);
+    return () => clearTimeout(id);
+  }, [currentItem, finished, bins.length, say]);
   const timeUp = mode === "time" && timeLeft <= 0;
   const showEnd = finished || (timeUp && throwStates.length === 0);
   const savedRound = useRef(false);
@@ -284,6 +280,7 @@ function GameRound({
   const startFever = useCallback(() => {
     const id = ++lock.current.id;
     setFeverId(id);
+    sfx("fever");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => undefined,
     );
@@ -310,6 +307,7 @@ function GameRound({
     setThrowStates((list) => [...list, ts]);
     setCurrentItem(drawFromBag(bag, pool, item.name));
     setPraise(null);
+    sfx("whoosh", { rate: perfect ? 1.15 : 1 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
       () => undefined,
     );
@@ -338,8 +336,13 @@ function GameRound({
       return next;
     });
     if (ts.hit) {
-      play(sHit);
-      play(sCorrect);
+      const streakNow = stats.streak + 1;
+      sfx("pop");
+      later(() => sfx("munch"), 90);
+      if (ts.perfect) sfx("perfect");
+      else sfxStreak(streakNow);
+      if (streakNow % 5 === 0) say(i, "streak", { n: streakNow });
+      else say(i, ts.perfect ? "perfect" : "correct");
       if (ts.perfect)
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
@@ -393,14 +396,17 @@ function GameRound({
       const streakAfter = stats.streak + 1;
       if (streakAfter % FEVER_EVERY === 0) startFever();
     } else {
-      play(sMiss);
+      sfx("boing");
+      later(() => sfx("thud"), 420);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
         () => undefined,
       );
       shake(fx.current, 0.08, "x");
-      setYuck({ id, x: top.x, y: top.y });
-      later(() => setYuck((b) => (b?.id === id ? null : b)), 1400);
       const correctBin = getBinByCategory(ts.item.category) ?? bin;
+      say(i, "wrong", {
+        item: ts.item.name,
+        into: t(`${correctBin.labelKey}.into` as TranslationKey),
+      });
       if (mode === "endless") {
         setLearn({ id, item: ts.item, bin: correctBin });
         later(() => {
@@ -411,6 +417,7 @@ function GameRound({
       if (mode === "survival") {
         lock.current.over = true;
         lock.current.ended = true;
+        later(() => sfx("wahwah"), 700);
         later(() => {
           setFinished(true);
         }, 1900);
@@ -421,6 +428,7 @@ function GameRound({
     recordThrow({ correct: ts.hit, xp })
       .then(({ leveledUp, level: newLevel }) => {
         if (!leveledUp) return;
+        sfx("levelup");
         showBanner(`⬆ ${t("game.levelUp", { level: newLevel })}`);
         const unlocked = getUnlockAtLevel(newLevel);
         if (unlocked)
@@ -458,7 +466,11 @@ function GameRound({
         if (idx === l.aim) return;
         l.aim = idx;
         setAimIndex(idx);
-        if (idx !== null) Haptics.selectionAsync().catch(() => undefined);
+        if (idx !== null) {
+          sfx("aim");
+          sfx("lid");
+          Haptics.selectionAsync().catch(() => undefined);
+        }
       },
       release: (dx, dy) => {
         const aim = aimFromDrag(dx, dy, layout.binAngles);
@@ -581,6 +593,7 @@ function GameRound({
               aimIndex={aimIndex}
               throws={throwStates}
               binEvents={binEvents}
+              talkingIndex={talkingIndex}
               bursts={bursts}
               onLand={onLand}
               onThrowDone={onThrowDone}
@@ -599,8 +612,13 @@ function GameRound({
             {floats.map((f) => (
               <FloatingText key={f.id} item={f} onDone={onFloatDone} />
             ))}
-            {yuck && (
-              <SpeechBubble key={yuck.id} x={yuck.x} y={yuck.y} text={t("game.yuck")} />
+            {subtitle && layout.binTops[subtitle.binIndex] && (
+              <SpeechBubble
+                key={subtitle.id}
+                x={layout.binTops[subtitle.binIndex].x}
+                y={layout.binTops[subtitle.binIndex].y}
+                text={subtitle.text}
+              />
             )}
 
             {praise && (

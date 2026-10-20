@@ -28,6 +28,7 @@ import {
   setBoolean,
   StorageKeys,
 } from "@/utils/storage";
+import { setSfxEnabled } from "@/utils/sfx";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 
@@ -44,11 +45,20 @@ export default function EinstellungenScreen() {
     setReduceMotion,
   } = useAppSettings();
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
 
   useEffect(() => {
     let active = true;
-    getBoolean(StorageKeys.SOUND_ENABLED, true).then((value) => {
-      if (active) setSoundEnabled(value);
+    Promise.all([
+      getBoolean(StorageKeys.SOUND_ENABLED, true),
+      getBoolean(StorageKeys.VOICE_ENABLED, true),
+      getBoolean(StorageKeys.SUBTITLES_ENABLED, true),
+    ]).then(([sound, voice, subtitles]) => {
+      if (!active) return;
+      setSoundEnabled(sound);
+      setVoiceEnabled(voice);
+      setSubtitlesEnabled(subtitles);
     });
     return () => {
       active = false;
@@ -57,7 +67,16 @@ export default function EinstellungenScreen() {
 
   const toggleSound = (value: boolean) => {
     setSoundEnabled(value);
+    setSfxEnabled(value);
     setBoolean(StorageKeys.SOUND_ENABLED, value);
+  };
+  const toggleVoice = (value: boolean) => {
+    setVoiceEnabled(value);
+    setBoolean(StorageKeys.VOICE_ENABLED, value);
+  };
+  const toggleSubtitles = (value: boolean) => {
+    setSubtitlesEnabled(value);
+    setBoolean(StorageKeys.SUBTITLES_ENABLED, value);
   };
 
   const confirmDelete = (
@@ -178,6 +197,22 @@ export default function EinstellungenScreen() {
             subtitle={t(soundEnabled ? "settings.sound.on" : "settings.sound.off")}
             value={soundEnabled}
             onChange={toggleSound}
+          />
+          <SwitchRow
+            icon="message-circle"
+            title={t("settings.voice")}
+            subtitle={t("settings.voice.desc")}
+            value={voiceEnabled}
+            onChange={toggleVoice}
+            divider
+          />
+          <SwitchRow
+            icon="type"
+            title={t("settings.subtitles")}
+            subtitle={t("settings.subtitles.desc")}
+            value={subtitlesEnabled}
+            onChange={toggleSubtitles}
+            divider
           />
           <SwitchRow
             icon="wind"
