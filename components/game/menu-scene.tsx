@@ -15,7 +15,7 @@ import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
 import { drawFromBag } from "@/game/logic";
 
 import { type Burst, Effects } from "./effects";
-import { Environment } from "./environment";
+import { Stage } from "./stage";
 import { createFx, type FxRef, stepFx } from "./fx";
 import { PreviewItem, ThrownItem } from "./items";
 import { type BinEvent, TrashBin } from "./trash-bin";
@@ -140,7 +140,7 @@ export const MenuScene = memo(function MenuScene({
   return (
     <>
       <MenuCamera position={layout.camera.position} target={layout.camera.target} fx={fx} calm={calm} />
-      <Environment scheme={scheme} fever={false} calm={calm} />
+      <Stage scheme={scheme} fever={false} calm={calm} />
 
       {bins.map((bin, i) => (
         <TrashBin

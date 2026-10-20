@@ -8,6 +8,11 @@ import * as THREE from "three";
 import { type Item } from "@/constants/items";
 
 import { EXTRA_MODEL_RULES, renderExtraModel } from "./models-extra";
+import { toonGradient } from "./toon";
+
+function lighten(hex: string, amount: number) {
+  return `#${new THREE.Color(hex).offsetHSL(0, 0, amount).getHexString()}`;
+}
 
 
 function normalizeName(name: string): string {
@@ -294,10 +299,8 @@ function Part({
   basic,
   noDepthWrite,
   color,
-  roughness = 0.8,
   metalness = 0,
   opacity = 1,
-  flat,
   double,
   emissive,
 }: PartProps) {
@@ -321,13 +324,13 @@ function Part({
           depthWrite={!noDepthWrite}
         />
       ) : (
-        <meshStandardMaterial
-          color={color}
-          roughness={roughness}
-          metalness={metalness}
+        // Toon-Look: harte Schattierungsstufen statt PBR (roughness/metalness
+        // werden dafür nicht gebraucht; Metall wirkt über hellere Farbe).
+        <meshToonMaterial
+          color={metalness > 0.3 ? lighten(color, 0.08) : color}
+          gradientMap={toonGradient()}
           transparent={transparent}
           opacity={opacity}
-          flatShading={flat}
           side={side}
           emissive={emissive}
           depthWrite={!noDepthWrite}

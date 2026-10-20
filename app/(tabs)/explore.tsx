@@ -14,6 +14,7 @@ import {
   ItemCard,
   LearnCard,
   Praise,
+  SpeechBubble,
   ScoreBadge,
   TimerBar,
 } from "@/components/game/hud";
@@ -178,6 +179,8 @@ function GameRound({
   const [bursts, setBursts] = useState<Burst[]>([]);
   const [floats, setFloats] = useState<FloatText[]>([]);
   const [praise, setPraise] = useState<Praised | null>(null);
+  // Sprechblase der Tonne bei falschem Wurf („Bäh!“)
+  const [yuck, setYuck] = useState<{ id: number; x: number; y: number } | null>(null);
   const [learn, setLearn] = useState<Learn | null>(null);
   const [banner, setBanner] = useState<{ id: number; text: string } | null>(
     null,
@@ -395,6 +398,8 @@ function GameRound({
         () => undefined,
       );
       shake(fx.current, 0.08, "x");
+      setYuck({ id, x: top.x, y: top.y });
+      later(() => setYuck((b) => (b?.id === id ? null : b)), 1400);
       const correctBin = getBinByCategory(ts.item.category) ?? bin;
       if (mode === "endless") {
         setLearn({ id, item: ts.item, bin: correctBin });
@@ -594,6 +599,10 @@ function GameRound({
             {floats.map((f) => (
               <FloatingText key={f.id} item={f} onDone={onFloatDone} />
             ))}
+            {yuck && (
+              <SpeechBubble key={yuck.id} x={yuck.x} y={yuck.y} text={t("game.yuck")} />
+            )}
+
             {praise && (
               <View
                 pointerEvents="none"

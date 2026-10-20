@@ -12,12 +12,26 @@ export type Fx = {
   shakeAxis: "x" | "y";
   /** Für weniger Bewegung: Wackeln/Zeitlupe aus. */
   calm: boolean;
+  /** Wohin die Tonnen-Augen schauen (aktueller Gegenstand). */
+  lookAt: THREE.Vector3;
 };
 
 export type FxRef = { readonly current: Fx };
 
 export function createFx(): Fx {
-  return { timeScale: 1, slowUntil: 0, shake: 0, shakeAxis: "y", calm: false };
+  return {
+    timeScale: 1,
+    slowUntil: 0,
+    shake: 0,
+    shakeAxis: "y",
+    calm: false,
+    lookAt: new THREE.Vector3(0, 1, 5),
+  };
+}
+
+/** Gegenstand meldet seine Position → Tonnen schauen ihn an. */
+export function setLook(fx: Fx, position: THREE.Vector3) {
+  fx.lookAt.copy(position);
 }
 
 export function slowMotion(fx: Fx, ms: number) {

@@ -321,27 +321,82 @@ export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
 
 /* ── Lob + fliegende Punkte + Banner ───────────────────────── */
 
+/** Comic-Lautwort („PLOPP!“) mit Sternen-Burst und dicker Umrandung. */
 export function Praise({ text, gold }: { text: string; gold: boolean }) {
-  const { colors } = useAppTheme();
-  const enter = useEnter(300);
+  const enter = useEnter(320);
+  const fill = gold ? "#FFD54A" : "#FFFFFF";
+  const burst = gold ? "#E65100" : "#1E7A4C";
+  const spikes = [0, 22.5, 45, 67.5];
   return (
     <Animated.View
       pointerEvents="none"
       style={[
         styles.praise,
         {
-          opacity: enter.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 1, 1] }),
+          opacity: enter.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0, 1, 1] }),
+          transform: [
+            { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) },
+            { rotate: enter.interpolate({ inputRange: [0, 1], outputRange: ["-12deg", "-4deg"] }) },
+          ],
+        },
+      ]}
+    >
+      <View style={styles.burstWrap}>
+        {spikes.map((deg) => (
+          <View key={deg} style={[styles.burstSpike, { backgroundColor: burst, transform: [{ rotate: `${deg}deg` }] }]} />
+        ))}
+      </View>
+      <OutlinedText text={text} fill={fill} />
+    </Animated.View>
+  );
+}
+
+/** Comic-Schrift mit dicker dunkler Kontur (8 versetzte Schatten-Kopien). */
+function OutlinedText({ text, fill, size = 40 }: { text: string; fill: string; size?: number }) {
+  const offsets = [
+    [-3, 0], [3, 0], [0, -3], [0, 3], [-2, -2], [2, -2], [-2, 2], [2, 2],
+  ];
+  return (
+    <View>
+      {offsets.map(([x, y], i) => (
+        <AppText
+          key={i}
+          variant="display"
+          color="#1E2228"
+          style={[styles.comicText, { fontSize: size, lineHeight: size * 1.2, position: "absolute", left: x, top: y }]}
+        >
+          {text}
+        </AppText>
+      ))}
+      <AppText variant="display" color={fill} style={[styles.comicText, { fontSize: size, lineHeight: size * 1.2 }]}>
+        {text}
+      </AppText>
+    </View>
+  );
+}
+
+/** Sprechblase über einer Tonne („Bäh! 🤢“). */
+export function SpeechBubble({ x, y, text }: { x: number; y: number; text: string }) {
+  const enter = useEnter(280);
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        styles.bubbleWrap,
+        {
+          left: x - 80,
+          top: y - 74,
+          opacity: enter,
           transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }],
         },
       ]}
     >
-      <AppText
-        variant="display"
-        color={gold ? "#FFD54A" : "#FFFFFF"}
-        style={[styles.praiseText, { textShadowColor: gold ? "#7A4A00" : colors.primaryPressed }]}
-      >
-        {text}
-      </AppText>
+      <View style={styles.bubble}>
+        <AppText variant="heading" color="#1E2228" center>
+          {text}
+        </AppText>
+      </View>
+      <View style={styles.bubbleTail} />
     </Animated.View>
   );
 }
@@ -515,8 +570,29 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
   },
 
-  praise: { position: "absolute", left: 0, right: 0, alignItems: "center" },
-  praiseText: { textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 0, fontSize: 44, lineHeight: 52 },
+  praise: { position: "absolute", left: 0, right: 0, alignItems: "center", justifyContent: "center", height: 120 },
+  burstWrap: { position: "absolute", width: 150, height: 150, alignItems: "center", justifyContent: "center" },
+  burstSpike: { position: "absolute", width: 118, height: 118, borderRadius: 14, opacity: 0.92 },
+  comicText: { letterSpacing: 1 },
+  bubbleWrap: { position: "absolute", width: 160, alignItems: "center" },
+  bubble: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    borderWidth: 3,
+    borderColor: "#1E2228",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  bubbleTail: {
+    width: 18,
+    height: 18,
+    backgroundColor: "#FFFFFF",
+    borderRightWidth: 3,
+    borderBottomWidth: 3,
+    borderColor: "#1E2228",
+    transform: [{ rotate: "45deg" }],
+    marginTop: -11,
+  },
 
   float: { position: "absolute", width: 120 },
   floatText: {

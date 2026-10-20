@@ -8,7 +8,7 @@ import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
 
-import { easeOutBack, flightPoint, type FxRef, slowMotion } from "./fx";
+import { easeOutBack, flightPoint, type FxRef, setLook, slowMotion } from "./fx";
 import { TrashObject3D } from "./models";
 
 export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
@@ -61,6 +61,7 @@ export const PreviewItem = memo(function PreviewItem({
       fx.current.calm ? -0.3 : -0.3 + Math.sin(t * 0.9) * 0.35,
       -lean.current * 0.35,
     );
+    setLook(fx.current, g.position);
   });
 
  return (
@@ -212,6 +213,7 @@ export function ThrownItem({
       s.t = Math.min(s.t + delta / FLIGHT_TIME, 1);
       flightPoint(tmp, start, target, s.t, arc);
       g.position.copy(tmp);
+      setLook(fx.current, tmp);
       g.scale.setScalar(THREE.MathUtils.lerp(startScale, endScale, Math.min(s.t * 1.4, 1)));
       g.rotation.x += delta * 9;
       g.rotation.y += delta * 6;

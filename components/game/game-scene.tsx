@@ -13,7 +13,7 @@ import { BIN_OPENING_Y, type GameLayout } from "@/game/layout";
 import { devLog } from "@/utils/dev-error-reporter";
 
 import { type Burst, Effects } from "./effects";
-import { Environment } from "./environment";
+import { Stage } from "./stage";
 import { type FxRef, stepFx } from "./fx";
 import { AimGuide, PreviewItem, ThrownItem } from "./items";
 import { type BinEvent, TrashBin } from "./trash-bin";
@@ -135,7 +135,7 @@ export const GameScene = memo(function GameScene({
   return (
     <>
       <CameraRig layout={layout} fx={fx} calm={calm} />
-      <Environment scheme={scheme} fever={fever} calm={calm} />
+      <Stage scheme={scheme} fever={fever} calm={calm} />
 
       {bins.map((bin, i) => (
         <TrashBin
