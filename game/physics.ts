@@ -222,6 +222,47 @@ export function stepBall(ball: Ball, dt: number, bins: BinCollider[], events: Ba
   ball.still = ball.v.length() < 0.3 ? ball.still + dt : 0;
 }
 
+const probe: Ball = {
+  p: new THREE.Vector3(),
+  v: new THREE.Vector3(),
+  inside: null,
+  touched: false,
+  via: null,
+  still: 0,
+};
+const probeEvents: BallEvent[] = [];
+
+/** Würde ein Ball an Stelle `p` (mit Tempo `v`) gerade etwas berühren? */
+function touchesAt(p: THREE.Vector3, v: THREE.Vector3, bins: BinCollider[]): boolean {
+  probe.p.copy(p);
+  probe.v.copy(v);
+  probe.inside = null;
+  probeEvents.length = 0;
+  stepBall(probe, 0, bins, probeEvents);
+  return probeEvents.some((e) => e.type === "bounce");
+}
+
+/**
+ * Erste Berührung auf der Strecke from → to (in kleinen Schritten abgetastet,
+ * sonst springt ein schneller Wurf zwischen zwei Bildern durch den dünnen
+ * Deckel hindurch). Gibt die letzte freie Stelle davor zurück – oder null.
+ */
+export function firstContact(
+  from: THREE.Vector3,
+  to: THREE.Vector3,
+  v: THREE.Vector3,
+  bins: BinCollider[],
+  out: THREE.Vector3,
+): THREE.Vector3 | null {
+  const steps = Math.max(1, Math.ceil(from.distanceTo(to) / 0.04));
+  const point = new THREE.Vector3();
+  for (let k = 1; k <= steps; k++) {
+    point.lerpVectors(from, to, k / steps);
+    if (touchesAt(point, v, bins)) return out.lerpVectors(from, to, (k - 1) / steps);
+  }
+  return null;
+}
+
 /** Fertig: liegt still oder ist in einer Tonne verschwunden. */
 export function ballSettled(ball: Ball): boolean {
   return ball.still > 0.25;

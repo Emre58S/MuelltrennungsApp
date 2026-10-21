@@ -17,6 +17,7 @@ import {
   ballSettled,
   BIN_SHAPE,
   type BinCollider,
+  firstContact,
   stepBall,
 } from "@/game/physics";
 import { sfx } from "@/utils/sfx";
@@ -290,18 +291,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     [openings],
   );
   const events = useMemo<BallEvent[]>(() => [], []);
-  const probe = useMemo<Ball>(
-    () => ({
-      p: new THREE.Vector3(),
-      v: new THREE.Vector3(),
-      inside: null,
-      touched: false,
-      via: null,
-      still: 0,
-    }),
-    [],
-  );
   const vel = useMemo(() => new THREE.Vector3(), []);
+  const contact = useMemo(() => new THREE.Vector3(), []);
 
   useEffect(() => () => trailMats.forEach((mat) => mat.dispose()), [trailMats]);
 
@@ -392,17 +383,6 @@ export const ThrowLayer = memo(function ThrowLayer({
 
     trackFlying(fx.current, 1);
     s.counted = true;
-  };
-
-  /** Probe: würde der Gegenstand hier etwas berühren (Rand, Wand, Deckel)? */
-  const touches = (p: THREE.Vector3, v: THREE.Vector3) => {
-    probe.p.copy(p);
-    probe.v.copy(v);
-    probe.inside = null;
-    probe.touched = false;
-    events.length = 0;
-    stepBall(probe, 0, colliders, events);
-    return events.some((e) => e.type === "bounce");
   };
 
   /** Ab hier rechnet die Physik weiter – mit der Geschwindigkeit des Flugs
@@ -523,8 +503,11 @@ export const ThrowLayer = memo(function ThrowLayer({
           colliders.forEach((c, k) => {
             c.lid = bus.current.lids[k] ?? 0;
           });
-          if (s.t >= 1 || touches(tmp, vel)) {
-            handOver(s, g.position, vel);
+          // Ganze Strecke seit dem letzten Bild prüfen (nicht nur den Endpunkt)
+          const hitAt = firstContact(g.position, tmp, vel, colliders, contact);
+          if (hitAt || s.t >= 1) {
+            handOver(s, hitAt ?? tmp, vel);
+            g.position.copy(hitAt ?? tmp);
             continue;
           }
         }

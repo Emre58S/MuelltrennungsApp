@@ -9,6 +9,7 @@ import {
   type BallEvent,
   BIN_SHAPE,
   type BinCollider,
+  firstContact,
   launchBall,
   stepBall,
 } from "../physics";
@@ -112,6 +113,20 @@ describe("Zielwurf-Physik", () => {
     ball.v.set(0, -4, 0);
     const { bin } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
     expect(bin).toBeNull();
+  });
+
+  test("schneller Flug durch den dünnen Deckel wird erkannt (kein Durchtunneln)", () => {
+    // ~0,45 Einheiten pro Bild: Start und Ende frei, dazwischen die Platte
+    const bins = [{ x: 0, z: 0, lid: OPEN }];
+    const from = new THREE.Vector3(0, 2.1, -0.45);
+    const to = new THREE.Vector3(0, 2.1, -0.9);
+    const v = new THREE.Vector3(0, 0, -27);
+    const out = new THREE.Vector3();
+    expect(firstContact(from, from, v, bins, out)).toBeNull();
+    expect(firstContact(to, to, v, bins, out)).toBeNull();
+    const hit = firstContact(from, to, v, bins, out);
+    expect(hit).not.toBeNull();
+    expect(hit!.z).toBeGreaterThan(-0.68);
   });
 
   test("zu weit: der offene Deckel wirkt wie ein Brett", () => {
