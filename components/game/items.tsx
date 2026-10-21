@@ -20,7 +20,7 @@ import {
   slowMotion,
   trackFlying,
 } from "./fx";
-import { cloneModel, ItemModel } from "./model-cache";
+import { cloneModel, hasModel } from "./model-cache";
 import { type BusRef, landThrow, type ThrowSpec, takeThrows } from "./scene-bus";
 
 export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
@@ -29,18 +29,16 @@ export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
 
 /* ── Vorschau ──────────────────────────────────────────────── */
 
+/** Der schwebende Gegenstand. Welcher es ist, steht in bus.preview; das
+ *  Modell wird hier im Frame getauscht (Kopie der Vorlage) – die Szene
+ *  rendert dafür nicht neu, egal wie schnell geworfen wird. */
 export const PreviewItem = memo(function PreviewItem({
-  item,
-  visible = true,
   position,
   scale,
   openings,
   bus,
   fx,
 }: {
-  item: Item;
-  /** false = bereits aufgebaut, aber noch unsichtbar (nächstes Item). */
-  visible?: boolean;
   position: THREE.Vector3;
   scale: number;
   /** Öffnungen der Tonnen – das Item lehnt sich zur anvisierten. */
@@ -49,6 +47,12 @@ export const PreviewItem = memo(function PreviewItem({
   fx: FxRef;
 }) {
   const ref = useRef<THREE.Group>(null);
+  const shown = useRef<{
+    item: Item | null;
+    model: THREE.Object3D | null;
+    /** false = Ersatzform, bis die Vorlage fertig ist. */
+    real: boolean;
+  }>({ item: null, model: null, real: false });
   const age = useRef(0);
   const aim = useRef(0);
   const lean = useRef(0);
@@ -56,11 +60,19 @@ export const PreviewItem = memo(function PreviewItem({
   useFrame((state, rawDelta) => {
     const g = ref.current;
     if (!g) return;
-    g.visible = visible;
-    if (!visible) {
-      age.current = 0;
-      return;
+    const item = bus.current.preview;
+    const cur = shown.current;
+    const changed = item !== cur.item;
+    if (changed || (item && !cur.real && hasModel(item.name))) {
+      if (changed) age.current = 0;
+      if (cur.model) g.remove(cur.model);
+      cur.model = item ? cloneModel(item.name) : null;
+      if (cur.model) g.add(cur.model);
+      cur.item = item;
+      cur.real = !!item && hasModel(item.name);
     }
+    g.visible = !!item;
+    if (!item) return;
     const delta = Math.min(rawDelta, 0.05);
     age.current += delta;
     const t = state.clock.elapsedTime;
@@ -98,9 +110,7 @@ export const PreviewItem = memo(function PreviewItem({
       position={[position.x, position.y, position.z]}
       scale={0.001}
       visible={false}
-    >
-      <ItemModel item={item} />
-    </group>
+    />
   );
 });
 
@@ -169,8 +179,9 @@ export const AimGuide = memo(function AimGuide({
 // Knackiger Flug: kurz genug für flüssiges Spiel, lang genug zum Mitverfolgen
 const FLIGHT_TIME = 0.42;
 const TRAIL = 10;
-/** Gleichzeitig sichtbare Würfe. Reicht für ~8 Würfe pro Sekunde. */
-const SLOTS = 6;
+/** Gleichzeitig sichtbare Würfe. Ein Fehlwurf (Abprallen) belegt seinen
+ *  Platz ~1,5 s – 10 Plätze reichen auch für sehr schnelles Werfen. */
+const SLOTS = 10;
 const TRAIL_GEO = new THREE.SphereGeometry(1, 8, 6);
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
@@ -279,6 +290,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     if (!mesh) return;
     for (let k = 0; k < TRAIL; k++) mesh.setMatrixAt(k, ZERO);
     mesh.instanceMatrix.needsUpdate = true;
+    // Unsichtbar = kein Zeichenaufruf für leere Spuren
+    mesh.visible = false;
   };
 
   /** Wurf sofort abschließen (falls der Pool voll ist oder die Szene endet). */
@@ -324,6 +337,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.trail.forEach((v) => v.copy(start));
     s.head = 0;
     s.trailShown = true;
+    const trail = trails.current[i];
+    if (trail) trail.visible = true;
     trailMats[i].color.set(spec.glow ? "#FFD54A" : "#FFFFFF");
 
     g.position.copy(start);
@@ -458,6 +473,7 @@ export const ThrowLayer = memo(function ThrowLayer({
           }}
           args={[TRAIL_GEO, mat, TRAIL]}
           frustumCulled={false}
+          visible={false}
         />
       ))}
       {trailMats.map((_, i) => (

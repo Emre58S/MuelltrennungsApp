@@ -31,6 +31,8 @@ export type SceneBus = {
   /** Anvisierte Tonne (oder null). */
   aim: number | null;
   aimListeners: Set<() => void>;
+  /** Schwebender Gegenstand (Vorschau). Die Szene tauscht das Modell selbst. */
+  preview: Item | null;
   /** Pro Tonne: Anzahl fliegender Treffer (Deckel bleibt dafür offen). */
   incoming: number[];
   throws: ThrowSpec[];
@@ -45,6 +47,7 @@ export function createBus(): SceneBus {
   return {
     aim: null,
     aimListeners: new Set(),
+    preview: null,
     incoming: [],
     throws: [],
     bursts: [],
@@ -147,3 +150,10 @@ export function isBinActive(bus: SceneBus, index: number): boolean {
 
 const EMPTY: ThrowSpec[] = [];
 const EMPTY_BURSTS: Burst[] = [];
+
+/* ── Vorschau ──────────────────────────────────────────────── */
+
+/** Nächsten Gegenstand zeigen – ohne Neu-Rendern der 3D-Szene. */
+export function setPreview(bus: SceneBus, item: Item | null) {
+  bus.preview = item;
+}

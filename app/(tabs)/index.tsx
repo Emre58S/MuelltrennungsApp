@@ -43,6 +43,7 @@ import {
   resetBus,
   setAim,
   setLandHandler,
+  setPreview,
   useAim,
 } from "@/components/game/scene-bus";
 import { AppText } from "@/components/ui/app-text";
@@ -143,21 +144,19 @@ export default function HomeScreen() {
     [width, height, compact],
   );
 
-  /* ── Schwebender Gegenstand (+ unsichtbar vorbereiteter nächster) ── */
+  /* ── Schwebender Gegenstand (die Szene liest ihn aus dem Bus) ── */
   const [bag] = useState(() => ({ current: [] as Item[] }));
-  const [item, setItemState] = useState<Item | null>(() => drawFromBag(bag, MENU_POOL));
-  const [nextItem, setNextItem] = useState<Item | null>(() =>
-    drawFromBag(bag, MENU_POOL, item?.name),
-  );
-  const itemRef = useRef(item);
-  const nextRef = useRef(nextItem);
+  const [firstItem] = useState(() => drawFromBag(bag, MENU_POOL));
+  // Vorlagen bauen: das erste Item zuerst, dann der Rest
+  const [warmItems] = useState(() => (firstItem ? [firstItem, ...MENU_POOL] : MENU_POOL));
+  const itemRef = useRef(firstItem);
+  useLayoutEffect(() => {
+    setPreview(bus.current, itemRef.current);
+  }, []);
   const advanceItem = useCallback(() => {
-    const upcoming = nextRef.current ?? drawFromBag(bag, MENU_POOL, itemRef.current?.name);
-    const following = drawFromBag(bag, MENU_POOL, upcoming?.name);
+    const upcoming = drawFromBag(bag, MENU_POOL, itemRef.current?.name);
     itemRef.current = upcoming;
-    nextRef.current = following;
-    setItemState(upcoming);
-    setNextItem(following);
+    setPreview(bus.current, upcoming);
   }, [bag]);
 
   /* ── Start per Wurf ─────────────────────────────────────────── */
@@ -363,9 +362,7 @@ export default function HomeScreen() {
             calm={reduceMotion}
             fx={fx}
             bus={bus}
-            item={item}
-            nextItem={nextItem}
-            warmItems={MENU_POOL}
+            warmItems={warmItems}
           />
         </Canvas>
       )}

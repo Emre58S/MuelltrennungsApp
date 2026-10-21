@@ -9,7 +9,7 @@
 // gleich mit vorbereitet werden). Vorlagen bleiben über Runden erhalten.
 
 import { useFrame } from "@react-three/fiber/native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
@@ -41,26 +41,6 @@ export function cloneModel(name: string): THREE.Object3D {
 }
 
 const FALLBACK_GEO = new THREE.DodecahedronGeometry(0.28, 0);
-
-/** Item-Modell: Kopie der Vorlage, sonst einmal per React aufbauen und merken. */
-export function ItemModel({ item }: { item: Item }) {
-  const [clone] = useState(() =>
-    hasModel(item.name) ? cloneModel(item.name) : null,
-  );
-  const ref = useRef<THREE.Group>(null);
-
-  useEffect(() => {
-    if (clone || !ref.current) return;
-    remember(item.name, ref.current);
-  }, [clone, item.name]);
-
-  if (clone) return <primitive object={clone} />;
-  return (
-    <group ref={ref}>
-      <TrashObject3D item={item} />
-    </group>
-  );
-}
 
 /** Baut die Vorlagen für `items` nach und nach auf (unsichtbar klein bei `at`). */
 export function ModelWarmup({

@@ -1,8 +1,8 @@
 // Datei: components/game/game-scene.tsx
 // Setzt die 3D-Welt zusammen und steuert Kamera, Zeitlupe und Wackeln.
 // Würfe, Konfetti und Tonnen-Reaktionen laufen über den SceneBus in festen
-// Pools – die Szene selbst rendert nur neu, wenn sich Item, Fieber oder
-// Layout ändern (nicht pro Wurf).
+// Pools, das schwebende Item ebenso (bus.preview) – die Szene selbst rendert
+// nur neu, wenn sich Fieber oder Layout ändern (nie pro Wurf).
 
 import { useFrame } from "@react-three/fiber/native";
 import { memo, useMemo, useRef } from "react";
@@ -95,8 +95,6 @@ export const GameScene = memo(function GameScene({
   fx,
   bus,
   calm,
-  previewItem,
-  nextItem,
   warmItems,
 }: {
   layout: GameLayout;
@@ -106,8 +104,6 @@ export const GameScene = memo(function GameScene({
   fx: FxRef;
   bus: BusRef;
   calm: boolean;
-  previewItem: Item | null;
-  nextItem: Item | null;
   /** Items, deren Modelle vorab aufgebaut werden (ganzer Item-Pool). */
   warmItems: Item[];
 }) {
@@ -119,7 +115,6 @@ export const GameScene = memo(function GameScene({
     [layout],
   );
   const aimColors = useMemo(() => bins.map((b) => b.colorLight), [bins]);
-  const next = nextItem && nextItem.name !== previewItem?.name ? nextItem : null;
 
   return (
     <>
@@ -138,22 +133,13 @@ export const GameScene = memo(function GameScene({
         />
       ))}
 
-      {/* Das nächste Item steht unsichtbar bereit (gleicher key → kein Neuaufbau) */}
-      {[previewItem, next].map(
-        (it, i) =>
-          it && (
-            <PreviewItem
-              key={it.name}
-              item={it}
-              visible={i === 0}
-              position={layout.item.position}
-              scale={layout.item.scale}
-              openings={openings}
-              bus={bus}
-              fx={fx}
-            />
-          ),
-      )}
+      <PreviewItem
+        position={layout.item.position}
+        scale={layout.item.scale}
+        openings={openings}
+        bus={bus}
+        fx={fx}
+      />
 
       <AimGuide start={layout.item.position} openings={openings} colors={aimColors} bus={bus} />
 

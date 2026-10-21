@@ -43,8 +43,6 @@ export const MenuScene = memo(function MenuScene({
   calm,
   fx,
   bus,
-  item,
-  nextItem,
   warmItems,
 }: {
   layout: GameLayout;
@@ -53,8 +51,6 @@ export const MenuScene = memo(function MenuScene({
   calm: boolean;
   fx: FxRef;
   bus: BusRef;
-  item: Item | null;
-  nextItem: Item | null;
   warmItems: Item[];
 }) {
   const openings = useMemo(
@@ -62,7 +58,6 @@ export const MenuScene = memo(function MenuScene({
     [layout],
   );
   const aimColors = useMemo(() => bins.map((b) => b.colorLight), [bins]);
-  const next = nextItem && nextItem.name !== item?.name ? nextItem : null;
 
   return (
     <>
@@ -81,21 +76,13 @@ export const MenuScene = memo(function MenuScene({
         />
       ))}
 
-      {[item, next].map(
-        (it, i) =>
-          it && (
-            <PreviewItem
-              key={it.name}
-              item={it}
-              visible={i === 0}
-              position={layout.item.position}
-              scale={layout.item.scale}
-              openings={openings}
-              bus={bus}
-              fx={fx}
-            />
-          ),
-      )}
+      <PreviewItem
+        position={layout.item.position}
+        scale={layout.item.scale}
+        openings={openings}
+        bus={bus}
+        fx={fx}
+      />
 
       <AimGuide start={layout.item.position} openings={openings} colors={aimColors} bus={bus} />
 

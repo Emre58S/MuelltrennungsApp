@@ -29,6 +29,7 @@ import {
   queueThrow,
   setAim,
   setLandHandler,
+  setPreview,
   type ThrowSpec,
 } from "@/components/game/scene-bus";
 import { IconButton } from "@/components/ui/icon-button";
@@ -75,6 +76,8 @@ import {
 import { Canvas } from "@react-three/fiber/native";
 import * as Haptics from "expo-haptics";
 import {
+  type ComponentProps,
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -179,9 +182,9 @@ export function GameRound({
   const [currentItem, setCurrentItemState] = useState<Item | null>(() =>
     drawItem(picker, pool, dailyList, {}, 0),
   );
-  // Das nächste Item steht unsichtbar bereit (Modell schon aufgebaut).
-  const [nextItem, setNextItemState] = useState<Item | null>(() =>
-    drawItem(picker, pool, dailyList, {}, 0),
+  // Vorlagen bauen: das erste Item zuerst, dann der ganze Pool.
+  const [warmItems] = useState(() =>
+    currentItem ? [currentItem, ...pool] : pool,
   );
   const drawNext = () =>
     drawItem(
@@ -191,11 +194,16 @@ export function GameRound({
       itemStats.current,
       liveStats.current.throws,
     );
-  const nextRef = useRef<Item | null>(nextItem);
   const itemRef = useRef<Item | null>(currentItem);
+  // Die 3D-Szene liest das Item direkt aus dem Bus (kein Neu-Rendern dort);
+  // der React-State ist nur für die Item-Karte im HUD.
   const setCurrentItem = useCallback((item: Item | null) => {
     itemRef.current = item;
+    setPreview(bus.current, item);
     setCurrentItemState(item);
+  }, []);
+  useLayoutEffect(() => {
+    setPreview(bus.current, itemRef.current);
   }, []);
   const throwMap = useRef(new Map<number, ThrowSpec>());
   const [floats, setFloats] = useState<FloatText[]>([]);
@@ -267,6 +275,7 @@ export function GameRound({
   useEffect(() => {
     if (!showEnd) return;
     setAim(bus.current, null);
+    setPreview(bus.current, null);
     commitRound();
     sfx("end");
   }, [showEnd, commitRound]);
@@ -317,18 +326,9 @@ export function GameRound({
     throwMap.current.set(spec.id, spec);
     queueThrow(bus.current, spec);
 
-    // Nächstes Item ist schon aufgebaut → sofort zeigen. Das übernächste
-    // erst kurz danach aufbauen, nicht im selben Moment wie den Wurf.
-    const upcoming = nextRef.current ?? drawNext();
-    nextRef.current = null;
-    setNextItemState(null);
-    setCurrentItem(upcoming);
-    later(() => {
-      if (nextRef.current) return;
-      const following = drawNext();
-      nextRef.current = following;
-      setNextItemState(following);
-    }, 300);
+    // Nächstes Item: die Szene tauscht im nächsten Frame nur das Modell
+    // (Kopie der Vorlage) – gleich schnell bei jedem Wurftempo.
+    setCurrentItem(drawNext());
 
     sfx("throw", { rate: perfect ? 1.1 : 1 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -579,42 +579,18 @@ export function GameRound({
     <GestureDetector gesture={gesture}>
       <View style={[styles.root, { width: screenW, height: screenH }]}>
         {ready && (
-          <Canvas
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              width: screenW,
-              height: screenH,
-            }}
-            shadows={false}
-            camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
-            gl={{ antialias: ANTIALIAS }}
-            onCreated={(s) =>
-              devLog(
-                "CANVAS",
-                "erstellt",
-                s.size.width,
-                s.size.height,
-                "screen",
-                screenW,
-                screenH,
-              )
-            }
-          >
-            <GameScene
-              layout={layout}
-              bins={bins}
-              scheme={scheme}
-              fever={fever}
-              fx={fx}
-              bus={bus}
-              calm={reduceMotion}
-              previewItem={showEnd ? null : currentItem}
-              nextItem={showEnd ? null : nextItem}
-              warmItems={pool}
-            />
-          </Canvas>
+          <SceneCanvas
+            width={screenW}
+            height={screenH}
+            layout={layout}
+            bins={bins}
+            scheme={scheme}
+            fever={fever}
+            fx={fx}
+            bus={bus}
+            calm={reduceMotion}
+            warmItems={warmItems}
+          />
         )}
         {ready && !showEnd && (
           <>
@@ -713,6 +689,36 @@ export function GameRound({
     </GestureDetector>
   );
 }
+/** Die 3D-Fläche. Eigene memo-Komponente: Punkte, Lob, „+10“ und Timer
+ *  rendern nur das HUD neu – die Canvas (und R3F) bleiben unberührt. */
+const SceneCanvas = memo(function SceneCanvas({
+  width,
+  height,
+  ...scene
+}: { width: number; height: number } & ComponentProps<typeof GameScene>) {
+  return (
+    <Canvas
+      style={{ position: "absolute", left: 0, top: 0, width, height }}
+      shadows={false}
+      camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
+      gl={{ antialias: ANTIALIAS }}
+      onCreated={(s) =>
+        devLog(
+          "CANVAS",
+          "erstellt",
+          s.size.width,
+          s.size.height,
+          "screen",
+          width,
+          height,
+        )
+      }
+    >
+      <GameScene {...scene} />
+    </Canvas>
+  );
+});
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
   top: {
