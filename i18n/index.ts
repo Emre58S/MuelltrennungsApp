@@ -1,5 +1,8 @@
+import { type Item } from "@/constants/items";
+
 import { de, type TranslationKey, type Translations } from "./de";
 import { en } from "./en";
+import { ITEMS_EN } from "./items-en";
 
 export type { TranslationKey };
 
@@ -36,4 +39,14 @@ export function translate(
     }
   }
   return text;
+}
+
+/** Anzeigename eines Gegenstands. `item.name` bleibt die deutsche ID. */
+export function itemName(lang: Language, item: Item): string {
+  return lang === "en" ? (ITEMS_EN[item.name]?.name ?? item.name) : item.name;
+}
+
+/** Fakt zum Gegenstand in der aktuellen Sprache (falls vorhanden). */
+export function itemFact(lang: Language, item: Item): string | undefined {
+  return lang === "en" ? (ITEMS_EN[item.name]?.fact ?? item.fact) : item.fact;
 }

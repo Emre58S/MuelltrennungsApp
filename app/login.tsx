@@ -11,8 +11,10 @@ import {
   View,
 } from "react-native";
 import { AppColors, FontSize, Radius, Spacing } from "@/constants/theme";
+import { useI18n } from "@/providers/app-settings";
 
 export default function LoginScreen() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,11 +22,11 @@ export default function LoginScreen() {
   const handleLogin = () => {
     setError("");
     if (!email.includes("@")) {
-      setError("Bitte gib eine gültige E-Mail-Adresse ein.");
+      setError(t("auth.error.email"));
       return;
     }
     if (password.length < 4) {
-      setError("Passwort muss mindestens 4 Zeichen haben.");
+      setError(t("auth.error.password", { n: 4 }));
       return;
     }
     // TODO: echte Auth-Logik (Supabase/Firebase)
@@ -37,14 +39,14 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Text style={styles.logo}>♻️</Text>
-      <Text style={styles.title}>Müll Sortieren</Text>
-      <Text style={styles.subtitle}>DEUTSCHLAND</Text>
+      <Text style={styles.title}>{t("home.titleTop")} {t("home.titleBottom")}</Text>
+      <Text style={styles.subtitle}>{t("home.subtitle")}</Text>
 
       <View style={styles.card}>
-        <Text style={styles.label}>E-Mail</Text>
+        <Text style={styles.label}>{t("auth.email")}</Text>
         <TextInput
           style={styles.input}
-          placeholder="deine@email.de"
+          placeholder={t("auth.emailPlaceholder")}
           placeholderTextColor={AppColors.textMuted}
           value={email}
           onChangeText={setEmail}
@@ -52,7 +54,7 @@ export default function LoginScreen() {
           keyboardType="email-address"
         />
 
-        <Text style={styles.label}>Passwort</Text>
+        <Text style={styles.label}>{t("auth.password")}</Text>
         <TextInput
           style={styles.input}
           placeholder="••••••••"
@@ -65,13 +67,13 @@ export default function LoginScreen() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin} activeOpacity={0.8}>
-          <Text style={styles.loginButtonText}>Login</Text>
+          <Text style={styles.loginButtonText}>{t("auth.login")}</Text>
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity onPress={() => router.push("/register")}>
         <Text style={styles.footerText}>
-          Noch kein Konto? <Text style={styles.footerLink}>Jetzt registrieren</Text>
+          {t("auth.noAccount")} <Text style={styles.footerLink}>{t("auth.registerNow")}</Text>
         </Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
@@ -92,7 +94,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: "600",
     color: AppColors.green,
-    letterSpacing: 4,
+    textAlign: "center",
     marginTop: Spacing.xs,
     marginBottom: Spacing.xl,
   },

@@ -250,7 +250,7 @@ export function BinLabels({
 /* ── Item-Karte ────────────────────────────────────────────── */
 
 export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) {
-  const { t } = useI18n();
+  const { t, itemName } = useI18n();
   const enter = useEnter(380);
   const { reduceMotion } = useAppSettings();
   const [hand] = useState(() => new Animated.Value(0));
@@ -273,7 +273,7 @@ export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) 
       style={[styles.itemWrap, { opacity: enter, transform: [{ scale: enter }] }]}
       accessible
       accessibilityLiveRegion="polite"
-      accessibilityLabel={`${t("game.whereTo")} ${item.name}`}
+      accessibilityLabel={`${t("game.whereTo")} ${itemName(item)}`}
     >
       {showHint && (
         <View style={styles.hint}>
@@ -305,7 +305,7 @@ export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) 
             {t("game.whereTo").toUpperCase()}
           </AppText>
           <AppText variant="heading" numberOfLines={2}>
-            {item.name}
+            {itemName(item)}
           </AppText>
         </View>
       </HudSurface>
@@ -316,7 +316,7 @@ export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) 
 /* ── Lern-Karte (falsche Tonne) ────────────────────────────── */
 
 export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
-  const { t } = useI18n();
+  const { t, itemName } = useI18n();
   const { colors } = useAppTheme();
   const enter = useEnter(380);
 
@@ -325,7 +325,7 @@ export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
       style={[styles.itemWrap, { opacity: enter, transform: [{ scale: enter }] }]}
       accessible
       accessibilityLiveRegion="assertive"
-      accessibilityLabel={`${t("game.almost")} ${item.name} ${t("game.belongsIn")} ${t(bin.labelKey)}`}
+      accessibilityLabel={`${t("game.almost")} ${itemName(item)} ${t("game.belongsIn")} ${t(bin.labelKey)}`}
     >
       <View
         style={[styles.learnCard, { backgroundColor: colors.warningSoft, borderColor: colors.warning }]}
@@ -336,7 +336,7 @@ export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
         <View style={styles.learnRow}>
           <AppText style={styles.learnEmoji}>{item.emoji}</AppText>
           <AppText variant="bodyStrong" tone="onWarningSoft" style={styles.flexShrink}>
-            {item.name} {t("game.belongsIn")}
+            {itemName(item)} {t("game.belongsIn")}
           </AppText>
         </View>
         <View style={[styles.learnBin, { backgroundColor: bin.color }]}>

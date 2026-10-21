@@ -49,7 +49,7 @@ export function EndScreen({
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
-  const { t, formatNumber } = useI18n();
+  const { t, formatNumber, itemName, itemFact } = useI18n();
   const { reduceMotion } = useAppSettings();
 
   const [enter] = useState(() => new Animated.Value(reduceMotion ? 1 : 0));
@@ -227,12 +227,12 @@ export function EndScreen({
                     onPress={() => setOpen(expanded ? null : m.item.name)}
                     accessibilityRole="button"
                     accessibilityState={{ expanded }}
-                    accessibilityLabel={`${m.item.name} → ${t(m.bin.labelKey)}`}
+                    accessibilityLabel={`${itemName(m.item)} → ${t(m.bin.labelKey)}`}
                   >
                     <View style={styles.learnRow}>
                       <AppText style={styles.rowEmoji}>{m.item.emoji}</AppText>
                       <AppText style={styles.flex} numberOfLines={2}>
-                        {m.item.name}
+                        {itemName(m.item)}
                       </AppText>
                       <View style={[styles.binPill, { backgroundColor: m.bin.color }]}>
                         <AppText variant="caption" color={m.bin.onColor}>
@@ -247,7 +247,7 @@ export function EndScreen({
                     </View>
                     {expanded && (
                       <AppText tone="textSecondary" style={styles.factText}>
-                        {m.item.fact ?? `${m.item.name} → ${m.bin.icon} ${t(m.bin.labelKey)}`}
+                        {itemFact(m.item) ?? `${itemName(m.item)} → ${m.bin.icon} ${t(m.bin.labelKey)}`}
                       </AppText>
                     )}
                   </Pressable>

@@ -19,8 +19,11 @@ import {
   Palettes,
   type ThemeColors,
 } from "@/constants/theme";
+import { type Item } from "@/constants/items";
 import {
   isLanguage,
+  itemFact,
+  itemName,
   type Language,
   resolveLanguage,
   translate,
@@ -188,6 +191,8 @@ export function useI18n() {
       lang,
       t: (key: TranslationKey, vars?: Record<string, string | number>) =>
         translate(lang, key, vars),
+      itemName: (item: Item) => itemName(lang, item),
+      itemFact: (item: Item) => itemFact(lang, item),
       formatNumber: (n: number) => n.toLocaleString(locale),
     };
   }, [lang]);

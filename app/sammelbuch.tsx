@@ -43,7 +43,7 @@ export default function CollectionScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { colors } = useAppTheme();
-  const { t } = useI18n();
+  const { t, itemName } = useI18n();
   const [stats, setStats] = useState<ItemStats>({});
   const [selected, setSelected] = useState<Item | null>(null);
 
@@ -131,7 +131,7 @@ export default function CollectionScreen() {
                     <Pressable
                       key={item.name}
                       accessibilityRole="button"
-                      accessibilityLabel={known ? item.name : t("book.lockedItem")}
+                      accessibilityLabel={known ? itemName(item) : t("book.lockedItem")}
                       onPress={() => setSelected(item)}
                       style={({ pressed }) => [
                         styles.tile,
@@ -183,7 +183,7 @@ function DetailSheet({
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
-  const { t } = useI18n();
+  const { t, itemName, itemFact } = useI18n();
   const known = !!item && (stat?.correct ?? 0) > 0;
   const binKey = item ? CATEGORY_BIN[item.category] : "rest";
   const bin = BinColors[binKey];
@@ -201,7 +201,7 @@ function DetailSheet({
             <>
               <AppText style={styles.sheetEmoji}>{known ? item.emoji : "❔"}</AppText>
               <AppText variant="title" center accessibilityRole="header">
-                {known ? item.name : t("book.locked")}
+                {known ? itemName(item) : t("book.locked")}
               </AppText>
 
               {known ? (
@@ -216,7 +216,7 @@ function DetailSheet({
                   </View>
                   {item.fact && (
                     <View style={[styles.fact, { backgroundColor: colors.primarySoft }]}>
-                      <AppText tone="onPrimarySoft">💡 {item.fact}</AppText>
+                      <AppText tone="onPrimarySoft">💡 {itemFact(item)}</AppText>
                     </View>
                   )}
                   <View style={[styles.statRow, { backgroundColor: colors.surfaceAlt }]}>
