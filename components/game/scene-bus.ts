@@ -35,6 +35,8 @@ export type ThrowSpec = {
   perfect: boolean;
   /** Goldene Spur (Perfekt oder Fieber). */
   glow: boolean;
+  /** „On Fire“: orange Feuerspur (Serie ab 3 im Zielwurf). */
+  fire?: boolean;
   /** Wischstärke 0.8…1.3: höher = kräftiger, flacherer Wurf (Standard 1). */
   power?: number;
   /** Zielwurf: eigene Landestelle (Welt x/z auf Höhe der Öffnungen). */

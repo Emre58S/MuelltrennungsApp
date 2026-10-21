@@ -7,7 +7,7 @@
 // gibt es nur noch für das, was im HUD sichtbar ist. Gespeichert wird
 // gebündelt. Lernkarte nur im Üben-Modus.
 import { EndScreen, type Mistake } from "@/components/game/end-screen";
-import { cancelSlowMotion, createFx, shake } from "@/components/game/fx";
+import { cancelSlowMotion, createFx, hitStop, shake } from "@/components/game/fx";
 import { GameScene } from "@/components/game/game-scene";
 import {
   Banner,
@@ -113,6 +113,8 @@ const ROUND_SECONDS = 60;
 const TIME_UP_GRACE_MS = 1000;
 /** Höchstens so viele „+10“ gleichzeitig. */
 const MAX_FLOATS = 5;
+/** Zielwurf: ab so vielen Treffern in Folge „On Fire“ (Feuerspur). */
+const ON_FIRE_STREAK = 3;
 /** expo-gl rendert immer in voller Auflösung. Auf 3x-Displays sind Kanten
  *  ohnehin fein – dort Kantenglättung (MSAA) sparen, das entlastet die GPU. */
 const ANTIALIAS = PixelRatio.get() < 3;
@@ -358,6 +360,8 @@ export function GameRound({
       hit,
       perfect: hit && perfect,
       glow: (hit && perfect) || feverRef.current,
+      // Zielwurf: ab 3 Treffern in Folge Feuerspur
+      fire: !!shot && liveStats.current.streak >= ON_FIRE_STREAK,
       power,
     };
     if (shot) {
@@ -387,8 +391,8 @@ export function GameRound({
     liveStats.current = statsReducer(liveStats.current, action);
     dispatch(action);
     missesInRow.current += 1;
-    // Weich statt strafend: kurzer Holz-Tick statt Fehlerton
-    sfx("aim", { volume: 1 });
+    // Weich statt strafend: „Plopp“ statt Fehlerton
+    sfx("plop");
     // Lernhilfe: knapp? zu kurz? zu weit?
     const depth = (ts.land?.z ?? 0) - (layout.bins[0]?.z ?? 0);
     const missText = outcome?.near
@@ -484,6 +488,14 @@ export function GameRound({
       sfx("land");
       if (ts.perfect) sfx("perfect");
       else sfxStreak(streakNow);
+      if (ts.perfect && thrown.free) {
+        // Swish: „Wumms“ – kurzer Stillstand, Netz-Klang, doppelte Vibration
+        sfx("swish");
+        hitStop(fx.current, 70);
+        later(() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => undefined);
+        }, 90);
+      }
       if (ts.perfect || viaText)
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
@@ -493,7 +505,7 @@ export function GameRound({
           () => undefined,
         );
       // Nur Perfekt-Treffer wackeln (dezent) – sonst zittert die Kamera im Dauerfeuer
-      if (ts.perfect) shake(fx.current, 0.022);
+      if (ts.perfect) shake(fx.current, thrown.free ? 0.032 : 0.022);
       queueBurst(bus.current, {
         id,
         x: layout.bins[i].x,
@@ -542,13 +554,16 @@ export function GameRound({
           "game.praise.4",
         ] as const
       )[id % 4];
-      // Dezent: Lob-Text nur bei Perfekt, Deckel/Rand (Zielwurf) und Serien (5, 10 …)
-      if (ts.perfect || viaText || streakNow % 5 === 0) {
+      // Zielwurf: genau beim 3. Treffer in Folge „On Fire!“
+      const fireText =
+        thrown.free && streakNow === ON_FIRE_STREAK ? t("game.onFire") : null;
+      // Dezent: Lob-Text nur bei Perfekt, Deckel/Rand, On Fire und Serien (5, 10 …)
+      if (ts.perfect || viaText || fireText || streakNow % 5 === 0) {
         setPraise({
           id,
           text: ts.perfect
             ? t("game.perfect")
-            : (viaText ?? `${t(praiseKey)} ×${streakNow}`),
+            : (viaText ?? fireText ?? `${t(praiseKey)} ×${streakNow}`),
           gold: ts.perfect,
         });
         later(() => {

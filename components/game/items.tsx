@@ -7,6 +7,7 @@
 // des Modells ein. Kein React-Render, kein neues Mesh/Material pro Wurf.
 
 import { useFrame } from "@react-three/fiber/native";
+import * as Haptics from "expo-haptics";
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
@@ -389,7 +390,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.trailShown = true;
     const trail = trails.current[i];
     if (trail) trail.visible = true;
-    trailMats[i].color.set(spec.glow ? "#FFD54A" : "#FFFFFF");
+    // Gold = Perfekt/Fieber, Orange = „On Fire“ (Serie im Zielwurf)
+    trailMats[i].color.set(spec.fire ? "#FF8A2B" : spec.glow ? "#FFD54A" : "#FFFFFF");
 
     g.position.copy(start);
     g.scale.setScalar(startScale);
@@ -451,8 +453,18 @@ export const ThrowLayer = memo(function ThrowLayer({
 
     for (const e of events) {
       if (e.type === "bounce") {
-        if (e.speed > 1.2) sfx("land", { volume: Math.min(e.speed / 7, 0.7), rate: 1.25 });
-        if (e.bin !== null && e.speed > 1.5) queueBinEvent(bus.current, e.bin, "bump");
+        if (e.speed > 1.2) {
+          // Klang je Bauteil, Tonhöhe und Lautstärke nach Wucht
+          const loud = Math.min(e.speed / 6, 0.9);
+          const pitch = 0.85 + Math.min(e.speed / 12, 0.35);
+          if (e.part === "lid") sfx("lid", { volume: loud, rate: pitch });
+          else if (e.part === "ground") sfx("land", { volume: loud * 0.6, rate: 1.25 });
+          else sfx("rim", { volume: loud, rate: e.part === "wall" ? pitch * 0.8 : pitch });
+        }
+        if (e.bin !== null && e.speed > 1.5) {
+          queueBinEvent(bus.current, e.bin, "bump");
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+        }
         continue;
       }
       // Hineingefallen
@@ -550,9 +562,10 @@ export const ThrowLayer = memo(function ThrowLayer({
         }
         g.position.copy(tmp);
         setLook(fx.current, tmp);
-        g.scale.setScalar(
-          THREE.MathUtils.lerp(startScale, endScale, Math.min(s.t * 1.4, 1)),
-        );
+        const size = THREE.MathUtils.lerp(startScale, endScale, Math.min(s.t * 1.4, 1));
+        // Abwurf: kurz in die Länge gezogen, dann zurück (wirkt kraftvoll)
+        const kick = Math.max(0, 1 - s.t / 0.18);
+        g.scale.set(size * (1 - 0.14 * kick), size * (1 + 0.28 * kick), size * (1 - 0.14 * kick));
         g.rotation.x += delta * 9;
         g.rotation.y += delta * 6;
 
@@ -623,7 +636,7 @@ export const ThrowLayer = memo(function ThrowLayer({
       }
       s.trail[s.head].copy(g.position);
       s.head = (s.head + 1) % TRAIL;
-      const glow = s.spec.glow;
+      const glow = s.spec.glow || !!s.spec.fire;
       for (let k = 0; k < TRAIL; k++) {
         const idx = (s.head + k) % TRAIL;
         sv.setScalar(0.03 + (k / TRAIL) * (glow ? 0.09 : 0.06));

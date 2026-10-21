@@ -57,13 +57,13 @@ export type BinPart = "rim" | "wall" | "lid";
 
 export type BallEvent =
   | { type: "capture"; bin: number }
-  | { type: "bounce"; bin: number | null; speed: number };
+  | { type: "bounce"; bin: number | null; speed: number; part: BinPart | "ground" };
 
 function touch(ball: Ball, events: BallEvent[], bin: number, part: BinPart, speed: number) {
   if (speed <= 0.4) return;
   ball.touched = true;
   ball.via = part;
-  events.push({ type: "bounce", bin, speed });
+  events.push({ type: "bounce", bin, speed, part });
 }
 
 /** Wurf so abschicken, dass er (ohne Hindernis) durch `target` fällt –
@@ -212,7 +212,7 @@ export function stepBall(ball: Ball, dt: number, bins: BinCollider[], events: Ba
       if (ball.v.y < 0) {
         const speed = -ball.v.y;
         ball.v.y = speed > 0.8 ? speed * 0.42 : 0;
-        if (speed > 0.8) events.push({ type: "bounce", bin: null, speed });
+        if (speed > 0.8) events.push({ type: "bounce", bin: null, speed, part: "ground" });
       }
       ball.v.x *= 1 - 2.2 * h;
       ball.v.z *= 1 - 2.2 * h;

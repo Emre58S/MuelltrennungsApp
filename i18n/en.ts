@@ -90,6 +90,7 @@ export const en: Translations = {
   "game.newBin": "New: {bin} – now in some rounds",
   "game.miss": "Missed!",
   "game.near": "So close!",
+  "game.onFire": "On Fire! 🔥",
   "game.short": "Too short",
   "game.long": "Too long",
   "game.viaLid": "Off the lid!",

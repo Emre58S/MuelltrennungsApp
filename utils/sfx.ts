@@ -12,6 +12,9 @@
 //  end      Rundenende                ruhiger Akkord
 //  tick     letzte 5 Sekunden         leises Holz
 //  tap      Menü                      dezent
+//  swish    Zielwurf ohne Berührung   luftiges Netz-Rauschen
+//  rim/lid  Abprallen (Zielwurf)      Kunststoff-„Klong“ / dumpfes „Tock“
+//  plop     Zielwurf daneben          weich, nie strafend
 //
 // Gleiche Töne werden minimal variiert (gegen Ermüdung).
 // Die Töne entstehen per Skript: scripts/generate-sfx.mjs
@@ -40,6 +43,10 @@ const SOURCES = {
   end: require("../assets/sounds/sfx/end.wav"),
   tick: require("../assets/sounds/sfx/tick.wav"),
   tap: require("../assets/sounds/sfx/tap.wav"),
+  swish: require("../assets/sounds/sfx/swish.wav"),
+  rim: require("../assets/sounds/sfx/rim.wav"),
+  lid: require("../assets/sounds/sfx/lid.wav"),
+  plop: require("../assets/sounds/sfx/plop.wav"),
 } as const;
 
 export type SfxName = keyof typeof SOURCES;
@@ -64,6 +71,10 @@ const MIX: Record<SfxName, { volume: number; vary: number }> = {
   end: { volume: 0.45, vary: 0 },
   tick: { volume: 0.3, vary: 0 },
   tap: { volume: 0.25, vary: 0.03 },
+  swish: { volume: 0.5, vary: 0.04 },
+  rim: { volume: 0.5, vary: 0.05 },
+  lid: { volume: 0.5, vary: 0.05 },
+  plop: { volume: 0.4, vary: 0.05 },
 };
 
 /** Mehrere Player pro Ton, reihum: bei schnellen Würfen überlappen Töne,
@@ -81,6 +92,8 @@ const POOL_SIZE: Partial<Record<SfxName, number>> = {
   note6: 2,
   note7: 2,
   note8: 2,
+  rim: 3,
+  lid: 2,
 };
 const players = new Map<SfxName, { list: AudioPlayer[]; next: number }>();
 let enabled = true;

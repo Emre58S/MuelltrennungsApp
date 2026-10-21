@@ -190,3 +190,45 @@ SCALE.forEach((f, i) => {
   mallet(b, { vol: 0.1, dur: 0.005 });
   write("tap", b, 0.5);
 }
+
+/* ── Zielwurf (am Ende, damit die Töne oben unverändert bleiben) ── */
+
+// Zielwurf-Swish: luftiges „Netz“-Rauschen, oben ein kleines Funkeln
+{
+  const b = buf(0.36);
+  air(b, { dur: 0.32, vol: 1, peak: 0.22, lp0: 0.12, lp1: 0.45 });
+  partial(b, { start: 0.05, f: 2093, vol: 0.12, decay: 0.08 });
+  write("swish", b, 0.7);
+}
+
+// Rand-Treffer: hohles Kunststoff-„Klong“ (Tonhöhe folgt der Wucht per rate)
+{
+  const b = buf(0.3);
+  partial(b, { f: 330, vol: 0.55, decay: 0.06 });
+  partial(b, { f: 831, vol: 0.2, decay: 0.035 });
+  partial(b, { f: 1479, vol: 0.06, decay: 0.015 });
+  mallet(b, { vol: 0.3, dur: 0.008 });
+  write("rim", b, 0.7);
+}
+
+// Deckel: tieferes, dumpfes „Tock“ (großes Kunststoffteil)
+{
+  const b = buf(0.24);
+  partial(b, { f: 150, vol: 0.6, decay: 0.05 });
+  partial(b, { f: 310, vol: 0.18, decay: 0.022 });
+  mallet(b, { vol: 0.35, dur: 0.012 });
+  write("lid", b, 0.7);
+}
+
+// Fehlwurf: weiches „Plopp“ mit fallender Tonhöhe – nie strafend
+{
+  const b = buf(0.16);
+  let phase = 0;
+  for (let i = 0; i < b.length; i++) {
+    const t = i / RATE;
+    const f = 180 + 260 * Math.exp(-t / 0.03);
+    phase += (TAU * f) / RATE;
+    b[i] += Math.sin(phase) * 0.6 * Math.exp(-t / 0.045);
+  }
+  write("plop", b, 0.6);
+}

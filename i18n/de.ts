@@ -89,6 +89,7 @@ export const de = {
   "game.newBin": "Neu: {bin} – ab jetzt in manchen Runden",
   "game.miss": "Daneben!",
   "game.near": "Knapp!",
+  "game.onFire": "On Fire! 🔥",
   "game.short": "Zu kurz",
   "game.long": "Zu weit",
   "game.viaLid": "Über den Deckel!",
