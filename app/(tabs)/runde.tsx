@@ -13,7 +13,8 @@ import {
 } from "@/utils/storage";
 import { setAudioModeAsync } from "expo-audio";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { perfMark } from "@/utils/perf-marks";
+import { Profiler, useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
@@ -68,18 +69,25 @@ export default function GameScreen() {
       style={[styles.root, { backgroundColor: colors.bg }]}
     >
       {xp !== null && level !== null && (
-        <GameRound
-          key={`${round}-${level}-${mode}-${daily}`}
-          mode={mode}
-          daily={daily}
-          level={level}
-          startXp={xp}
-          onAgain={playAgain}
-          onExit={goBack}
-        />
+        // Profiler: Render-Dauer der Runde für die Hänger-Messung (nur Entwicklung)
+        <Profiler id="runde" onRender={onRender}>
+          <GameRound
+            key={`${round}-${level}-${mode}-${daily}`}
+            mode={mode}
+            daily={daily}
+            level={level}
+            startXp={xp}
+            onAgain={playAgain}
+            onExit={goBack}
+          />
+        </Profiler>
       )}
     </GestureHandlerRootView>
   );
+}
+
+function onRender(_id: string, phase: string, duration: number) {
+  perfMark(`render(${phase})`, duration);
 }
 
 const styles = StyleSheet.create({

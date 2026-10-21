@@ -20,6 +20,7 @@ import {
   firstContact,
   stepBall,
 } from "@/game/physics";
+import { perfMark } from "@/utils/perf-marks";
 import { sfx } from "@/utils/sfx";
 
 import {
@@ -493,6 +494,7 @@ export const ThrowLayer = memo(function ThrowLayer({
 
   useFrame((state, rawDelta) => {
     const now = state.clock.elapsedTime;
+    const started = __DEV__ ? performance.now() : 0;
 
     // Neue Würfe auf freie Plätze verteilen (sonst den ältesten abschließen)
     const queued = takeThrows(bus.current);
@@ -629,6 +631,10 @@ export const ThrowLayer = memo(function ThrowLayer({
         mesh.setMatrixAt(k, m);
       }
       mesh.instanceMatrix.needsUpdate = true;
+    }
+    if (__DEV__) {
+      const ms = performance.now() - started;
+      if (ms > 2) perfMark("würfe/physik", ms);
     }
   });
 

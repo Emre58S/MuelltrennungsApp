@@ -14,6 +14,7 @@ import { type BinDef } from "@/game/bins";
 import { type Language } from "@/i18n";
 import { BIN_OPENING_Y, type GameLayout } from "@/game/layout";
 import { devLog } from "@/utils/dev-error-reporter";
+import { takePerfMarks } from "@/utils/perf-marks";
 
 import { binLabelTexture } from "./bin-label-textures";
 import { BurstLayer } from "./effects";
@@ -125,6 +126,12 @@ function PerfProbe() {
     a.worst = Math.max(a.worst, delta);
     if (delta > 1 / 40) a.slow += 1;
     a.calls = Math.max(a.calls, state.gl.info.render.calls);
+    // Hänger: was ist seit dem letzten Bild passiert? (siehe utils/perf-marks.ts)
+    const marks = takePerfMarks();
+    if (delta > 0.06)
+      console.log(
+        `[hänger] ${Math.round(delta * 1000)}ms – ${marks.join(", ") || "nichts gemeldet (Speicher-Sammler oder GPU?)"}`,
+      );
     if (a.time < 3) return;
     console.log(
       `[perf] fps=${Math.round(a.frames / a.time)} langsamster=${Math.round(a.worst * 1000)}ms ruckler=${a.slow} drawcalls=${a.calls}`,

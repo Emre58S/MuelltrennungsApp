@@ -18,6 +18,7 @@
 
 import { type AudioPlayer, createAudioPlayer } from "expo-audio";
 
+import { perfMark } from "@/utils/perf-marks";
 import { getBoolean, StorageKeys } from "@/utils/storage";
 
 const SOURCES = {
@@ -113,6 +114,7 @@ export function setSfxEnabled(value: boolean) {
 
 export function sfx(name: SfxName, opts: { rate?: number; volume?: number } = {}) {
   if (!enabled) return;
+  const start = __DEV__ ? performance.now() : 0;
   try {
     const p = player(name);
     const mix = MIX[name];
@@ -124,6 +126,7 @@ export function sfx(name: SfxName, opts: { rate?: number; volume?: number } = {}
   } catch {
     // Sound ist Bonus – Spiel läuft weiter.
   }
+  if (__DEV__) perfMark(`ton:${name}`, performance.now() - start);
 }
 
 /** Treffer-Melodie: jede Stufe der Serie eine Note höher (bis Note 8). */

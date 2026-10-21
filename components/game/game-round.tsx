@@ -71,6 +71,7 @@ import {
 } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { devLog } from "@/utils/dev-error-reporter";
+import { perfTime } from "@/utils/perf-marks";
 import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import {
   EMPTY_ITEM_STAT,
@@ -664,7 +665,7 @@ export function GameRound({
         if (i !== -1) throwTo(i, false);
       },
       throwTo: (i) => throwTo(i, false),
-      land: handleLand,
+      land: (id, outcome) => perfTime("landung", () => handleLand(id, outcome)),
     };
   });
   useEffect(() => {
@@ -678,7 +679,7 @@ export function GameRound({
   );
   const onRelease = useCallback(
     (dx: number, dy: number, vy: number) =>
-      handlers.current.release(dx, dy, vy),
+      perfTime("wurf", () => handlers.current.release(dx, dy, vy)),
     [],
   );
   const onCancel = useCallback(() => handlers.current.cancel(), []);
