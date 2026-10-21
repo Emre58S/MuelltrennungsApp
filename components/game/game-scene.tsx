@@ -120,6 +120,7 @@ export const GameScene = memo(function GameScene({
   lang,
   scene,
   guide = true,
+  openLids = false,
   warmItems,
 }: {
   layout: GameLayout;
@@ -135,6 +136,8 @@ export const GameScene = memo(function GameScene({
   scene: SceneKind;
   /** Gepunktete Flugbahn beim Zielen (aus im Zielwurf). */
   guide?: boolean;
+  /** Zielwurf: Deckel stehen offen (und zählen für die Physik). */
+  openLids?: boolean;
   /** Items, deren Modelle vorab aufgebaut werden (ganzer Item-Pool). */
   warmItems: Item[];
 }) {
@@ -162,6 +165,7 @@ export const GameScene = memo(function GameScene({
           fx={fx}
           bus={bus}
           label={binLabelTexture(bin.key, lang)}
+          openLid={openLids}
         />
       ))}
 

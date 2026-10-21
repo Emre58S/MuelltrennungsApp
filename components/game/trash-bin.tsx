@@ -17,7 +17,7 @@ import { type BinDef } from "@/game/bins";
 
 import { type FxRef } from "./fx";
 import { lowpoly, lowpolyOwn, roundedFrustum, roundedSlab } from "./materials";
-import { type BusRef, isBinActive, takeBinEvent } from "./scene-bus";
+import { type BusRef, isBinActive, setLid, takeBinEvent } from "./scene-bus";
 
 const LID_OPEN = 1.0;
 const BODY_Y = 0.08;
@@ -71,6 +71,7 @@ export const TrashBin = memo(function TrashBin({
   fx,
   bus,
   label,
+  openLid = false,
 }: {
   bin: BinDef;
   x: number;
@@ -80,12 +81,14 @@ export const TrashBin = memo(function TrashBin({
   bus: BusRef;
   /** Aufgedruckte Beschriftung (fehlt z. B. im Menü). */
   label?: THREE.Texture | null;
+  /** Zielwurf: Deckel steht offen, klappt nach einem Treffer kurz zu. */
+  openLid?: boolean;
 }) {
   const rootRef = useRef<THREE.Group>(null);
   const lidRef = useRef<THREE.Group>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const labelRef = useRef<THREE.Mesh>(null);
-  const anim = useRef({ hit: 0, reject: 0, lift: 0, peek: 0 });
+  const anim = useRef({ hit: 0, reject: 0, lift: 0, peek: 0, shut: 0, bump: 0 });
 
   const mats = useMemo(
     () => ({
@@ -145,13 +148,19 @@ export const TrashBin = memo(function TrashBin({
     const event = takeBinEvent(bus.current, index);
     if (event === "reject") a.reject = 1;
     else if (event === "peek") a.peek = f.calm ? 0 : 1;
-    else if (event) a.hit = event === "perfect" ? 1.3 : 1;
+    else if (event === "bump") a.bump = f.calm ? 0 : 1;
+    else if (event) {
+      a.hit = event === "perfect" ? 1.3 : 1;
+      if (openLid) a.shut = 1;
+    }
 
     const aimed = isBinActive(bus.current, index);
     a.lift = THREE.MathUtils.damp(a.lift, aimed ? 1 : 0, 12, delta);
     a.hit = Math.max(0, a.hit - delta * 2.8);
     a.reject = Math.max(0, a.reject - delta * 2.2);
     a.peek = Math.max(0, a.peek - delta * 1.6);
+    a.shut = Math.max(0, a.shut - delta * 1.7);
+    a.bump = Math.max(0, a.bump - delta * 3);
 
     // Einladen: kleiner Hüpfer (Sinusbogen über die Dauer des Lupfens)
     const hop = a.peek > 0 ? Math.sin((1 - a.peek) * Math.PI) * 0.12 : 0;
@@ -162,15 +171,23 @@ export const TrashBin = memo(function TrashBin({
     root.scale.set(1 + wave * 0.04, 1 - wave * 0.06, 1 + wave * 0.04);
     // Fehler: kurzes Kopfschütteln
     root.rotation.z = a.reject > 0 && !f.calm ? Math.sin(t * 28) * 0.1 * a.reject : 0;
+    // Angestoßen (Zielwurf): kurzes Wackeln
+    if (a.bump > 0) root.rotation.z += Math.sin(t * 36) * 0.035 * a.bump;
     // Fehler: kurz ducken (zusätzlich zum Kopfschütteln)
     if (a.reject > 0) root.scale.y *= 1 - Math.sin(a.reject * Math.PI) * 0.05;
 
     // Deckel: offen beim Zielen, einmal auf/zu beim Treffer, zu bei Fehler
     let lidTarget = aimed ? LID_OPEN : 0;
-    if (a.hit > 0.3) lidTarget = LID_OPEN * 0.7;
-    if (a.peek > 0.15 && !aimed) lidTarget = LID_OPEN * 0.55 * Math.sin((1 - a.peek) * Math.PI);
+    if (openLid) {
+      // Zielwurf: offen – nach einem Treffer kurz zu („geschluckt“), dann wieder auf
+      lidTarget = a.shut > 0.08 ? 0 : LID_OPEN;
+    } else {
+      if (a.hit > 0.3) lidTarget = LID_OPEN * 0.7;
+      if (a.peek > 0.15 && !aimed) lidTarget = LID_OPEN * 0.55 * Math.sin((1 - a.peek) * Math.PI);
+    }
     if (a.reject > 0.2) lidTarget = 0;
-    lid.rotation.x = -THREE.MathUtils.damp(-lid.rotation.x, lidTarget, 16, delta);
+    lid.rotation.x = -THREE.MathUtils.damp(-lid.rotation.x, lidTarget, openLid ? 11 : 16, delta);
+    setLid(bus.current, index, -lid.rotation.x);
 
     if (ringRef.current) {
       ringRef.current.visible = a.lift > 0.02;

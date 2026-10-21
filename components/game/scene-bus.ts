@@ -13,7 +13,11 @@ import { type Item } from "@/constants/items";
 
 import { type Burst } from "./effects";
 
-export type BinEventType = "hit" | "perfect" | "reject" | "peek";
+export type BinEventType = "hit" | "perfect" | "reject" | "peek" | "bump";
+
+/** Ergebnis eines physikalischen Wurfs (Zielwurf): in welcher Tonne er
+ *  gelandet ist (oder null), ob ohne Anstoßen, und wo er liegt (Welt-x). */
+export type LandOutcome = { bin: number | null; clean: boolean; x: number };
 
 export type ThrowSpec = {
   id: number;
@@ -27,8 +31,9 @@ export type ThrowSpec = {
   power?: number;
   /** Zielwurf: eigene Landestelle (Welt x/z auf Höhe der Öffnungen). */
   land?: { x: number; z: number };
-  /** Zielwurf daneben: fällt weiter („air“) oder prallt vom Rand ab („rim“). */
-  miss?: "air" | "rim";
+  /** Zielwurf: echte Physik entscheidet, wo er landet; `accept` = welche
+   *  Tonnen richtig wären (falsche spucken ihn wieder aus). */
+  free?: { accept: boolean[] };
 };
 
 export type SceneBus = {
@@ -42,7 +47,9 @@ export type SceneBus = {
   throws: ThrowSpec[];
   bursts: Burst[];
   binEvents: (BinEventType | null)[];
-  onLand: (id: number) => void;
+  /** Aktueller Deckel-Winkel pro Tonne (rad) – für die Wurf-Physik. */
+  lids: number[];
+  onLand: (id: number, outcome?: LandOutcome) => void;
 };
 
 export type BusRef = { readonly current: SceneBus };
@@ -56,6 +63,7 @@ export function createBus(): SceneBus {
     throws: [],
     bursts: [],
     binEvents: [],
+    lids: [],
     onLand: () => undefined,
   };
 }
@@ -112,15 +120,23 @@ export function takeThrows(bus: SceneBus): ThrowSpec[] {
 }
 
 /** Wurf ist angekommen: Tonne freigeben und die Spiel-Logik informieren. */
-export function landThrow(bus: SceneBus, spec: ThrowSpec) {
+export function landThrow(bus: SceneBus, spec: ThrowSpec, outcome?: LandOutcome) {
   if (spec.hit) {
     bus.incoming[spec.binIndex] = Math.max(0, (bus.incoming[spec.binIndex] ?? 0) - 1);
   }
-  bus.onLand(spec.id);
+  bus.onLand(spec.id, outcome);
 }
 
-export function setLandHandler(bus: SceneBus, handler: (id: number) => void) {
+export function setLandHandler(
+  bus: SceneBus,
+  handler: (id: number, outcome?: LandOutcome) => void,
+) {
   bus.onLand = handler;
+}
+
+/** Tonne meldet ihren Deckel-Winkel (für die Wurf-Physik). */
+export function setLid(bus: SceneBus, index: number, angle: number) {
+  bus.lids[index] = angle;
 }
 
 /* ── Konfetti ───────────────────────────────────────────────── */

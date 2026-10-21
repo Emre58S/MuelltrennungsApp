@@ -11,6 +11,16 @@ import { memo, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
+import {
+  type Ball,
+  type BallEvent,
+  ballSettled,
+  BIN_SHAPE,
+  type BinCollider,
+  launchBall,
+  stepBall,
+} from "@/game/physics";
+import { sfx } from "@/utils/sfx";
 
 import {
   easeOutBack,
@@ -20,7 +30,13 @@ import {
   trackFlying,
 } from "./fx";
 import { cloneModel, hasModel } from "./model-cache";
-import { type BusRef, landThrow, type ThrowSpec, takeThrows } from "./scene-bus";
+import {
+  type BusRef,
+  landThrow,
+  queueBinEvent,
+  type ThrowSpec,
+  takeThrows,
+} from "./scene-bus";
 
 export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
   return 0.9 + start.distanceTo(end) * 0.12;
@@ -184,7 +200,8 @@ const SLOTS = 10;
 const TRAIL_GEO = new THREE.SphereGeometry(1, 8, 6);
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
-type Phase = "flight" | "sink" | "bounce" | "fade";
+/** physics = Zielwurf: echte Wurf-Physik (game/physics.ts) statt fester Bahn. */
+type Phase = "flight" | "sink" | "bounce" | "fade" | "physics";
 
 type Slot = {
   active: boolean;
@@ -202,6 +219,10 @@ type Slot = {
   model: THREE.Object3D | null;
   target: THREE.Vector3;
   arc: number;
+  ball: Ball | null;
+  /** Zeit seit dem Abwurf (s) und geschätzte Flugzeit bis zum Ziel. */
+  age: number;
+  flightT: number;
 };
 
 function createSlot(): Slot {
@@ -221,6 +242,9 @@ function createSlot(): Slot {
     model: null,
     target: new THREE.Vector3(),
     arc: 1,
+    ball: null,
+    age: 0,
+    flightT: 1,
   };
 }
 
@@ -260,6 +284,11 @@ export const ThrowLayer = memo(function ThrowLayer({
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const sv = useMemo(() => new THREE.Vector3(), []);
+  const colliders = useMemo<BinCollider[]>(
+    () => openings.map((o) => ({ x: o.x, z: o.z - 0.05, lid: 0 })),
+    [openings],
+  );
+  const events = useMemo<BallEvent[]>(() => [], []);
 
   useEffect(() => () => trailMats.forEach((mat) => mat.dispose()), [trailMats]);
 
@@ -343,8 +372,78 @@ export const ThrowLayer = memo(function ThrowLayer({
     g.rotation.set(0, 0, 0);
     g.visible = true;
 
+    // Zielwurf: echte Physik – Abwurf so, dass er (frei) durchs Ziel fiele
+    s.ball = null;
+    if (spec.free) {
+      s.phase = "physics";
+      s.age = 0;
+      s.ball = launchBall(start, s.target, s.arc * 0.8);
+      const reach = Math.hypot(s.target.x - start.x, s.target.z - start.z);
+      s.flightT = reach / Math.max(Math.hypot(s.ball.v.x, s.ball.v.z), 0.1);
+    }
+
     trackFlying(fx.current, 1);
     s.counted = true;
+  };
+
+  /** Ein Zielwurf-Frame: Physik rechnen, auf Anstoßen/Hineinfallen reagieren. */
+  const stepPhysics = (i: number, s: Slot, g: THREE.Group, delta: number) => {
+    const ball = s.ball;
+    const spec = s.spec;
+    if (!ball || !spec) return;
+    s.age += delta;
+    colliders.forEach((c, k) => {
+      c.lid = bus.current.lids[k] ?? 0;
+    });
+    events.length = 0;
+    stepBall(ball, delta, colliders, events);
+
+    g.position.copy(ball.p);
+    if (s.age < s.flightT) setLook(fx.current, ball.p);
+    g.scale.setScalar(
+      THREE.MathUtils.lerp(startScale, endScale, Math.min((s.age / s.flightT) * 1.4, 1)),
+    );
+    // Drehen passend zur Bewegung (rollt am Boden in Laufrichtung)
+    g.rotation.x += (ball.v.z * 2.5 + 2) * delta;
+    g.rotation.z -= ball.v.x * 2.5 * delta;
+    if (s.counted && s.age >= s.flightT) {
+      s.counted = false;
+      trackFlying(fx.current, -1);
+    }
+
+    for (const e of events) {
+      if (e.type === "bounce") {
+        if (e.speed > 1.2) sfx("land", { volume: Math.min(e.speed / 7, 0.7), rate: 1.25 });
+        if (e.bin !== null && e.speed > 1.5) queueBinEvent(bus.current, e.bin, "bump");
+        continue;
+      }
+      // Hineingefallen
+      if (s.landed) {
+        finish(i);
+        return;
+      }
+      s.landed = true;
+      landThrow(bus.current, spec, { bin: e.bin, clean: !ball.touched, x: ball.p.x });
+      if (spec.free?.accept[e.bin]) {
+        finish(i);
+        return;
+      }
+      // Falsche Tonne spuckt ihn wieder aus
+      ball.inside = null;
+      ball.touched = true;
+      ball.p.y = BIN_SHAPE.top + 0.25;
+      ball.v.set((Math.random() - 0.5) * 1.2, 5.5, 2.8);
+      break;
+    }
+
+    if (ballSettled(ball) || s.age > 4.5) {
+      if (!s.landed) {
+        s.landed = true;
+        landThrow(bus.current, spec, { bin: null, clean: false, x: ball.p.x });
+      }
+      s.phase = "fade";
+      s.p = 0;
+    }
   };
 
   useFrame((state, rawDelta) => {
@@ -395,19 +494,15 @@ export const ThrowLayer = memo(function ThrowLayer({
           s.p = 0;
           if (hit) {
             s.phase = "sink";
-          } else if (s.spec.miss === "air") {
-            // Daneben: fliegt auf seiner Bahn weiter und fällt zu Boden
-            s.phase = "bounce";
-            s.vel
-              .subVectors(s.target, start)
-              .setY(s.target.y - start.y - Math.PI * s.arc)
-              .multiplyScalar(0.7 / FLIGHT_TIME);
           } else {
             s.phase = "bounce";
-            // Abprallen (falsche Tonne oder Rand) Richtung Kamera
+            // Abprallen (falsche Tonne) Richtung Kamera
             s.vel.set((Math.random() - 0.5) * 1.2, 3.2, 2.6);
           }
         }
+      } else if (s.phase === "physics") {
+        stepPhysics(i, s, g, delta);
+        if (!s.active) continue;
       } else if (s.phase === "sink") {
         s.p = Math.min(s.p + delta / 0.22, 1);
         g.position.set(s.target.x, s.target.y - s.p * 0.6, s.target.z);
@@ -439,10 +534,13 @@ export const ThrowLayer = memo(function ThrowLayer({
         }
       }
 
-      // Leuchtspur (nur im Flug)
+      // Leuchtspur (nur im Flug; im Zielwurf bis zum ersten Anstoßen)
       const mesh = trails.current[i];
       if (!mesh) continue;
-      if (s.phase !== "flight") {
+      const flying =
+        s.phase === "flight" ||
+        (s.phase === "physics" && !!s.ball && !s.ball.touched && s.ball.inside === null);
+      if (!flying) {
         if (s.trailShown) {
           s.trailShown = false;
           hideTrail(i);

@@ -30,6 +30,7 @@ import {
   setAim,
   setLandHandler,
   setPreview,
+  type LandOutcome,
   type ThrowSpec,
 } from "@/components/game/scene-bus";
 import { IconButton } from "@/components/ui/icon-button";
@@ -326,12 +327,12 @@ export function GameRound({
     cancelSlowMotion(fx.current);
     if (isTimed(mode) && !timerStarted) setTimerStarted(true);
     if (!hasThrown) setHasThrown(true);
-    const landed = shot ? shot.binIndex : binIndex;
-    const hit = landed !== null && bins[landed].category === item.category;
+    // Zielwurf: Ergebnis entscheidet die Physik in der Szene (siehe handleLand)
+    const hit = !shot && bins[binIndex].category === item.category;
     const spec: ThrowSpec = {
       id: ++l.id,
       item,
-      binIndex: shot ? (shot.binIndex ?? shot.rimIndex ?? -1) : binIndex,
+      binIndex: shot ? -1 : binIndex,
       hit,
       perfect: hit && perfect,
       glow: (hit && perfect) || feverRef.current,
@@ -339,7 +340,7 @@ export function GameRound({
     };
     if (shot) {
       spec.land = { x: shot.x, z: (layout.bins[0]?.z ?? 0) + shot.depth };
-      if (shot.binIndex === null) spec.miss = shot.rimIndex !== null ? "rim" : "air";
+      spec.free = { accept: bins.map((b) => b.category === item.category) };
     }
     throwMap.current.set(spec.id, spec);
     queueThrow(bus.current, spec);
@@ -354,13 +355,11 @@ export function GameRound({
     );
   };
   /** Zielwurf daneben: kein Sortier-Fehler, aber die Serie reißt. */
-  const handleMiss = (ts: ThrowSpec) => {
+  const handleMiss = (worldX: number) => {
     const id = ++lock.current.id;
     const action = { type: "result", result: "wrong", points: 0 } as const;
     liveStats.current = statsReducer(liveStats.current, action);
     dispatch(action);
-    if (ts.miss === "rim" && ts.binIndex >= 0)
-      queueBinEvent(bus.current, ts.binIndex, "reject");
     sfx("wrong", { volume: 0.6 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
       () => undefined,
@@ -370,7 +369,7 @@ export function GameRound({
     const last = layout.binTops[layout.binTops.length - 1];
     const x0 = binXs[0];
     const x1 = binXs[binXs.length - 1];
-    const k = x1 !== x0 ? ((ts.land?.x ?? 0) - x0) / (x1 - x0) : 0.5;
+    const k = x1 !== x0 ? (worldX - x0) / (x1 - x0) : 0.5;
     setFloats((f) => [
       ...f.slice(-(MAX_FLOATS - 1)),
       {
@@ -382,15 +381,21 @@ export function GameRound({
       },
     ]);
   };
-  const handleLand = (throwId: number) => {
-    const ts = throwMap.current.get(throwId);
-    if (!ts) return;
+  const handleLand = (throwId: number, outcome?: LandOutcome) => {
+    const thrown = throwMap.current.get(throwId);
+    if (!thrown) return;
     throwMap.current.delete(throwId);
     const l = lock.current;
     if (mode === "survival" && l.over) return;
-    if (ts.miss) {
-      handleMiss(ts);
-      return;
+    let ts = thrown;
+    if (thrown.free) {
+      // Zielwurf: wo ist er gelandet? Daneben = kein Sortierfehler
+      if (!outcome || outcome.bin === null) {
+        handleMiss(outcome?.x ?? 0);
+        return;
+      }
+      const ok = thrown.free.accept[outcome.bin] ?? false;
+      ts = { ...thrown, binIndex: outcome.bin, hit: ok, perfect: ok && outcome.clean };
     }
     const i = ts.binIndex;
     const bin = bins[i];
@@ -541,7 +546,7 @@ export function GameRound({
     cancel: () => {},
     tap: (_x: number, _y: number) => {},
     throwTo: (_i: number) => {},
-    land: (_id: number) => {},
+    land: (_id: number, _outcome?: LandOutcome) => {},
   });
   useLayoutEffect(() => {
     handlers.current = {
@@ -587,7 +592,7 @@ export function GameRound({
   });
   useEffect(() => {
     const b = bus.current;
-    setLandHandler(b, (id) => handlers.current.land(id));
+    setLandHandler(b, (id, outcome) => handlers.current.land(id, outcome));
     return () => setLandHandler(b, () => undefined);
   }, []);
   const onAim = useCallback(
@@ -660,6 +665,7 @@ export function GameRound({
             lang={lang}
             scene={scene}
             guide={mode !== "aim"}
+            openLids={mode === "aim"}
             warmItems={warmItems}
           />
         )}
