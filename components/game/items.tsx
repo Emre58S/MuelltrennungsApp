@@ -36,6 +36,7 @@ import {
   type BusRef,
   landThrow,
   queueBinEvent,
+  queueBurst,
   type ThrowSpec,
   takeThrows,
 } from "./scene-bus";
@@ -483,15 +484,18 @@ export const ThrowLayer = memo(function ThrowLayer({
         finish(i);
         return;
       }
-      // Falsche Tonne spuckt ihn wieder aus
+      // Falsche Tonne spuckt ihn sanft wieder aus (nicht Richtung Kamera)
       ball.inside = null;
       ball.touched = true;
       ball.p.y = BIN_SHAPE.top + 0.25;
-      ball.v.set((Math.random() - 0.5) * 1.2, 5.5, 2.8);
+      ball.v.set((Math.random() - 0.5) * 0.8, 3.8, 1.4);
       break;
     }
 
-    if (ballSettled(ball) || s.age > 4.5) {
+    // Daneben: beim ersten Bodenkontakt sofort auflösen („puff“) – kein
+    // langes Herumrollen, dem man beim Verfehlen zusehen muss
+    const onGround = events.some((e) => e.type === "bounce" && e.part === "ground");
+    if ((onGround && ball.inside === null) || ballSettled(ball) || s.age > 4.5) {
       if (!s.landed) {
         s.landed = true;
         landThrow(bus.current, spec, { bin: null, clean: false, x: ball.p.x, near: ball.touched });
@@ -499,6 +503,16 @@ export const ThrowLayer = memo(function ThrowLayer({
         markerAt.current.set(s.target.x, 0.03, s.target.z);
         markerAge.current = 0;
       }
+      queueBurst(bus.current, {
+        id: spec.id * 1000 + 7,
+        x: ball.p.x,
+        y: ball.p.y,
+        z: ball.p.z,
+        colors: ["#FFFFFF", "#E5E7EB", "#F3F4F6"],
+        count: 7,
+        power: 0.45,
+        ring: false,
+      });
       s.phase = "fade";
       s.p = 0;
     }
@@ -613,8 +627,11 @@ export const ThrowLayer = memo(function ThrowLayer({
           }
         }
       } else {
-        s.p = Math.min(s.p + delta / (hit ? 0.05 : 0.45), 1);
-        if (!hit) g.scale.setScalar(endScale * (1 - s.p));
+        // Zielwurf daneben: kurzes, weiches „Puff“ (schrumpfen + leicht heben)
+        const poof = !!s.spec.free && !hit;
+        s.p = Math.min(s.p + delta / (hit ? 0.05 : poof ? 0.28 : 0.45), 1);
+        if (!hit) g.scale.setScalar(endScale * (poof ? 1 - s.p * s.p : 1 - s.p));
+        if (poof) g.position.y += delta * 0.6;
         if (s.p >= 1) {
           finish(i);
           continue;

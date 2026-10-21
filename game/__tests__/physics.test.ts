@@ -129,6 +129,27 @@ describe("Zielwurf-Physik", () => {
     expect(hit!.z).toBeGreaterThan(-0.68);
   });
 
+  /** Wurf von vorn oben gegen das offene Brett, seitlich bei `x`. */
+  const bank = (x: number, vz: number): Ball => {
+    const ball = handedOver(-0.2, vz);
+    ball.p.set(x, 2.3, -0.2);
+    ball.v.set(0, -1.5, vz);
+    return ball;
+  };
+  const captured = (balls: Ball[]) =>
+    balls.filter((b) => simulate(b, [{ x: 0, z: 0, lid: OPEN }]).bin === 0).length;
+
+  test("Brett-Würfe in der Mitte gehen meistens rein", () => {
+    const shots = [-0.25, -0.1, 0, 0.1, 0.25].flatMap((x) => [-4, -5, -6].map((vz) => bank(x, vz)));
+    expect(captured(shots) / shots.length).toBeGreaterThanOrEqual(0.8);
+  });
+
+  test("Brett ganz außen getroffen: kein sicherer Treffer", () => {
+    const outer = [0.5, -0.5].flatMap((x) => [-4, -5, -6].map((vz) => bank(x, vz)));
+    const center = [0, 0, 0].map((_, k) => bank(0, -4 - k));
+    expect(captured(outer) / outer.length).toBeLessThan(captured(center) / center.length);
+  });
+
   test("zu weit: der offene Deckel wirkt wie ein Brett", () => {
     const ball = launchBall(START, target(0, -0.55), 0.6);
     const { events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);

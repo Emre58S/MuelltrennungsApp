@@ -30,6 +30,9 @@ export const BIN_SHAPE = {
 };
 /** Größter Schubs nach innen beim Rand-Abprallen (Welt-Einheiten/s). */
 const RIM_NUDGE = 1.8;
+/** Brett-Wurf: so stark wird der Abpraller vom Deckel Richtung Öffnung gelenkt
+ *  (Mitte des Deckels; ganz außen deutlich weniger). */
+const BANK_ASSIST = 0.8;
 /** Ab diesem Winkel (rad) ist der Deckel offen genug zum Hineinfallen. */
 const LID_OPEN_MIN = 0.35;
 
@@ -190,7 +193,29 @@ function collideLid(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   if (Math.abs(dist) >= reach) return;
   const side = dist >= 0 ? 1 : -1;
   n.multiplyScalar(side);
-  touch(ball, events, i, "lid", bounce(ball, n, reach - Math.abs(dist), 0.55));
+  const firstLid = ball.via !== "lid";
+  const speed = bounce(ball, n, reach - Math.abs(dist), 0.55);
+  touch(ball, events, i, "lid", speed);
+  // Von vorn ans offene Brett: meistens Richtung Öffnung abprallen lassen
+  if (firstLid && side < 0 && speed > 0.4 && lid > LID_OPEN_MIN) bankAssist(ball, bin);
+}
+
+/** Brett-Wurf: Abpraller vom Deckel meist in die Öffnung lenken – weniger,
+ *  je weiter außen der Deckel getroffen wurde (kein automatischer Treffer). */
+function bankAssist(ball: Ball, bin: BinCollider) {
+  const s = BIN_SHAPE;
+  const lx = ball.p.x - bin.x;
+  const outer = Math.min(Math.abs(lx) / s.lidHalfW, 1);
+  const strength = BANK_ASSIST * (1 - outer * 0.7);
+  // Zeit, bis der Ball (mit aktuellem Auf/Ab) auf Höhe der Öffnung fällt
+  const drop = Math.max(ball.p.y - (s.top - 0.2), 0.05);
+  const vy = ball.v.y;
+  const t = (vy + Math.sqrt(vy * vy + 2 * GRAVITY * drop)) / GRAVITY;
+  // Ziel: etwas vor der Mitte der Öffnung (der Deckel steht hinten)
+  const vx = (bin.x + lx * 0.3 - ball.p.x) / t;
+  const vz = (bin.z + 0.05 - ball.p.z) / t;
+  ball.v.x += (vx - ball.v.x) * strength;
+  ball.v.z += (vz - ball.v.z) * strength;
 }
 
 /** Ball einen Zeitschritt weiter (intern in kleinen Teilschritten). */
