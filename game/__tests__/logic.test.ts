@@ -9,9 +9,11 @@ import {
   aimFromDrag,
   dailyItems,
   FEVER_EVERY,
+  adaptiveIdeal,
   aimBonus,
   freeShot,
   IDEAL_FLICK,
+  missAssist,
   throwDepth,
   getMultiplier,
   getPoints,
@@ -133,7 +135,7 @@ describe("Zielwurf (freier Wurf)", () => {
   });
 
   test("knapp daneben trifft den Rand", () => {
-    const rim = freeShot(0, -100, ideal * 0.83, angles, xs);
+    const rim = freeShot(0, -100, ideal * 0.77, angles, xs);
     expect(rim?.binIndex).toBeNull();
     expect(rim?.rimIndex).toBe(1);
   });
@@ -148,9 +150,12 @@ describe("Zielwurf (freier Wurf)", () => {
     expect(throwDepth(0.6)).toBeGreaterThan(throwDepth(0.9));
     expect(throwDepth(0.9)).toBeGreaterThan(throwDepth(1.3));
     expect(throwDepth(1.3)).toBeGreaterThan(throwDepth(1.8));
-    // nahe am Ideal gutmütig: ±10 % bleibt in der Öffnung
-    expect(Math.abs(throwDepth(0.9))).toBeLessThan(0.4);
-    expect(Math.abs(throwDepth(1.1))).toBeLessThan(0.4);
+    // nahe am Ideal gutmütig: ±20 % bleibt in der Öffnung
+    expect(Math.abs(throwDepth(0.8))).toBeLessThan(0.4);
+    expect(Math.abs(throwDepth(1.2))).toBeLessThan(0.4);
+    // deutlich daneben bleibt daneben
+    expect(Math.abs(throwDepth(0.6))).toBeGreaterThan(0.6);
+    expect(Math.abs(throwDepth(1.45))).toBeGreaterThan(0.6);
   });
 
   test("kurzer Wisch ist schwächer als langer (gleiches Tempo)", () => {
@@ -159,8 +164,51 @@ describe("Zielwurf (freier Wurf)", () => {
     expect(short!.depth).toBeGreaterThan(long!.depth);
   });
 
+  test("Richtungshilfe: knapp neben der Tonne wird hineingezogen", () => {
+    // ~0,5 neben der mittleren Tonne → ohne Hilfe außerhalb (0,4)
+    const dx = Math.tan((0.5 / 1.3) * 30 * (Math.PI / 180)) * 100;
+    expect(freeShot(dx, -100, ideal, angles, xs)?.binIndex).toBe(1);
+  });
+
+  test("gelerntes Tempo: wer immer etwas sanfter wirft, trifft trotzdem", () => {
+    const soft = IDEAL_FLICK * 0.7;
+    expect(freeShot(0, -100, -soft, angles, xs)?.binIndex).toBeNull();
+    const learned = adaptiveIdeal([soft, soft * 1.05, soft * 0.95, soft]);
+    expect(freeShot(0, -100, -soft, angles, xs, { ideal: learned })?.binIndex).toBe(1);
+  });
+
   test("zu kurzer Wisch wirft nicht", () => {
     expect(freeShot(0, -10, ideal, angles, xs)).toBeNull();
+  });
+});
+
+describe("Zielwurf-Lernen und Pech-Hilfe", () => {
+  test("gelerntes Tempo: Median, erst ab 3 Würfen, höchstens ±25 %", () => {
+    expect(adaptiveIdeal([1500, 1600])).toBe(IDEAL_FLICK);
+    expect(adaptiveIdeal([1700, 1800, 1900])).toBe(1800);
+    expect(adaptiveIdeal([500, 600, 700, 800])).toBe(IDEAL_FLICK * 0.75);
+    expect(adaptiveIdeal([4000, 4200, 4100])).toBe(IDEAL_FLICK * 1.25);
+    // ein Ausreißer verschiebt den Median kaum
+    expect(adaptiveIdeal([1900, 2000, 2100, 6000, 1950])).toBe(2000);
+  });
+
+  test("Pech-Hilfe erst ab 2 Fehlwürfen, dann zunehmend", () => {
+    expect(missAssist(0)).toBe(0);
+    expect(missAssist(1)).toBe(0);
+    expect(missAssist(2)).toBe(0.5);
+    expect(missAssist(3)).toBe(1);
+    expect(missAssist(9)).toBe(1);
+  });
+
+  test("Pech-Hilfe macht knappe Fehlwürfe zu Treffern, weite nicht", () => {
+    const angles = [-30, 0, 30];
+    const xs = [-1.3, 0, 1.3];
+    const close = freeShot(0, -100, -IDEAL_FLICK * 0.76, angles, xs);
+    expect(close?.binIndex).toBeNull();
+    const helped = freeShot(0, -100, -IDEAL_FLICK * 0.76, angles, xs, { assist: 1 });
+    expect(helped?.binIndex).toBe(1);
+    const far = freeShot(0, -100, -IDEAL_FLICK * 0.4, angles, xs, { assist: 1 });
+    expect(far?.binIndex).toBeNull();
   });
 });
 

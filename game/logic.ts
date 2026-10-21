@@ -48,24 +48,60 @@ export function aimFromDrag(
 
 /* ── Zielwurf (freier Wurf, kein Einrasten) ───────────────── */
 
-/** Wisch-Tempo nach oben (px/s), bei dem ein Wurf genau bis zur Tonne fliegt. */
+/** Standard-Wischtempo nach oben (px/s), bei dem ein Wurf genau bis zur Tonne fliegt. */
 export const IDEAL_FLICK = 2000;
 /** Ab dieser Wischlänge (px) zählt das Tempo voll; kürzere Wische sind schwächer. */
 const FULL_SWIPE = 90;
-/** Ganz schwacher Wurf landet so weit vor den Tonnen (Welt-Einheiten). */
+/** Ganz schwacher Wurf landet höchstens so weit vor den Tonnen (Welt-Einheiten). */
 const SHORT_RANGE = 6.5;
 /** Weitester Wurf hinter die Tonnen (bis zur Rückwand). */
 const LONG_RANGE = 2.2;
+/** So viele der letzten Würfe bestimmen das „richtige“ Tempo. */
+export const LEARN_WINDOW = 8;
 
 /**
  * Wischstärke (1 = genau richtig) → Landestelle vor (+) bzw. hinter (−) den
- * Tonnen. Nahe 1 bewusst flach (gutmütig), weiter weg immer deutlicher:
- * schwach = weit davor, kräftig = drüber bis an die Wand.
+ * Tonnen. Nahe 1 sehr flach (±20 % landen noch in der Öffnung), weiter weg
+ * immer deutlicher: schwach = weit davor, kräftig = drüber bis an die Wand.
  */
 export function throwDepth(strength: number): number {
-  if (strength < 1) return Math.pow(1 - Math.max(strength, 0), 1.5) * SHORT_RANGE;
-  return -Math.min(Math.pow(strength - 1, 1.3) * 2.5, LONG_RANGE);
+  if (strength < 1) return Math.min(Math.pow(1 - Math.max(strength, 0), 2) * 9, SHORT_RANGE);
+  return -Math.min(Math.pow(strength - 1, 1.6) * 4, LONG_RANGE);
 }
+
+/** Wisch-Kraft: Tempo nach oben, kurze Wische zählen weniger. */
+export function flickPower(dx: number, dy: number, vy: number): number {
+  return Math.max(0, -vy) * Math.min(1, Math.hypot(dx, dy) / FULL_SWIPE);
+}
+
+/**
+ * Das „richtige“ Tempo lernt vom Spieler: Median der letzten Würfe, höchstens
+ * ±25 % vom Standard und erst ab 3 Würfen. So zählt gleichmäßiges Werfen –
+ * nicht ein fremder Normwert, der auf jedem Handy anders wirkt.
+ */
+export function adaptiveIdeal(history: number[]): number {
+  const recent = history.slice(-LEARN_WINDOW).filter((v) => v > 0);
+  if (recent.length < 3) return IDEAL_FLICK;
+  const sorted = [...recent].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  return Math.min(Math.max(median, IDEAL_FLICK * 0.75), IDEAL_FLICK * 1.25);
+}
+
+/** Unsichtbare Hilfe nach Pech: 0 = keine … 1 = volle, ab 2 Fehlwürfen in Folge. */
+export function missAssist(missesInRow: number): number {
+  return missesInRow < 2 ? 0 : Math.min((missesInRow - 1) / 2, 1);
+}
+
+/** Richtungshilfe: knapp neben einer Tonne zieht ein Teil der Abweichung zur
+ *  Mitte – weit weg (z. B. genau zwischen zwei Tonnen) gar nicht. */
+function aimAssistX(x: number, binX: number, assist: number): number {
+  const off = x - binX;
+  const reach = 0.5 + 0.1 * assist;
+  const fade = Math.abs(off) <= reach ? 1 : Math.max(0, 1 - (Math.abs(off) - reach) / 0.12);
+  return x - off * (0.3 + 0.15 * assist) * fade;
+}
+
 /** Öffnung einer Tonne (halbe Breite/Tiefe, Welt-Einheiten) und Randbreite. */
 export const OPENING = { halfW: 0.4, halfD: 0.4, rim: 0.16 };
 
@@ -96,6 +132,7 @@ function angleToX(angle: number, binAngles: number[], binXs: number[]): number {
 /**
  * Wie beim Basketball: die RICHTUNG bestimmt, wo seitlich der Wurf ankommt,
  * das TEMPO, wie weit er fliegt. Nur wenn beides passt, landet er in der Tonne.
+ * `ideal` = gelerntes Tempo (adaptiveIdeal), `assist` = Hilfe nach Pech (missAssist).
  */
 export function freeShot(
   dx: number,
@@ -103,20 +140,23 @@ export function freeShot(
   vy: number,
   binAngles: number[],
   binXs: number[],
+  opts: { ideal?: number; assist?: number } = {},
 ): FreeShot | null {
   if (dy > -MIN_AIM_DISTANCE * 0.6 || Math.hypot(dx, dy) < MIN_AIM_DISTANCE) {
     return null;
   }
+  const assist = opts.assist ?? 0;
   const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
-  const x = angleToX(angle, binAngles, binXs);
-  const strength =
-    (Math.max(0, -vy) / IDEAL_FLICK) * Math.min(1, Math.hypot(dx, dy) / FULL_SWIPE);
-  const depth = throwDepth(strength);
+  const rawX = angleToX(angle, binAngles, binXs);
+  const strength = flickPower(dx, dy, vy) / (opts.ideal ?? IDEAL_FLICK);
+  // Pech-Hilfe macht das Tempo-Fenster etwas größer
+  const depth = throwDepth(strength) * (1 - 0.35 * assist);
 
   let best = 0;
   binXs.forEach((bx, i) => {
-    if (Math.abs(x - bx) < Math.abs(x - binXs[best])) best = i;
+    if (Math.abs(rawX - bx) < Math.abs(rawX - binXs[best])) best = i;
   });
+  const x = aimAssistX(rawX, binXs[best], assist);
   const ox = Math.abs(x - binXs[best]);
   const oz = Math.abs(depth);
   const inside = ox <= OPENING.halfW && oz <= OPENING.halfD;

@@ -23,6 +23,8 @@ export type LandOutcome = {
   x: number;
   /** Zuletzt abgeprallt an (Rand/Wand/Deckel) – für Basketball-Lob. */
   via?: "rim" | "wall" | "lid" | null;
+  /** Daneben, aber eine Tonne berührt („Knapp!“). */
+  near?: boolean;
 };
 
 export type ThrowSpec = {

@@ -46,6 +46,7 @@ import {
 } from "@/game/bins";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout } from "@/game/layout";
 import {
+  adaptiveIdeal,
   aimBonus,
   aimFromDrag,
   DAILY_COUNT,
@@ -53,6 +54,7 @@ import {
   ENDSPURT_SECONDS,
   FEVER_EVERY,
   FEVER_SECONDS,
+  flickPower,
   type FreeShot,
   freeShot,
   getMultiplier,
@@ -60,6 +62,8 @@ import {
   type HitResult,
   INITIAL_STATS,
   itemWeight,
+  LEARN_WINDOW,
+  missAssist,
   pickItem,
   recentLimit,
   statsReducer,
@@ -216,6 +220,9 @@ export function GameRound({
     setPreview(bus.current, itemRef.current);
   }, []);
   const throwMap = useRef(new Map<number, ThrowSpec>());
+  // Zielwurf: gelerntes Wurf-Tempo und Fehlwürfe in Folge (Pech-Hilfe)
+  const flicks = useRef<number[]>([]);
+  const missesInRow = useRef(0);
   const [floats, setFloats] = useState<FloatText[]>([]);
   const [praise, setPraise] = useState<Praised | null>(null);
   const [learn, setLearn] = useState<Learn | null>(null);
@@ -372,12 +379,24 @@ export function GameRound({
     );
   };
   /** Zielwurf daneben: kein Sortier-Fehler, aber die Serie reißt. */
-  const handleMiss = (worldX: number) => {
+  const handleMiss = (ts: ThrowSpec, outcome: LandOutcome | undefined) => {
+    const worldX = outcome?.x ?? 0;
     const id = ++lock.current.id;
     const action = { type: "result", result: "wrong", points: 0 } as const;
     liveStats.current = statsReducer(liveStats.current, action);
     dispatch(action);
-    sfx("wrong", { volume: 0.6 });
+    missesInRow.current += 1;
+    // Weich statt strafend: kurzer Holz-Tick statt Fehlerton
+    sfx("aim", { volume: 1 });
+    // Lernhilfe: knapp? zu kurz? zu weit?
+    const depth = (ts.land?.z ?? 0) - (layout.bins[0]?.z ?? 0);
+    const missText = outcome?.near
+      ? t("game.near")
+      : depth > 0.6
+        ? t("game.short")
+        : depth < -0.6
+          ? t("game.long")
+          : t("game.miss");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
       () => undefined,
     );
@@ -393,7 +412,7 @@ export function GameRound({
         id,
         x: Math.min(Math.max(first.x + k * (last.x - first.x), 50), screenW - 50),
         y: first.y,
-        text: t("game.miss"),
+        text: missText,
         color: "#FFFFFF",
       },
     ]);
@@ -412,10 +431,12 @@ export function GameRound({
     if (thrown.free) {
       // Zielwurf: wo ist er gelandet? Daneben = kein Sortierfehler
       if (!outcome || outcome.bin === null) {
-        handleMiss(outcome?.x ?? 0);
+        handleMiss(thrown, outcome);
         return;
       }
       const ok = thrown.free.accept[outcome.bin] ?? false;
+      // Falsche Tonne zählt für die Pech-Hilfe wie ein Fehlwurf
+      missesInRow.current = ok ? 0 : missesInRow.current + 1;
       ts = { ...thrown, binIndex: outcome.bin, hit: ok, perfect: ok && outcome.clean };
     }
     const i = ts.binIndex;
@@ -612,13 +633,18 @@ export function GameRound({
         const power = Math.min(Math.max(0.8 + -vy / 5000, 0.8), 1.3);
         if (mode === "aim") {
           // Zielwurf: Richtung + Tempo entscheiden, kein Einrasten
-          const shot = freeShot(dx, dy, vy, layout.binAngles, binXs);
-          if (__DEV__ && shot)
-            // Zum Nachjustieren von IDEAL_FLICK (landet im Metro-Log)
+          // Fair: Tempo lernt vom Spieler, nach Pech hilft es unauffällig
+          const ideal = adaptiveIdeal(flicks.current);
+          const assist = missAssist(missesInRow.current);
+          const shot = freeShot(dx, dy, vy, layout.binAngles, binXs, { ideal, assist });
+          if (!shot) return;
+          flicks.current = [...flicks.current, flickPower(dx, dy, vy)].slice(-LEARN_WINDOW);
+          if (__DEV__)
+            // Zum Nachjustieren (landet im Metro-Log)
             console.log(
-              `[wurf] tempo=${Math.round(-vy)} länge=${Math.round(Math.hypot(dx, dy))} stärke=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)}`,
+              `[wurf] tempo=${Math.round(-vy)} länge=${Math.round(Math.hypot(dx, dy))} ideal=${Math.round(ideal)} hilfe=${assist} stärke=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)}`,
             );
-          if (shot) throwTo(shot.binIndex ?? 0, shot.perfect, power, shot);
+          throwTo(shot.binIndex ?? 0, shot.perfect, power, shot);
           return;
         }
         const aim = aimFromDrag(dx, dy, layout.binAngles);

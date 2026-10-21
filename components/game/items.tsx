@@ -196,6 +196,9 @@ const FLIGHT_TIME = 0.42;
 /** Zielwurf: Anteil der Fluggeschwindigkeit, mit dem die Physik übernimmt
  *  (nah an 1, damit der Übergang nicht wie ein Hänger wirkt). */
 const HANDOVER_SPEED = 0.8;
+/** Markierung „letzter Wurf“: Ring am Boden, so lange sichtbar (s). */
+const MARKER_TIME = 1.8;
+const MARKER_GEO = new THREE.RingGeometry(0.16, 0.24, 24);
 const TRAIL = 10;
 /** Gleichzeitig sichtbare Würfe. Ein Fehlwurf (Abprallen) belegt seinen
  *  Platz ~1,5 s – 10 Plätze reichen auch für sehr schnelles Werfen. */
@@ -293,6 +296,21 @@ export const ThrowLayer = memo(function ThrowLayer({
   );
   const events = useMemo<BallEvent[]>(() => [], []);
   const vel = useMemo(() => new THREE.Vector3(), []);
+  // Markierung „letzter Wurf“ (Zielwurf, nach einem Fehlwurf)
+  const markerRef = useRef<THREE.Mesh>(null);
+  const markerAt = useRef(new THREE.Vector3());
+  const markerAge = useRef(MARKER_TIME);
+  const markerMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: "#FFFFFF",
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+      }),
+    [],
+  );
+  useEffect(() => () => markerMat.dispose(), [markerMat]);
   const contact = useMemo(() => new THREE.Vector3(), []);
 
   useEffect(() => () => trailMats.forEach((mat) => mat.dispose()), [trailMats]);
@@ -463,7 +481,10 @@ export const ThrowLayer = memo(function ThrowLayer({
     if (ballSettled(ball) || s.age > 4.5) {
       if (!s.landed) {
         s.landed = true;
-        landThrow(bus.current, spec, { bin: null, clean: false, x: ball.p.x });
+        landThrow(bus.current, spec, { bin: null, clean: false, x: ball.p.x, near: ball.touched });
+        // Lernhilfe: kurz zeigen, wohin der Wurf gezielt war (zu kurz / zu weit)
+        markerAt.current.set(s.target.x, 0.03, s.target.z);
+        markerAge.current = 0;
       }
       s.phase = "fade";
       s.p = 0;
@@ -488,6 +509,19 @@ export const ThrowLayer = memo(function ThrowLayer({
     }
 
     const delta = Math.min(rawDelta, 0.05) * fx.current.timeScale;
+
+    // Markierung „letzter Wurf“ blendet aus
+    const marker = markerRef.current;
+    if (marker) {
+      markerAge.current += rawDelta;
+      const k = Math.min(markerAge.current / MARKER_TIME, 1);
+      marker.visible = k < 1;
+      if (k < 1) {
+        marker.position.copy(markerAt.current);
+        marker.scale.setScalar(0.8 + k * 0.5);
+        markerMat.opacity = 0.7 * (1 - k);
+      }
+    }
 
     for (let i = 0; i < SLOTS; i++) {
       const s = slots[i];
@@ -600,6 +634,13 @@ export const ThrowLayer = memo(function ThrowLayer({
 
   return (
     <>
+      <mesh
+        ref={markerRef}
+        geometry={MARKER_GEO}
+        material={markerMat}
+        rotation={[-Math.PI / 2, 0, 0]}
+        visible={false}
+      />
       {trailMats.map((mat, i) => (
         <instancedMesh
           key={`trail-${i}`}
