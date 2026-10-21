@@ -18,8 +18,13 @@ import {
   ballSettled,
   BIN_SHAPE,
   type BinCollider,
+  arcFor,
   firstContact,
+  FLIGHT_TIME,
+  flightVelocity,
+  handOverBall,
   stepBall,
+  throwArc,
 } from "@/game/physics";
 import { perfMark } from "@/utils/perf-marks";
 import { sfx } from "@/utils/sfx";
@@ -40,10 +45,6 @@ import {
   type ThrowSpec,
   takeThrows,
 } from "./scene-bus";
-
-export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
-  return 0.9 + start.distanceTo(end) * 0.12;
-}
 
 /* ── Vorschau ──────────────────────────────────────────────── */
 
@@ -194,11 +195,7 @@ export const AimGuide = memo(function AimGuide({
 
 /* ── Geworfene Items (Pool) ────────────────────────────────── */
 
-// Knackiger Flug: kurz genug für flüssiges Spiel, lang genug zum Mitverfolgen
-const FLIGHT_TIME = 0.42;
-/** Zielwurf: Anteil der Fluggeschwindigkeit, mit dem die Physik übernimmt
- *  (nah an 1, damit der Übergang nicht wie ein Hänger wirkt). */
-const HANDOVER_SPEED = 0.8;
+// Flugzeit und Übergabe an die Physik: game/physics.ts (FLIGHT_TIME, handOverBall)
 /** Markierung „letzter Wurf“: Ring am Boden, so lange sichtbar (s). */
 const MARKER_TIME = 1.8;
 const MARKER_GEO = new THREE.RingGeometry(0.16, 0.24, 24);
@@ -385,7 +382,7 @@ export const ThrowLayer = memo(function ThrowLayer({
     if (spec.land) s.target.set(spec.land.x, openings[0]?.y ?? start.y, spec.land.z);
     else s.target.copy(openings[spec.binIndex] ?? start);
     // Kräftiger Wisch → flacherer Bogen, sanfter Wisch → höherer Bogen
-    s.arc = arcFor(start, s.target) * (1.35 - (spec.power ?? 1) * 0.35);
+    s.arc = throwArc(start, s.target, spec.power ?? 1);
     s.trail.forEach((v) => v.copy(start));
     s.head = 0;
     s.trailShown = true;
@@ -410,15 +407,8 @@ export const ThrowLayer = memo(function ThrowLayer({
 
   /** Ab hier rechnet die Physik weiter – mit der Geschwindigkeit des Flugs
    *  (etwas gebremst: die feste Bahn ist für die Perspektive sehr schnell). */
-  const handOver = (s: Slot, p: THREE.Vector3, v: THREE.Vector3) => {
-    s.ball = {
-      p: p.clone(),
-      v: v.clone().multiplyScalar(HANDOVER_SPEED),
-      inside: null,
-      touched: false,
-      via: null,
-      still: 0,
-    };
+  const handOver = (s: Slot, p: THREE.Vector3, v: THREE.Vector3, arrived: boolean) => {
+    s.ball = handOverBall(p, v, arrived);
     s.phase = "physics";
     s.age = s.flightT;
     if (s.counted) {
@@ -562,14 +552,15 @@ export const ThrowLayer = memo(function ThrowLayer({
         flightPoint(tmp, start, s.target, s.t, s.arc);
         if (s.spec.free && delta > 0) {
           // Zielwurf: an der Tonne (oder am Ziel) übernimmt die Physik
-          vel.subVectors(tmp, g.position).divideScalar(delta);
+          // Exaktes Tempo aus der Flugbahn (nicht vom Bildtakt abhängig)
+          flightVelocity(vel, start, s.target, s.t, s.arc);
           colliders.forEach((c, k) => {
             c.lid = bus.current.lids[k] ?? 0;
           });
           // Ganze Strecke seit dem letzten Bild prüfen (nicht nur den Endpunkt)
           const hitAt = firstContact(g.position, tmp, vel, colliders, contact);
           if (hitAt || s.t >= 1) {
-            handOver(s, hitAt ?? tmp, vel);
+            handOver(s, hitAt ?? tmp, vel, !hitAt);
             g.position.copy(hitAt ?? tmp);
             continue;
           }

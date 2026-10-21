@@ -43,7 +43,11 @@ export type ThrowSpec = {
   land?: { x: number; z: number };
   /** Zielwurf: echte Physik entscheidet, wo er landet; `accept` = welche
    *  Tonnen richtig wären (falsche spucken ihn wieder aus). */
-  free?: { accept: boolean[] };
+  free?: {
+    accept: boolean[];
+    /** Genau mittig gezielt (nur dann zählt ein sauberer Treffer als „Perfekt“). */
+    center: boolean;
+  };
 };
 
 export type SceneBus = {

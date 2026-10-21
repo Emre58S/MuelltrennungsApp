@@ -369,7 +369,10 @@ export function GameRound({
       const binZ = layout.bins[0]?.z ?? 0;
       const z = Math.min(binZ + shot.depth, layout.item.position.z - 1.2);
       spec.land = { x: shot.x, z };
-      spec.free = { accept: bins.map((b) => b.category === item.category) };
+      spec.free = {
+        accept: bins.map((b) => b.category === item.category),
+        center: shot.perfect,
+      };
     }
     throwMap.current.set(spec.id, spec);
     queueThrow(bus.current, spec);
@@ -442,7 +445,9 @@ export function GameRound({
       const ok = thrown.free.accept[outcome.bin] ?? false;
       // Falsche Tonne zählt für die Pech-Hilfe wie ein Fehlwurf
       missesInRow.current = ok ? 0 : missesInRow.current + 1;
-      ts = { ...thrown, binIndex: outcome.bin, hit: ok, perfect: ok && outcome.clean };
+      // Perfekt (Swish) = ohne Berührung UND genau mittig gezielt
+      const perfect = ok && outcome.clean && thrown.free.center;
+      ts = { ...thrown, binIndex: outcome.bin, hit: ok, perfect };
     }
     const i = ts.binIndex;
     const bin = bins[i];

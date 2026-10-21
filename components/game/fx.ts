@@ -4,6 +4,8 @@
 
 import * as THREE from "three";
 
+export { flightPoint } from "@/game/physics";
+
 export type Fx = {
   /** 1 = normal, < 1 = Zeitlupe. Alle Animationen multiplizieren delta damit. */
   timeScale: number;
@@ -84,19 +86,6 @@ export function stepFx(fx: Fx, delta: number, time: number): number {
   const offset = Math.sin(time * 34) * fx.shake;
   fx.shake *= Math.exp(-9 * delta);
   return offset;
-}
-
-/** Punkt auf der Wurfparabel (t = 0…1). */
-export function flightPoint(
-  out: THREE.Vector3,
-  start: THREE.Vector3,
-  end: THREE.Vector3,
-  t: number,
-  arc: number,
-) {
-  out.lerpVectors(start, end, t);
-  out.y += Math.sin(t * Math.PI) * arc;
-  return out;
 }
 
 export const easeOutBack = (t: number) => {

@@ -1,7 +1,9 @@
 // Datei: game/physics.ts
-// Kleine Wurf-Physik für den Zielwurf: Schwerkraft, Abprallen an Tonnenwand,
-// Rand und (offenem) Deckel, Boden und Rückwand. Ob ein Wurf trifft, ergibt
-// sich hier – auch vom Rand hineinrollen oder vom Deckel abprallen geht.
+// Kleine Wurf-Physik für Zielwurf und Trickwürfe: Schwerkraft, Abprallen an
+// Tonnenwand, Rand und (offenem) Deckel, an Hindernissen (Trampolin, Auto,
+// Zaun), Boden und Rückwand. Ob ein Wurf trifft, ergibt sich hier – auch vom
+// Rand hineinrollen oder vom Deckel abprallen geht. Dazu die feste Flugbahn
+// und simulateThrow(), das einen Wurf genau wie die Szene durchspielt.
 // Rein und ohne React, damit es sich testen lässt (siehe __tests__).
 
 import * as THREE from "three";
@@ -36,6 +38,101 @@ const BANK_ASSIST = 0.8;
 /** Ab diesem Winkel (rad) ist der Deckel offen genug zum Hineinfallen. */
 const LID_OPEN_MIN = 0.35;
 
+/* ── Flugbahn (fest) und Übergabe an die Physik ───────────── */
+
+/** Dauer der festen Flugbahn (s): knackig, aber zum Mitverfolgen. */
+export const FLIGHT_TIME = 0.42;
+/** Berührung unterwegs: so viel vom (exakten) Flugtempo nimmt die Physik mit. */
+export const HANDOVER_SPEED = 0.8;
+/** Ankunft am Ziel: sanftes Hineinfallen – der Wurf landet, wo man hinzielt. */
+export const ARRIVAL_SPEED = 0.1;
+/** Höchstes Tempo bei der Übergabe: Die feste Flugbahn ist perspektivisch sehr
+ *  schnell (~17/s) – ungedeckelt springt ein Gegenstand meterhoch vom Rand. */
+const MAX_HANDOVER = 6.5;
+
+/** Bogenhöhe der festen Flugbahn zwischen zwei Punkten. */
+export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
+  return 0.9 + start.distanceTo(end) * 0.12;
+}
+
+/** Bogen eines Wurfs: kräftiger Wisch → flacher, sanfter → höher. */
+export function throwArc(start: THREE.Vector3, target: THREE.Vector3, power = 1) {
+  return arcFor(start, target) * (1.35 - power * 0.35);
+}
+
+/** Punkt auf der festen Wurfparabel (t = 0…1). */
+export function flightPoint(
+  out: THREE.Vector3,
+  start: THREE.Vector3,
+  end: THREE.Vector3,
+  t: number,
+  arc: number,
+) {
+  out.lerpVectors(start, end, t);
+  out.y += Math.sin(t * Math.PI) * arc;
+  return out;
+}
+
+/** Tempo auf der festen Flugbahn (Ableitung von flightPoint, pro Sekunde) –
+ *  exakt, unabhängig vom Bildtakt. */
+export function flightVelocity(
+  out: THREE.Vector3,
+  start: THREE.Vector3,
+  end: THREE.Vector3,
+  t: number,
+  arc: number,
+) {
+  out.subVectors(end, start);
+  out.y += Math.PI * arc * Math.cos(t * Math.PI);
+  return out.divideScalar(FLIGHT_TIME);
+}
+
+/* ── Hindernisse (Trickwürfe) ─────────────────────────────── */
+
+/**
+ * Sprungbrett-Verhalten (Trampolin, Autodach): von oben getroffen springt der
+ * Gegenstand mit mindestens `minUp` hoch und fliegt Richtung Tonnenreihe
+ * (oder `aim`, z. B. das nächste Hindernis). Wo man das Hindernis trifft,
+ * ändert die Weite um ±`spread`; ein grob passender Sprung wird zur Öffnung
+ * gelenkt (`assist`). So macht der Trick, was man erwartet – ohne dass jeder
+ * beliebige Wurf trifft (Hindernis selbst muss erst getroffen werden).
+ */
+export type Launch = {
+  minUp: number;
+  spread: number;
+  assist: number;
+  aim?: { x: number; y: number; z: number };
+};
+
+export type PropPart = "trampoline" | "car" | "fence";
+
+export type PropCollider =
+  | {
+      kind: "trampoline";
+      id: number;
+      x: number;
+      z: number;
+      halfW: number;
+      halfD: number;
+      /** Höhe der Matte. */
+      top: number;
+      launch: Launch;
+    }
+  | {
+      kind: "box";
+      id: number;
+      part: "car" | "fence";
+      x: number;
+      y: number;
+      z: number;
+      halfW: number;
+      halfH: number;
+      halfD: number;
+      restitution: number;
+      /** Von oben getroffen: Sprungbrett (Autodach) – oder keins (Zaun). */
+      launch?: Launch;
+    };
+
 export type BinCollider = {
   x: number;
   z: number;
@@ -60,7 +157,14 @@ export type BinPart = "rim" | "wall" | "lid";
 
 export type BallEvent =
   | { type: "capture"; bin: number }
-  | { type: "bounce"; bin: number | null; speed: number; part: BinPart | "ground" };
+  | {
+      type: "bounce";
+      bin: number | null;
+      speed: number;
+      part: BinPart | PropPart | "ground";
+      /** Hindernis (Trickwürfe), falls eins berührt wurde. */
+      prop?: number;
+    };
 
 function touch(ball: Ball, events: BallEvent[], bin: number, part: BinPart, speed: number) {
   if (speed <= 0.4) return;
@@ -218,8 +322,98 @@ function bankAssist(ball: Ball, bin: BinCollider) {
   ball.v.z += (vz - ball.v.z) * strength;
 }
 
+/** Sprungbrett: hoch und Richtung Ziel (Tonnenreihe oder `aim`). `offset` =
+ *  Trefferlage auf dem Hindernis in Wurfrichtung (−1 vorn … +1 hinten). */
+function launchFrom(ball: Ball, l: Launch, bins: BinCollider[], offset: number) {
+  const up = Math.max(ball.v.y, l.minUp);
+  const goal = l.aim ?? { x: ball.p.x, y: BIN_SHAPE.top + 0.1, z: bins[0]?.z ?? 0 };
+  const disc = up * up - 2 * GRAVITY * (goal.y - ball.p.y);
+  ball.v.y = up;
+  if (disc <= 0) return;
+  const t = (up + Math.sqrt(disc)) / GRAVITY;
+  // Weiter vorn getroffen → etwas weiter, hinten → etwas kürzer
+  const reach = 1 - THREE.MathUtils.clamp(offset, -1, 1) * l.spread;
+  ball.v.z = ((goal.z + 0.05 - ball.p.z) / t) * reach;
+  if (l.aim) ball.v.x += ((l.aim.x - ball.p.x) / t - ball.v.x) * l.assist;
+  else steerToBin(ball, bins, l.assist);
+}
+
+/** Trampolin von oben getroffen: Sprungbrett. */
+function collideTrampoline(
+  ball: Ball,
+  t: Extract<PropCollider, { kind: "trampoline" }>,
+  bins: BinCollider[],
+  events: BallEvent[],
+) {
+  const p = ball.p;
+  if (Math.abs(p.x - t.x) > t.halfW || Math.abs(p.z - t.z) > t.halfD) return;
+  if (ball.v.y >= 0 || p.y - BALL_R > t.top || p.y < t.top - 0.3) return;
+  const speed = -ball.v.y;
+  p.y = t.top + BALL_R;
+  ball.v.y = speed;
+  ball.touched = true;
+  events.push({ type: "bounce", bin: null, speed, part: "trampoline", prop: t.id });
+  launchFrom(ball, t.launch, bins, (t.z - p.z) / t.halfD);
+}
+
+/** Wo fiele der Sprung auf Öffnungshöhe herunter? Liegt das grob bei einer
+ *  Tonne, wird die Flugrichtung ein Stück dorthin gelenkt – sonst nicht. */
+function steerToBin(ball: Ball, bins: BinCollider[], assist: number) {
+  const y = BIN_SHAPE.top + 0.1;
+  const vy = ball.v.y;
+  const disc = vy * vy - 2 * GRAVITY * (y - ball.p.y);
+  if (disc <= 0) return;
+  const t = (vy + Math.sqrt(disc)) / GRAVITY;
+  const lx = ball.p.x + ball.v.x * t;
+  const lz = ball.p.z + ball.v.z * t;
+  let best = -1;
+  let bestOff = Infinity;
+  bins.forEach((bin, i) => {
+    const off = Math.max(Math.abs(lx - bin.x) / 0.9, Math.abs(lz - bin.z) / 1.1);
+    if (off < bestOff) {
+      bestOff = off;
+      best = i;
+    }
+  });
+  if (best < 0 || bestOff >= 1) return;
+  const strength = assist * (1 - bestOff * 0.5);
+  const target = bins[best];
+  ball.v.x += ((target.x - ball.p.x) / t - ball.v.x) * strength;
+  ball.v.z += ((target.z + 0.05 - ball.p.z) / t - ball.v.z) * strength;
+}
+
+/** Kasten-Hindernis (Auto, Zaun): abprallen; von oben getroffen ggf. Sprungbrett. */
+function collideBox(
+  ball: Ball,
+  b: Extract<PropCollider, { kind: "box" }>,
+  bins: BinCollider[],
+  events: BallEvent[],
+) {
+  const p = ball.p;
+  const cx = THREE.MathUtils.clamp(p.x, b.x - b.halfW, b.x + b.halfW);
+  const cy = THREE.MathUtils.clamp(p.y, b.y - b.halfH, b.y + b.halfH);
+  const cz = THREE.MathUtils.clamp(p.z, b.z - b.halfD, b.z + b.halfD);
+  n.set(p.x - cx, p.y - cy, p.z - cz);
+  const dist = n.length();
+  if (dist >= BALL_R) return;
+  if (dist < 1e-6) n.set(0, 1, 0);
+  else n.divideScalar(dist);
+  const fromAbove = n.y > 0.6;
+  const speed = bounce(ball, n, BALL_R - dist, b.restitution);
+  if (speed <= 0.4) return;
+  ball.touched = true;
+  events.push({ type: "bounce", bin: null, speed, part: b.part, prop: b.id });
+  if (fromAbove && b.launch) launchFrom(ball, b.launch, bins, (b.z - p.z) / b.halfD);
+}
+
 /** Ball einen Zeitschritt weiter (intern in kleinen Teilschritten). */
-export function stepBall(ball: Ball, dt: number, bins: BinCollider[], events: BallEvent[]) {
+export function stepBall(
+  ball: Ball,
+  dt: number,
+  bins: BinCollider[],
+  events: BallEvent[],
+  props: PropCollider[] = [],
+) {
   const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
   const h = dt / steps;
   for (let k = 0; k < steps; k++) {
@@ -229,6 +423,11 @@ export function stepBall(ball: Ball, dt: number, bins: BinCollider[], events: Ba
     for (let i = 0; i < bins.length; i++) {
       collideBin(ball, bins[i], i, events);
       collideLid(ball, bins[i], i, events);
+    }
+    for (let i = 0; i < props.length; i++) {
+      const prop = props[i];
+      if (prop.kind === "trampoline") collideTrampoline(ball, prop, bins, events);
+      else collideBox(ball, prop, bins, events);
     }
 
     // Boden: abprallen, dann rollen und ausrollen
@@ -262,12 +461,18 @@ const probe: Ball = {
 const probeEvents: BallEvent[] = [];
 
 /** Würde ein Ball an Stelle `p` (mit Tempo `v`) gerade etwas berühren? */
-function touchesAt(p: THREE.Vector3, v: THREE.Vector3, bins: BinCollider[]): boolean {
+function touchesAt(
+  p: THREE.Vector3,
+  v: THREE.Vector3,
+  bins: BinCollider[],
+  props: PropCollider[],
+): boolean {
   probe.p.copy(p);
   probe.v.copy(v);
   probe.inside = null;
+  probe.via = null;
   probeEvents.length = 0;
-  stepBall(probe, 0, bins, probeEvents);
+  stepBall(probe, 0, bins, probeEvents, props);
   return probeEvents.some((e) => e.type === "bounce");
 }
 
@@ -282,11 +487,12 @@ export function firstContact(
   v: THREE.Vector3,
   bins: BinCollider[],
   out: THREE.Vector3,
+  props: PropCollider[] = [],
 ): THREE.Vector3 | null {
   const steps = Math.max(1, Math.ceil(from.distanceTo(to) / 0.04));
   for (let k = 1; k <= steps; k++) {
     point.lerpVectors(from, to, k / steps);
-    if (touchesAt(point, v, bins)) return out.lerpVectors(from, to, (k - 1) / steps);
+    if (touchesAt(point, v, bins, props)) return out.lerpVectors(from, to, (k - 1) / steps);
   }
   return null;
 }
@@ -294,4 +500,75 @@ export function firstContact(
 /** Fertig: liegt still oder ist in einer Tonne verschwunden. */
 export function ballSettled(ball: Ball): boolean {
   return ball.still > 0.25;
+}
+
+/** Ball für die Physik ab der Übergabe-Stelle: bei Berührung unterwegs mit
+ *  dem Flugtempo, bei Ankunft am Ziel sanft (`arrived`). */
+export function handOverBall(p: THREE.Vector3, v: THREE.Vector3, arrived = false): Ball {
+  return {
+    p: p.clone(),
+    v: v
+      .clone()
+      .multiplyScalar(arrived ? ARRIVAL_SPEED : HANDOVER_SPEED)
+      .clampLength(0, MAX_HANDOVER),
+    inside: null,
+    touched: false,
+    via: null,
+    still: 0,
+  };
+}
+
+export type ThrowResult = {
+  /** Tonne, in der der Wurf gelandet ist – oder null. */
+  bin: number | null;
+  /** Ohne jede Berührung (Swish). */
+  clean: boolean;
+  /** Berührte Hindernisse (ids), in Reihenfolge. */
+  props: number[];
+};
+
+/**
+ * Spielt einen Wurf genau wie die Szene durch (ThrowLayer): feste Flugbahn,
+ * an der ersten Berührung (oder am Ziel) übernimmt die Physik; Bodenkontakt
+ * außerhalb einer Tonne = daneben. Für Tests und das Prüfen von Levels.
+ */
+export function simulateThrow(
+  start: THREE.Vector3,
+  target: THREE.Vector3,
+  power: number,
+  bins: BinCollider[],
+  props: PropCollider[] = [],
+  dt = 1 / 60,
+): ThrowResult {
+  const arc = throwArc(start, target, power);
+  const prev = start.clone();
+  const cur = new THREE.Vector3();
+  const vel = new THREE.Vector3();
+  const hit = new THREE.Vector3();
+  const touched: number[] = [];
+  const events: BallEvent[] = [];
+  let t = 0;
+  let ball: Ball | null = null;
+  for (let time = 0; time < 6; time += dt) {
+    if (!ball) {
+      t = Math.min(t + dt / FLIGHT_TIME, 1);
+      flightPoint(cur, start, target, t, arc);
+      flightVelocity(vel, start, target, t, arc);
+      const contact = firstContact(prev, cur, vel, bins, hit, props);
+      if (!contact && t < 1) {
+        prev.copy(cur);
+        continue;
+      }
+      ball = handOverBall(contact ?? cur, vel, !contact);
+    }
+    events.length = 0;
+    stepBall(ball, dt, bins, events, props);
+    for (const e of events) {
+      if (e.type === "capture") return { bin: e.bin, clean: !ball.touched, props: touched };
+      if (e.prop !== undefined && !touched.includes(e.prop)) touched.push(e.prop);
+      if (e.part === "ground" && ball.inside === null) return { bin: null, clean: false, props: touched };
+    }
+    if (ballSettled(ball)) break;
+  }
+  return { bin: null, clean: false, props: touched };
 }
