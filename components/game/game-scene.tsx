@@ -20,7 +20,11 @@ import { binLabelTexture } from "./bin-label-textures";
 import { BurstLayer } from "./effects";
 import { type SceneKind, Stage } from "./stage";
 import { type FxRef, stepFx } from "./fx";
-import { AimGuide, PreviewItem, ThrowLayer } from "./items";
+import { type PropCollider } from "@/game/physics";
+import { type TrickProp } from "@/game/trick-levels";
+
+import { AimGuide, PreviewItem, ShotGuideDots, ThrowLayer } from "./items";
+import { TrickProps } from "./trick-props";
 import { ModelWarmup } from "./model-cache";
 import { type BusRef } from "./scene-bus";
 import { TrashBin } from "./trash-bin";
@@ -153,6 +157,7 @@ export const GameScene = memo(function GameScene({
   scene,
   guide = true,
   openLids = false,
+  trick,
   warmItems,
 }: {
   layout: GameLayout;
@@ -170,6 +175,8 @@ export const GameScene = memo(function GameScene({
   guide?: boolean;
   /** Zielwurf: Deckel stehen offen (und zählen für die Physik). */
   openLids?: boolean;
+  /** Trickwürfe: Hindernisse (Modelle + Physik) und Flugbahn-Vorschau. */
+  trick?: { props: TrickProp[]; colliders: PropCollider[] };
   /** Items, deren Modelle vorab aufgebaut werden (ganzer Item-Pool). */
   warmItems: Item[];
 }) {
@@ -220,7 +227,15 @@ export const GameScene = memo(function GameScene({
         startScale={layout.item.scale}
         endScale={END_SCALE}
         openings={openings}
+        props={trick?.colliders}
       />
+
+      {trick && (
+        <>
+          <TrickProps props={trick.props} />
+          <ShotGuideDots start={layout.item.position} openingY={BIN_OPENING_Y + 0.1} bus={bus} />
+        </>
+      )}
 
       <BurstLayer bus={bus} fx={fx} />
 

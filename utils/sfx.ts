@@ -15,6 +15,8 @@
 //  swish    Zielwurf ohne Berührung   luftiges Netz-Rauschen
 //  rim/lid  Abprallen (Zielwurf)      Kunststoff-„Klong“ / dumpfes „Tock“
 //  plop     Zielwurf daneben          weich, nie strafend
+//  boing    Trampolin (Trickwürfe)    federnd
+//  car      Autodach (Trickwürfe)     dumpfes Blech
 //
 // Gleiche Töne werden minimal variiert (gegen Ermüdung).
 // Die Töne entstehen per Skript: scripts/generate-sfx.mjs
@@ -47,6 +49,8 @@ const SOURCES = {
   rim: require("../assets/sounds/sfx/rim.wav"),
   lid: require("../assets/sounds/sfx/lid.wav"),
   plop: require("../assets/sounds/sfx/plop.wav"),
+  boing: require("../assets/sounds/sfx/boing.wav"),
+  car: require("../assets/sounds/sfx/car.wav"),
 } as const;
 
 export type SfxName = keyof typeof SOURCES;
@@ -75,6 +79,8 @@ const MIX: Record<SfxName, { volume: number; vary: number }> = {
   rim: { volume: 0.5, vary: 0.05 },
   lid: { volume: 0.5, vary: 0.05 },
   plop: { volume: 0.4, vary: 0.05 },
+  boing: { volume: 0.5, vary: 0.04 },
+  car: { volume: 0.55, vary: 0.05 },
 };
 
 /** Mehrere Player pro Ton, reihum: bei schnellen Würfen überlappen Töne,

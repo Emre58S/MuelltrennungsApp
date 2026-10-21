@@ -83,7 +83,7 @@ function mergeParts(parts: Part[], withColor: boolean): THREE.BufferGeometry {
 }
 
 /** Modell → wenige Meshes (siehe oben). Ursprung bleibt der des Modells. */
-function bake(model: THREE.Object3D): THREE.Object3D {
+export function bake(model: THREE.Object3D): THREE.Object3D {
   model.updateWorldMatrix(true, true);
   const toLocal = model.matrixWorld.clone().invert();
   const plain: Part[] = [];

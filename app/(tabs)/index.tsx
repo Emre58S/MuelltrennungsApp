@@ -487,6 +487,32 @@ export default function HomeScreen() {
           <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
         </Pressable>
 
+        {/* Trickwürfe: Level mit Trampolin, Autos & Co */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t("home.tricks")}. ${t("home.tricksDesc")}`}
+          onPress={() => {
+            if (starting.current) return;
+            sfx("tap");
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+            router.push("/tricks");
+          }}
+          style={({ pressed }) => [styles.daily, pressed && styles.pressed]}
+        >
+          <View style={[styles.dailyIcon, { backgroundColor: "#7C5CD6" }]}>
+            <Feather name="award" size={18} color="#FFFFFF" />
+          </View>
+          <View style={styles.flex}>
+            <AppText variant="label" color={ON_SCENE}>
+              {t("home.tricks")}
+            </AppText>
+            <AppText variant="caption" color={ON_SCENE_SOFT} numberOfLines={1}>
+              {t("home.tricksDesc")}
+            </AppText>
+          </View>
+          <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
+        </Pressable>
+
         {/* Zielwurf: eigener Modus ohne Menü-Tonne (dort stehen immer 3) */}
         <Pressable
           accessibilityRole="button"

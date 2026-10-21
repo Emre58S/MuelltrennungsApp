@@ -23,6 +23,7 @@ import {
   FLIGHT_TIME,
   flightVelocity,
   handOverBall,
+  type PropCollider,
   stepBall,
   throwArc,
 } from "@/game/physics";
@@ -138,6 +139,62 @@ export const PreviewItem = memo(function PreviewItem({
 const DOTS = 14;
 const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
 
+/** Flugbahn-Vorschau (Trickwürfe): die ersten ~60 % des Flugs, den der
+ *  Wisch gerade auslösen würde – planbar, aber Ende und Abpraller schätzt
+ *  man selbst. Liest bus.shotGuide, kein Neu-Rendern. */
+const GUIDE_DOTS = 12;
+const GUIDE_SHARE = 0.6;
+
+export const ShotGuideDots = memo(function ShotGuideDots({
+  start,
+  openingY,
+  bus,
+}: {
+  start: THREE.Vector3;
+  openingY: number;
+  bus: BusRef;
+}) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const target = useMemo(() => new THREE.Vector3(), []);
+  const tmp = useMemo(() => new THREE.Vector3(), []);
+  const m = useMemo(() => new THREE.Matrix4(), []);
+  const q = useMemo(() => new THREE.Quaternion(), []);
+  const s = useMemo(() => new THREE.Vector3(), []);
+  const mat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.85 }),
+    [],
+  );
+  useEffect(() => () => mat.dispose(), [mat]);
+
+  useFrame(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const guide = bus.current.shotGuide;
+    mesh.visible = !!guide;
+    if (!guide) return;
+    target.set(guide.x, openingY, guide.z);
+    const arc = throwArc(start, target, guide.power);
+    for (let i = 0; i < GUIDE_DOTS; i++) {
+      const t = ((i + 1) / GUIDE_DOTS) * GUIDE_SHARE;
+      flightPoint(tmp, start, target, t, arc);
+      // Nach vorn kleiner und blasser werdend
+      s.setScalar(0.07 - (i / GUIDE_DOTS) * 0.035);
+      m.compose(tmp, q, s);
+      mesh.setMatrixAt(i, m);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh
+      ref={ref}
+      args={[DOT_GEO, mat, GUIDE_DOTS]}
+      frustumCulled={false}
+      visible={false}
+    />
+  );
+});
+
 export const AimGuide = memo(function AimGuide({
   start,
   openings,
@@ -196,6 +253,7 @@ export const AimGuide = memo(function AimGuide({
 /* ── Geworfene Items (Pool) ────────────────────────────────── */
 
 // Flugzeit und Übergabe an die Physik: game/physics.ts (FLIGHT_TIME, handOverBall)
+const NO_PROPS: PropCollider[] = [];
 /** Markierung „letzter Wurf“: Ring am Boden, so lange sichtbar (s). */
 const MARKER_TIME = 1.8;
 const MARKER_GEO = new THREE.RingGeometry(0.16, 0.24, 24);
@@ -226,6 +284,8 @@ type Slot = {
   target: THREE.Vector3;
   arc: number;
   ball: Ball | null;
+  /** Berührte Hindernisse dieses Wurfs (Trickwürfe). */
+  touched: number[];
   /** Zeit seit dem Abwurf (s) und geschätzte Flugzeit bis zum Ziel. */
   age: number;
   flightT: number;
@@ -249,6 +309,7 @@ function createSlot(): Slot {
     target: new THREE.Vector3(),
     arc: 1,
     ball: null,
+    touched: [],
     age: 0,
     flightT: 1,
   };
@@ -261,6 +322,7 @@ export const ThrowLayer = memo(function ThrowLayer({
   startScale,
   endScale,
   openings,
+  props = NO_PROPS,
 }: {
   bus: BusRef;
   fx: FxRef;
@@ -268,6 +330,8 @@ export const ThrowLayer = memo(function ThrowLayer({
   startScale: number;
   endScale: number;
   openings: THREE.Vector3[];
+  /** Hindernisse (Trickwürfe) für die Physik. */
+  props?: PropCollider[];
 }) {
   const groups = useRef<(THREE.Group | null)[]>([]);
   const trails = useRef<(THREE.InstancedMesh | null)[]>([]);
@@ -398,6 +462,7 @@ export const ThrowLayer = memo(function ThrowLayer({
 
     // Zielwurf: fliegt auf der festen Bahn; die Physik übernimmt erst an der Tonne
     s.ball = null;
+    s.touched = [];
     s.age = 0;
     s.flightT = FLIGHT_TIME;
 
@@ -427,7 +492,7 @@ export const ThrowLayer = memo(function ThrowLayer({
       c.lid = bus.current.lids[k] ?? 0;
     });
     events.length = 0;
-    stepBall(ball, delta, colliders, events);
+    stepBall(ball, delta, colliders, events, props);
 
     g.position.copy(ball.p);
     if (s.age < s.flightT) setLook(fx.current, ball.p);
@@ -444,14 +509,20 @@ export const ThrowLayer = memo(function ThrowLayer({
 
     for (const e of events) {
       if (e.type === "bounce") {
+        if (e.prop !== undefined && !s.touched.includes(e.prop)) s.touched.push(e.prop);
         if (e.speed > 1.2) {
           // Klang je Bauteil, Tonhöhe und Lautstärke nach Wucht
           const loud = Math.min(e.speed / 6, 0.9);
           const pitch = 0.85 + Math.min(e.speed / 12, 0.35);
           if (e.part === "lid") sfx("lid", { volume: loud, rate: pitch });
           else if (e.part === "ground") sfx("land", { volume: loud * 0.6, rate: 1.25 });
+          else if (e.part === "trampoline") sfx("boing", { volume: Math.max(loud, 0.6) });
+          else if (e.part === "car") sfx("car", { volume: loud, rate: pitch });
+          else if (e.part === "fence") sfx("lid", { volume: loud, rate: pitch * 0.75 });
           else sfx("rim", { volume: loud, rate: e.part === "wall" ? pitch * 0.8 : pitch });
         }
+        if (e.prop !== undefined && e.speed > 1.5)
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
         if (e.bin !== null && e.speed > 1.5) {
           queueBinEvent(bus.current, e.bin, "bump");
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
@@ -469,6 +540,7 @@ export const ThrowLayer = memo(function ThrowLayer({
         clean: !ball.touched,
         x: ball.p.x,
         via: ball.via,
+        props: s.touched.slice(),
       });
       if (spec.free?.accept[e.bin]) {
         finish(i);
@@ -478,7 +550,7 @@ export const ThrowLayer = memo(function ThrowLayer({
       ball.inside = null;
       ball.touched = true;
       ball.p.y = BIN_SHAPE.top + 0.25;
-      ball.v.set((Math.random() - 0.5) * 0.8, 3.8, 1.4);
+      ball.v.set(0, 3.8, 1.4);
       break;
     }
 
@@ -488,7 +560,13 @@ export const ThrowLayer = memo(function ThrowLayer({
     if ((onGround && ball.inside === null) || ballSettled(ball) || s.age > 4.5) {
       if (!s.landed) {
         s.landed = true;
-        landThrow(bus.current, spec, { bin: null, clean: false, x: ball.p.x, near: ball.touched });
+        landThrow(bus.current, spec, {
+          bin: null,
+          clean: false,
+          x: ball.p.x,
+          near: ball.touched,
+          props: s.touched.slice(),
+        });
         // Lernhilfe: kurz zeigen, wohin der Wurf gezielt war (zu kurz / zu weit)
         markerAt.current.set(s.target.x, 0.03, s.target.z);
         markerAge.current = 0;
@@ -558,7 +636,7 @@ export const ThrowLayer = memo(function ThrowLayer({
             c.lid = bus.current.lids[k] ?? 0;
           });
           // Ganze Strecke seit dem letzten Bild prüfen (nicht nur den Endpunkt)
-          const hitAt = firstContact(g.position, tmp, vel, colliders, contact);
+          const hitAt = firstContact(g.position, tmp, vel, colliders, contact, props);
           if (hitAt || s.t >= 1) {
             handOver(s, hitAt ?? tmp, vel, !hitAt);
             g.position.copy(hitAt ?? tmp);

@@ -868,7 +868,7 @@ export function GameRound({
 }
 /** Die 3D-Fläche. Eigene memo-Komponente: Punkte, Lob, „+10“ und Timer
  *  rendern nur das HUD neu – die Canvas (und R3F) bleiben unberührt. */
-const SceneCanvas = memo(function SceneCanvas({
+export const SceneCanvas = memo(function SceneCanvas({
   width,
   height,
   ...scene

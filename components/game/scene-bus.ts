@@ -25,7 +25,12 @@ export type LandOutcome = {
   via?: "rim" | "wall" | "lid" | null;
   /** Daneben, aber eine Tonne berührt („Knapp!“). */
   near?: boolean;
+  /** Berührte Hindernisse (Trickwürfe), in Reihenfolge. */
+  props?: number[];
 };
+
+/** Flugbahn-Vorschau beim Wischen (Trickwürfe): Ziel-Landestelle und Bogen. */
+export type ShotGuide = { x: number; z: number; power: number };
 
 export type ThrowSpec = {
   id: number;
@@ -63,6 +68,8 @@ export type SceneBus = {
   binEvents: (BinEventType | null)[];
   /** Aktueller Deckel-Winkel pro Tonne (rad) – für die Wurf-Physik. */
   lids: number[];
+  /** Flugbahn-Vorschau (oder null). */
+  shotGuide: ShotGuide | null;
   onLand: (id: number, outcome?: LandOutcome) => void;
 };
 
@@ -78,6 +85,7 @@ export function createBus(): SceneBus {
     bursts: [],
     binEvents: [],
     lids: [],
+    shotGuide: null,
     onLand: () => undefined,
   };
 }
@@ -146,6 +154,11 @@ export function setLandHandler(
   handler: (id: number, outcome?: LandOutcome) => void,
 ) {
   bus.onLand = handler;
+}
+
+/** Flugbahn-Vorschau setzen/ausblenden (ohne Neu-Rendern der Szene). */
+export function setShotGuide(bus: SceneBus, guide: ShotGuide | null) {
+  bus.shotGuide = guide;
 }
 
 /** Tonne meldet ihren Deckel-Winkel (für die Wurf-Physik). */

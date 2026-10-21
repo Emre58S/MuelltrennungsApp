@@ -8,6 +8,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
+import { Button } from "@/components/ui/button";
 import { type Item } from "@/constants/items";
 import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
@@ -398,6 +399,76 @@ export function Banner({ text }: { text: string }) {
   );
 }
 
+/* ── Trickwürfe: Kopfzeile und Ergebnis ───────────────────── */
+
+/** Kopfzeile einer Trick-Runde: Level, Versuch und die Aufgabe. */
+export function TrickHud({ level, attempt, task }: { level: number; attempt: number; task: string }) {
+  const { t } = useI18n();
+  return (
+    <HudSurface style={styles.trickHud}>
+      <AppText variant="caption" tone="textMuted" center>
+        {t("tricks.level", { n: level })} · {t("trick.attempt", { n: Math.max(attempt, 1) })}
+      </AppText>
+      <AppText variant="label" center numberOfLines={2}>
+        {task}
+      </AppText>
+    </HudSurface>
+  );
+}
+
+/** Ein Stern, der nacheinander „aufploppt“. */
+function Star({ filled, delay }: { filled: boolean; delay: number }) {
+  const pop = useEnter(380, Easing.out(Easing.back(2.4)), delay);
+  return (
+    <Animated.View style={{ transform: [{ scale: pop }], opacity: pop }}>
+      <AppText style={[styles.star, { opacity: filled ? 1 : 0.25 }]}>{filled ? "★" : "☆"}</AppText>
+    </Animated.View>
+  );
+}
+
+/** Ergebnis eines geschafften Levels: Sterne + weiter / nochmal / alle Level. */
+export function TrickResult({
+  stars,
+  attempts,
+  isLast,
+  onNext,
+  onRetry,
+  onLevels,
+}: {
+  stars: number;
+  attempts: number;
+  isLast: boolean;
+  onNext: () => void;
+  onRetry: () => void;
+  onLevels: () => void;
+}) {
+  const { t } = useI18n();
+  const { colors } = useAppTheme();
+  const enter = useEnter(300, Easing.out(Easing.quad));
+  return (
+    <Animated.View style={[StyleSheet.absoluteFill, styles.resultWrap, { backgroundColor: colors.overlay, opacity: enter }]}>
+      <View style={[styles.resultCard, { backgroundColor: colors.surface }]}>
+        <AppText variant="title" center accessibilityRole="header">
+          {isLast ? t("trick.allDone") : t("trick.done")}
+        </AppText>
+        <View style={styles.stars} accessible accessibilityLabel={`${stars} / 3`}>
+          {[1, 2, 3].map((n) => (
+            <Star key={n} filled={n <= stars} delay={250 + n * 180} />
+          ))}
+        </View>
+        <AppText tone="textSecondary" center>
+          {attempts <= 1 ? t("trick.attemptsOne") : t("trick.attempts", { n: attempts })}
+        </AppText>
+        <View style={styles.resultButtons}>
+          <Button title={isLast ? t("trick.levels") : t("trick.next")} icon="arrow-right" iconPosition="end" onPress={isLast ? onLevels : onNext} />
+          <Button title={t("trick.retry")} variant="secondary" icon="rotate-ccw" onPress={onRetry} />
+          {!isLast && <Button title={t("trick.levels")} variant="ghost" onPress={onLevels} />}
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
 /* ── Kleiner Knopf oben (Fertig) ───────────────────────────── */
 
 export function HudButton({ label, onPress }: { label: string; onPress: () => void }) {
@@ -497,6 +568,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     ...shadow,
   },
+
+  trickHud: { paddingHorizontal: Spacing.md, paddingVertical: 6, borderRadius: Radius.lg, flexShrink: 1, maxWidth: 260 },
+  resultWrap: { alignItems: "center", justifyContent: "center", padding: Spacing.lg },
+  resultCard: { width: "100%", maxWidth: 360, borderRadius: Radius.xl, padding: Spacing.lg, gap: Spacing.md },
+  stars: { flexDirection: "row", justifyContent: "center", gap: Spacing.sm },
+  star: { fontSize: 48, lineHeight: 56, color: "#F5B800" },
+  resultButtons: { gap: Spacing.sm, marginTop: Spacing.sm },
 
   hudButton: {
     minHeight: 44,

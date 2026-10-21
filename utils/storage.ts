@@ -20,6 +20,7 @@ export const StorageKeys = {
   LANGUAGE: "muell_language",
   LAST_MODE: "muell_last_mode",
   MODE_STATS: "muell_mode_stats",
+  TRICK_STARS: "muell_trick_stars",
   REDUCE_MOTION: "muell_reduce_motion",
   ITEM_STATS: "muell_item_stats",
   DAILY_RESULT: "muell_daily_result",
@@ -437,5 +438,29 @@ export function saveDaily(result: DailyResult): Promise<void> {
     const current = await getTodayDaily();
     if (current && current.score >= result.score) return;
     await setItem(StorageKeys.DAILY_RESULT, JSON.stringify(result));
+  });
+}
+
+// ── Trickwürfe: Sterne pro Level ─────────────────────────────────────
+
+export type TrickStars = Record<number, number>;
+
+export async function getTrickStars(): Promise<TrickStars> {
+  const raw = await getItem(StorageKeys.TRICK_STARS);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as TrickStars;
+  } catch {
+    return {};
+  }
+}
+
+/** Speichert nur, wenn es mehr Sterne als bisher sind. */
+export function saveTrickStars(level: number, stars: number): Promise<void> {
+  return enqueue(async () => {
+    const all = await getTrickStars();
+    if ((all[level] ?? 0) >= stars) return;
+    all[level] = stars;
+    await setItem(StorageKeys.TRICK_STARS, JSON.stringify(all));
   });
 }

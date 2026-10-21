@@ -232,3 +232,29 @@ SCALE.forEach((f, i) => {
   }
   write("plop", b, 0.6);
 }
+
+/* ── Trickwürfe ─────────────────────────────────────────────── */
+
+// Trampolin: federndes „Boing“ (Tonhöhe steigt, leichtes Vibrato)
+{
+  const b = buf(0.42);
+  let phase = 0;
+  for (let i = 0; i < b.length; i++) {
+    const t = i / RATE;
+    const f = 190 + 330 * (1 - Math.exp(-t / 0.06)) + 14 * Math.sin(TAU * 22 * t);
+    phase += (TAU * f) / RATE;
+    b[i] += Math.sin(phase) * 0.55 * Math.exp(-t / 0.13) * Math.min(t / 0.004, 1);
+  }
+  write("boing", b, 0.65);
+}
+
+// Auto: dumpfes Blech-„Bong“ (unharmonische Teiltöne)
+{
+  const b = buf(0.45);
+  partial(b, { f: 112, vol: 0.5, decay: 0.09 });
+  partial(b, { f: 241, vol: 0.28, decay: 0.07 });
+  partial(b, { f: 397, vol: 0.18, decay: 0.05 });
+  partial(b, { f: 583, vol: 0.1, decay: 0.035 });
+  mallet(b, { vol: 0.35, dur: 0.015 });
+  write("car", b, 0.7);
+}
