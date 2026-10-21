@@ -487,6 +487,29 @@ export default function HomeScreen() {
           <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
         </Pressable>
 
+        {/* Zielwurf: eigener Modus ohne Menü-Tonne (dort stehen immer 3) */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t("mode.aim.title")}. ${t("mode.aim.desc")}`}
+          onPress={() => launch("aim")}
+          style={({ pressed }) => [styles.daily, pressed && styles.pressed]}
+        >
+          <View style={[styles.dailyIcon, { backgroundColor: MODE_COLOR.aim.fill }]}>
+            <Feather name="crosshair" size={18} color={MODE_COLOR.aim.on} />
+          </View>
+          <View style={styles.flex}>
+            <AppText variant="label" color={ON_SCENE}>
+              {t("mode.aim.title")}
+            </AppText>
+            <AppText variant="caption" color={ON_SCENE_SOFT} numberOfLines={1}>
+              {loaded && scores.aim > 0
+                ? `🏆 ${formatNumber(scores.aim)}`
+                : t("mode.aim.desc")}
+            </AppText>
+          </View>
+          <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
+        </Pressable>
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${t("home.continue")}: ${lastTitle}`}

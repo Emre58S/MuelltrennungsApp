@@ -184,6 +184,9 @@ export const TrashBin = memo(function TrashBin({
   });
 
   const zInset = frontZ(0.68) + 0.004;
+  // Vor der Front-Platte: ihre Vorderseite liegt (mit Fase) ~0.018 vor zInset
+  // und kippt mit der Neigung nach vorn – der Aufkleber sitzt knapp davor.
+  const labelZ = zInset + 0.024 + (LABEL_Y - 0.68) * Math.tan(TAPER);
 
   return (
     <group position={[x, 0, z]}>
@@ -211,7 +214,7 @@ export const TrashBin = memo(function TrashBin({
             ref={labelRef}
             geometry={GEO.label}
             material={labelMat}
-            position={[0, LABEL_Y, frontZ(LABEL_Y) + 0.016]}
+            position={[0, LABEL_Y, labelZ]}
             rotation={[TAPER, 0, 0]}
             visible={false}
           />
