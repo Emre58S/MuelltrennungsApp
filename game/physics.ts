@@ -104,7 +104,7 @@ function collideBin(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
       const d = n.length();
       if (d < r && d > 1e-6) {
         n.divideScalar(d);
-        const speed = bounce(ball, n, r - d, 0.5);
+        const speed = bounce(ball, n, r - d, 0.42);
         if (speed > 0.4) {
           ball.touched = true;
           events.push({ type: "bounce", bin: i, speed });
@@ -138,7 +138,7 @@ function collideBin(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   if (d >= r) return;
   if (d < 1e-6) n.set(0, 1, 0);
   else n.divideScalar(d);
-  const speed = bounce(ball, n, r - d, 0.45);
+  const speed = bounce(ball, n, r - d, 0.38);
   if (speed > 0.4) {
     ball.touched = true;
     events.push({ type: "bounce", bin: i, speed });
@@ -162,7 +162,7 @@ function collideLid(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   if (Math.abs(dist) >= reach) return;
   const side = dist >= 0 ? 1 : -1;
   n.multiplyScalar(side);
-  const speed = bounce(ball, n, reach - Math.abs(dist), 0.5);
+  const speed = bounce(ball, n, reach - Math.abs(dist), 0.45);
   if (speed > 0.4) {
     ball.touched = true;
     events.push({ type: "bounce", bin: i, speed });

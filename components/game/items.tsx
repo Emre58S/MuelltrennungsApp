@@ -17,7 +17,6 @@ import {
   ballSettled,
   BIN_SHAPE,
   type BinCollider,
-  launchBall,
   stepBall,
 } from "@/game/physics";
 import { sfx } from "@/utils/sfx";
@@ -193,6 +192,8 @@ export const AimGuide = memo(function AimGuide({
 
 // Knackiger Flug: kurz genug für flüssiges Spiel, lang genug zum Mitverfolgen
 const FLIGHT_TIME = 0.42;
+/** Zielwurf: Anteil der Fluggeschwindigkeit, mit dem die Physik übernimmt. */
+const HANDOVER_SPEED = 0.55;
 const TRAIL = 10;
 /** Gleichzeitig sichtbare Würfe. Ein Fehlwurf (Abprallen) belegt seinen
  *  Platz ~1,5 s – 10 Plätze reichen auch für sehr schnelles Werfen. */
@@ -289,6 +290,17 @@ export const ThrowLayer = memo(function ThrowLayer({
     [openings],
   );
   const events = useMemo<BallEvent[]>(() => [], []);
+  const probe = useMemo<Ball>(
+    () => ({
+      p: new THREE.Vector3(),
+      v: new THREE.Vector3(),
+      inside: null,
+      touched: false,
+      still: 0,
+    }),
+    [],
+  );
+  const vel = useMemo(() => new THREE.Vector3(), []);
 
   useEffect(() => () => trailMats.forEach((mat) => mat.dispose()), [trailMats]);
 
@@ -372,18 +384,42 @@ export const ThrowLayer = memo(function ThrowLayer({
     g.rotation.set(0, 0, 0);
     g.visible = true;
 
-    // Zielwurf: echte Physik – Abwurf so, dass er (frei) durchs Ziel fiele
+    // Zielwurf: fliegt auf der festen Bahn; die Physik übernimmt erst an der Tonne
     s.ball = null;
-    if (spec.free) {
-      s.phase = "physics";
-      s.age = 0;
-      s.ball = launchBall(start, s.target, s.arc * 0.8);
-      const reach = Math.hypot(s.target.x - start.x, s.target.z - start.z);
-      s.flightT = reach / Math.max(Math.hypot(s.ball.v.x, s.ball.v.z), 0.1);
-    }
+    s.age = 0;
+    s.flightT = FLIGHT_TIME;
 
     trackFlying(fx.current, 1);
     s.counted = true;
+  };
+
+  /** Probe: würde der Gegenstand hier etwas berühren (Rand, Wand, Deckel)? */
+  const touches = (p: THREE.Vector3, v: THREE.Vector3) => {
+    probe.p.copy(p);
+    probe.v.copy(v);
+    probe.inside = null;
+    probe.touched = false;
+    events.length = 0;
+    stepBall(probe, 0, colliders, events);
+    return events.some((e) => e.type === "bounce");
+  };
+
+  /** Ab hier rechnet die Physik weiter – mit der Geschwindigkeit des Flugs
+   *  (etwas gebremst: die feste Bahn ist für die Perspektive sehr schnell). */
+  const handOver = (s: Slot, p: THREE.Vector3, v: THREE.Vector3) => {
+    s.ball = {
+      p: p.clone(),
+      v: v.clone().multiplyScalar(HANDOVER_SPEED),
+      inside: null,
+      touched: false,
+      still: 0,
+    };
+    s.phase = "physics";
+    s.age = s.flightT;
+    if (s.counted) {
+      s.counted = false;
+      trackFlying(fx.current, -1);
+    }
   };
 
   /** Ein Zielwurf-Frame: Physik rechnen, auf Anstoßen/Hineinfallen reagieren. */
@@ -474,6 +510,17 @@ export const ThrowLayer = memo(function ThrowLayer({
       if (s.phase === "flight") {
         s.t = Math.min(s.t + delta / FLIGHT_TIME, 1);
         flightPoint(tmp, start, s.target, s.t, s.arc);
+        if (s.spec.free && delta > 0) {
+          // Zielwurf: an der Tonne (oder am Ziel) übernimmt die Physik
+          vel.subVectors(tmp, g.position).divideScalar(delta);
+          colliders.forEach((c, k) => {
+            c.lid = bus.current.lids[k] ?? 0;
+          });
+          if (s.t >= 1 || touches(tmp, vel)) {
+            handOver(s, g.position, vel);
+            continue;
+          }
+        }
         g.position.copy(tmp);
         setLook(fx.current, tmp);
         g.scale.setScalar(

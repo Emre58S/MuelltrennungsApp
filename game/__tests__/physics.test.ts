@@ -61,6 +61,36 @@ describe("Zielwurf-Physik", () => {
     expect(events.some((e) => e.type === "bounce")).toBe(true);
   });
 
+  // So übergibt der Flug an die Physik: schnell, schräg nach unten/hinten
+  const handedOver = (z: number, vz: number): Ball => ({
+    p: new THREE.Vector3(0, BIN_SHAPE.top + 0.25, z),
+    v: new THREE.Vector3(0, -5, vz),
+    inside: null,
+    touched: false,
+    still: 0,
+  });
+
+  test("zu weit: prallt vom offenen Deckel ab und fällt in die Tonne", () => {
+    const ball = handedOver(-0.15, -6);
+    const { bin, events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
+    expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
+    expect(bin).toBe(0);
+  });
+
+  test("auf den vorderen Rand, Schwung nach vorn: prallt nach außen ab", () => {
+    const ball = handedOver(BIN_SHAPE.openHalfD + 0.1, 1.5);
+    const { bin, events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
+    expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
+    expect(bin).toBeNull();
+  });
+
+  test("auf den vorderen Rand, Schwung nach hinten: rollt hinein", () => {
+    const ball = handedOver(BIN_SHAPE.openHalfD + 0.1, -1);
+    const { bin, events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
+    expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
+    expect(bin).toBe(0);
+  });
+
   test("zu weit: der offene Deckel wirkt wie ein Brett", () => {
     const ball = launchBall(START, target(0, -0.55), 0.6);
     const { events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
