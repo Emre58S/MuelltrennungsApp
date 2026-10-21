@@ -296,6 +296,7 @@ export const ThrowLayer = memo(function ThrowLayer({
       v: new THREE.Vector3(),
       inside: null,
       touched: false,
+      via: null,
       still: 0,
     }),
     [],
@@ -412,6 +413,7 @@ export const ThrowLayer = memo(function ThrowLayer({
       v: v.clone().multiplyScalar(HANDOVER_SPEED),
       inside: null,
       touched: false,
+      via: null,
       still: 0,
     };
     s.phase = "physics";
@@ -459,7 +461,12 @@ export const ThrowLayer = memo(function ThrowLayer({
         return;
       }
       s.landed = true;
-      landThrow(bus.current, spec, { bin: e.bin, clean: !ball.touched, x: ball.p.x });
+      landThrow(bus.current, spec, {
+        bin: e.bin,
+        clean: !ball.touched,
+        x: ball.p.x,
+        via: ball.via,
+      });
       if (spec.free?.accept[e.bin]) {
         finish(i);
         return;

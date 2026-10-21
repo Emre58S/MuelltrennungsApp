@@ -151,10 +151,29 @@ export function ModelWarmup({
   const refs = useRef<(THREE.Group | null)[]>([]);
   // Gebackene Vorlagen einmal mitzeichnen → Shader + GPU-Puffer bereit
   const bakedRef = useRef<THREE.Group>(null);
+  // Neue Runde = neue 3D-Fläche: auch schon fertige Vorlagen einmal zeigen,
+  // sonst werden ihre Shader erst mitten in der Runde übersetzt (Ruckler).
+  const primeRef = useRef<THREE.Group>(null);
+  const primed = useRef(0);
   const frames = useRef(0);
   const batch = todo.slice(start, start + perFrame);
 
   useFrame(() => {
+    const prime = primeRef.current;
+    if (prime && primed.current < 4) {
+      primed.current += 1;
+      if (primed.current === 1) {
+        const seen = new Set<string>();
+        items.forEach((item) => {
+          const template = templates.get(item.name);
+          if (!template || seen.has(item.name)) return;
+          seen.add(item.name);
+          prime.add(template.clone(true));
+        });
+      } else if (primed.current === 4) {
+        prime.clear();
+      }
+    }
     const shown = bakedRef.current;
     if (batch.length === 0) {
       if (shown && shown.children.length > 0) shown.clear();
@@ -177,6 +196,7 @@ export function ModelWarmup({
     // Position als Array (R3F-eigene three-Kopie erkennt unseren Vector3 nicht)
     <group position={[at.x, at.y, at.z]} scale={0.0001}>
       <group ref={bakedRef} />
+      <group ref={primeRef} />
       {batch.map((item, i) => (
         <group
           key={item.name}

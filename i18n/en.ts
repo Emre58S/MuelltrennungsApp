@@ -89,6 +89,8 @@ export const en: Translations = {
   "game.levelUp": "Level {level}!",
   "game.newBin": "New: {bin} – now in some rounds",
   "game.miss": "Missed!",
+  "game.viaLid": "Off the lid!",
+  "game.viaRim": "Rolled in!",
   "game.aimHint": "Fast swipe = far, slow = short",
   "game.finish": "Finish",
   "game.time": "Time",

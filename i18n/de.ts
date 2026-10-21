@@ -88,6 +88,8 @@ export const de = {
   "game.levelUp": "Level {level}!",
   "game.newBin": "Neu: {bin} – ab jetzt in manchen Runden",
   "game.miss": "Daneben!",
+  "game.viaLid": "Über den Deckel!",
+  "game.viaRim": "Vom Rand rein!",
   "game.aimHint": "Schnell wischen = weit, langsam = kurz",
   "game.finish": "Fertig",
   "game.time": "Zeit",

@@ -89,6 +89,31 @@ function CameraRig({
   return null;
 }
 
+/** Einmal alle Shader übersetzen – auch für gerade unsichtbare Dinge
+ *  (Leuchtspur, Aufkleber, Ersatzformen) –, damit das nicht mitten in der
+ *  Runde passiert. Jede Runde hat eine neue 3D-Fläche, daher pro Runde. */
+function ShaderWarmup() {
+  const frame = useRef(0);
+  useFrame((state) => {
+    if (frame.current > 3) return;
+    frame.current += 1;
+    // Frame 3: Modelle aus <ModelWarmup> sind dann schon in der Szene
+    if (frame.current !== 3) return;
+    const hidden: THREE.Object3D[] = [];
+    state.scene.traverse((o) => {
+      if (!o.visible) {
+        hidden.push(o);
+        o.visible = true;
+      }
+    });
+    state.gl.compile(state.scene, state.camera);
+    hidden.forEach((o) => {
+      o.visible = false;
+    });
+  });
+  return null;
+}
+
 /** Nur Entwicklung: alle 3 s Bildrate, langsamster Frame und Zeichenaufrufe
  *  ins Metro-Log (landet in .expo/dev/logs/start.log). */
 function PerfProbe() {
@@ -193,6 +218,7 @@ export const GameScene = memo(function GameScene({
       <BurstLayer bus={bus} fx={fx} />
 
       <ModelWarmup items={warmItems} at={layout.item.position} perFrame={2} />
+      <ShaderWarmup />
       {__DEV__ && <PerfProbe />}
     </>
   );

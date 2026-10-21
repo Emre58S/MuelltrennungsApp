@@ -17,7 +17,13 @@ export type BinEventType = "hit" | "perfect" | "reject" | "peek" | "bump";
 
 /** Ergebnis eines physikalischen Wurfs (Zielwurf): in welcher Tonne er
  *  gelandet ist (oder null), ob ohne Anstoßen, und wo er liegt (Welt-x). */
-export type LandOutcome = { bin: number | null; clean: boolean; x: number };
+export type LandOutcome = {
+  bin: number | null;
+  clean: boolean;
+  x: number;
+  /** Zuletzt abgeprallt an (Rand/Wand/Deckel) – für Basketball-Lob. */
+  via?: "rim" | "wall" | "lid" | null;
+};
 
 export type ThrowSpec = {
   id: number;

@@ -41,13 +41,24 @@ export type Ball = {
   inside: number | null;
   /** Schon irgendwo angestoßen (sonst „Perfekt“ bei Treffer). */
   touched: boolean;
+  /** Woran zuletzt an einer Tonne abgeprallt (für „Über den Deckel!“). */
+  via: BinPart | null;
   /** Wie lange der Ball schon fast still liegt (s). */
   still: number;
 };
 
+export type BinPart = "rim" | "wall" | "lid";
+
 export type BallEvent =
   | { type: "capture"; bin: number }
   | { type: "bounce"; bin: number | null; speed: number };
+
+function touch(ball: Ball, events: BallEvent[], bin: number, part: BinPart, speed: number) {
+  if (speed <= 0.4) return;
+  ball.touched = true;
+  ball.via = part;
+  events.push({ type: "bounce", bin, speed });
+}
 
 /** Wurf so abschicken, dass er (ohne Hindernis) durch `target` fällt –
  *  mit Scheitel `apex` über dem höheren der beiden Punkte. */
@@ -65,6 +76,7 @@ export function launchBall(
     v: new THREE.Vector3((target.x - start.x) / t, vy, (target.z - start.z) / t),
     inside: null,
     touched: false,
+    via: null,
     still: 0,
   };
 }
@@ -104,11 +116,7 @@ function collideBin(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
       const d = n.length();
       if (d < r && d > 1e-6) {
         n.divideScalar(d);
-        const speed = bounce(ball, n, r - d, 0.42);
-        if (speed > 0.4) {
-          ball.touched = true;
-          events.push({ type: "bounce", bin: i, speed });
-        }
+        touch(ball, events, i, "rim", bounce(ball, n, r - d, 0.42));
       }
       if (p.y < s.top) ball.inside = i;
       return;
@@ -138,11 +146,8 @@ function collideBin(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   if (d >= r) return;
   if (d < 1e-6) n.set(0, 1, 0);
   else n.divideScalar(d);
-  const speed = bounce(ball, n, r - d, 0.38);
-  if (speed > 0.4) {
-    ball.touched = true;
-    events.push({ type: "bounce", bin: i, speed });
-  }
+  // Oben auf dem Rand-Kranz oder seitlich an der Wand
+  touch(ball, events, i, n.y > 0.7 ? "rim" : "wall", bounce(ball, n, r - d, 0.38));
 }
 
 function collideLid(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]) {
@@ -162,11 +167,7 @@ function collideLid(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   if (Math.abs(dist) >= reach) return;
   const side = dist >= 0 ? 1 : -1;
   n.multiplyScalar(side);
-  const speed = bounce(ball, n, reach - Math.abs(dist), 0.45);
-  if (speed > 0.4) {
-    ball.touched = true;
-    events.push({ type: "bounce", bin: i, speed });
-  }
+  touch(ball, events, i, "lid", bounce(ball, n, reach - Math.abs(dist), 0.45));
 }
 
 /** Ball einen Zeitschritt weiter (intern in kleinen Teilschritten). */

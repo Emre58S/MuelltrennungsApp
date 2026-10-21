@@ -67,6 +67,7 @@ describe("Zielwurf-Physik", () => {
     v: new THREE.Vector3(0, -5, vz),
     inside: null,
     touched: false,
+    via: null,
     still: 0,
   });
 
@@ -75,6 +76,7 @@ describe("Zielwurf-Physik", () => {
     const { bin, events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
     expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
     expect(bin).toBe(0);
+    expect(ball.via).toBe("lid");
   });
 
   test("auf den vorderen Rand, Schwung nach vorn: prallt nach außen ab", () => {
@@ -89,6 +91,7 @@ describe("Zielwurf-Physik", () => {
     const { bin, events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
     expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
     expect(bin).toBe(0);
+    expect(ball.via).toBe("rim");
   });
 
   test("zu weit: der offene Deckel wirkt wie ein Brett", () => {

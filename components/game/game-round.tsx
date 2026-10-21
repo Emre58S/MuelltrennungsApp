@@ -388,6 +388,10 @@ export function GameRound({
     const l = lock.current;
     if (mode === "survival" && l.over) return;
     let ts = thrown;
+    // Zielwurf: über Deckel oder Rand hineingefallen → Basketball-Lob
+    const via = thrown.free ? outcome?.via : null;
+    const viaText =
+      via === "lid" ? t("game.viaLid") : via === "rim" ? t("game.viaRim") : null;
     if (thrown.free) {
       // Zielwurf: wo ist er gelandet? Daneben = kein Sortierfehler
       if (!outcome || outcome.bin === null) {
@@ -474,13 +478,13 @@ export function GameRound({
           "game.praise.4",
         ] as const
       )[id % 4];
-      // Dezent: Lob-Text nur bei Perfekt und bei Serien (5, 10, 15 …)
-      if (ts.perfect || streakNow % 5 === 0) {
+      // Dezent: Lob-Text nur bei Perfekt, Deckel/Rand (Zielwurf) und Serien (5, 10 …)
+      if (ts.perfect || viaText || streakNow % 5 === 0) {
         setPraise({
           id,
           text: ts.perfect
             ? t("game.perfect")
-            : `${t(praiseKey)} ×${streakNow}`,
+            : (viaText ?? `${t(praiseKey)} ×${streakNow}`),
           gold: ts.perfect,
         });
         later(() => {
