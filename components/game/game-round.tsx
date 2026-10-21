@@ -1,4 +1,5 @@
-// Datei: app/(tabs)/explore.tsx — Spielrunde
+// Datei: components/game/game-round.tsx — eine Spielrunde
+// (Route: app/(tabs)/runde.tsx)
 //
 // Mehrere Würfe gleichzeitig, auch sehr schnell hintereinander. Würfe,
 // Konfetti und Tonnen-Reaktionen gehen über den SceneBus direkt an die
@@ -62,7 +63,6 @@ import { devLog } from "@/utils/dev-error-reporter";
 import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import {
   EMPTY_ITEM_STAT,
-  flushThrowRecords,
   getHighscoreKey,
   getItemStats,
   getLevelFromXP,
@@ -70,16 +70,10 @@ import {
   getTodayDaily,
   type ItemStats,
   queueThrowRecord,
-  recordRound,
-  saveDaily,
-  saveHighscore,
-  StorageKeys,
   todayKey,
 } from "@/utils/storage";
 import { Canvas } from "@react-three/fiber/native";
-import { setAudioModeAsync } from "expo-audio";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
   useCallback,
   useEffect,
@@ -95,12 +89,9 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 
 const ROUND_SECONDS = 60;
 /** Nach Zeitablauf: so lange dürfen fliegende Würfe noch landen. */
@@ -110,76 +101,6 @@ const MAX_FLOATS = 5;
 /** expo-gl rendert immer in voller Auflösung. Auf 3x-Displays sind Kanten
  *  ohnehin fein – dort Kantenglättung (MSAA) sparen, das entlastet die GPU. */
 const ANTIALIAS = PixelRatio.get() < 3;
-const HIGHSCORE_MODE = {
-  endless: "endlos",
-  survival: "runden",
-  time: "zeit",
-} as const;
-
-export default function GameScreen() {
-  const { mode: rawMode, daily: rawDaily } = useLocalSearchParams<{
-    mode?: string;
-    daily?: string;
-  }>();
-  // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
-  const daily = rawDaily === "1";
-  const mode: GameMode = daily
-    ? "endless"
-    : rawMode === "survival" || rawMode === "time"
-      ? rawMode
-      : "endless";
-  const router = useRouter();
-  const { colors } = useAppTheme();
-  const [xp, setXp] = useState<number | null>(null);
-  const [round, setRound] = useState(0);
-  // Erst gesammelte Würfe schreiben, dann XP lesen (sonst veraltetes Level).
-  const loadXp = useCallback(() => {
-    flushThrowRecords()
-      .then(() => getNumber(StorageKeys.TOTAL_XP))
-      .then(setXp)
-      .catch(() => setXp(0));
-  }, []);
-  useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: true }).catch(() => undefined);
-  }, []);
-  // Beim Verlassen abbauen; beim erneuten Öffnen eine neue Runde erzeugen.
-  useFocusEffect(
-    useCallback(() => {
-      setRound((r) => r + 1);
-      loadXp();
-      return () => {
-        setXp(null);
-      };
-    }, [loadXp]),
-  );
-  const goBack = useCallback(() => {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  }, [router]);
-  const playAgain = useCallback(() => {
-    setXp(null);
-    loadXp();
-    setRound((r) => r + 1);
-  }, [loadXp]);
-  const level = xp !== null ? getLevelFromXP(xp) : null;
-  return (
-    <GestureHandlerRootView
-      style={[styles.root, { backgroundColor: colors.bg }]}
-    >
-      {xp !== null && level !== null && (
-        <GameRound
-          key={`${round}-${level}-${mode}-${daily}`}
-          mode={mode}
-          daily={daily}
-          level={level}
-          startXp={xp}
-          onAgain={playAgain}
-          onExit={goBack}
-        />
-      )}
-    </GestureHandlerRootView>
-  );
-}
 
 type Praised = { id: number; text: string; gold: boolean };
 type Picker = { recent: string[]; dailyIndex: number };
@@ -208,7 +129,7 @@ function drawItem(
 }
 type Learn = { id: number; item: Item; bin: Mistake["bin"] };
 
-function GameRound({
+export function GameRound({
   mode,
   daily,
   level,
@@ -303,20 +224,7 @@ function GameRound({
     timeUp: false,
     id: 0,
   });
-  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
-  const later = useCallback((fn: () => void, ms: number) => {
-    const id = setTimeout(() => {
-      timers.current.delete(id);
-      fn();
-    }, ms);
-    timers.current.add(id);
-  }, []);
-  useEffect(() => {
-    const set = timers.current;
-    return () => {
-      set.forEach(clearTimeout);
-    };
-  }, []);
+  const later = useLater();
   // Dezentes Sound-Feedback (siehe utils/sfx.ts)
   useEffect(() => {
     refreshSfxSetting();
@@ -355,44 +263,13 @@ function GameRound({
     }
   }, [mode, timerStarted, timeLeft, later]);
   const showEnd = finished;
-  const savedRound = useRef(false);
-  const latest = useRef({ mode, daily });
-  useLayoutEffect(() => {
-    latest.current = { mode, daily };
-  });
-  // Runde speichern (Statistik + Bestwert) – am Ende oder beim Verlassen.
-  const commitRound = useCallback(() => {
-    if (savedRound.current) return;
-    const s = liveStats.current;
-    const { mode: m, daily: d } = latest.current;
-    if (s.throws === 0) return;
-    savedRound.current = true;
-    if (d) {
-      saveDaily({
-        date: todayKey(),
-        score: s.score,
-        correct: s.correct,
-        total: s.throws,
-      }).catch(() => undefined);
-      flushThrowRecords().catch(() => undefined);
-      return;
-    }
-    recordRound(m, {
-      maxStreak: s.maxStreak,
-      throws: s.throws,
-      correct: s.correct,
-    }).catch(() => undefined);
-    if (s.score > 0)
-      saveHighscore(HIGHSCORE_MODE[m], s.score).catch(() => undefined);
-    flushThrowRecords().catch(() => undefined);
-  }, []);
+  const commitRound = useCommitRound(liveStats, mode, daily);
   useEffect(() => {
     if (!showEnd) return;
     setAim(bus.current, null);
     commitRound();
     sfx("end");
   }, [showEnd, commitRound]);
-  useEffect(() => commitRound, [commitRound]);
   const showBanner = useCallback(
     (text: string, ms = 2200) => {
       const id = ++lock.current.id;

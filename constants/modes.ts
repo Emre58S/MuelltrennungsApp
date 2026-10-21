@@ -53,11 +53,11 @@ export async function getLastMode(): Promise<GameMode> {
 
 /** Tagesaufgabe: 10 feste Gegenstände (für alle gleich), Ablauf wie „Üben“. */
 export function startDaily() {
-  router.push({ pathname: "/(tabs)/explore", params: { mode: "endless", daily: "1" } });
+  router.push({ pathname: "/(tabs)/runde", params: { mode: "endless", daily: "1" } });
 }
 
 /** Startet das Spiel und merkt sich den Modus für „Weiter mit …“. */
 export function startGame(mode: GameMode) {
   setItem(StorageKeys.LAST_MODE, mode);
-  router.push({ pathname: "/(tabs)/explore", params: { mode } });
+  router.push({ pathname: "/(tabs)/runde", params: { mode } });
 }
