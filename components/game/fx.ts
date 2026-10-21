@@ -40,14 +40,6 @@ export function setLook(fx: Fx, position: THREE.Vector3) {
   fx.lookAt.copy(position);
 }
 
-export function slowMotion(fx: Fx, ms: number) {
-  const now = performance.now();
-  // Bei Schnellwürfen würde die Zeitlupe alle fliegenden Items bremsen.
-  if (fx.calm || fx.flying > 1 || now < fx.slowCooldownUntil) return;
-  fx.slowUntil = now + ms;
-  fx.slowCooldownUntil = now + ms + 1200;
-}
-
 /** Wurf startet (+1) bzw. ist gelandet/entfernt (−1). */
 export function trackFlying(fx: Fx, delta: 1 | -1) {
   fx.flying = Math.max(0, fx.flying + delta);
@@ -71,7 +63,8 @@ export function stepFx(fx: Fx, delta: number, time: number): number {
   const slow = performance.now() < fx.slowUntil;
   fx.timeScale = THREE.MathUtils.damp(fx.timeScale, slow ? 0.22 : 1, slow ? 30 : 8, delta);
   if (fx.shake <= 0.001) return 0;
-  const offset = Math.sin(time * 55) * fx.shake;
+  // Ruhigere Frequenz: wirkt wie ein Stoß, nicht wie Zittern
+  const offset = Math.sin(time * 34) * fx.shake;
   fx.shake *= Math.exp(-9 * delta);
   return offset;
 }

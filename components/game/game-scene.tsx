@@ -11,9 +11,11 @@ import * as THREE from "three";
 import { type Item } from "@/constants/items";
 import { type ColorScheme } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
+import { type Language } from "@/i18n";
 import { BIN_OPENING_Y, type GameLayout } from "@/game/layout";
 import { devLog } from "@/utils/dev-error-reporter";
 
+import { binLabelTexture } from "./bin-label-textures";
 import { BurstLayer } from "./effects";
 import { Stage } from "./stage";
 import { type FxRef, stepFx } from "./fx";
@@ -87,6 +89,26 @@ function CameraRig({
   return null;
 }
 
+/** Nur Entwicklung: alle 3 s Bildrate, langsamster Frame und Zeichenaufrufe
+ *  ins Metro-Log (landet in .expo/dev/logs/start.log). */
+function PerfProbe() {
+  const acc = useRef({ frames: 0, time: 0, worst: 0, slow: 0, calls: 0 });
+  useFrame((state, delta) => {
+    const a = acc.current;
+    a.frames += 1;
+    a.time += delta;
+    a.worst = Math.max(a.worst, delta);
+    if (delta > 1 / 40) a.slow += 1;
+    a.calls = Math.max(a.calls, state.gl.info.render.calls);
+    if (a.time < 3) return;
+    console.log(
+      `[perf] fps=${Math.round(a.frames / a.time)} langsamster=${Math.round(a.worst * 1000)}ms ruckler=${a.slow} drawcalls=${a.calls}`,
+    );
+    acc.current = { frames: 0, time: 0, worst: 0, slow: 0, calls: 0 };
+  });
+  return null;
+}
+
 export const GameScene = memo(function GameScene({
   layout,
   bins,
@@ -95,6 +117,7 @@ export const GameScene = memo(function GameScene({
   fx,
   bus,
   calm,
+  lang,
   warmItems,
 }: {
   layout: GameLayout;
@@ -104,6 +127,8 @@ export const GameScene = memo(function GameScene({
   fx: FxRef;
   bus: BusRef;
   calm: boolean;
+  /** Sprache der Beschriftung auf den Tonnen. */
+  lang: Language;
   /** Items, deren Modelle vorab aufgebaut werden (ganzer Item-Pool). */
   warmItems: Item[];
 }) {
@@ -130,6 +155,7 @@ export const GameScene = memo(function GameScene({
           index={i}
           fx={fx}
           bus={bus}
+          label={binLabelTexture(bin.key, lang)}
         />
       ))}
 
@@ -155,6 +181,7 @@ export const GameScene = memo(function GameScene({
       <BurstLayer bus={bus} fx={fx} />
 
       <ModelWarmup items={warmItems} at={layout.item.position} perFrame={2} />
+      {__DEV__ && <PerfProbe />}
     </>
   );
 });

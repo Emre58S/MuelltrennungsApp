@@ -13,10 +13,6 @@ export const BIN_OPENING_Y = 1.62;
 const BIN_GAP = 0.16;
 const SIDE_MARGIN = 0.14;
 const PITCH = THREE.MathUtils.degToRad(17);
-/** Eingelassene Front der Tonne (siehe trash-bin.tsx): Mitte, Breite, Tiefe. */
-const FACE_Y = 0.68;
-const FACE_W = 0.68;
-const FACE_Z = 0.46;
 
 /** Wo die Tonnen vertikal stehen (NDC, +1 = oben). */
 const BINS_NDC_Y = 0.12;
@@ -31,8 +27,6 @@ export type GameLayout = {
   binRects: ScreenRect[];
   /** Bildschirmpunkt über der Öffnung jeder Tonne (für „+10“). */
   binTops: { x: number; y: number }[];
-  /** Mitte und Breite der Tonnen-Front auf dem Bildschirm (für die Beschriftung). */
-  binFaces: { x: number; y: number; w: number }[];
   item: { position: THREE.Vector3; scale: number; screen: { x: number; y: number } };
   /** Wurf-Winkel (Grad, 0 = gerade hoch) vom Item zu jeder Tonne. */
   binAngles: number[];
@@ -99,12 +93,6 @@ export function computeLayout(
     toScreen(new THREE.Vector3(b.x, BIN_OPENING_Y + 0.1, b.z)),
   );
 
-  const binFaces = bins.map((b) => {
-    const c = toScreen(new THREE.Vector3(b.x, FACE_Y, FACE_Z));
-    const l = toScreen(new THREE.Vector3(b.x - FACE_W / 2, FACE_Y, FACE_Z));
-    return { x: c.x, y: c.y, w: 2 * (c.x - l.x) };
-  });
-
   // Item: auf dem Sichtstrahl durch (0, ITEM_NDC_Y), 38 % des Weges zur Szene.
   const ray = new THREE.Vector3(0, itemNdcY, 0.5).unproject(cam).sub(position).normalize();
   const itemDistance = distance * 0.38;
@@ -123,7 +111,6 @@ export function computeLayout(
     bins,
     binRects,
     binTops,
-    binFaces,
     item: { position: itemPos, scale: itemScale, screen: itemScreen },
     binAngles,
   };

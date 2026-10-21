@@ -17,7 +17,6 @@ import {
   flightPoint,
   type FxRef,
   setLook,
-  slowMotion,
   trackFlying,
 } from "./fx";
 import { cloneModel, hasModel } from "./model-cache";
@@ -194,7 +193,6 @@ type Slot = {
   t: number;
   p: number;
   landed: boolean;
-  slowed: boolean;
   counted: boolean;
   started: number;
   vel: THREE.Vector3;
@@ -214,7 +212,6 @@ function createSlot(): Slot {
     t: 0,
     p: 0,
     landed: false,
-    slowed: false,
     counted: false,
     started: 0,
     vel: new THREE.Vector3(),
@@ -329,7 +326,6 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.t = 0;
     s.p = 0;
     s.landed = false;
-    s.slowed = false;
     s.started = now;
     s.target.copy(openings[spec.binIndex] ?? start);
     // Kräftiger Wisch → flacherer Bogen, sanfter Wisch → höherer Bogen
@@ -373,7 +369,7 @@ export const ThrowLayer = memo(function ThrowLayer({
       const s = slots[i];
       const g = groups.current[i];
       if (!s.active || !g || !s.spec) continue;
-      const { hit, perfect } = s.spec;
+      const { hit } = s.spec;
 
       if (s.phase === "flight") {
         s.t = Math.min(s.t + delta / FLIGHT_TIME, 1);
@@ -385,11 +381,6 @@ export const ThrowLayer = memo(function ThrowLayer({
         );
         g.rotation.x += delta * 9;
         g.rotation.y += delta * 6;
-
-        if (perfect && !s.slowed && s.t > 0.72) {
-          s.slowed = true;
-          slowMotion(fx.current, 420);
-        }
 
         if (s.t >= 1) {
           if (s.counted) {

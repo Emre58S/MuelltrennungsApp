@@ -1,7 +1,7 @@
 // Datei: components/game/hud.tsx
 // Alles, was über der 3D-Szene liegt – bewusst zurückhaltend, damit die
-// Szene im Vordergrund bleibt: kompakte Punkte-Leiste, Beschriftung direkt
-// auf den Tonnen (auch Tipp-Ziel + Screenreader), dezenter Item-Name unter
+// Szene im Vordergrund bleibt: kompakte Punkte-Leiste, Tonnen als Tipp-Ziel
+// für Screenreader (Beschriftung ist auf die 3D-Tonnen gedruckt), dezenter Item-Name unter
 // dem Gegenstand, schmale Hinweiszeile bei Fehlern, Lob und „+10“.
 
 import { type ReactNode, useEffect, useState } from "react";
@@ -11,9 +11,8 @@ import { AppText } from "@/components/ui/app-text";
 import { type Item } from "@/constants/items";
 import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
+import { type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-
-import { type BusRef, useAim } from "./scene-bus";
 
 /* ── Hilfen ────────────────────────────────────────────────── */
 
@@ -174,34 +173,27 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
   );
 }
 
-/* ── Beschriftung auf den Tonnen (auch Tipp-Ziel für Screenreader) ── */
+/* ── Tonnen als Tipp-Ziel für Screenreader ─────────────────── */
 
+/** Unsichtbare Flächen über den Tonnen: Screenreader können damit werfen.
+ *  Die sichtbare Beschriftung ist auf die Tonnen aufgedruckt (3D-Szene). */
 export function BinLabels({
   bins,
-  faces,
-  bus,
+  rects,
   onActivate,
 }: {
   bins: BinDef[];
-  /** Front jeder Tonne auf dem Bildschirm (siehe layout.binFaces). */
-  faces: { x: number; y: number; w: number }[];
-  bus: BusRef;
+  rects: ScreenRect[];
   onActivate: (index: number) => void;
 }) {
   const { t } = useI18n();
-  // Erst einblenden, wenn die Kamera nach dem Einflug steht.
-  const show = useEnter(400, Easing.out(Easing.quad), 900);
-  // Nur die Schilder rendern beim Zielen neu – nicht die ganze Spielrunde.
-  const aimIndex = useAim(bus);
   return (
     <>
       {bins.map((bin, i) => {
-        const f = faces[i];
-        if (!f) return null;
-        const aimed = aimIndex === i;
-        const width = Math.max(f.w * 1.25, 48);
+        const r = rects[i];
+        if (!r) return null;
         return (
-          <Animated.View
+          <View
             key={bin.key}
             accessible
             accessibilityRole="button"
@@ -209,35 +201,8 @@ export function BinLabels({
             accessibilityActions={[{ name: "activate" }]}
             onAccessibilityAction={() => onActivate(i)}
             pointerEvents="none"
-            style={[
-              styles.binLabel,
-              {
-                left: f.x - width / 2,
-                top: f.y - 22,
-                width,
-                opacity: show,
-                transform: [{ scale: aimed ? 1.12 : 1 }],
-              },
-            ]}
-          >
-            <AppText
-              variant="label"
-              color={bin.onColor}
-              numberOfLines={2}
-              center
-              adjustsFontSizeToFit
-              minimumFontScale={0.6}
-              style={[
-                styles.binText,
-                {
-                  textShadowColor:
-                    bin.onColor === "#FFFFFF" ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)",
-                },
-              ]}
-            >
-              {t(bin.labelKey)}
-            </AppText>
-          </Animated.View>
+            style={[styles.binTarget, { left: r.x, top: r.y, width: r.w, height: r.h }]}
+          />
         );
       })}
     </>
@@ -484,13 +449,7 @@ const styles = StyleSheet.create({
   timerFill: { height: "100%", borderRadius: 3 },
   timerText: { minWidth: 36, textAlign: "right", fontVariant: ["tabular-nums"] },
 
-  binLabel: { position: "absolute", height: 44, alignItems: "center", justifyContent: "center" },
-  binText: {
-    fontFamily: FontFamily.extrabold,
-    lineHeight: 18,
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
+  binTarget: { position: "absolute" },
 
   itemWrap: { alignItems: "center", gap: 6 },
   itemTag: { paddingHorizontal: Spacing.md, paddingVertical: 5, maxWidth: "90%" },

@@ -149,7 +149,7 @@ export function GameRound({
 }) {
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { reduceMotion } = useAppSettings();
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -386,7 +386,8 @@ export function GameRound({
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
           () => undefined,
         );
-      shake(fx.current, ts.perfect ? 0.05 : 0.015);
+      // Nur Perfekt-Treffer wackeln (dezent) – sonst zittert die Kamera im Dauerfeuer
+      if (ts.perfect) shake(fx.current, 0.022);
       queueBurst(bus.current, {
         id,
         x: layout.bins[i].x,
@@ -441,7 +442,7 @@ export function GameRound({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
         () => undefined,
       );
-      shake(fx.current, 0.04, "x");
+      shake(fx.current, 0.022, "x");
       const correctBin = getBinByCategory(ts.item.category) ?? bin;
       if (mode === "endless") {
         // Dezenter Hinweis: die richtige Tonne hüpft kurz
@@ -597,6 +598,7 @@ export function GameRound({
             fx={fx}
             bus={bus}
             calm={reduceMotion}
+            lang={lang}
             warmItems={warmItems}
           />
         )}
@@ -604,8 +606,7 @@ export function GameRound({
           <>
             <BinLabels
               bins={bins}
-              faces={layout.binFaces}
-              bus={bus}
+              rects={layout.binRects}
               onActivate={onActivateBin}
             />
             {floats.map((f) => (

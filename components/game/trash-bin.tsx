@@ -45,7 +45,11 @@ const GEO = {
   pad: new THREE.CircleGeometry(0.8, 8),
   blob: new THREE.CircleGeometry(0.62, 16),
   ring: new THREE.RingGeometry(0.72, 0.86, 8),
+  label: new THREE.PlaneGeometry(0.6, 0.3),
 };
+
+/** Beschriftung: oberer Teil der eingelassenen Front, folgt deren Neigung. */
+const LABEL_Y = 0.93;
 
 const SHARED = {
   dark: new THREE.MeshBasicMaterial({ color: "#22262B" }),
@@ -66,6 +70,7 @@ export const TrashBin = memo(function TrashBin({
   index,
   fx,
   bus,
+  label,
 }: {
   bin: BinDef;
   x: number;
@@ -73,10 +78,13 @@ export const TrashBin = memo(function TrashBin({
   index: number;
   fx: FxRef;
   bus: BusRef;
+  /** Aufgedruckte Beschriftung (fehlt z. B. im Menü). */
+  label?: THREE.Texture | null;
 }) {
   const rootRef = useRef<THREE.Group>(null);
   const lidRef = useRef<THREE.Group>(null);
   const ringRef = useRef<THREE.Mesh>(null);
+  const labelRef = useRef<THREE.Mesh>(null);
   const anim = useRef({ hit: 0, reject: 0, lift: 0, peek: 0 });
 
   const mats = useMemo(
@@ -100,6 +108,21 @@ export const TrashBin = memo(function TrashBin({
     }),
     [bin],
   );
+  // Lambert: die Schrift bekommt dasselbe Licht wie die Tonne (wirkt aufgedruckt)
+  const labelMat = useMemo(
+    () =>
+      label
+        ? new THREE.MeshLambertMaterial({
+            map: label,
+            transparent: true,
+            alphaTest: 0.02,
+            polygonOffset: true,
+            polygonOffsetFactor: -2,
+          })
+        : null,
+    [label],
+  );
+  useEffect(() => () => labelMat?.dispose(), [labelMat]);
   useEffect(
     () => () => {
       mats.body.dispose();
@@ -154,6 +177,8 @@ export const TrashBin = memo(function TrashBin({
       ringRef.current.scale.setScalar(0.92 + a.lift * 0.12);
       mats.ring.opacity = a.lift * 0.7;
     }
+    // Erst zeigen, wenn das Bild geladen ist (sonst kurz ein dunkles Rechteck)
+    if (labelRef.current) labelRef.current.visible = !!label?.image;
     mats.body.emissive.set(bin.color);
     mats.body.emissiveIntensity = a.lift * 0.14 + a.hit * 0.22;
   });
@@ -181,6 +206,16 @@ export const TrashBin = memo(function TrashBin({
           <mesh geometry={GEO.inset} material={mats.inset} />
         </group>
         <mesh geometry={GEO.grip} material={mats.rim} position={[0, 1.36, frontZ(1.36) + 0.02]} />
+        {labelMat && (
+          <mesh
+            ref={labelRef}
+            geometry={GEO.label}
+            material={labelMat}
+            position={[0, LABEL_Y, frontZ(LABEL_Y) + 0.016]}
+            rotation={[TAPER, 0, 0]}
+            visible={false}
+          />
+        )}
 
         {/* Rand + Öffnung */}
         <group position={[0, BODY_Y + BODY_H - 0.02, 0]}>
