@@ -444,6 +444,10 @@ export function GameRound({
       shake(fx.current, 0.04, "x");
       const correctBin = getBinByCategory(ts.item.category) ?? bin;
       if (mode === "endless") {
+        // Dezenter Hinweis: die richtige Tonne hüpft kurz
+        const correctIndex = bins.findIndex((b) => b.key === correctBin.key);
+        if (correctIndex !== -1)
+          later(() => queueBinEvent(bus.current, correctIndex, "peek"), 250);
         setLearn({ id, item: ts.item, bin: correctBin });
         later(() => {
           setLearn((v) => (v?.id === id ? null : v));
@@ -572,6 +576,10 @@ export function GameRound({
   );
   const ready = screenW > 0 && screenH > 0;
   const praiseTop = (layout.binRects[0]?.y ?? 200) - 80;
+  // Name direkt unter dem schwebenden Item (≈ 30 % der Breite groß),
+  // Fehler-Hinweis knapp unter den Tonnen – beides im Bild, nicht davor.
+  const itemTagTop = layout.item.screen.y + screenW * 0.15 + 4;
+  const learnTop = Math.max(0, ...layout.binRects.map((r) => r.y + r.h)) + 10;
   const endTitle = mode === "time" ? t("game.end.timeUp") : t("game.end.over");
   const newBest =
     bestBefore !== null && stats.score > bestBefore && stats.score > 0;
@@ -596,7 +604,7 @@ export function GameRound({
           <>
             <BinLabels
               bins={bins}
-              rects={layout.binRects}
+              faces={layout.binFaces}
               bus={bus}
               onActivate={onActivateBin}
             />
@@ -646,29 +654,31 @@ export function GameRound({
             {banner && (
               <View
                 pointerEvents="none"
-                style={[styles.bannerWrap, { top: insets.top + 150 }]}
+                style={[styles.bannerWrap, { top: insets.top + 96 }]}
               >
                 <Banner key={banner.id} text={banner.text} />
               </View>
             )}
-            <View
-              pointerEvents="none"
-              style={[
-                styles.bottom,
-                { paddingBottom: insets.bottom + Spacing.md },
-              ]}
-            >
-              {mode === "endless" && learn && (
+            {mode === "endless" && learn && (
+              <View
+                pointerEvents="none"
+                style={[styles.overlayRow, { top: learnTop }]}
+              >
                 <LearnCard key={learn.id} item={learn.item} bin={learn.bin} />
-              )}
-              {currentItem && (
+              </View>
+            )}
+            {currentItem && (
+              <View
+                pointerEvents="none"
+                style={[styles.overlayRow, { top: itemTagTop }]}
+              >
                 <ItemCard
                   key={currentItem.name}
                   item={currentItem}
                   showHint={!hasThrown}
                 />
-              )}
-            </View>
+              </View>
+            )}
           </>
         )}
         {showEnd && (
@@ -736,11 +746,10 @@ const styles = StyleSheet.create({
   topSpacer: { width: 48 },
   praiseWrap: { position: "absolute", left: 0, right: 0 },
   bannerWrap: { position: "absolute", left: 0, right: 0 },
-  bottom: {
+  overlayRow: {
     position: "absolute",
     left: Spacing.md,
     right: Spacing.md,
-    bottom: 0,
-    gap: Spacing.sm,
+    alignItems: "center",
   },
 });

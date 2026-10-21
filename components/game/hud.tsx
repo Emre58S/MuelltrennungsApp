@@ -1,16 +1,16 @@
 // Datei: components/game/hud.tsx
-// Alles, was über der 3D-Szene liegt: Punkte, Serie, Fieber, Zeit,
-// Tonnen-Schilder (auch Tipp-Ziel + Screenreader), Item-Karte, Lob,
-// fliegende Punkte und die Lern-Karte bei Fehlern.
+// Alles, was über der 3D-Szene liegt – bewusst zurückhaltend, damit die
+// Szene im Vordergrund bleibt: kompakte Punkte-Leiste, Beschriftung direkt
+// auf den Tonnen (auch Tipp-Ziel + Screenreader), dezenter Item-Name unter
+// dem Gegenstand, schmale Hinweiszeile bei Fehlern, Lob und „+10“.
 
 import { type ReactNode, useEffect, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { type Item } from "@/constants/items";
-import { Radius, Spacing } from "@/constants/theme";
+import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
-import { type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 
 import { type BusRef, useAim } from "./scene-bus";
@@ -18,13 +18,13 @@ import { type BusRef, useAim } from "./scene-bus";
 /* ── Hilfen ────────────────────────────────────────────────── */
 
 /** Startet beim Mount (bzw. bei neuem key) eine Animation 0 → 1. */
-function useEnter(duration = 320, easing = Easing.out(Easing.back(1.8))) {
+function useEnter(duration = 320, easing = Easing.out(Easing.back(1.8)), delay = 0) {
   const { reduceMotion } = useAppSettings();
   const [v] = useState(() => new Animated.Value(reduceMotion ? 1 : 0));
   useEffect(() => {
     if (reduceMotion) return;
-    Animated.timing(v, { toValue: 1, duration, easing, useNativeDriver: true }).start();
-  }, [v, duration, easing, reduceMotion]);
+    Animated.timing(v, { toValue: 1, duration, easing, delay, useNativeDriver: true }).start();
+  }, [v, duration, easing, delay, reduceMotion]);
   return v;
 }
 
@@ -73,48 +73,39 @@ export function ScoreBadge({
 }) {
   const { t, formatNumber } = useI18n();
   const { colors } = useAppTheme();
-  const pulse = usePulse(score);
-  const flamePulse = usePulse(streak, 0.35);
+  const pulse = usePulse(score, 0.1);
 
   return (
-    <View style={styles.scoreWrap} accessible accessibilityLabel={`${t("common.points")}: ${score}`}>
-      <Animated.View style={{ transform: [{ scale: pulse }] }}>
-        <HudSurface style={styles.scoreCard}>
-          <AppText variant="overline" tone="textMuted">
-            {t("common.points").toUpperCase()}
-          </AppText>
-          <AppText variant="title" style={styles.scoreValue}>
+    <Animated.View
+      accessible
+      accessibilityLabel={`${t("common.points")}: ${score}`}
+      style={{ transform: [{ scale: pulse }] }}
+    >
+      <HudSurface style={styles.scorePill}>
+        <View style={styles.scoreRow}>
+          <AppText variant="heading" style={styles.tabular}>
             {formatNumber(score)}
           </AppText>
-          {/* Serie → Fieber: füllt sich mit jedem Treffer, golden im Fieber */}
-          <View style={[styles.feverMeter, { backgroundColor: colors.surfaceAlt }]}>
-            <View
-              style={[
-                styles.feverMeterFill,
-                {
-                  width: `${Math.round((fever ? 1 : feverProgress) * 100)}%`,
-                  backgroundColor: fever ? "#FFB300" : colors.primary,
-                },
-              ]}
-            />
-          </View>
-        </HudSurface>
-      </Animated.View>
-
-      {streak >= 2 && (
-        <Animated.View
-          style={[
-            styles.streakChip,
-            { backgroundColor: colors.goldSoft, transform: [{ scale: flamePulse }] },
-          ]}
-        >
-          <AppText style={{ fontSize: 16 + Math.min(streak, 10) }}>🔥</AppText>
-          <AppText variant="label" tone="onGoldSoft">
-            {streak} · ×{multiplier}
-          </AppText>
-        </Animated.View>
-      )}
-    </View>
+          {streak >= 2 && (
+            <AppText variant="label" tone="gold" style={styles.tabular}>
+              🔥{streak} ×{multiplier}
+            </AppText>
+          )}
+        </View>
+        {/* Serie → Fieber: füllt sich mit jedem Treffer, golden im Fieber */}
+        <View style={[styles.feverMeter, { backgroundColor: colors.surfaceAlt }]}>
+          <View
+            style={[
+              styles.feverMeterFill,
+              {
+                width: `${Math.round((fever ? 1 : feverProgress) * 100)}%`,
+                backgroundColor: fever ? "#FFB300" : colors.primary,
+              },
+            ]}
+          />
+        </View>
+      </HudSurface>
+    </Animated.View>
   );
 }
 
@@ -135,8 +126,8 @@ export function FeverBanner({ seconds }: { seconds: number }) {
 
   return (
     <Animated.View style={[styles.fever, { transform: [{ scale: enter }] }]}>
-      <AppText variant="label" color="#3A2500" center>
-        🔥 {t("game.fever")} 🔥
+      <AppText variant="caption" color="#3A2500" center style={styles.bold}>
+        🔥 {t("game.fever")}
       </AppText>
       <View style={styles.feverTrack}>
         <Animated.View
@@ -163,7 +154,7 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
       accessible
       accessibilityLabel={`${t("game.time")}: ${timeLeft}`}
     >
-      <View style={[styles.timerTrack, { backgroundColor: colors.hud, borderColor: colors.hudBorder }]}>
+      <View style={[styles.timerTrack, { backgroundColor: colors.hud }]}>
         <View
           style={[
             styles.timerFill,
@@ -175,7 +166,7 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
         />
       </View>
       <Animated.View style={{ transform: [{ scale: pulse }] }}>
-        <AppText variant="heading" tone={warn ? "warning" : "text"} style={styles.timerText}>
+        <AppText variant="label" tone={warn ? "warning" : "text"} style={styles.timerText}>
           {timeLeft}s
         </AppText>
       </Animated.View>
@@ -183,31 +174,34 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
   );
 }
 
-/* ── Tonnen-Schilder (auch Tipp-Ziel für Screenreader) ─────── */
+/* ── Beschriftung auf den Tonnen (auch Tipp-Ziel für Screenreader) ── */
 
 export function BinLabels({
   bins,
-  rects,
+  faces,
   bus,
   onActivate,
 }: {
   bins: BinDef[];
-  rects: ScreenRect[];
+  /** Front jeder Tonne auf dem Bildschirm (siehe layout.binFaces). */
+  faces: { x: number; y: number; w: number }[];
   bus: BusRef;
   onActivate: (index: number) => void;
 }) {
   const { t } = useI18n();
+  // Erst einblenden, wenn die Kamera nach dem Einflug steht.
+  const show = useEnter(400, Easing.out(Easing.quad), 900);
   // Nur die Schilder rendern beim Zielen neu – nicht die ganze Spielrunde.
   const aimIndex = useAim(bus);
   return (
     <>
       {bins.map((bin, i) => {
-        const r = rects[i];
-        if (!r) return null;
+        const f = faces[i];
+        if (!f) return null;
         const aimed = aimIndex === i;
-        const width = Math.max(r.w + 10, 84);
+        const width = Math.max(f.w * 1.25, 48);
         return (
-          <View
+          <Animated.View
             key={bin.key}
             accessible
             accessibilityRole="button"
@@ -218,40 +212,43 @@ export function BinLabels({
             style={[
               styles.binLabel,
               {
-                left: r.x + r.w / 2 - width / 2,
-                top: r.y + r.h + 6,
+                left: f.x - width / 2,
+                top: f.y - 22,
                 width,
-                backgroundColor: bin.color,
-                transform: [{ scale: aimed ? 1.1 : 1 }, { translateY: aimed ? -4 : 0 }],
+                opacity: show,
+                transform: [{ scale: aimed ? 1.12 : 1 }],
               },
-              aimed && [styles.binLabelAimed, { shadowColor: bin.colorLight }],
             ]}
           >
-            <View style={styles.binIconBubble}>
-              <AppText style={styles.binIcon}>{bin.icon}</AppText>
-            </View>
             <AppText
               variant="label"
               color={bin.onColor}
               numberOfLines={2}
               center
               adjustsFontSizeToFit
-              style={styles.binText}
+              minimumFontScale={0.6}
+              style={[
+                styles.binText,
+                {
+                  textShadowColor:
+                    bin.onColor === "#FFFFFF" ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)",
+                },
+              ]}
             >
               {t(bin.labelKey)}
             </AppText>
-          </View>
+          </Animated.View>
         );
       })}
     </>
   );
 }
 
-/* ── Item-Karte ────────────────────────────────────────────── */
+/* ── Name des Gegenstands (dezent unter dem schwebenden Item) ── */
 
 export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) {
   const { t, itemName } = useI18n();
-  const enter = useEnter(380);
+  const enter = useEnter(260, Easing.out(Easing.quad));
   const { reduceMotion } = useAppSettings();
   const [hand] = useState(() => new Animated.Value(0));
 
@@ -270,11 +267,22 @@ export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) 
 
   return (
     <Animated.View
-      style={[styles.itemWrap, { opacity: enter, transform: [{ scale: enter }] }]}
+      style={[
+        styles.itemWrap,
+        {
+          opacity: enter,
+          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }],
+        },
+      ]}
       accessible
       accessibilityLiveRegion="polite"
       accessibilityLabel={`${t("game.whereTo")} ${itemName(item)}`}
     >
+      <HudSurface style={styles.itemTag}>
+        <AppText variant="label" numberOfLines={1}>
+          {itemName(item)}
+        </AppText>
+      </HudSurface>
       {showHint && (
         <View style={styles.hint}>
           <Animated.Text
@@ -282,30 +290,48 @@ export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) 
               styles.hand,
               {
                 opacity: hand.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [0, 1, 1, 0] }),
-                transform: [{ translateY: hand.interpolate({ inputRange: [0, 1], outputRange: [10, -40] }) }],
+                transform: [{ translateY: hand.interpolate({ inputRange: [0, 1], outputRange: [6, -24] }) }],
               },
             ]}
           >
             👆
           </Animated.Text>
-          <HudSurface style={styles.hintCard}>
-            <AppText variant="label" center>
-              {t("game.hintSwipe")}
-            </AppText>
-            <AppText variant="caption" tone="textMuted" center>
-              {t("game.hintTap")}
-            </AppText>
-          </HudSurface>
+          <AppText variant="caption" color="#FFFFFF" center style={styles.hintText}>
+            {t("game.hintSwipe")} · {t("game.hintTap")}
+          </AppText>
         </View>
       )}
-      <HudSurface style={styles.itemCard}>
-        <AppText style={styles.itemEmoji}>{item.emoji}</AppText>
-        <View style={styles.flexShrink}>
-          <AppText variant="overline" tone="textMuted">
-            {t("game.whereTo").toUpperCase()}
-          </AppText>
-          <AppText variant="heading" numberOfLines={2}>
-            {itemName(item)}
+    </Animated.View>
+  );
+}
+
+/* ── Hinweis bei Fehler (schmale Zeile, die richtige Tonne hüpft dazu) ── */
+
+export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
+  const { t, itemName } = useI18n();
+  const { colors } = useAppTheme();
+  const enter = useEnter(260, Easing.out(Easing.quad));
+
+  return (
+    <Animated.View
+      style={[
+        styles.learnWrap,
+        {
+          opacity: enter,
+          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }],
+        },
+      ]}
+      accessible
+      accessibilityLiveRegion="assertive"
+      accessibilityLabel={`${t("game.almost")} ${itemName(item)} ${t("game.belongsIn")} ${t(bin.labelKey)}`}
+    >
+      <HudSurface style={[styles.learnPill, { borderColor: colors.warning }]}>
+        <AppText variant="caption" numberOfLines={1} style={styles.flexShrink}>
+          {item.emoji} {itemName(item)} →
+        </AppText>
+        <View style={[styles.learnBin, { backgroundColor: bin.color }]}>
+          <AppText variant="caption" color={bin.onColor} style={styles.bold}>
+            {t(bin.labelKey)}
           </AppText>
         </View>
       </HudSurface>
@@ -313,48 +339,11 @@ export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) 
   );
 }
 
-/* ── Lern-Karte (falsche Tonne) ────────────────────────────── */
-
-export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
-  const { t, itemName } = useI18n();
-  const { colors } = useAppTheme();
-  const enter = useEnter(380);
-
-  return (
-    <Animated.View
-      style={[styles.itemWrap, { opacity: enter, transform: [{ scale: enter }] }]}
-      accessible
-      accessibilityLiveRegion="assertive"
-      accessibilityLabel={`${t("game.almost")} ${itemName(item)} ${t("game.belongsIn")} ${t(bin.labelKey)}`}
-    >
-      <View
-        style={[styles.learnCard, { backgroundColor: colors.warningSoft, borderColor: colors.warning }]}
-      >
-        <AppText variant="heading" tone="onWarningSoft">
-          {t("game.almost")} 💡
-        </AppText>
-        <View style={styles.learnRow}>
-          <AppText style={styles.learnEmoji}>{item.emoji}</AppText>
-          <AppText variant="bodyStrong" tone="onWarningSoft" style={styles.flexShrink}>
-            {itemName(item)} {t("game.belongsIn")}
-          </AppText>
-        </View>
-        <View style={[styles.learnBin, { backgroundColor: bin.color }]}>
-          <AppText style={styles.binIcon}>{bin.icon}</AppText>
-          <AppText variant="heading" color={bin.onColor}>
-            {t(bin.labelKey)}
-          </AppText>
-        </View>
-      </View>
-    </Animated.View>
-  );
-}
-
 /* ── Lob + fliegende Punkte + Banner ───────────────────────── */
 
-/** Lob nach Treffer: klare, große Schrift mit weichem Leuchten (hochwertig statt Comic). */
+/** Lob nach Treffer: kurz, mittelgroß, mit weichem Leuchten. */
 export function Praise({ text, gold }: { text: string; gold: boolean }) {
-  const enter = useEnter(340);
+  const enter = useEnter(300);
   return (
     <Animated.View
       pointerEvents="none"
@@ -363,16 +352,16 @@ export function Praise({ text, gold }: { text: string; gold: boolean }) {
         {
           opacity: enter.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0, 1, 1] }),
           transform: [
-            { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) },
-            { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) },
+            { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) },
+            { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) },
           ],
         },
       ]}
     >
       <AppText
-        variant="display"
+        variant="title"
         color={gold ? "#FFE082" : "#FFFFFF"}
-        style={[styles.praiseText, { textShadowColor: gold ? "rgba(255,170,0,0.85)" : "rgba(0,0,0,0.45)" }]}
+        style={[styles.praiseText, { textShadowColor: gold ? "rgba(255,170,0,0.8)" : "rgba(0,0,0,0.45)" }]}
       >
         {text}
       </AppText>
@@ -387,7 +376,7 @@ export function FloatingText({ item, onDone }: { item: FloatText; onDone: (id: n
   useEffect(() => {
     Animated.timing(v, {
       toValue: 1,
-      duration: 900,
+      duration: 800,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start(() => onDone(item.id));
@@ -399,17 +388,17 @@ export function FloatingText({ item, onDone }: { item: FloatText; onDone: (id: n
       style={[
         styles.float,
         {
-          left: item.x - 60,
-          top: item.y - 20,
+          left: item.x - 50,
+          top: item.y - 16,
           opacity: v.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0, 1, 1, 0] }),
           transform: [
-            { translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, -70] }) },
-            { scale: v.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0.5, 1.25, 1] }) },
+            { translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, -50] }) },
+            { scale: v.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0.6, 1.1, 1] }) },
           ],
         },
       ]}
     >
-      <AppText variant="title" color={item.color} center style={styles.floatText}>
+      <AppText variant="heading" color={item.color} center style={styles.floatText}>
         {item.text}
       </AppText>
     </Animated.View>
@@ -418,7 +407,7 @@ export function FloatingText({ item, onDone }: { item: FloatText; onDone: (id: n
 
 export function Banner({ text }: { text: string }) {
   const { colors } = useAppTheme();
-  const enter = useEnter(420);
+  const enter = useEnter(320, Easing.out(Easing.quad));
   return (
     <Animated.View
       pointerEvents="none"
@@ -427,11 +416,11 @@ export function Banner({ text }: { text: string }) {
         {
           backgroundColor: colors.primary,
           opacity: enter,
-          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [-30, 0] }) }],
+          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] }) }],
         },
       ]}
     >
-      <AppText variant="heading" tone="onPrimary" center>
+      <AppText variant="label" tone="onPrimary" center>
         {text}
       </AppText>
     </Animated.View>
@@ -461,117 +450,75 @@ export function HudButton({ label, onPress }: { label: string; onPress: () => vo
 
 const shadow = {
   shadowColor: "#000",
-  shadowOpacity: 0.15,
-  shadowRadius: 10,
-  shadowOffset: { width: 0, height: 4 },
-  elevation: 4,
+  shadowOpacity: 0.12,
+  shadowRadius: 8,
+  shadowOffset: { width: 0, height: 3 },
+  elevation: 3,
 };
 
 const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
-  surface: { borderRadius: Radius.xl, borderWidth: 1, ...shadow },
+  bold: { fontFamily: FontFamily.bold },
+  tabular: { fontVariant: ["tabular-nums"] },
+  surface: { borderRadius: Radius.pill, borderWidth: 1, ...shadow },
 
-  scoreWrap: { alignItems: "center", gap: 6 },
-  scoreCard: { alignItems: "center", paddingHorizontal: Spacing.lg, paddingVertical: 6, minWidth: 130 },
-  scoreValue: { fontVariant: ["tabular-nums"] },
-  feverMeter: { alignSelf: "stretch", height: 5, borderRadius: 3, overflow: "hidden", marginTop: 2, marginBottom: 2 },
-  feverMeterFill: { height: "100%", borderRadius: 3 },
-  streakChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: Radius.pill,
-  },
+  scorePill: { alignItems: "center", paddingHorizontal: Spacing.md, paddingTop: 4, paddingBottom: 6, minWidth: 96 },
+  scoreRow: { flexDirection: "row", alignItems: "baseline", gap: Spacing.sm },
+  feverMeter: { alignSelf: "stretch", height: 3, borderRadius: 2, overflow: "hidden", marginTop: 2 },
+  feverMeterFill: { height: "100%", borderRadius: 2 },
 
   fever: {
     alignSelf: "center",
     paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: Radius.lg,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
     backgroundColor: "#FFD54A",
-    gap: 4,
+    gap: 3,
     ...shadow,
   },
-  feverTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(58,37,0,0.2)", overflow: "hidden" },
-  feverFill: { height: 6, backgroundColor: "#E65100" },
+  feverTrack: { height: 3, borderRadius: 2, backgroundColor: "rgba(58,37,0,0.2)", overflow: "hidden" },
+  feverFill: { height: 3, backgroundColor: "#E65100" },
 
   timerRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  timerTrack: { flex: 1, height: 14, borderRadius: 7, borderWidth: 1, overflow: "hidden" },
-  timerFill: { height: "100%", borderRadius: 7 },
-  timerText: { minWidth: 48, textAlign: "right", fontVariant: ["tabular-nums"] },
+  timerTrack: { flex: 1, height: 6, borderRadius: 3, overflow: "hidden" },
+  timerFill: { height: "100%", borderRadius: 3 },
+  timerText: { minWidth: 36, textAlign: "right", fontVariant: ["tabular-nums"] },
 
-  binLabel: {
-    position: "absolute",
-    alignItems: "center",
-    gap: 4,
-    paddingTop: 6,
-    paddingBottom: 7,
-    paddingHorizontal: 6,
-    borderRadius: Radius.lg,
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.7)",
-    ...shadow,
+  binLabel: { position: "absolute", height: 44, alignItems: "center", justifyContent: "center" },
+  binText: {
+    fontFamily: FontFamily.extrabold,
+    lineHeight: 18,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  binLabelAimed: {
-    borderColor: "#FFFFFF",
-    borderWidth: 3,
-    shadowOpacity: 0.9,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 10,
-  },
-  binIconBubble: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.9)",
-  },
-  binIcon: { fontSize: 18, lineHeight: 22 },
-  binText: { lineHeight: 18 },
 
-  itemWrap: { alignItems: "center", gap: Spacing.sm },
-  itemCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md - 4,
-    maxWidth: "100%",
-  },
-  itemEmoji: { fontSize: 36, lineHeight: 44 },
+  itemWrap: { alignItems: "center", gap: 6 },
+  itemTag: { paddingHorizontal: Spacing.md, paddingVertical: 5, maxWidth: "90%" },
 
   hint: { alignItems: "center" },
-  hand: { fontSize: 34, marginBottom: -6 },
-  hintCard: { paddingHorizontal: Spacing.md, paddingVertical: 8 },
-
-  learnCard: {
-    width: "100%",
-    borderRadius: Radius.xl,
-    borderWidth: 2,
-    padding: Spacing.md,
-    gap: Spacing.sm,
-    alignItems: "center",
-    ...shadow,
+  hand: { fontSize: 24, marginBottom: -2 },
+  hintText: {
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  learnRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  learnEmoji: { fontSize: 30, lineHeight: 36 },
-  learnBin: {
+
+  learnWrap: { alignItems: "center" },
+  learnPill: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.lg,
+    paddingLeft: Spacing.md,
+    paddingRight: 4,
+    paddingVertical: 4,
+    maxWidth: "92%",
   },
+  learnBin: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.pill },
 
-  praise: { position: "absolute", left: 0, right: 0, alignItems: "center", justifyContent: "center", height: 120 },
-  praiseText: { fontSize: 42, lineHeight: 50, textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 14 },
+  praise: { position: "absolute", left: 0, right: 0, alignItems: "center", justifyContent: "center", height: 80 },
+  praiseText: { textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 },
 
-  float: { position: "absolute", width: 120 },
+  float: { position: "absolute", width: 100 },
   floatText: {
     textShadowColor: "rgba(0,0,0,0.35)",
     textShadowOffset: { width: 0, height: 2 },
@@ -579,19 +526,17 @@ const styles = StyleSheet.create({
   },
 
   banner: {
-    position: "absolute",
-    left: Spacing.lg,
-    right: Spacing.lg,
-    paddingVertical: Spacing.md - 4,
+    alignSelf: "center",
+    paddingVertical: 6,
     paddingHorizontal: Spacing.md,
-    borderRadius: Radius.xl,
+    borderRadius: Radius.pill,
     ...shadow,
   },
 
   hudButton: {
-    minHeight: 48,
+    minHeight: 44,
     paddingHorizontal: Spacing.md,
-    borderRadius: 24,
+    borderRadius: 22,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
