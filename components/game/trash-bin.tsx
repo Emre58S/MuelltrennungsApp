@@ -45,7 +45,7 @@ const GEO = {
   pad: new THREE.CircleGeometry(0.8, 8),
   blob: new THREE.CircleGeometry(0.62, 16),
   ring: new THREE.RingGeometry(0.72, 0.86, 8),
-  label: new THREE.PlaneGeometry(0.6, 0.3),
+  label: new THREE.PlaneGeometry(0.52, 0.26),
 };
 
 /** Beschriftung: oberer Teil der eingelassenen Front, folgt deren Neigung. */

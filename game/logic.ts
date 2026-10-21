@@ -46,6 +46,75 @@ export function aimFromDrag(
   return { binIndex: best, perfect: bestDiff <= perfectTolerance };
 }
 
+/* ── Zielwurf (freier Wurf, kein Einrasten) ───────────────── */
+
+/** Wisch-Tempo nach oben (px/s), bei dem ein Wurf genau bis zur Tonne fliegt. */
+export const IDEAL_FLICK = 2000;
+/** Weite: so viele Welt-Einheiten zu kurz/zu weit pro 100 % Tempo-Abweichung. */
+const DEPTH_PER_SPEED = 1.5;
+/** Öffnung einer Tonne (halbe Breite/Tiefe, Welt-Einheiten) und Randbreite. */
+export const OPENING = { halfW: 0.4, halfD: 0.4, rim: 0.16 };
+
+export type FreeShot = {
+  /** Seitliche Landestelle (Welt-x auf Höhe der Öffnungen). */
+  x: number;
+  /** + = zu kurz (Richtung Kamera), − = zu weit (hinter die Tonnen). */
+  depth: number;
+  /** Tonne, in die der Wurf fällt – oder null (daneben). */
+  binIndex: number | null;
+  /** Daneben, aber knapp: prallt vom Rand dieser Tonne ab. */
+  rimIndex: number | null;
+  perfect: boolean;
+};
+
+/** Winkel → Welt-x: zwischen den Tonnen linear, außen weitergeführt. */
+function angleToX(angle: number, binAngles: number[], binXs: number[]): number {
+  const n = binAngles.length;
+  if (n === 1) return binXs[0] + (angle - binAngles[0]) * 0.05;
+  let i = 0;
+  while (i < n - 2 && angle > binAngles[i + 1]) i++;
+  const k = (angle - binAngles[i]) / (binAngles[i + 1] - binAngles[i]);
+  return binXs[i] + k * (binXs[i + 1] - binXs[i]);
+}
+
+/**
+ * Wie beim Basketball: die RICHTUNG bestimmt, wo seitlich der Wurf ankommt,
+ * das TEMPO, wie weit er fliegt. Nur wenn beides passt, landet er in der Tonne.
+ */
+export function freeShot(
+  dx: number,
+  dy: number,
+  vy: number,
+  binAngles: number[],
+  binXs: number[],
+): FreeShot | null {
+  if (dy > -MIN_AIM_DISTANCE * 0.6 || Math.hypot(dx, dy) < MIN_AIM_DISTANCE) {
+    return null;
+  }
+  const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  const x = angleToX(angle, binAngles, binXs);
+  const speed = Math.max(0, -vy) / IDEAL_FLICK;
+  const depth = Math.min(Math.max((1 - speed) * DEPTH_PER_SPEED, -1.6), 2.2);
+
+  let best = 0;
+  binXs.forEach((bx, i) => {
+    if (Math.abs(x - bx) < Math.abs(x - binXs[best])) best = i;
+  });
+  const ox = Math.abs(x - binXs[best]);
+  const oz = Math.abs(depth);
+  const inside = ox <= OPENING.halfW && oz <= OPENING.halfD;
+  const onRim =
+    !inside && ox <= OPENING.halfW + OPENING.rim && oz <= OPENING.halfD + OPENING.rim;
+
+  return {
+    x,
+    depth,
+    binIndex: inside ? best : null,
+    rimIndex: onRim ? best : null,
+    perfect: inside && ox < 0.12 && oz < 0.12,
+  };
+}
+
 /* ── Wertung ───────────────────────────────────────────────── */
 
 const BASE_POINTS: Record<HitResult, number> = {

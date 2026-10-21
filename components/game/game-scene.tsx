@@ -17,7 +17,7 @@ import { devLog } from "@/utils/dev-error-reporter";
 
 import { binLabelTexture } from "./bin-label-textures";
 import { BurstLayer } from "./effects";
-import { Stage } from "./stage";
+import { type SceneKind, Stage } from "./stage";
 import { type FxRef, stepFx } from "./fx";
 import { AimGuide, PreviewItem, ThrowLayer } from "./items";
 import { ModelWarmup } from "./model-cache";
@@ -118,6 +118,8 @@ export const GameScene = memo(function GameScene({
   bus,
   calm,
   lang,
+  scene,
+  guide = true,
   warmItems,
 }: {
   layout: GameLayout;
@@ -129,6 +131,10 @@ export const GameScene = memo(function GameScene({
   calm: boolean;
   /** Sprache der Beschriftung auf den Tonnen. */
   lang: Language;
+  /** Szene dieser Runde (bestimmt auch die Tonnen). */
+  scene: SceneKind;
+  /** Gepunktete Flugbahn beim Zielen (aus im Zielwurf). */
+  guide?: boolean;
   /** Items, deren Modelle vorab aufgebaut werden (ganzer Item-Pool). */
   warmItems: Item[];
 }) {
@@ -144,7 +150,7 @@ export const GameScene = memo(function GameScene({
   return (
     <>
       <CameraRig layout={layout} fx={fx} calm={calm} />
-      <Stage scheme={scheme} fever={fever} calm={calm} />
+      <Stage scheme={scheme} fever={fever} calm={calm} kind={scene} />
 
       {bins.map((bin, i) => (
         <TrashBin
@@ -167,7 +173,9 @@ export const GameScene = memo(function GameScene({
         fx={fx}
       />
 
-      <AimGuide start={layout.item.position} openings={openings} colors={aimColors} bus={bus} />
+      {guide && (
+        <AimGuide start={layout.item.position} openings={openings} colors={aimColors} bus={bus} />
+      )}
 
       <ThrowLayer
         bus={bus}

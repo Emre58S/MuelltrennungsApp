@@ -25,6 +25,10 @@ export type ThrowSpec = {
   glow: boolean;
   /** Wischstärke 0.8…1.3: höher = kräftiger, flacherer Wurf (Standard 1). */
   power?: number;
+  /** Zielwurf: eigene Landestelle (Welt x/z auf Höhe der Öffnungen). */
+  land?: { x: number; z: number };
+  /** Zielwurf daneben: fällt weiter („air“) oder prallt vom Rand ab („rim“). */
+  miss?: "air" | "rim";
 };
 
 export type SceneBus = {

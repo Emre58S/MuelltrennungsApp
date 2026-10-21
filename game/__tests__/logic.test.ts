@@ -9,6 +9,8 @@ import {
   aimFromDrag,
   dailyItems,
   FEVER_EVERY,
+  freeShot,
+  IDEAL_FLICK,
   getMultiplier,
   getPoints,
   INITIAL_STATS,
@@ -100,6 +102,47 @@ describe("Zielen", () => {
   test("perfekt nur bei genauem Zielen", () => {
     expect(aimFromDrag(0, -100, angles)?.perfect).toBe(true);
     expect(aimFromDrag(25, -100, angles)?.perfect).toBe(false);
+  });
+});
+
+describe("Zielwurf (freier Wurf)", () => {
+  const angles = [-30, 0, 30];
+  const xs = [-1.3, 0, 1.3];
+  const ideal = -IDEAL_FLICK;
+
+  test("gerade und mit Ideal-Tempo: mitten in die mittlere Tonne", () => {
+    const shot = freeShot(0, -100, ideal, angles, xs);
+    expect(shot?.binIndex).toBe(1);
+    expect(shot?.perfect).toBe(true);
+  });
+
+  test("zu langsam fällt vor die Tonne, zu schnell fliegt drüber", () => {
+    const short = freeShot(0, -100, ideal * 0.4, angles, xs);
+    expect(short?.binIndex).toBeNull();
+    expect(short?.depth).toBeGreaterThan(0);
+    const long = freeShot(0, -100, ideal * 1.8, angles, xs);
+    expect(long?.binIndex).toBeNull();
+    expect(long?.depth).toBeLessThan(0);
+  });
+
+  test("zwischen zwei Tonnen geht daneben", () => {
+    const between = freeShot(Math.tan((15 * Math.PI) / 180) * 100, -100, ideal, angles, xs);
+    expect(between?.binIndex).toBeNull();
+  });
+
+  test("knapp daneben trifft den Rand", () => {
+    const rim = freeShot(0, -100, ideal * 0.69, angles, xs);
+    expect(rim?.binIndex).toBeNull();
+    expect(rim?.rimIndex).toBe(1);
+  });
+
+  test("Richtung nach außen: Tonne am Rand", () => {
+    expect(freeShot(-58, -100, ideal, angles, xs)?.binIndex).toBe(0);
+    expect(freeShot(58, -100, ideal, angles, xs)?.binIndex).toBe(2);
+  });
+
+  test("zu kurzer Wisch wirft nicht", () => {
+    expect(freeShot(0, -10, ideal, angles, xs)).toBeNull();
   });
 });
 

@@ -52,6 +52,16 @@ export const ModeThemes: Record<ColorScheme, Record<GameMode, ModeTheme>> = {
       text: "#3B2A00",
       textSecondary: "#5C4300",
     },
+    // Zielwurf: Korb / Orange
+    aim: {
+      bg: "#FCE9DE",
+      deco1: "#F6CDB3",
+      deco2: "#EEAA80",
+      accent: "#A8441A",
+      onAccent: "#FFFFFF",
+      text: "#43190A",
+      textSecondary: "#62301A",
+    },
   },
   dark: {
     endless: {
@@ -80,6 +90,15 @@ export const ModeThemes: Record<ColorScheme, Record<GameMode, ModeTheme>> = {
       onAccent: "#2A2000",
       text: "#FBF1D3",
       textSecondary: "#E0D2A4",
+    },
+    aim: {
+      bg: "#3A1E12",
+      deco1: "#552C19",
+      deco2: "#753D22",
+      accent: "#F29A6B",
+      onAccent: "#2E1206",
+      text: "#FCEBE2",
+      textSecondary: "#E8C6B4",
     },
   },
 };

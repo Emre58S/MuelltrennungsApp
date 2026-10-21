@@ -24,6 +24,7 @@ export const HIGHSCORE_MODE = {
   endless: "endlos",
   survival: "runden",
   time: "zeit",
+  aim: "zielwurf",
 } as const;
 
 /** Wie setTimeout, aber alle offenen Aufrufe fallen beim Abbau weg. */

@@ -5,7 +5,7 @@ import { type ComponentProps } from "react";
 import { type TranslationKey } from "@/i18n";
 import { getItem, setItem, StorageKeys } from "@/utils/storage";
 
-export type GameMode = "endless" | "survival" | "time";
+export type GameMode = "endless" | "survival" | "time" | "aim";
 
 export type ModeConfig = {
   mode: GameMode;
@@ -36,14 +36,28 @@ export const MODES: ModeConfig[] = [
     descKey: "mode.time.desc",
     icon: "clock",
   },
+  {
+    mode: "aim",
+    titleKey: "mode.aim.title",
+    descKey: "mode.aim.desc",
+    icon: "crosshair",
+  },
 ];
+
+/** Im Hauptmenü steht je Modus eine Tonne – dort immer genau 3. */
+export const MENU_MODES: ModeConfig[] = MODES.filter((m) => m.mode !== "aim");
+
+/** Modi mit 60-Sekunden-Uhr. */
+export function isTimed(mode: GameMode): boolean {
+  return mode === "time" || mode === "aim";
+}
 
 export function getModeConfig(mode: GameMode): ModeConfig {
   return MODES.find((m) => m.mode === mode) ?? MODES[0];
 }
 
 function isGameMode(value: string | null): value is GameMode {
-  return value === "endless" || value === "survival" || value === "time";
+  return value === "endless" || value === "survival" || value === "time" || value === "aim";
 }
 
 export async function getLastMode(): Promise<GameMode> {

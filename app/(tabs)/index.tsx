@@ -53,12 +53,13 @@ import {
   type GameMode,
   getLastMode,
   getModeConfig,
-  MODES,
+  MENU_MODES,
   startDaily,
   startGame,
 } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
-import { ALL_BINS, type BinDef, getBinsForLevel, getItemsForBins, light } from "@/game/bins";
+import { ALL_BINS, type BinDef, getItemsForBins, light, STANDARD_BINS } from "@/game/bins";
+import { HIGHSCORE_MODE } from "@/components/game/round-hooks";
 import { aimFromDrag, drawFromBag } from "@/game/logic";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
@@ -77,7 +78,6 @@ import {
 type IconName = ComponentProps<typeof Feather>["name"];
 type Scores = Record<GameMode, number>;
 
-const HIGHSCORE_MODE = { endless: "endlos", survival: "runden", time: "zeit" } as const;
 const ANTIALIAS = PixelRatio.get() < 3;
 /** Leerlauf: so oft wechselt der Gegenstand bzw. lupft eine Tonne den Deckel. */
 const ITEM_CYCLE_MS = 4200;
@@ -99,16 +99,17 @@ const MODE_COLOR: Record<GameMode, { fill: string; on: string }> = {
   endless: { fill: "#2FA86E", on: "#FFFFFF" },
   survival: { fill: "#3D82D9", on: "#FFFFFF" },
   time: { fill: "#E3A92E", on: "#2B1D00" },
+  aim: { fill: "#D9622B", on: "#FFFFFF" },
 };
 
-/** Die Menü-Tonnen: echte Tonnen-Modelle in Modus-Farben, Reihenfolge wie MODES. */
-const MENU_BINS: BinDef[] = MODES.map((m, i) => {
+/** Die Menü-Tonnen: echte Tonnen-Modelle in Modus-Farben, Reihenfolge wie MENU_MODES. */
+const MENU_BINS: BinDef[] = MENU_MODES.map((m, i) => {
   const base = ALL_BINS[i + 1] ?? ALL_BINS[0];
   const c = MODE_COLOR[m.mode];
   return { ...base, color: c.fill, colorLight: light(c.fill, 0.3), onColor: c.on };
 });
 
-const MENU_POOL: Item[] = getItemsForBins(getBinsForLevel(1));
+const MENU_POOL: Item[] = getItemsForBins(STANDARD_BINS);
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -119,7 +120,7 @@ export default function HomeScreen() {
   // Nur zeichnen, wenn sichtbar – sonst liefen Menü- und Spiel-3D gleichzeitig.
   const focused = useIsFocused();
 
-  const [scores, setScores] = useState<Scores>({ endless: 0, survival: 0, time: 0 });
+  const [scores, setScores] = useState<Scores>({ endless: 0, survival: 0, time: 0, aim: 0 });
   const [lastMode, setLastMode] = useState<GameMode>("endless");
   const [totalXP, setTotalXP] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -188,7 +189,8 @@ export default function HomeScreen() {
       starting.current = true;
       pendingMode.current = mode;
       setAim(bus.current, null);
-      const binIndex = MODES.findIndex((m) => m.mode === mode);
+      // Modi ohne Menü-Tonne (Zielwurf) starten direkt
+      const binIndex = MENU_MODES.findIndex((m) => m.mode === mode);
       const current = itemRef.current;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
 
@@ -219,7 +221,7 @@ export default function HomeScreen() {
     onLand.current = () => {
       const mode = pendingMode.current;
       if (!mode) return;
-      const i = MODES.findIndex((m) => m.mode === mode);
+      const i = MENU_MODES.findIndex((m) => m.mode === mode);
       const bin = MENU_BINS[i];
       queueBinEvent(bus.current, i, "perfect");
       queueBurst(bus.current, {
@@ -257,16 +259,17 @@ export default function HomeScreen() {
             getNumber(getHighscoreKey(HIGHSCORE_MODE.endless)),
             getNumber(getHighscoreKey(HIGHSCORE_MODE.survival)),
             getNumber(getHighscoreKey(HIGHSCORE_MODE.time)),
+            getNumber(getHighscoreKey(HIGHSCORE_MODE.aim)),
             getActiveStreak(),
             getNumber(StorageKeys.TOTAL_XP),
             getLastMode(),
             getTodayDaily(),
           ]),
         )
-        .then(([endless, survival, time, activeStreak, xp, mode, today]) => {
+        .then(([endless, survival, time, aim, activeStreak, xp, mode, today]) => {
           if (!active) return;
           setDaily(today);
-          setScores({ endless, survival, time });
+          setScores({ endless, survival, time, aim });
           setStreak(activeStreak);
           setTotalXP(xp);
           setLastMode(mode);
@@ -319,7 +322,7 @@ export default function HomeScreen() {
       release: (dx, dy) => {
         const aim = aimFromDrag(dx, dy, layout.binAngles);
         setAim(bus.current, null);
-        if (aim) launch(MODES[aim.binIndex].mode);
+        if (aim) launch(MENU_MODES[aim.binIndex].mode);
       },
     };
   });
@@ -427,7 +430,7 @@ export default function HomeScreen() {
 
       {/* Die Tonnen = die Modi: Tipp-Fläche über jeder Tonne + Schild darunter */}
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none" accessibilityRole="menu" accessibilityLabel={t("home.modesLabel")}>
-        {MODES.map((m, i) => (
+        {MENU_MODES.map((m, i) => (
           <ModeBin
             key={m.mode}
             rect={layout.binRects[i]}

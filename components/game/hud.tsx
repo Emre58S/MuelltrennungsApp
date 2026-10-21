@@ -211,7 +211,16 @@ export function BinLabels({
 
 /* ── Name des Gegenstands (dezent unter dem schwebenden Item) ── */
 
-export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) {
+export function ItemCard({
+  item,
+  showHint,
+  hint,
+}: {
+  item: Item;
+  showHint: boolean;
+  /** Eigener Hinweis beim ersten Wurf (sonst Wischen/Tippen). */
+  hint?: string;
+}) {
   const { t, itemName } = useI18n();
   const enter = useEnter(260, Easing.out(Easing.quad));
   const { reduceMotion } = useAppSettings();
@@ -262,7 +271,7 @@ export function ItemCard({ item, showHint }: { item: Item; showHint: boolean }) 
             👆
           </Animated.Text>
           <AppText variant="caption" color="#FFFFFF" center style={styles.hintText}>
-            {t("game.hintSwipe")} · {t("game.hintTap")}
+            {hint ?? `${t("game.hintSwipe")} · ${t("game.hintTap")}`}
           </AppText>
         </View>
       )}

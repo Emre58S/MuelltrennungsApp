@@ -327,7 +327,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.p = 0;
     s.landed = false;
     s.started = now;
-    s.target.copy(openings[spec.binIndex] ?? start);
+    if (spec.land) s.target.set(spec.land.x, openings[0]?.y ?? start.y, spec.land.z);
+    else s.target.copy(openings[spec.binIndex] ?? start);
     // Kräftiger Wisch → flacherer Bogen, sanfter Wisch → höherer Bogen
     s.arc = arcFor(start, s.target) * (1.35 - (spec.power ?? 1) * 0.35);
     s.trail.forEach((v) => v.copy(start));
@@ -394,9 +395,16 @@ export const ThrowLayer = memo(function ThrowLayer({
           s.p = 0;
           if (hit) {
             s.phase = "sink";
+          } else if (s.spec.miss === "air") {
+            // Daneben: fliegt auf seiner Bahn weiter und fällt zu Boden
+            s.phase = "bounce";
+            s.vel
+              .subVectors(s.target, start)
+              .setY(s.target.y - start.y - Math.PI * s.arc)
+              .multiplyScalar(0.7 / FLIGHT_TIME);
           } else {
             s.phase = "bounce";
-            // Abprallen Richtung Kamera
+            // Abprallen (falsche Tonne oder Rand) Richtung Kamera
             s.vel.set((Math.random() - 0.5) * 1.2, 3.2, 2.6);
           }
         }

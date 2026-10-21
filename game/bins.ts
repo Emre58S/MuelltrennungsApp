@@ -1,7 +1,10 @@
 // Datei: game/bins.ts
-// Welche Tonnen es gibt und ab welchem Level sie freigeschaltet werden.
+// Welche Tonnen es gibt und welche 3 in welcher Szene stehen. Es sind immer
+// genau 3: Standard ist Bio · Gelber Sack · Restmüll; ab Level 3 bzw. 5
+// zeigen manche Szenen stattdessen Papier bzw. Glas.
 
 import { type Category, type Item, ITEMS } from "@/constants/items";
+import { type SceneKind } from "@/components/game/stage";
 import { BinColors, type BinKey } from "@/constants/theme";
 import { type TranslationKey } from "@/i18n";
 
@@ -9,7 +12,7 @@ export type BinDef = {
   key: BinKey;
   category: Category;
   labelKey: TranslationKey;
-  /** Ab diesem Spieler-Level im Spiel. */
+  /** Ab diesem Spieler-Level taucht die Tonne (in manchen Szenen) auf. */
   unlockLevel: number;
   color: string;
   colorLight: string;
@@ -45,7 +48,7 @@ function def(
   };
 }
 
-// Reihenfolge = Reihenfolge von links nach rechts.
+// Alle Tonnen (welche wo stehen: SCENE_BINS).
 export const ALL_BINS: BinDef[] = [
   def("papier", "Papier", "bin.papier", 3),
   def("bio", "Biomüll", "bin.bio", 1),
@@ -54,8 +57,27 @@ export const ALL_BINS: BinDef[] = [
   def("glas", "Glas", "bin.glas", 5),
 ];
 
-export function getBinsForLevel(level: number): BinDef[] {
-  return ALL_BINS.filter((b) => level >= b.unlockLevel);
+function byKey(key: BinKey): BinDef {
+  const bin = ALL_BINS.find((b) => b.key === key);
+  if (!bin) throw new Error(`Unbekannte Tonne: ${key}`);
+  return bin;
+}
+
+/** Die Grund-Tonnen (Level 1, Tagesaufgabe, Menü). */
+export const STANDARD_BINS: BinDef[] = (["bio", "gelb", "rest"] as const).map(byKey);
+
+/** Welche 3 Tonnen in welcher Szene stehen (links → rechts). */
+const SCENE_BINS: Record<SceneKind, BinKey[]> = {
+  haus: ["bio", "gelb", "rest"],
+  ziegel: ["papier", "gelb", "rest"],
+  garten: ["bio", "glas", "rest"],
+};
+
+/** Tonnen einer Runde: die der Szene – solange eine davon noch nicht
+ *  freigeschaltet ist, die Standard-Tonnen. */
+export function getBinsForScene(scene: SceneKind, level: number): BinDef[] {
+  const bins = SCENE_BINS[scene].map(byKey);
+  return bins.every((b) => level >= b.unlockLevel) ? bins : STANDARD_BINS;
 }
 
 /** Tonne, die bei genau diesem Level neu dazukommt (für „Neu freigeschaltet“). */

@@ -34,13 +34,14 @@ import {
 } from "@/components/game/scene-bus";
 import { IconButton } from "@/components/ui/icon-button";
 import { type Item } from "@/constants/items";
-import { type GameMode } from "@/constants/modes";
+import { type GameMode, isTimed } from "@/constants/modes";
 import { Spacing } from "@/constants/theme";
 import {
   getBinByCategory,
-  getBinsForLevel,
+  getBinsForScene,
   getItemsForBins,
   getUnlockAtLevel,
+  STANDARD_BINS,
 } from "@/game/bins";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout } from "@/game/layout";
 import {
@@ -49,6 +50,8 @@ import {
   dailyItems,
   FEVER_EVERY,
   FEVER_SECONDS,
+  type FreeShot,
+  freeShot,
   getMultiplier,
   getPoints,
   type HitResult,
@@ -95,6 +98,7 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
+import { nextScene } from "./stage";
 
 const ROUND_SECONDS = 60;
 /** Nach Zeitablauf: so lange dürfen fliegende Würfe noch landen. */
@@ -156,10 +160,12 @@ export function GameRound({
   useEffect(() => {
     fx.current.calm = reduceMotion;
   }, [reduceMotion]);
-  // Tagesaufgabe immer mit den 3 Grund-Tonnen – damit sie für alle gleich ist.
+  // Jede Runde eine neue Szene; sie bestimmt die 3 Tonnen. Tagesaufgabe immer
+  // mit den Grund-Tonnen – damit sie für alle gleich ist.
+  const [scene] = useState(nextScene);
   const bins = useMemo(
-    () => getBinsForLevel(daily ? 1 : level),
-    [daily, level],
+    () => (daily ? STANDARD_BINS : getBinsForScene(scene, level)),
+    [daily, scene, level],
   );
   const pool = useMemo(() => getItemsForBins(bins), [bins]);
   const dailyQueue = useMemo(
@@ -171,6 +177,7 @@ export function GameRound({
     () => computeLayout(screenW, screenH, bins.length),
     [screenW, screenH, bins.length],
   );
+  const binXs = useMemo(() => layout.bins.map((b) => b.x), [layout]);
   const [stats, dispatch] = useReducer(statsReducer, INITIAL_STATS);
   // Synchroner Spiegel von `stats`: bei schnellen Würfen landen mehrere Items,
   // bevor React neu gerendert hat – dann wäre `stats` im Handler veraltet.
@@ -246,7 +253,7 @@ export function GameRound({
     else getNumber(getHighscoreKey(HIGHSCORE_MODE[mode])).then(setBestBefore);
   }, [mode, daily]);
   const timerRunning =
-    mode === "time" && timerStarted && !finished && timeLeft > 0;
+    isTimed(mode) && timerStarted && !finished && timeLeft > 0;
   useEffect(() => {
     if (!timerRunning) return;
     const id = setInterval(() => {
@@ -255,7 +262,7 @@ export function GameRound({
     return () => clearInterval(id);
   }, [timerRunning]);
   useEffect(() => {
-    if (mode !== "time" || !timerStarted) return;
+    if (!isTimed(mode) || !timerStarted) return;
     if (timeLeft <= 5 && timeLeft > 0) {
       sfx("tick");
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -305,24 +312,35 @@ export function GameRound({
       });
     }, FEVER_SECONDS * 1000);
   }, [later]);
-  const throwTo = (binIndex: number, perfect: boolean, power = 1) => {
+  /** Wurf in eine Tonne – oder im Zielwurf frei (`shot`, auch daneben). */
+  const throwTo = (
+    binIndex: number,
+    perfect: boolean,
+    power = 1,
+    shot?: FreeShot,
+  ) => {
     const l = lock.current;
     const item = itemRef.current;
     if (!item || l.ended || finished) return;
     setAim(bus.current, null);
     cancelSlowMotion(fx.current);
-    if (mode === "time" && !timerStarted) setTimerStarted(true);
+    if (isTimed(mode) && !timerStarted) setTimerStarted(true);
     if (!hasThrown) setHasThrown(true);
-    const hit = bins[binIndex].category === item.category;
+    const landed = shot ? shot.binIndex : binIndex;
+    const hit = landed !== null && bins[landed].category === item.category;
     const spec: ThrowSpec = {
       id: ++l.id,
       item,
-      binIndex,
+      binIndex: shot ? (shot.binIndex ?? shot.rimIndex ?? -1) : binIndex,
       hit,
       perfect: hit && perfect,
       glow: (hit && perfect) || feverRef.current,
       power,
     };
+    if (shot) {
+      spec.land = { x: shot.x, z: (layout.bins[0]?.z ?? 0) + shot.depth };
+      if (shot.binIndex === null) spec.miss = shot.rimIndex !== null ? "rim" : "air";
+    }
     throwMap.current.set(spec.id, spec);
     queueThrow(bus.current, spec);
 
@@ -335,12 +353,45 @@ export function GameRound({
       () => undefined,
     );
   };
+  /** Zielwurf daneben: kein Sortier-Fehler, aber die Serie reißt. */
+  const handleMiss = (ts: ThrowSpec) => {
+    const id = ++lock.current.id;
+    const action = { type: "result", result: "wrong", points: 0 } as const;
+    liveStats.current = statsReducer(liveStats.current, action);
+    dispatch(action);
+    if (ts.miss === "rim" && ts.binIndex >= 0)
+      queueBinEvent(bus.current, ts.binIndex, "reject");
+    sfx("wrong", { volume: 0.6 });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+      () => undefined,
+    );
+    // „Daneben!“ über der Landestelle (Welt-x → Bildschirm-x zwischen den Tonnen)
+    const first = layout.binTops[0];
+    const last = layout.binTops[layout.binTops.length - 1];
+    const x0 = binXs[0];
+    const x1 = binXs[binXs.length - 1];
+    const k = x1 !== x0 ? ((ts.land?.x ?? 0) - x0) / (x1 - x0) : 0.5;
+    setFloats((f) => [
+      ...f.slice(-(MAX_FLOATS - 1)),
+      {
+        id,
+        x: Math.min(Math.max(first.x + k * (last.x - first.x), 50), screenW - 50),
+        y: first.y,
+        text: t("game.miss"),
+        color: "#FFFFFF",
+      },
+    ]);
+  };
   const handleLand = (throwId: number) => {
     const ts = throwMap.current.get(throwId);
     if (!ts) return;
     throwMap.current.delete(throwId);
     const l = lock.current;
     if (mode === "survival" && l.over) return;
+    if (ts.miss) {
+      handleMiss(ts);
+      return;
+    }
     const i = ts.binIndex;
     const bin = bins[i];
     const result: HitResult = ts.hit
@@ -505,14 +556,22 @@ export function GameRound({
         }
       },
       release: (dx, dy, vy) => {
-        const aim = aimFromDrag(dx, dy, layout.binAngles);
         setAim(bus.current, null);
         // Schneller Wisch → kräftigere, flachere Bahn; langsamer → höherer Bogen
         const power = Math.min(Math.max(0.8 + -vy / 5000, 0.8), 1.3);
+        if (mode === "aim") {
+          // Zielwurf: Richtung + Tempo entscheiden, kein Einrasten
+          const shot = freeShot(dx, dy, vy, layout.binAngles, binXs);
+          if (shot) throwTo(shot.binIndex ?? 0, shot.perfect, power, shot);
+          return;
+        }
+        const aim = aimFromDrag(dx, dy, layout.binAngles);
         if (aim) throwTo(aim.binIndex, aim.perfect, power);
       },
       cancel: () => setAim(bus.current, null),
       tap: (x, y) => {
+        // Im Zielwurf zählt nur echtes Werfen
+        if (mode === "aim") return;
         const i = layout.binRects.findIndex(
           (r) =>
             x >= r.x - 8 &&
@@ -581,7 +640,7 @@ export function GameRound({
   // Fehler-Hinweis knapp unter den Tonnen – beides im Bild, nicht davor.
   const itemTagTop = layout.item.screen.y + screenW * 0.15 + 4;
   const learnTop = Math.max(0, ...layout.binRects.map((r) => r.y + r.h)) + 10;
-  const endTitle = mode === "time" ? t("game.end.timeUp") : t("game.end.over");
+  const endTitle = isTimed(mode) ? t("game.end.timeUp") : t("game.end.over");
   const newBest =
     bestBefore !== null && stats.score > bestBefore && stats.score > 0;
   return (
@@ -599,6 +658,8 @@ export function GameRound({
             bus={bus}
             calm={reduceMotion}
             lang={lang}
+            scene={scene}
+            guide={mode !== "aim"}
             warmItems={warmItems}
           />
         )}
@@ -647,7 +708,7 @@ export function GameRound({
                   <View style={styles.topSpacer} />
                 )}
               </View>
-              {mode === "time" && (
+              {isTimed(mode) && (
                 <TimerBar timeLeft={timeLeft} total={ROUND_SECONDS} />
               )}
               {fever && <FeverBanner key={feverId} seconds={FEVER_SECONDS} />}
@@ -677,6 +738,7 @@ export function GameRound({
                   key={currentItem.name}
                   item={currentItem}
                   showHint={!hasThrown}
+                  hint={mode === "aim" ? t("game.aimHint") : undefined}
                 />
               </View>
             )}

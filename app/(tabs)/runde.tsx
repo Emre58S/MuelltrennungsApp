@@ -26,7 +26,7 @@ export default function GameScreen() {
   const daily = rawDaily === "1";
   const mode: GameMode = daily
     ? "endless"
-    : rawMode === "survival" || rawMode === "time"
+    : rawMode === "survival" || rawMode === "time" || rawMode === "aim"
       ? rawMode
       : "endless";
   const router = useRouter();
