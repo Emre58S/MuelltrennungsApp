@@ -87,8 +87,12 @@ export function launchBall(
   };
 }
 
+// Wiederverwendete Hilfsvektoren: keine neuen Objekte pro Teilschritt
+// (sonst räumt der Speicher-Sammler mitten im Spiel auf → Ruckler)
 const n = new THREE.Vector3();
 const rel = new THREE.Vector3();
+const tangential = new THREE.Vector3();
+const point = new THREE.Vector3();
 
 /** Ball aus einer Fläche schieben und abprallen lassen. */
 function bounce(ball: Ball, normal: THREE.Vector3, depth: number, restitution: number): number {
@@ -97,7 +101,7 @@ function bounce(ball: Ball, normal: THREE.Vector3, depth: number, restitution: n
   if (vn >= 0) return 0;
   ball.v.addScaledVector(normal, -(1 + restitution) * vn);
   // Reibung entlang der Fläche
-  const tangential = ball.v.clone().addScaledVector(normal, -ball.v.dot(normal));
+  tangential.copy(ball.v).addScaledVector(normal, -ball.v.dot(normal));
   ball.v.addScaledVector(tangential, -0.12);
   return -vn;
 }
@@ -197,10 +201,10 @@ export function stepBall(ball: Ball, dt: number, bins: BinCollider[], events: Ba
     ball.v.y -= GRAVITY * h;
     ball.p.addScaledVector(ball.v, h);
 
-    bins.forEach((bin, i) => {
-      collideBin(ball, bin, i, events);
-      collideLid(ball, bin, i, events);
-    });
+    for (let i = 0; i < bins.length; i++) {
+      collideBin(ball, bins[i], i, events);
+      collideLid(ball, bins[i], i, events);
+    }
 
     // Boden: abprallen, dann rollen und ausrollen
     if (ball.p.y < BALL_R) {
@@ -255,7 +259,6 @@ export function firstContact(
   out: THREE.Vector3,
 ): THREE.Vector3 | null {
   const steps = Math.max(1, Math.ceil(from.distanceTo(to) / 0.04));
-  const point = new THREE.Vector3();
   for (let k = 1; k <= steps; k++) {
     point.lerpVectors(from, to, k / steps);
     if (touchesAt(point, v, bins)) return out.lerpVectors(from, to, (k - 1) / steps);

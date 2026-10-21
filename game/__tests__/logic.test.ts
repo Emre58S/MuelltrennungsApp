@@ -9,6 +9,7 @@ import {
   aimFromDrag,
   dailyItems,
   FEVER_EVERY,
+  aimBonus,
   freeShot,
   IDEAL_FLICK,
   throwDepth,
@@ -160,6 +161,21 @@ describe("Zielwurf (freier Wurf)", () => {
 
   test("zu kurzer Wisch wirft nicht", () => {
     expect(freeShot(0, -10, ideal, angles, xs)).toBeNull();
+  });
+});
+
+describe("Zielwurf-Boni", () => {
+  test("Swish bringt Zeit, Deckel Punkte und Zeit, Rand etwas Punkte", () => {
+    expect(aimBonus({ perfect: true, via: null }, 30)).toEqual({ factor: 1, seconds: 2 });
+    expect(aimBonus({ perfect: false, via: "lid" }, 30)).toEqual({ factor: 1.5, seconds: 1 });
+    expect(aimBonus({ perfect: false, via: "rim" }, 30)).toEqual({ factor: 1.2, seconds: 0 });
+    expect(aimBonus({ perfect: false, via: "wall" }, 30)).toEqual({ factor: 1, seconds: 0 });
+  });
+
+  test("Endspurt verdoppelt in den letzten 10 Sekunden", () => {
+    expect(aimBonus({ perfect: false, via: null }, 10).factor).toBe(2);
+    expect(aimBonus({ perfect: false, via: "lid" }, 5).factor).toBe(3);
+    expect(aimBonus({ perfect: false, via: null }, 11).factor).toBe(1);
   });
 });
 

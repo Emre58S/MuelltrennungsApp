@@ -133,6 +133,37 @@ export function freeShot(
   };
 }
 
+/* ── Zielwurf: Trickwürfe und Endspurt ───────────────────── */
+
+/** Letzte Sekunden im Zielwurf: doppelte Punkte. */
+export const ENDSPURT_SECONDS = 10;
+
+export type AimBonus = {
+  /** Punkte-Faktor für den Wurf. */
+  factor: number;
+  /** Zeitbonus in Sekunden. */
+  seconds: number;
+};
+
+/**
+ * Belohnung für Trickwürfe: Swish (ohne Berührung) bringt Zeit, über den
+ * Deckel Punkte und Zeit, vom Rand rein etwas mehr Punkte. Im Endspurt ×2.
+ */
+export function aimBonus(
+  shot: { perfect: boolean; via: "rim" | "wall" | "lid" | null | undefined },
+  timeLeft: number,
+): AimBonus {
+  let factor = 1;
+  let seconds = 0;
+  if (shot.perfect) seconds = 2;
+  else if (shot.via === "lid") {
+    factor = 1.5;
+    seconds = 1;
+  } else if (shot.via === "rim") factor = 1.2;
+  if (timeLeft > 0 && timeLeft <= ENDSPURT_SECONDS) factor *= 2;
+  return { factor, seconds };
+}
+
 /* ── Wertung ───────────────────────────────────────────────── */
 
 const BASE_POINTS: Record<HitResult, number> = {

@@ -115,11 +115,13 @@ export function FeverBanner({ seconds }: { seconds: number }) {
   const enter = useEnter();
   const [bar] = useState(() => new Animated.Value(1));
   useEffect(() => {
+    // Nativ animiert (scaleX statt width): belastet nicht den JS-Thread,
+    // auf dem auch die 3D-Szene gezeichnet wird
     Animated.timing(bar, {
       toValue: 0,
       duration: seconds * 1000,
       easing: Easing.linear,
-      useNativeDriver: false,
+      useNativeDriver: true,
     }).start();
   }, [bar, seconds]);
 
@@ -129,12 +131,7 @@ export function FeverBanner({ seconds }: { seconds: number }) {
         🔥 {t("game.fever")}
       </AppText>
       <View style={styles.feverTrack}>
-        <Animated.View
-          style={[
-            styles.feverFill,
-            { width: bar.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) },
-          ]}
-        />
+        <Animated.View style={[styles.feverFill, { transform: [{ scaleX: bar }] }]} />
       </View>
     </Animated.View>
   );
@@ -451,7 +448,7 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   feverTrack: { height: 3, borderRadius: 2, backgroundColor: "rgba(58,37,0,0.2)", overflow: "hidden" },
-  feverFill: { height: 3, backgroundColor: "#E65100" },
+  feverFill: { height: 3, width: "100%", backgroundColor: "#E65100", transformOrigin: "left" },
 
   timerRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   timerTrack: { flex: 1, height: 6, borderRadius: 3, overflow: "hidden" },

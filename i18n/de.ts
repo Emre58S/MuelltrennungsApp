@@ -90,6 +90,8 @@ export const de = {
   "game.miss": "Daneben!",
   "game.viaLid": "Über den Deckel!",
   "game.viaRim": "Vom Rand rein!",
+  "game.endspurt": "Endspurt · doppelte Punkte",
+  "game.timeBonus": "+{s} s",
   "game.aimHint": "Schnell wischen = weit, langsam = kurz",
   "game.finish": "Fertig",
   "game.time": "Zeit",

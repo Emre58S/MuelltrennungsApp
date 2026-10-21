@@ -193,8 +193,9 @@ export const AimGuide = memo(function AimGuide({
 
 // Knackiger Flug: kurz genug für flüssiges Spiel, lang genug zum Mitverfolgen
 const FLIGHT_TIME = 0.42;
-/** Zielwurf: Anteil der Fluggeschwindigkeit, mit dem die Physik übernimmt. */
-const HANDOVER_SPEED = 0.55;
+/** Zielwurf: Anteil der Fluggeschwindigkeit, mit dem die Physik übernimmt
+ *  (nah an 1, damit der Übergang nicht wie ein Hänger wirkt). */
+const HANDOVER_SPEED = 0.8;
 const TRAIL = 10;
 /** Gleichzeitig sichtbare Würfe. Ein Fehlwurf (Abprallen) belegt seinen
  *  Platz ~1,5 s – 10 Plätze reichen auch für sehr schnelles Werfen. */

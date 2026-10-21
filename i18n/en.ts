@@ -91,6 +91,8 @@ export const en: Translations = {
   "game.miss": "Missed!",
   "game.viaLid": "Off the lid!",
   "game.viaRim": "Rolled in!",
+  "game.endspurt": "Final stretch · double points",
+  "game.timeBonus": "+{s} s",
   "game.aimHint": "Fast swipe = far, slow = short",
   "game.finish": "Finish",
   "game.time": "Time",

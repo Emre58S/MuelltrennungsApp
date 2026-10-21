@@ -46,9 +46,11 @@ import {
 } from "@/game/bins";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout } from "@/game/layout";
 import {
+  aimBonus,
   aimFromDrag,
   DAILY_COUNT,
   dailyItems,
+  ENDSPURT_SECONDS,
   FEVER_EVERY,
   FEVER_SECONDS,
   type FreeShot,
@@ -223,6 +225,11 @@ export function GameRound({
   const [feverId, setFeverId] = useState<number | null>(null);
   const feverRef = useRef(false);
   const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS);
+  // Für Handler, die zwischen zwei Renders laufen (Endspurt-Bonus)
+  const timeLeftRef = useRef(ROUND_SECONDS);
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
   const [timerStarted, setTimerStarted] = useState(false);
   const [hasThrown, setHasThrown] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -297,6 +304,13 @@ export function GameRound({
     },
     [later],
   );
+  // Zielwurf: Endspurt ankündigen (letzte Sekunden doppelte Punkte)
+  useEffect(() => {
+    if (mode === "aim" && timerStarted && timeLeft === ENDSPURT_SECONDS) {
+      showBanner(`🔥 ${t("game.endspurt")}`, 2600);
+      sfx("fever");
+    }
+  }, [mode, timerStarted, timeLeft, showBanner, t]);
   const startFever = useCallback(() => {
     const id = ++lock.current.id;
     feverRef.current = true;
@@ -413,7 +427,14 @@ export function GameRound({
       : "wrong";
     const feverNow = feverRef.current;
     const before = liveStats.current;
-    const points = getPoints(result, before.streak, feverNow);
+    // Zielwurf: Trickwürfe und Endspurt bringen mehr Punkte (und Zeit)
+    const bonus =
+      thrown.free && ts.hit
+        ? aimBonus({ perfect: ts.perfect, via }, timeLeftRef.current)
+        : null;
+    const points = Math.round(
+      getPoints(result, before.streak, feverNow) * (bonus?.factor ?? 1),
+    );
     const top = layout.binTops[i];
     const id = ++l.id;
     const action = { type: "result", result, points } as const;
@@ -441,7 +462,7 @@ export function GameRound({
       sfx("land");
       if (ts.perfect) sfx("perfect");
       else sfxStreak(streakNow);
-      if (ts.perfect)
+      if (ts.perfect || viaText)
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
         ).catch(() => undefined);
@@ -470,9 +491,27 @@ export function GameRound({
           x: top.x,
           y: top.y,
           text: `+${points}`,
-          color: ts.perfect || feverNow ? "#FFD54A" : "#FFFFFF",
+          color:
+            ts.perfect || feverNow || (bonus?.factor ?? 1) > 1
+              ? "#FFD54A"
+              : "#FFFFFF",
         },
       ]);
+      // Zeitbonus (Zielwurf): „+2 s“ unter der Uhr, Zeit läuft länger
+      const extra = bonus?.seconds ?? 0;
+      if (extra > 0 && !l.timeUp) {
+        setTimeLeft((v) => Math.min(v + extra, ROUND_SECONDS));
+        setFloats((f) => [
+          ...f.slice(-(MAX_FLOATS - 1)),
+          {
+            id: ++l.id,
+            x: screenW / 2,
+            y: insets.top + 84,
+            text: t("game.timeBonus", { s: extra }),
+            color: "#8BE59A",
+          },
+        ]);
+      }
       const praiseKey = (
         [
           "game.praise.1",
