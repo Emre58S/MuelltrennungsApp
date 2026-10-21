@@ -11,6 +11,7 @@ import {
   FEVER_EVERY,
   freeShot,
   IDEAL_FLICK,
+  throwDepth,
   getMultiplier,
   getPoints,
   INITIAL_STATS,
@@ -131,7 +132,7 @@ describe("Zielwurf (freier Wurf)", () => {
   });
 
   test("knapp daneben trifft den Rand", () => {
-    const rim = freeShot(0, -100, ideal * 0.69, angles, xs);
+    const rim = freeShot(0, -100, ideal * 0.83, angles, xs);
     expect(rim?.binIndex).toBeNull();
     expect(rim?.rimIndex).toBe(1);
   });
@@ -139,6 +140,22 @@ describe("Zielwurf (freier Wurf)", () => {
   test("Richtung nach außen: Tonne am Rand", () => {
     expect(freeShot(-58, -100, ideal, angles, xs)?.binIndex).toBe(0);
     expect(freeShot(58, -100, ideal, angles, xs)?.binIndex).toBe(2);
+  });
+
+  test("je stärker der Wisch, desto weiter der Wurf", () => {
+    expect(throwDepth(0.2)).toBeGreaterThan(throwDepth(0.6));
+    expect(throwDepth(0.6)).toBeGreaterThan(throwDepth(0.9));
+    expect(throwDepth(0.9)).toBeGreaterThan(throwDepth(1.3));
+    expect(throwDepth(1.3)).toBeGreaterThan(throwDepth(1.8));
+    // nahe am Ideal gutmütig: ±10 % bleibt in der Öffnung
+    expect(Math.abs(throwDepth(0.9))).toBeLessThan(0.4);
+    expect(Math.abs(throwDepth(1.1))).toBeLessThan(0.4);
+  });
+
+  test("kurzer Wisch ist schwächer als langer (gleiches Tempo)", () => {
+    const short = freeShot(0, -45, ideal, angles, xs);
+    const long = freeShot(0, -120, ideal, angles, xs);
+    expect(short!.depth).toBeGreaterThan(long!.depth);
   });
 
   test("zu kurzer Wisch wirft nicht", () => {

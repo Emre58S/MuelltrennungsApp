@@ -339,7 +339,10 @@ export function GameRound({
       power,
     };
     if (shot) {
-      spec.land = { x: shot.x, z: (layout.bins[0]?.z ?? 0) + shot.depth };
+      // Ganz schwache Würfe landen weit vorn – aber nie hinter dem Startpunkt
+      const binZ = layout.bins[0]?.z ?? 0;
+      const z = Math.min(binZ + shot.depth, layout.item.position.z - 1.2);
+      spec.land = { x: shot.x, z };
       spec.free = { accept: bins.map((b) => b.category === item.category) };
     }
     throwMap.current.set(spec.id, spec);
@@ -571,6 +574,11 @@ export function GameRound({
         if (mode === "aim") {
           // Zielwurf: Richtung + Tempo entscheiden, kein Einrasten
           const shot = freeShot(dx, dy, vy, layout.binAngles, binXs);
+          if (__DEV__ && shot)
+            // Zum Nachjustieren von IDEAL_FLICK (landet im Metro-Log)
+            console.log(
+              `[wurf] tempo=${Math.round(-vy)} länge=${Math.round(Math.hypot(dx, dy))} stärke=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)}`,
+            );
           if (shot) throwTo(shot.binIndex ?? 0, shot.perfect, power, shot);
           return;
         }

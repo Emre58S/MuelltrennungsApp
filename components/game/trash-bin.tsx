@@ -16,10 +16,12 @@ import * as THREE from "three";
 import { type BinDef } from "@/game/bins";
 
 import { type FxRef } from "./fx";
-import { lowpoly, lowpolyOwn, roundedFrustum, roundedSlab } from "./materials";
+import { lowpoly, lowpolyOwn, roundedFrame, roundedFrustum, roundedSlab } from "./materials";
 import { type BusRef, isBinActive, setLid, takeBinEvent } from "./scene-bus";
 
 const LID_OPEN = 1.0;
+/** Zielwurf: Deckel weit nach hinten geklappt – steht wie ein Brett hinter der Öffnung. */
+const LID_AIM = 1.85;
 const BODY_Y = 0.08;
 const BODY_H = 1.42;
 const BOTTOM = { w: 0.9, d: 0.84 };
@@ -35,8 +37,10 @@ const TAPER = Math.atan((TOP.d - BOTTOM.d) / 2 / BODY_H);
 const GEO = {
   body: roundedFrustum(BOTTOM, TOP, BODY_H, 0.12, 1),
   inset: roundedSlab(0.68, 0.9, 0.014, 0.08, 1),
-  rim: roundedSlab(1.12, 1.06, 0.07, 0.12, 1),
-  opening: roundedSlab(0.92, 0.84, 0.02, 0.1, 1),
+  // Rand als Rahmen mit Loch: man sieht (und wirft) ins Offene
+  rim: roundedFrame(1.12, 1.06, 0.92, 0.84, 0.07, 0.12, 1),
+  // Innenwände + Boden (von innen gesehen), oben etwas breiter als das Loch
+  liner: roundedFrustum({ w: 0.84, d: 0.76 }, { w: 0.94, d: 0.86 }, 1.2, 0.1, 1),
   lid: roundedSlab(1.16, 1.1, 0.06, 0.13, 1),
   grip: new THREE.BoxGeometry(0.5, 0.05, 0.06),
   wheel: new THREE.CylinderGeometry(0.17, 0.17, 0.11, 8),
@@ -52,7 +56,6 @@ const GEO = {
 const LABEL_Y = 0.93;
 
 const SHARED = {
-  dark: new THREE.MeshBasicMaterial({ color: "#22262B" }),
   // Günstiger Boden-Schatten statt Echtzeit-Schatten (flüssiger auf Handys)
   blob: new THREE.MeshBasicMaterial({ color: "#000000", transparent: true, opacity: 0.22, depthWrite: false }),
   wheel: lowpoly("#2E3238"),
@@ -96,6 +99,12 @@ export const TrashBin = memo(function TrashBin({
       inset: lowpoly(shade(bin.color, -0.06)),
       lid: lowpoly(shade(bin.color, 0.06)),
       rim: lowpoly(shade(bin.color, -0.03)),
+      // Innen dunkler (Schatten im Inneren), von innen sichtbar
+      liner: new THREE.MeshLambertMaterial({
+        color: shade(bin.color, -0.32),
+        flatShading: true,
+        side: THREE.BackSide,
+      }),
       pad: new THREE.MeshBasicMaterial({
         color: bin.colorLight,
         transparent: true,
@@ -129,6 +138,7 @@ export const TrashBin = memo(function TrashBin({
   useEffect(
     () => () => {
       mats.body.dispose();
+      mats.liner.dispose();
       mats.pad.dispose();
       mats.ring.dispose();
     },
@@ -180,7 +190,7 @@ export const TrashBin = memo(function TrashBin({
     let lidTarget = aimed ? LID_OPEN : 0;
     if (openLid) {
       // Zielwurf: offen – nach einem Treffer kurz zu („geschluckt“), dann wieder auf
-      lidTarget = a.shut > 0.08 ? 0 : LID_OPEN;
+      lidTarget = a.shut > 0.08 ? 0 : LID_AIM;
     } else {
       if (a.hit > 0.3) lidTarget = LID_OPEN * 0.7;
       if (a.peek > 0.15 && !aimed) lidTarget = LID_OPEN * 0.55 * Math.sin((1 - a.peek) * Math.PI);
@@ -237,10 +247,10 @@ export const TrashBin = memo(function TrashBin({
           />
         )}
 
-        {/* Rand + Öffnung */}
+        {/* Innenraum + Rand (Rahmen mit Öffnung) */}
+        <mesh geometry={GEO.liner} material={mats.liner} position={[0, BODY_Y + BODY_H - 1.2, 0]} />
         <group position={[0, BODY_Y + BODY_H - 0.02, 0]}>
           <mesh geometry={GEO.rim} material={mats.rim} castShadow />
-          <mesh geometry={GEO.opening} material={SHARED.dark} position={[0, 0.06, 0]} />
         </group>
 
         {/* Deckel – Scharnier hinten */}

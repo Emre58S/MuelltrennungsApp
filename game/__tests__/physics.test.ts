@@ -14,7 +14,8 @@ import {
 } from "../physics";
 
 const START = new THREE.Vector3(0, 2.2, 4);
-const OPEN = 1.0;
+/** Deckel im Zielwurf: weit nach hinten geklappt (wie ein Brett). */
+const OPEN = 1.85;
 
 /** Bis zu 4 s simulieren; Ergebnis: gefangen in Tonne X oder null. */
 function simulate(ball: Ball, bins: BinCollider[]) {
@@ -72,7 +73,10 @@ describe("Zielwurf-Physik", () => {
   });
 
   test("zu weit: prallt vom offenen Deckel ab und fällt in die Tonne", () => {
-    const ball = handedOver(-0.15, -6);
+    // Hoch und nach hinten unterwegs – trifft den Deckel über dem hinteren Rand
+    const ball = handedOver(-0.2, -5);
+    ball.p.y = 2.3;
+    ball.v.y = -1.5;
     const { bin, events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
     expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
     expect(bin).toBe(0);
@@ -80,7 +84,7 @@ describe("Zielwurf-Physik", () => {
   });
 
   test("auf den vorderen Rand, Schwung nach vorn: prallt nach außen ab", () => {
-    const ball = handedOver(BIN_SHAPE.openHalfD + 0.1, 1.5);
+    const ball = handedOver(BIN_SHAPE.openHalfD + 0.1, 3);
     const { bin, events } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
     expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
     expect(bin).toBeNull();
@@ -92,6 +96,22 @@ describe("Zielwurf-Physik", () => {
     expect(events.some((e) => e.type === "bounce" && e.bin === 0)).toBe(true);
     expect(bin).toBe(0);
     expect(ball.via).toBe("rim");
+  });
+
+  test("knapp neben der Öffnung (gutmütiger Rand): geht trotzdem rein", () => {
+    const ball = handedOver(0, -1);
+    ball.p.x = BIN_SHAPE.openHalfW + 0.12;
+    ball.v.set(0, -4, 0);
+    const { bin } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
+    expect(bin).toBe(0);
+  });
+
+  test("deutlich daneben: kein automatischer Treffer", () => {
+    const ball = handedOver(0, -1);
+    ball.p.x = BIN_SHAPE.openHalfW + 0.45;
+    ball.v.set(0, -4, 0);
+    const { bin } = simulate(ball, [{ x: 0, z: 0, lid: OPEN }]);
+    expect(bin).toBeNull();
   });
 
   test("zu weit: der offene Deckel wirkt wie ein Brett", () => {

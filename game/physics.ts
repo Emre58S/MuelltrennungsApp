@@ -9,7 +9,7 @@ import * as THREE from "three";
 /** Schwerkraft (Welt-Einheiten/s²; eine Tonne ist 1,6 hoch). */
 export const GRAVITY = 16;
 /** Kollisions-Radius eines geworfenen Gegenstands. */
-export const BALL_R = 0.14;
+export const BALL_R = 0.12;
 const BACK_WALL_Z = -2.4;
 
 /** Maße der Tonne (siehe components/game/trash-bin.tsx). */
@@ -23,7 +23,13 @@ export const BIN_SHAPE = {
   hingeZ: -0.53,
   lidLen: 1.1,
   lidHalfW: 0.58,
+  /** Gutmütiger Rand: Wer bis so weit (Welt-Einheiten) neben der Öffnung auf
+   *  den Rand prallt, bekommt einen Schubs nach innen – je knapper, desto mehr.
+   *  Weiter daneben berührt den Rand nicht: kein automatischer Treffer. */
+  funnel: 0.24,
 };
+/** Größter Schubs nach innen beim Rand-Abprallen (Welt-Einheiten/s). */
+const RIM_NUDGE = 1.8;
 /** Ab diesem Winkel (rad) ist der Deckel offen genug zum Hineinfallen. */
 const LID_OPEN_MIN = 0.35;
 
@@ -116,7 +122,7 @@ function collideBin(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
       const d = n.length();
       if (d < r && d > 1e-6) {
         n.divideScalar(d);
-        touch(ball, events, i, "rim", bounce(ball, n, r - d, 0.42));
+        touch(ball, events, i, "rim", bounce(ball, n, r - d, 0.5));
       }
       if (p.y < s.top) ball.inside = i;
       return;
@@ -147,7 +153,20 @@ function collideBin(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   if (d < 1e-6) n.set(0, 1, 0);
   else n.divideScalar(d);
   // Oben auf dem Rand-Kranz oder seitlich an der Wand
-  touch(ball, events, i, n.y > 0.7 ? "rim" : "wall", bounce(ball, n, r - d, 0.38));
+  const onRim = n.y > 0.5;
+  const speed = bounce(ball, n, r - d, 0.42);
+  touch(ball, events, i, onRim ? "rim" : "wall", speed);
+  if (onRim && open && speed > 0.4) {
+    // Gutmütiger Rand: knapp daneben → Schubs Richtung Öffnung
+    const ox = Math.max(Math.abs(lx) - s.openHalfW, 0);
+    const oz = Math.max(Math.abs(lz) - s.openHalfD, 0);
+    const off = Math.hypot(ox, oz);
+    if (off > 0 && off < s.funnel) {
+      const nudge = (1 - off / (s.funnel + 0.1)) * RIM_NUDGE;
+      ball.v.x -= Math.sign(lx) * nudge * (ox / off);
+      ball.v.z -= Math.sign(lz) * nudge * (oz / off);
+    }
+  }
 }
 
 function collideLid(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]) {
@@ -167,7 +186,7 @@ function collideLid(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   if (Math.abs(dist) >= reach) return;
   const side = dist >= 0 ? 1 : -1;
   n.multiplyScalar(side);
-  touch(ball, events, i, "lid", bounce(ball, n, reach - Math.abs(dist), 0.45));
+  touch(ball, events, i, "lid", bounce(ball, n, reach - Math.abs(dist), 0.55));
 }
 
 /** Ball einen Zeitschritt weiter (intern in kleinen Teilschritten). */

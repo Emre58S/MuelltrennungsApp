@@ -50,8 +50,22 @@ export function aimFromDrag(
 
 /** Wisch-Tempo nach oben (px/s), bei dem ein Wurf genau bis zur Tonne fliegt. */
 export const IDEAL_FLICK = 2000;
-/** Weite: so viele Welt-Einheiten zu kurz/zu weit pro 100 % Tempo-Abweichung. */
-const DEPTH_PER_SPEED = 1.5;
+/** Ab dieser Wischlänge (px) zählt das Tempo voll; kürzere Wische sind schwächer. */
+const FULL_SWIPE = 90;
+/** Ganz schwacher Wurf landet so weit vor den Tonnen (Welt-Einheiten). */
+const SHORT_RANGE = 6.5;
+/** Weitester Wurf hinter die Tonnen (bis zur Rückwand). */
+const LONG_RANGE = 2.2;
+
+/**
+ * Wischstärke (1 = genau richtig) → Landestelle vor (+) bzw. hinter (−) den
+ * Tonnen. Nahe 1 bewusst flach (gutmütig), weiter weg immer deutlicher:
+ * schwach = weit davor, kräftig = drüber bis an die Wand.
+ */
+export function throwDepth(strength: number): number {
+  if (strength < 1) return Math.pow(1 - Math.max(strength, 0), 1.5) * SHORT_RANGE;
+  return -Math.min(Math.pow(strength - 1, 1.3) * 2.5, LONG_RANGE);
+}
 /** Öffnung einer Tonne (halbe Breite/Tiefe, Welt-Einheiten) und Randbreite. */
 export const OPENING = { halfW: 0.4, halfD: 0.4, rim: 0.16 };
 
@@ -65,6 +79,8 @@ export type FreeShot = {
   /** Daneben, aber knapp: prallt vom Rand dieser Tonne ab. */
   rimIndex: number | null;
   perfect: boolean;
+  /** Wischstärke (1 = genau richtig) – zum Nachjustieren im Log. */
+  strength: number;
 };
 
 /** Winkel → Welt-x: zwischen den Tonnen linear, außen weitergeführt. */
@@ -93,8 +109,9 @@ export function freeShot(
   }
   const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
   const x = angleToX(angle, binAngles, binXs);
-  const speed = Math.max(0, -vy) / IDEAL_FLICK;
-  const depth = Math.min(Math.max((1 - speed) * DEPTH_PER_SPEED, -1.6), 2.2);
+  const strength =
+    (Math.max(0, -vy) / IDEAL_FLICK) * Math.min(1, Math.hypot(dx, dy) / FULL_SWIPE);
+  const depth = throwDepth(strength);
 
   let best = 0;
   binXs.forEach((bx, i) => {
@@ -112,6 +129,7 @@ export function freeShot(
     binIndex: inside ? best : null,
     rimIndex: onRim ? best : null,
     perfect: inside && ox < 0.12 && oz < 0.12,
+    strength,
   };
 }
 
