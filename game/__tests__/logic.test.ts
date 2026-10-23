@@ -9,11 +9,11 @@ import {
   aimFromDrag,
   dailyItems,
   FEVER_EVERY,
-  adaptiveIdeal,
   aimBonus,
-  freeShot,
-  IDEAL_FLICK,
   missAssist,
+  pullShot,
+  pullStrength,
+  SWEET_STRENGTH,
   throwDepth,
   getMultiplier,
   getPoints,
@@ -109,89 +109,75 @@ describe("Zielen", () => {
   });
 });
 
-describe("Zielwurf (freier Wurf)", () => {
+describe("Zielwurf (zurückziehen und loslassen)", () => {
   const angles = [-30, 0, 30];
   const xs = [-1.3, 0, 1.3];
-  const ideal = -IDEAL_FLICK;
+  const full = 200;
+  /** Zuglänge (px) für eine bestimmte Kraft. */
+  const pull = (strength: number) => 18 + strength * (full - 18);
+  /** Finger nach unten gezogen, Wurfrichtung `deg` (0 = gerade). */
+  const at = (deg: number, length: number, opts = {}) => {
+    const rad = (deg * Math.PI) / 180;
+    return pullShot(-Math.sin(rad) * length, Math.cos(rad) * length, full, angles, xs, opts);
+  };
 
-  test("gerade und mit Ideal-Tempo: mitten in die mittlere Tonne", () => {
-    const shot = freeShot(0, -100, ideal, angles, xs);
+  test("gerade und genau richtig gezogen: mitten in die mittlere Tonne", () => {
+    const shot = at(0, pull(SWEET_STRENGTH));
     expect(shot?.binIndex).toBe(1);
     expect(shot?.perfect).toBe(true);
   });
 
-  test("zu langsam fällt vor die Tonne, zu schnell fliegt drüber", () => {
-    const short = freeShot(0, -100, ideal * 0.4, angles, xs);
+  test("zu kurz gezogen fällt vor die Tonne, zu lang fliegt drüber", () => {
+    const short = at(0, pull(0.2));
     expect(short?.binIndex).toBeNull();
     expect(short?.depth).toBeGreaterThan(0);
-    const long = freeShot(0, -100, ideal * 1.8, angles, xs);
+    const long = at(0, pull(1));
     expect(long?.binIndex).toBeNull();
     expect(long?.depth).toBeLessThan(0);
   });
 
+  test("seitlich ziehen wirft zur Gegenseite", () => {
+    // Finger nach unten LINKS → Wurf nach rechts
+    expect(pullShot(-58, 100, full, angles, xs)?.binIndex).toBe(2);
+    expect(pullShot(58, 100, full, angles, xs)?.binIndex).toBe(0);
+  });
+
   test("zwischen zwei Tonnen geht daneben", () => {
-    const between = freeShot(Math.tan((15 * Math.PI) / 180) * 100, -100, ideal, angles, xs);
-    expect(between?.binIndex).toBeNull();
+    expect(at(15, pull(SWEET_STRENGTH))?.binIndex).toBeNull();
   });
 
   test("knapp daneben trifft den Rand", () => {
-    const rim = freeShot(0, -100, ideal * 0.77, angles, xs);
+    const rim = at(0, pull(0.47));
     expect(rim?.binIndex).toBeNull();
     expect(rim?.rimIndex).toBe(1);
   });
 
-  test("Richtung nach außen: Tonne am Rand", () => {
-    expect(freeShot(-58, -100, ideal, angles, xs)?.binIndex).toBe(0);
-    expect(freeShot(58, -100, ideal, angles, xs)?.binIndex).toBe(2);
+  test("je länger gezogen, desto weiter der Wurf", () => {
+    for (let s = 0; s < 1; s += 0.1) expect(throwDepth(s)).toBeGreaterThan(throwDepth(s + 0.1));
+    expect(throwDepth(SWEET_STRENGTH)).toBe(0);
+    // Rund um die Tonne gutmütig: ±0,03 Kraft bleibt in der Öffnung (0,4)
+    expect(Math.abs(throwDepth(SWEET_STRENGTH - 0.03))).toBeLessThan(0.4);
+    expect(Math.abs(throwDepth(SWEET_STRENGTH + 0.03))).toBeLessThan(0.4);
   });
 
-  test("je stärker der Wisch, desto weiter der Wurf", () => {
-    expect(throwDepth(0.2)).toBeGreaterThan(throwDepth(0.6));
-    expect(throwDepth(0.6)).toBeGreaterThan(throwDepth(0.9));
-    expect(throwDepth(0.9)).toBeGreaterThan(throwDepth(1.3));
-    expect(throwDepth(1.3)).toBeGreaterThan(throwDepth(1.8));
-    // nahe am Ideal gutmütig: ±20 % bleibt in der Öffnung
-    expect(Math.abs(throwDepth(0.8))).toBeLessThan(0.4);
-    expect(Math.abs(throwDepth(1.2))).toBeLessThan(0.4);
-    // deutlich daneben bleibt daneben
-    expect(Math.abs(throwDepth(0.6))).toBeGreaterThan(0.6);
-    expect(Math.abs(throwDepth(1.45))).toBeGreaterThan(0.6);
-  });
-
-  test("kurzer Wisch ist schwächer als langer (gleiches Tempo)", () => {
-    const short = freeShot(0, -45, ideal, angles, xs);
-    const long = freeShot(0, -120, ideal, angles, xs);
-    expect(short!.depth).toBeGreaterThan(long!.depth);
+  test("Kraft aus der Zuglänge: 0 am Anfang, 1 ab voller Länge", () => {
+    expect(pullStrength(18, full)).toBe(0);
+    expect(pullStrength(full, full)).toBe(1);
+    expect(pullStrength(full * 2, full)).toBe(1);
   });
 
   test("Richtungshilfe: knapp neben der Tonne wird hineingezogen", () => {
     // ~0,5 neben der mittleren Tonne → ohne Hilfe außerhalb (0,4)
-    const dx = Math.tan((0.5 / 1.3) * 30 * (Math.PI / 180)) * 100;
-    expect(freeShot(dx, -100, ideal, angles, xs)?.binIndex).toBe(1);
+    expect(at((0.5 / 1.3) * 30, pull(SWEET_STRENGTH))?.binIndex).toBe(1);
   });
 
-  test("gelerntes Tempo: wer immer etwas sanfter wirft, trifft trotzdem", () => {
-    const soft = IDEAL_FLICK * 0.7;
-    expect(freeShot(0, -100, -soft, angles, xs)?.binIndex).toBeNull();
-    const learned = adaptiveIdeal([soft, soft * 1.05, soft * 0.95, soft]);
-    expect(freeShot(0, -100, -soft, angles, xs, { ideal: learned })?.binIndex).toBe(1);
-  });
-
-  test("zu kurzer Wisch wirft nicht", () => {
-    expect(freeShot(0, -10, ideal, angles, xs)).toBeNull();
+  test("zu wenig oder nach oben gezogen: kein Wurf", () => {
+    expect(pullShot(0, 10, full, angles, xs)).toBeNull();
+    expect(pullShot(0, -120, full, angles, xs)).toBeNull();
   });
 });
 
-describe("Zielwurf-Lernen und Pech-Hilfe", () => {
-  test("gelerntes Tempo: Median, erst ab 3 Würfen, höchstens ±25 %", () => {
-    expect(adaptiveIdeal([1500, 1600])).toBe(IDEAL_FLICK);
-    expect(adaptiveIdeal([1700, 1800, 1900])).toBe(1800);
-    expect(adaptiveIdeal([500, 600, 700, 800])).toBe(IDEAL_FLICK * 0.75);
-    expect(adaptiveIdeal([4000, 4200, 4100])).toBe(IDEAL_FLICK * 1.25);
-    // ein Ausreißer verschiebt den Median kaum
-    expect(adaptiveIdeal([1900, 2000, 2100, 6000, 1950])).toBe(2000);
-  });
-
+describe("Zielwurf: Pech-Hilfe", () => {
   test("Pech-Hilfe erst ab 2 Fehlwürfen, dann zunehmend", () => {
     expect(missAssist(0)).toBe(0);
     expect(missAssist(1)).toBe(0);
@@ -203,11 +189,13 @@ describe("Zielwurf-Lernen und Pech-Hilfe", () => {
   test("Pech-Hilfe macht knappe Fehlwürfe zu Treffern, weite nicht", () => {
     const angles = [-30, 0, 30];
     const xs = [-1.3, 0, 1.3];
-    const close = freeShot(0, -100, -IDEAL_FLICK * 0.76, angles, xs);
+    const full = 200;
+    const length = (strength: number) => 18 + strength * (full - 18);
+    const close = pullShot(0, length(0.47), full, angles, xs);
     expect(close?.binIndex).toBeNull();
-    const helped = freeShot(0, -100, -IDEAL_FLICK * 0.76, angles, xs, { assist: 1 });
+    const helped = pullShot(0, length(0.47), full, angles, xs, { assist: 1 });
     expect(helped?.binIndex).toBe(1);
-    const far = freeShot(0, -100, -IDEAL_FLICK * 0.4, angles, xs, { assist: 1 });
+    const far = pullShot(0, length(0.3), full, angles, xs, { assist: 1 });
     expect(far?.binIndex).toBeNull();
   });
 });

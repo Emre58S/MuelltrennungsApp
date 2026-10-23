@@ -29,8 +29,9 @@ export type LandOutcome = {
   props?: number[];
 };
 
-/** Flugbahn-Vorschau beim Wischen (Trickwürfe): Ziel-Landestelle und Bogen. */
-export type ShotGuide = { x: number; z: number; power: number };
+/** Flugbahn-Vorschau beim Zurückziehen (Zielwurf, Trickwürfe): Landestelle
+ *  und Kraft 0…1 (bestimmt Bogenhöhe und wie weit der Gegenstand gespannt ist). */
+export type ShotGuide = { x: number; z: number; strength: number };
 
 export type ThrowSpec = {
   id: number;
@@ -46,6 +47,8 @@ export type ThrowSpec = {
   power?: number;
   /** Zielwurf: eigene Landestelle (Welt x/z auf Höhe der Öffnungen). */
   land?: { x: number; z: number };
+  /** Zielwurf: Kraft 0…1 aus der Zuglänge – derselbe Bogen wie die Vorschau. */
+  strength?: number;
   /** Zielwurf: echte Physik entscheidet, wo er landet; `accept` = welche
    *  Tonnen richtig wären (falsche spucken ihn wieder aus). */
   free?: {

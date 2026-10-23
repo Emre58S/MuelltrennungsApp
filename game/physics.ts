@@ -60,6 +60,13 @@ export function throwArc(start: THREE.Vector3, target: THREE.Vector3, power = 1)
   return arcFor(start, target) * (1.35 - power * 0.35);
 }
 
+/** Bogen im Zielwurf (Zurückziehen): länger gezogen → weiter UND höher.
+ *  Ein zu kräftiger Wurf fliegt so übers Brett (den offenen Deckel), statt
+ *  flach dagegen zu prallen und doch hineinzufallen. `strength` = 0…1. */
+export function pullArc(start: THREE.Vector3, target: THREE.Vector3, strength: number) {
+  return arcFor(start, target) * (0.7 + 0.8 * strength);
+}
+
 /** Punkt auf der festen Wurfparabel (t = 0…1). */
 export function flightPoint(
   out: THREE.Vector3,
@@ -535,12 +542,12 @@ export type ThrowResult = {
 export function simulateThrow(
   start: THREE.Vector3,
   target: THREE.Vector3,
-  power: number,
+  strength: number,
   bins: BinCollider[],
   props: PropCollider[] = [],
   dt = 1 / 60,
 ): ThrowResult {
-  const arc = throwArc(start, target, power);
+  const arc = pullArc(start, target, strength);
   const prev = start.clone();
   const cur = new THREE.Vector3();
   const vel = new THREE.Vector3();

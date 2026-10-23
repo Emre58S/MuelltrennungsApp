@@ -1,21 +1,18 @@
 // Datei: components/game/trick-round.tsx — ein Trickwurf-Level
 // (Route: app/(tabs)/runde.tsx mit mode=trick)
 //
-// Gleiche Wurf-Regeln wie der Zielwurf (Richtung = Seite, Tempo = Weite,
-// gelerntes Tempo), dazu Hindernisse aus game/trick-levels.ts. Ein Wurf zur
+// Gleiche Wurf-Regeln wie der Zielwurf (zurückziehen: Richtung = Seite,
+// Zuglänge = Weite), dazu Hindernisse aus game/trick-levels.ts. Ein Wurf zur
 // Zeit: der nächste Gegenstand kommt erst nach der Landung – so ist klar,
 // welcher Wurf was ausgelöst hat. Kein Zufall in der Physik: gleicher Wurf,
-// gleiches Ergebnis. Beim Wischen zeigt eine Vorschau die ersten ~60 % des Flugs.
+// gleiches Ergebnis. Beim Ziehen zeigt eine Vorschau die ersten ~60 % des Flugs.
 import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
-import { computeLayout } from "@/game/layout";
+import { computeLayout, shotLanding } from "@/game/layout";
 import {
-  adaptiveIdeal,
-  aimFromDrag,
-  flickPower,
   type FreeShot,
-  freeShot,
-  LEARN_WINDOW,
+  FULL_PULL_SHARE,
   pickItem,
+  pullShot,
   recentLimit,
 } from "@/game/logic";
 import {
@@ -59,15 +56,11 @@ import {
   queueBinEvent,
   queueBurst,
   queueThrow,
-  setAim,
   setLandHandler,
   setPreview,
   setShotGuide,
   type ThrowSpec,
 } from "./scene-bus";
-
-/** Wurfbogen: kräftiger Wisch → flacher (wie im Zielwurf). */
-const powerFor = (vy: number) => Math.min(Math.max(0.8 + -vy / 5000, 0.8), 1.3);
 
 export function TrickRound({
   levelId,
@@ -129,11 +122,11 @@ export function TrickRound({
     setPreview(bus.current, itemRef.current);
   }, []);
 
-  const flicks = useRef<number[]>([]);
   const busy = useRef(false);
   const done = useRef(false);
   const ids = useRef(0);
-  const smoothVy = useRef(0);
+  /** Kraft-Stufe fürs Vibrations-Klicken beim Ziehen. */
+  const pullStep = useRef(-1);
   const attemptsRef = useRef(0);
   /** Angezeigter Versuch: der laufende bzw. der nächste nach einem Fehlwurf. */
   const [attempt, setAttempt] = useState(1);
@@ -161,11 +154,7 @@ export function TrickRound({
     return Math.min(Math.max(first.x + k * (last.x - first.x), 60), screenW - 60);
   };
 
-  /** Ziel-Tiefe eines Wurfs (nie hinter dem Startpunkt). */
-  const landZ = (shot: FreeShot) =>
-    Math.min((layout.bins[0]?.z ?? 0) + shot.depth, layout.item.position.z - 1.2);
-
-  const throwShot = (shot: FreeShot, power: number) => {
+  const throwShot = (shot: FreeShot) => {
     const current = itemRef.current;
     if (!current || busy.current || done.current) return;
     busy.current = true;
@@ -180,8 +169,8 @@ export function TrickRound({
       hit: false,
       perfect: false,
       glow: false,
-      power,
-      land: { x: shot.x, z: landZ(shot) },
+      land: shotLanding(layout, shot),
+      strength: shot.strength,
       free: { accept: bins.map((b) => b.category === current.category), center: shot.perfect },
     };
     queueThrow(bus.current, spec);
@@ -247,47 +236,44 @@ export function TrickRound({
 
   // Gesten-Handler (aktuell halten, ohne die Geste neu zu bauen)
   const handlers = useRef({
-    aim: (_dx: number, _dy: number, _vy: number) => {},
-    release: (_dx: number, _dy: number, _vy: number) => {},
+    aim: (_dx: number, _dy: number) => {},
+    release: (_dx: number, _dy: number) => {},
     cancel: () => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
   });
+  // Keine Pech-Hilfe hier: sie zöge Würfe zur Tonne – Tricks zielen woanders hin
+  const fullPull = screenH * FULL_PULL_SHARE;
+  const aimShot = (dx: number, dy: number) =>
+    pullShot(dx, dy, fullPull, layout.binAngles, binXs);
   useLayoutEffect(() => {
     handlers.current = {
-      aim: (dx, dy, vy) => {
+      aim: (dx, dy) => {
         if (busy.current || done.current) return;
-        const idx = aimFromDrag(dx, dy, layout.binAngles)?.binIndex ?? null;
-        if (idx !== bus.current.aim) {
-          setAim(bus.current, idx);
-          if (idx !== null) sfx("aim");
-        }
-        // Vorschau mit geglättetem Wisch-Tempo: so würde der Wurf jetzt fliegen
-        smoothVy.current = smoothVy.current * 0.6 + vy * 0.4;
-        const shot = freeShot(dx, dy, smoothVy.current, layout.binAngles, binXs, {
-          ideal: adaptiveIdeal(flicks.current),
-        });
+        // Zurückziehen: so würde der Wurf jetzt fliegen (Kraft klickt leise mit)
+        const shot = aimShot(dx, dy);
         setShotGuide(
           bus.current,
-          shot ? { x: shot.x, z: landZ(shot), power: powerFor(smoothVy.current) } : null,
+          shot ? { ...shotLanding(layout, shot), strength: shot.strength } : null,
         );
+        const step = shot ? Math.floor(shot.strength * 10) : -1;
+        if (step !== pullStep.current) {
+          if (step > pullStep.current && step >= 0)
+            Haptics.selectionAsync().catch(() => undefined);
+          pullStep.current = step;
+        }
       },
-      release: (dx, dy, vy) => {
-        setAim(bus.current, null);
+      release: (dx, dy) => {
         setShotGuide(bus.current, null);
-        smoothVy.current = 0;
+        pullStep.current = -1;
         if (busy.current || done.current) return;
-        // Keine Pech-Hilfe hier: sie zöge Würfe zur Tonne – Tricks zielen woanders hin
-        const shot = freeShot(dx, dy, vy, layout.binAngles, binXs, {
-          ideal: adaptiveIdeal(flicks.current),
-        });
-        if (!shot) return;
-        flicks.current = [...flicks.current, flickPower(dx, dy, vy)].slice(-LEARN_WINDOW);
-        throwShot(shot, powerFor(vy));
+        const shot = aimShot(dx, dy);
+        if (shot) throwShot(shot);
+        // Aus Gewohnheit nach oben gewischt? Kurz erklären, wie es geht
+        else if (dy < -60) float(`👇 ${t("game.pullHint")}`, screenW / 2, layout.binTops[0].y);
       },
       cancel: () => {
-        setAim(bus.current, null);
         setShotGuide(bus.current, null);
-        smoothVy.current = 0;
+        pullStep.current = -1;
       },
       land: handleLand,
     };
@@ -298,12 +284,9 @@ export function TrickRound({
     return () => setLandHandler(b, () => undefined);
   }, []);
 
-  const onAim = useCallback(
-    (dx: number, dy: number, vy: number) => handlers.current.aim(dx, dy, vy),
-    [],
-  );
+  const onAim = useCallback((dx: number, dy: number) => handlers.current.aim(dx, dy), []);
   const onRelease = useCallback(
-    (dx: number, dy: number, vy: number) => handlers.current.release(dx, dy, vy),
+    (dx: number, dy: number) => handlers.current.release(dx, dy),
     [],
   );
   const onCancel = useCallback(() => handlers.current.cancel(), []);
@@ -315,8 +298,8 @@ export function TrickRound({
         .enabled(!finished)
         .runOnJS(true)
         .minDistance(6)
-        .onUpdate((e) => onAim(e.translationX, e.translationY, e.velocityY))
-        .onEnd((e) => onRelease(e.translationX, e.translationY, e.velocityY))
+        .onUpdate((e) => onAim(e.translationX, e.translationY))
+        .onEnd((e) => onRelease(e.translationX, e.translationY))
         .onFinalize(onCancel),
     [onAim, onRelease, onCancel, finished],
   );
@@ -364,7 +347,7 @@ export function TrickRound({
             </View>
             {item && !finished && (
               <View pointerEvents="none" style={[styles.overlayRow, { top: itemTagTop }]}>
-                <ItemCard key={item.name} item={item} showHint={!hasThrown} hint={t("trick.hint")} />
+                <ItemCard key={item.name} item={item} showHint={!hasThrown} hint={t("trick.hint")} pull />
               </View>
             )}
           </>

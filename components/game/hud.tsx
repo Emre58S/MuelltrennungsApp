@@ -213,11 +213,14 @@ export function ItemCard({
   item,
   showHint,
   hint,
+  pull = false,
 }: {
   item: Item;
   showHint: boolean;
   /** Eigener Hinweis beim ersten Wurf (sonst Wischen/Tippen). */
   hint?: string;
+  /** Zielwurf/Trickwürfe: die Hand zeigt Zurückziehen (nach unten) statt Wischen. */
+  pull?: boolean;
 }) {
   const { t, itemName } = useI18n();
   const enter = useEnter(260, Easing.out(Easing.quad));
@@ -262,7 +265,14 @@ export function ItemCard({
               styles.hand,
               {
                 opacity: hand.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [0, 1, 1, 0] }),
-                transform: [{ translateY: hand.interpolate({ inputRange: [0, 1], outputRange: [6, -24] }) }],
+                transform: [
+                  {
+                    translateY: hand.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: pull ? [-8, 22] : [6, -24],
+                    }),
+                  },
+                ],
               },
             ]}
           >

@@ -24,6 +24,7 @@ import {
   flightVelocity,
   handOverBall,
   type PropCollider,
+  pullArc,
   stepBall,
   throwArc,
 } from "@/game/physics";
@@ -76,6 +77,7 @@ export const PreviewItem = memo(function PreviewItem({
   const age = useRef(0);
   const aim = useRef(0);
   const lean = useRef(0);
+  const pull = useRef(0);
 
   useFrame((state, rawDelta) => {
     const g = ref.current;
@@ -99,24 +101,33 @@ export const PreviewItem = memo(function PreviewItem({
     const calm = fx.current.calm;
     const aimIndex = bus.current.aim;
     const target = aimIndex !== null ? openings[aimIndex] : undefined;
+    // Zielwurf: Zurückziehen spannt den Gegenstand wie eine Schleuder
+    const guide = bus.current.shotGuide;
 
     aim.current = THREE.MathUtils.damp(aim.current, target ? 1 : 0, 12, delta);
-    const dirX = target ? THREE.MathUtils.clamp((target.x - position.x) / 2, -1, 1) : 0;
+    pull.current = THREE.MathUtils.damp(pull.current, guide ? guide.strength : 0, 18, delta);
+    const toX = guide ? guide.x : target?.x;
+    const dirX = toX !== undefined ? THREE.MathUtils.clamp((toX - position.x) / 2, -1, 1) : 0;
     lean.current = THREE.MathUtils.damp(lean.current, dirX, 10, delta);
 
     // Auftauchen mit Überschwinger
     const pop = calm ? 1 : easeOutBack(Math.min(age.current / 0.3, 1));
     // Schwung holen: beim Zielen etwas zurück/runter und kleiner
     const windUp = aim.current;
-    g.scale.setScalar(scale * pop * (1 - windUp * 0.06));
+    const p = pull.current;
+    // Volle Kraft: leichtes Zittern vor Spannung
+    const tremble = calm || p < 0.85 ? 0 : Math.sin(t * 70) * 0.012 * (p - 0.85) * 6;
+    const size = scale * pop * (1 - windUp * 0.06);
+    // Gespannt: breiter und flacher, zurück zur Kamera und nach unten gezogen
+    g.scale.set(size * (1 + p * 0.1), size * (1 - p * 0.14), size * (1 + p * 0.1));
     g.position.set(
-      position.x - lean.current * 0.08,
-      position.y + (calm ? 0 : Math.sin(t * 2.2) * 0.04) - windUp * 0.1,
-      position.z + windUp * 0.12,
+      position.x - lean.current * (0.08 + p * 0.12) + tremble,
+      position.y + (calm ? 0 : Math.sin(t * 2.2) * 0.04 * (1 - p)) - windUp * 0.1 - p * 0.16,
+      position.z + windUp * 0.12 + p * 0.3,
     );
     g.rotation.set(
-      0.15 - windUp * 0.25,
-      calm ? -0.3 : -0.3 + Math.sin(t * 0.9) * 0.35,
+      0.15 - windUp * 0.25 - p * 0.35,
+      calm ? -0.3 : -0.3 + Math.sin(t * 0.9) * 0.35 * (1 - p),
       -lean.current * 0.35,
     );
     setLook(fx.current, g.position);
@@ -139,59 +150,105 @@ export const PreviewItem = memo(function PreviewItem({
 const DOTS = 14;
 const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
 
-/** Flugbahn-Vorschau (Trickwürfe): die ersten ~60 % des Flugs, den der
- *  Wisch gerade auslösen würde – planbar, aber Ende und Abpraller schätzt
- *  man selbst. Liest bus.shotGuide, kein Neu-Rendern. */
-const GUIDE_DOTS = 12;
-const GUIDE_SHARE = 0.6;
+/** Flugbahn-Vorschau beim Zurückziehen (Zielwurf, Trickwürfe): genau die
+ *  Bahn, die das Loslassen jetzt auslösen würde – länger gezogen = weiter und
+ *  höher. Gezeigt wird nur der Anfang (`share`): planbar, aber das Ende und
+ *  Abpraller schätzt man selbst. Liest bus.shotGuide, kein Neu-Rendern. */
+const GUIDE_DOTS = 14;
+/** Dunkler Rand um jeden Punkt: lesbar auf Himmel, Wand und Rasen. */
+const GUIDE_HALO = 1.55;
 
 export const ShotGuideDots = memo(function ShotGuideDots({
   start,
   openingY,
   bus,
+  share,
+  calm,
 }: {
   start: THREE.Vector3;
   openingY: number;
   bus: BusRef;
+  /** Anteil der Flugbahn, der zu sehen ist (0…1). */
+  share: number;
+  /** Weniger Bewegung: Punkte stehen still statt zu wandern. */
+  calm: boolean;
 }) {
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const dots = useRef<THREE.InstancedMesh>(null);
+  const halos = useRef<THREE.InstancedMesh>(null);
+  const phase = useRef(0);
   const target = useMemo(() => new THREE.Vector3(), []);
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const s = useMemo(() => new THREE.Vector3(), []);
+  // Immer obenauf (depthTest aus): die Bahn verschwindet nie hinter einer Tonne
   const mat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.85 }),
+    () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", depthTest: false, depthWrite: false }),
     [],
   );
-  useEffect(() => () => mat.dispose(), [mat]);
+  const haloMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: "#0E1A22",
+        transparent: true,
+        opacity: 0.32,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    [],
+  );
+  useEffect(
+    () => () => {
+      mat.dispose();
+      haloMat.dispose();
+    },
+    [mat, haloMat],
+  );
 
-  useFrame(() => {
-    const mesh = ref.current;
-    if (!mesh) return;
+  useFrame((_, delta) => {
+    const dot = dots.current;
+    const halo = halos.current;
+    if (!dot || !halo) return;
     const guide = bus.current.shotGuide;
-    mesh.visible = !!guide;
+    dot.visible = halo.visible = !!guide;
     if (!guide) return;
+    // Punkte wandern Richtung Ziel (wie ein Lauflicht): zeigt die Flugrichtung
+    if (!calm) phase.current = (phase.current + Math.min(delta, 0.05) * 1.5) % 1;
     target.set(guide.x, openingY, guide.z);
-    const arc = throwArc(start, target, guide.power);
+    const arc = pullArc(start, target, guide.strength);
     for (let i = 0; i < GUIDE_DOTS; i++) {
-      const t = ((i + 1) / GUIDE_DOTS) * GUIDE_SHARE;
-      flightPoint(tmp, start, target, t, arc);
-      // Nach vorn kleiner und blasser werdend
-      s.setScalar(0.07 - (i / GUIDE_DOTS) * 0.035);
-      m.compose(tmp, q, s);
-      mesh.setMatrixAt(i, m);
+      const k = (i + phase.current) / GUIDE_DOTS;
+      flightPoint(tmp, start, target, k * share, arc);
+      // Nach vorn kleiner; der erste wächst herein, der letzte schrumpft weg
+      let size = 0.078 - k * 0.04;
+      if (i === 0) size *= phase.current;
+      if (i === GUIDE_DOTS - 1) size *= 1 - phase.current;
+      m.compose(tmp, q, s.setScalar(size));
+      dot.setMatrixAt(i, m);
+      m.compose(tmp, q, s.setScalar(size * GUIDE_HALO));
+      halo.setMatrixAt(i, m);
     }
-    mesh.instanceMatrix.needsUpdate = true;
+    dot.instanceMatrix.needsUpdate = true;
+    halo.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <instancedMesh
-      ref={ref}
-      args={[DOT_GEO, mat, GUIDE_DOTS]}
-      frustumCulled={false}
-      visible={false}
-    />
+    <>
+      <instancedMesh
+        ref={halos}
+        args={[DOT_GEO, haloMat, GUIDE_DOTS]}
+        frustumCulled={false}
+        renderOrder={10}
+        visible={false}
+      />
+      <instancedMesh
+        ref={dots}
+        args={[DOT_GEO, mat, GUIDE_DOTS]}
+        frustumCulled={false}
+        renderOrder={11}
+        visible={false}
+      />
+    </>
   );
 });
 
@@ -445,8 +502,11 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.started = now;
     if (spec.land) s.target.set(spec.land.x, openings[0]?.y ?? start.y, spec.land.z);
     else s.target.copy(openings[spec.binIndex] ?? start);
-    // Kräftiger Wisch → flacherer Bogen, sanfter Wisch → höherer Bogen
-    s.arc = throwArc(start, s.target, spec.power ?? 1);
+    // Zielwurf: genau der Bogen der Vorschau. Sonst: kräftiger Wisch → flacher
+    s.arc =
+      spec.strength !== undefined
+        ? pullArc(start, s.target, spec.strength)
+        : throwArc(start, s.target, spec.power ?? 1);
     s.trail.forEach((v) => v.copy(start));
     s.head = 0;
     s.trailShown = true;

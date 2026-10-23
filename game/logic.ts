@@ -46,46 +46,38 @@ export function aimFromDrag(
   return { binIndex: best, perfect: bestDiff <= perfectTolerance };
 }
 
-/* ── Zielwurf (freier Wurf, kein Einrasten) ───────────────── */
+/* ── Zielwurf: zurückziehen, Flugbahn sehen, loslassen ────── */
 
-/** Standard-Wischtempo nach oben (px/s), bei dem ein Wurf genau bis zur Tonne fliegt. */
-export const IDEAL_FLICK = 2000;
-/** Ab dieser Wischlänge (px) zählt das Tempo voll; kürzere Wische sind schwächer. */
-const FULL_SWIPE = 90;
-/** Ganz schwacher Wurf landet höchstens so weit vor den Tonnen (Welt-Einheiten). */
-const SHORT_RANGE = 6.5;
-/** Weitester Wurf hinter die Tonnen (bis zur Rückwand). */
+/** Ab dieser Zuglänge (px) wird gezielt; kürzer = abbrechen. */
+const MIN_PULL = 18;
+/** Zuglänge für volle Kraft als Anteil der Bildschirmhöhe. */
+export const FULL_PULL_SHARE = 0.22;
+/** Kraft (0…1), bei der ein Wurf genau in den Tonnen landet. */
+export const SWEET_STRENGTH = 0.55;
+/** Schwächster Wurf landet so weit vor den Tonnen (Welt-Einheiten). */
+const SHORT_RANGE = 6;
+/** Stärkster Wurf fliegt so weit hinter die Tonnen (bis zur Rückwand). */
 const LONG_RANGE = 2.2;
-/** So viele der letzten Würfe bestimmen das „richtige“ Tempo. */
-export const LEARN_WINDOW = 8;
+/** > 1: Rund um die Tonnen ändert sich die Weite langsamer (fairer Treffer-
+ *  Bereich). Davor fast gleichmäßig – dort stehen die Trick-Hindernisse –,
+ *  dahinter stärker gebogen: wer etwas zu lang zieht, trifft noch. */
+const NEAR_CURVE = 1.3;
+const FAR_CURVE = 1.0;
+
+/** Zuglänge (px) → Kraft 0…1. `full` = Zuglänge für volle Kraft. */
+export function pullStrength(length: number, full: number): number {
+  return Math.min(Math.max((length - MIN_PULL) / (full - MIN_PULL), 0), 1);
+}
 
 /**
- * Wischstärke (1 = genau richtig) → Landestelle vor (+) bzw. hinter (−) den
- * Tonnen. Nahe 1 sehr flach (±20 % landen noch in der Öffnung), weiter weg
- * immer deutlicher: schwach = weit davor, kräftig = drüber bis an die Wand.
+ * Kraft → Landestelle vor (+) bzw. hinter (−) den Tonnen. Länger ziehen
+ * fliegt immer weiter (und höher); bei SWEET_STRENGTH genau in die Öffnung.
  */
 export function throwDepth(strength: number): number {
-  if (strength < 1) return Math.min(Math.pow(1 - Math.max(strength, 0), 2) * 9, SHORT_RANGE);
-  return -Math.min(Math.pow(strength - 1, 1.6) * 4, LONG_RANGE);
-}
-
-/** Wisch-Kraft: Tempo nach oben, kurze Wische zählen weniger. */
-export function flickPower(dx: number, dy: number, vy: number): number {
-  return Math.max(0, -vy) * Math.min(1, Math.hypot(dx, dy) / FULL_SWIPE);
-}
-
-/**
- * Das „richtige“ Tempo lernt vom Spieler: Median der letzten Würfe, höchstens
- * ±25 % vom Standard und erst ab 3 Würfen. So zählt gleichmäßiges Werfen –
- * nicht ein fremder Normwert, der auf jedem Handy anders wirkt.
- */
-export function adaptiveIdeal(history: number[]): number {
-  const recent = history.slice(-LEARN_WINDOW).filter((v) => v > 0);
-  if (recent.length < 3) return IDEAL_FLICK;
-  const sorted = [...recent].sort((a, b) => a - b);
-  const mid = sorted.length >> 1;
-  const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-  return Math.min(Math.max(median, IDEAL_FLICK * 0.75), IDEAL_FLICK * 1.25);
+  const s = Math.min(Math.max(strength, 0), 1);
+  if (s <= SWEET_STRENGTH)
+    return SHORT_RANGE * Math.pow((SWEET_STRENGTH - s) / SWEET_STRENGTH, NEAR_CURVE);
+  return -LONG_RANGE * Math.pow((s - SWEET_STRENGTH) / (1 - SWEET_STRENGTH), FAR_CURVE);
 }
 
 /** Unsichtbare Hilfe nach Pech: 0 = keine … 1 = volle, ab 2 Fehlwürfen in Folge. */
@@ -115,7 +107,7 @@ export type FreeShot = {
   /** Daneben, aber knapp: prallt vom Rand dieser Tonne ab. */
   rimIndex: number | null;
   perfect: boolean;
-  /** Wischstärke (1 = genau richtig) – zum Nachjustieren im Log. */
+  /** Kraft 0…1 (aus der Zuglänge). */
   strength: number;
 };
 
@@ -130,26 +122,27 @@ function angleToX(angle: number, binAngles: number[], binXs: number[]): number {
 }
 
 /**
- * Wie beim Basketball: die RICHTUNG bestimmt, wo seitlich der Wurf ankommt,
- * das TEMPO, wie weit er fliegt. Nur wenn beides passt, landet er in der Tonne.
- * `ideal` = gelerntes Tempo (adaptiveIdeal), `assist` = Hilfe nach Pech (missAssist).
+ * Wie bei Dunk Shot oder Angry Birds: Finger nach unten ziehen (Schleuder),
+ * geworfen wird in die Gegenrichtung. Die RICHTUNG bestimmt, wo seitlich der
+ * Wurf ankommt, die ZUGLÄNGE, wie weit er fliegt – die Szene zeigt dabei die
+ * Flugbahn. `full` = Zuglänge (px) für volle Kraft, `assist` = Hilfe nach Pech
+ * (missAssist). Null = zu wenig oder nach oben gezogen.
  */
-export function freeShot(
+export function pullShot(
   dx: number,
   dy: number,
-  vy: number,
+  full: number,
   binAngles: number[],
   binXs: number[],
-  opts: { ideal?: number; assist?: number } = {},
+  opts: { assist?: number } = {},
 ): FreeShot | null {
-  if (dy > -MIN_AIM_DISTANCE * 0.6 || Math.hypot(dx, dy) < MIN_AIM_DISTANCE) {
-    return null;
-  }
+  const length = Math.hypot(dx, dy);
+  if (dy < MIN_PULL * 0.6 || length < MIN_PULL) return null;
   const assist = opts.assist ?? 0;
-  const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  const angle = (Math.atan2(-dx, dy) * 180) / Math.PI;
   const rawX = angleToX(angle, binAngles, binXs);
-  const strength = flickPower(dx, dy, vy) / (opts.ideal ?? IDEAL_FLICK);
-  // Pech-Hilfe macht das Tempo-Fenster etwas größer
+  const strength = pullStrength(length, full);
+  // Pech-Hilfe macht den Weiten-Bereich der Tonne etwas größer
   const depth = throwDepth(strength) * (1 - 0.35 * assist);
 
   let best = 0;

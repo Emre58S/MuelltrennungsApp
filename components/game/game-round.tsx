@@ -30,6 +30,7 @@ import {
   setAim,
   setLandHandler,
   setPreview,
+  setShotGuide,
   type LandOutcome,
   type ThrowSpec,
 } from "@/components/game/scene-bus";
@@ -44,9 +45,8 @@ import {
   getUnlockAtLevel,
   STANDARD_BINS,
 } from "@/game/bins";
-import { BIN_OPENING_Y, CAMERA_FOV, computeLayout } from "@/game/layout";
+import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, shotLanding } from "@/game/layout";
 import {
-  adaptiveIdeal,
   aimBonus,
   aimFromDrag,
   DAILY_COUNT,
@@ -54,17 +54,16 @@ import {
   ENDSPURT_SECONDS,
   FEVER_EVERY,
   FEVER_SECONDS,
-  flickPower,
   type FreeShot,
-  freeShot,
+  FULL_PULL_SHARE,
   getMultiplier,
   getPoints,
   type HitResult,
   INITIAL_STATS,
   itemWeight,
-  LEARN_WINDOW,
   missAssist,
   pickItem,
+  pullShot,
   recentLimit,
   statsReducer,
   XP_PER_RESULT,
@@ -223,9 +222,9 @@ export function GameRound({
     setPreview(bus.current, itemRef.current);
   }, []);
   const throwMap = useRef(new Map<number, ThrowSpec>());
-  // Zielwurf: gelerntes Wurf-Tempo und Fehlwürfe in Folge (Pech-Hilfe)
-  const flicks = useRef<number[]>([]);
+  // Zielwurf: Fehlwürfe in Folge (Pech-Hilfe) und Kraft-Stufe fürs Vibrations-Klicken
   const missesInRow = useRef(0);
+  const pullStep = useRef(-1);
   const [floats, setFloats] = useState<FloatText[]>([]);
   const [praise, setPraise] = useState<Praised | null>(null);
   const [learn, setLearn] = useState<Learn | null>(null);
@@ -292,6 +291,7 @@ export function GameRound({
       lock.current.timeUp = true;
       lock.current.ended = true;
       setAim(bus.current, null);
+      setShotGuide(bus.current, null);
       later(() => setFinished(true), TIME_UP_GRACE_MS);
     }
   }, [mode, timerStarted, timeLeft, later]);
@@ -300,6 +300,7 @@ export function GameRound({
   useEffect(() => {
     if (!showEnd) return;
     setAim(bus.current, null);
+    setShotGuide(bus.current, null);
     setPreview(bus.current, null);
     commitRound();
     sfx("end");
@@ -348,6 +349,7 @@ export function GameRound({
     const item = itemRef.current;
     if (!item || l.ended || finished) return;
     setAim(bus.current, null);
+    setShotGuide(bus.current, null);
     cancelSlowMotion(fx.current);
     if (isTimed(mode) && !timerStarted) setTimerStarted(true);
     if (!hasThrown) setHasThrown(true);
@@ -365,10 +367,8 @@ export function GameRound({
       power,
     };
     if (shot) {
-      // Ganz schwache Würfe landen weit vorn – aber nie hinter dem Startpunkt
-      const binZ = layout.bins[0]?.z ?? 0;
-      const z = Math.min(binZ + shot.depth, layout.item.position.z - 1.2);
-      spec.land = { x: shot.x, z };
+      spec.land = shotLanding(layout, shot);
+      spec.strength = shot.strength;
       spec.free = {
         accept: bins.map((b) => b.category === item.category),
         center: shot.perfect,
@@ -636,10 +636,32 @@ export function GameRound({
     throwTo: (_i: number) => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
   });
+  // Zielwurf: Zuglänge für volle Kraft (gleich auf jedem Handy: Anteil der Höhe)
+  const fullPull = screenH * FULL_PULL_SHARE;
+  const aimShot = (dx: number, dy: number) =>
+    pullShot(dx, dy, fullPull, layout.binAngles, binXs, {
+      assist: missAssist(missesInRow.current),
+    });
   useLayoutEffect(() => {
     handlers.current = {
       aim: (dx, dy) => {
         if (lock.current.ended) return;
+        if (mode === "aim") {
+          // Zurückziehen: Flugbahn zeigen, Kraft mit leisem Vibrations-Klicken
+          // (bewusst ohne Ton – der würde das Bild kurz anhalten)
+          const shot = aimShot(dx, dy);
+          setShotGuide(
+            bus.current,
+            shot ? { ...shotLanding(layout, shot), strength: shot.strength } : null,
+          );
+          const step = shot ? Math.floor(shot.strength * 10) : -1;
+          if (step !== pullStep.current) {
+            if (step > pullStep.current && step >= 0)
+              Haptics.selectionAsync().catch(() => undefined);
+            pullStep.current = step;
+          }
+          return;
+        }
         const idx = aimFromDrag(dx, dy, layout.binAngles)?.binIndex ?? null;
         if (idx === bus.current.aim) return;
         setAim(bus.current, idx);
@@ -650,28 +672,34 @@ export function GameRound({
       },
       release: (dx, dy, vy) => {
         setAim(bus.current, null);
-        // Schneller Wisch → kräftigere, flachere Bahn; langsamer → höherer Bogen
-        const power = Math.min(Math.max(0.8 + -vy / 5000, 0.8), 1.3);
+        setShotGuide(bus.current, null);
+        pullStep.current = -1;
         if (mode === "aim") {
-          // Zielwurf: Richtung + Tempo entscheiden, kein Einrasten
-          // Fair: Tempo lernt vom Spieler, nach Pech hilft es unauffällig
-          const ideal = adaptiveIdeal(flicks.current);
-          const assist = missAssist(missesInRow.current);
-          const shot = freeShot(dx, dy, vy, layout.binAngles, binXs, { ideal, assist });
-          if (!shot) return;
-          flicks.current = [...flicks.current, flickPower(dx, dy, vy)].slice(-LEARN_WINDOW);
+          // Zielwurf: Loslassen wirft genau so, wie die Vorschau es zeigte
+          const shot = aimShot(dx, dy);
+          if (!shot) {
+            // Aus Gewohnheit nach oben gewischt? Kurz erklären, wie es geht
+            if (dy < -60 && !lock.current.ended) showBanner(`👇 ${t("game.pullHint")}`, 1800);
+            return;
+          }
           if (__DEV__)
             // Zum Nachjustieren (landet im Metro-Log)
             console.log(
-              `[wurf] tempo=${Math.round(-vy)} länge=${Math.round(Math.hypot(dx, dy))} ideal=${Math.round(ideal)} hilfe=${assist} stärke=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)}`,
+              `[wurf] zug=${Math.round(Math.hypot(dx, dy))}px kraft=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)} x=${shot.x.toFixed(2)}`,
             );
-          throwTo(shot.binIndex ?? 0, shot.perfect, power, shot);
+          throwTo(shot.binIndex ?? 0, shot.perfect, 1, shot);
           return;
         }
+        // Schneller Wisch → kräftigere, flachere Bahn; langsamer → höherer Bogen
+        const power = Math.min(Math.max(0.8 + -vy / 5000, 0.8), 1.3);
         const aim = aimFromDrag(dx, dy, layout.binAngles);
         if (aim) throwTo(aim.binIndex, aim.perfect, power);
       },
-      cancel: () => setAim(bus.current, null),
+      cancel: () => {
+        setAim(bus.current, null);
+        setShotGuide(bus.current, null);
+        pullStep.current = -1;
+      },
       tap: (x, y) => {
         // Im Zielwurf zählt nur echtes Werfen
         if (mode === "aim") return;
@@ -843,6 +871,7 @@ export function GameRound({
                   item={currentItem}
                   showHint={!hasThrown}
                   hint={mode === "aim" ? t("game.aimHint") : undefined}
+                  pull={mode === "aim"}
                 />
               </View>
             )}

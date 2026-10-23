@@ -171,9 +171,9 @@ export const GameScene = memo(function GameScene({
   lang: Language;
   /** Szene dieser Runde (bestimmt auch die Tonnen). */
   scene: SceneKind;
-  /** Gepunktete Flugbahn beim Zielen (aus im Zielwurf). */
+  /** Gepunktete Flugbahn zur anvisierten Tonne (aus im Zielwurf). */
   guide?: boolean;
-  /** Zielwurf: Deckel stehen offen (und zählen für die Physik). */
+  /** Zielwurf: Deckel stehen offen (und zählen für die Physik), Flugbahn-Vorschau beim Zurückziehen. */
   openLids?: boolean;
   /** Trickwürfe: Hindernisse (Modelle + Physik) und Flugbahn-Vorschau. */
   trick?: { props: TrickProp[]; colliders: PropCollider[] };
@@ -230,11 +230,17 @@ export const GameScene = memo(function GameScene({
         props={trick?.colliders}
       />
 
-      {trick && (
-        <>
-          <TrickProps props={trick.props} />
-          <ShotGuideDots start={layout.item.position} openingY={BIN_OPENING_Y + 0.1} bus={bus} />
-        </>
+      {trick && <TrickProps props={trick.props} />}
+
+      {/* Zielwurf und Trickwürfe: Flugbahn beim Zurückziehen (Tricks zeigen weniger) */}
+      {(openLids || trick) && (
+        <ShotGuideDots
+          start={layout.item.position}
+          openingY={BIN_OPENING_Y + 0.1}
+          bus={bus}
+          share={trick ? 0.6 : 0.7}
+          calm={calm}
+        />
       )}
 
       <BurstLayer bus={bus} fx={fx} />

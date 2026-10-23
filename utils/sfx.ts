@@ -101,25 +101,36 @@ const POOL_SIZE: Partial<Record<SfxName, number>> = {
   rim: 3,
   lid: 2,
 };
-const players = new Map<SfxName, { list: AudioPlayer[]; next: number }>();
+/** Ein Player mit zuletzt gesetzter Lautstärke/Tonhöhe: jeder Aufruf ans
+ *  Handy-System kostet Zeit auf dem Thread, auf dem auch die 3D-Szene läuft. */
+type Voice = { p: AudioPlayer; volume: number; rate: number };
+
+const players = new Map<SfxName, { list: Voice[]; next: number }>();
 let enabled = true;
 
-function player(name: SfxName): AudioPlayer {
+function player(name: SfxName): Voice {
   let pool = players.get(name);
   if (!pool) {
     pool = {
       list: Array.from({ length: POOL_SIZE[name] ?? 1 }, () => {
-        const p = createAudioPlayer(SOURCES[name]);
+        // Audio-Sitzung aktiv lassen: Sonst schaltet iOS sie nach jedem Ton ab,
+        // und das nächste play() schaltet sie synchron wieder ein – das hielt
+        // das Spiel bei jedem Wurf 40–90 ms an. Statusmeldungen selten (die
+        // Töne sind kürzer als 1 s; niemand hört hier zu).
+        const p = createAudioPlayer(SOURCES[name], {
+          keepAudioSessionActive: true,
+          updateInterval: 2000,
+        });
         p.shouldCorrectPitch = false;
-        return p;
+        return { p, volume: -1, rate: -1 };
       }),
       next: 0,
     };
     players.set(name, pool);
   }
-  const p = pool.list[pool.next];
+  const v = pool.list[pool.next];
   pool.next = (pool.next + 1) % pool.list.length;
-  return p;
+  return v;
 }
 
 /** Einstellung „Töne“ neu einlesen (beim Start einer Runde / des Menüs). */
@@ -135,13 +146,22 @@ export function sfx(name: SfxName, opts: { rate?: number; volume?: number } = {}
   if (!enabled) return;
   const start = __DEV__ ? performance.now() : 0;
   try {
-    const p = player(name);
+    const v = player(name);
     const mix = MIX[name];
     const rate = (opts.rate ?? 1) * (1 + (Math.random() * 2 - 1) * mix.vary);
-    p.volume = Math.min(1, mix.volume * (opts.volume ?? 1));
-    p.setPlaybackRate(Math.min(2, Math.max(0.5, rate)));
-    p.seekTo(0);
-    p.play();
+    // Auf hörbare Stufen runden: gleiche Werte werden nicht erneut gesetzt
+    const volume = Math.round(Math.min(1, mix.volume * (opts.volume ?? 1)) * 20) / 20;
+    const speed = Math.round(Math.min(2, Math.max(0.5, rate)) * 50) / 50;
+    if (volume !== v.volume) {
+      v.p.volume = volume;
+      v.volume = volume;
+    }
+    if (speed !== v.rate) {
+      v.p.setPlaybackRate(speed);
+      v.rate = speed;
+    }
+    v.p.seekTo(0);
+    v.p.play();
   } catch {
     // Sound ist Bonus – Spiel läuft weiter.
   }

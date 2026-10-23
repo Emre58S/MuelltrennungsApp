@@ -1,33 +1,35 @@
 // Datei: game/trick-solver.ts
 // NUR FÜR TESTS: Löser für Trickwurf-Level. Probiert Würfe (Richtung ×
-// Wischstärke) mit derselben Rechnung wie das Spiel durch (freeShot → feste
+// Kraft) mit derselben Rechnung wie das Spiel durch (pullShot → feste
 // Flugbahn → Physik) – so lässt sich prüfen, ob ein Level fair lösbar ist.
 
 import * as THREE from "three";
 
-import { BIN_OPENING_Y, computeLayout } from "./layout";
-import { freeShot, IDEAL_FLICK } from "./logic";
+import { BIN_OPENING_Y, computeLayout, shotLanding } from "./layout";
+import { FULL_PULL_SHARE, pullShot } from "./logic";
 import { type BinCollider, simulateThrow } from "./physics";
 import { levelColliders, meetsRequirement, type TrickLevel } from "./trick-levels";
 
 /** Deckel stehen im Trick-Modus offen (wie im Zielwurf). */
 const LID_OPEN = 1.85;
+const SCREEN_H = 844;
 
-export const layout = computeLayout(390, 844, 3);
+export const layout = computeLayout(390, SCREEN_H, 3);
 const bins: BinCollider[] = layout.bins.map((b) => ({ x: b.x, z: b.z, lid: LID_OPEN }));
 const binXs = layout.bins.map((b) => b.x);
+/** Zuglänge (px) für volle Kraft – wie im Spiel. */
+export const FULL_PULL = FULL_PULL_SHARE * SCREEN_H;
 
-/** Ein Wurf: Winkel (Grad, 0 = gerade) und Stärke (1 = Ideal-Tempo). */
+/** Ein Wurf: Winkel (Grad, 0 = gerade) und Kraft (0…1 der vollen Zuglänge). */
 export function throwAt(level: TrickLevel, angle: number, strength: number) {
-  const dx = Math.tan((angle * Math.PI) / 180) * 100;
-  const vy = -strength * IDEAL_FLICK;
-  const shot = freeShot(dx, -100, vy, layout.binAngles, binXs);
+  // Zurückziehen: Finger nach unten, entgegen der Wurfrichtung
+  const length = 18 + strength * (FULL_PULL - 18);
+  const rad = (angle * Math.PI) / 180;
+  const shot = pullShot(-Math.sin(rad) * length, Math.cos(rad) * length, FULL_PULL, layout.binAngles, binXs);
   if (!shot) return null;
-  const start = layout.item.position;
-  const z = Math.min(shot.depth, start.z - 1.2);
-  const target = new THREE.Vector3(shot.x, BIN_OPENING_Y + 0.1, z);
-  const power = Math.min(Math.max(0.8 + (strength * IDEAL_FLICK) / 5000, 0.8), 1.3);
-  return simulateThrow(start, target, power, bins, levelColliders(level));
+  const land = shotLanding(layout, shot);
+  const target = new THREE.Vector3(land.x, BIN_OPENING_Y + 0.1, land.z);
+  return simulateThrow(layout.item.position, target, strength, bins, levelColliders(level));
 }
 
 export type Solve = {
@@ -46,7 +48,7 @@ export function solve(level: TrickLevel): Solve {
   let total = 0;
   let withoutTrick = 0;
   const wins: { angle: number; strength: number }[] = [];
-  for (let strength = 0.25; strength <= 1.6001; strength += 0.05) {
+  for (let strength = 0; strength <= 1.0001; strength += 0.025) {
     let row = "";
     for (let angle = -30; angle <= 30; angle += 2) {
       total += 1;
