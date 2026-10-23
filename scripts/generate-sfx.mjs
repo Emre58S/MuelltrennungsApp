@@ -6,6 +6,7 @@
 // Monument Valley). Alle Töne liegen in C-Dur-Pentatonik → klingen
 // miteinander immer harmonisch. Fehler = weicher, tiefer Ton (nie strafend).
 
+import { Buffer } from "node:buffer";
 import { mkdirSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
