@@ -6,8 +6,6 @@ export type Category =
   | "Glas"
   | "Sondermüll";
 
-export type MainGameCategory = "Restmüll" | "Biomüll" | "Gelber Sack";
-
 export type Item = {
   emoji: string;
   name: string;
@@ -454,7 +452,7 @@ export const ITEMS: Item[] = [
     name: "Batterie",
     category: "Sondermüll",
     difficulty: "leicht",
-    fact: "Batterien können an jedem Supermarkt-Sammelbox abgegeben werden!",
+    fact: "Batterien kannst du in jedem Supermarkt in die Sammelbox werfen!",
   },
   {
     emoji: "📱",
@@ -513,168 +511,5 @@ export const ITEMS: Item[] = [
     name: "Nagellackentferner",
     category: "Sondermüll",
     difficulty: "schwer",
-  },
-];
-
-// ── Kategorie-Farben ────────────────────────────────────────────────
-
-export const CATEGORY_COLORS: Record<Category, string> = {
-  Restmüll: "#4B5563",
-  Biomüll: "#8B5E34",
-  Papier: "#3B82F6",
-  "Gelber Sack": "#F5C518",
-  Glas: "#2ECC71",
-  Sondermüll: "#EF4444",
-};
-
-export const CATEGORY_EMOJIS: Record<Category, string> = {
-  Restmüll: "⚫",
-  Biomüll: "🟫",
-  Papier: "🔵",
-  "Gelber Sack": "🟡",
-  Glas: "🟢",
-  Sondermüll: "🔴",
-};
-
-export const ALL_CATEGORIES: Category[] = [
-  "Restmüll",
-  "Biomüll",
-  "Papier",
-  "Gelber Sack",
-  "Glas",
-  "Sondermüll",
-];
-
-// ── Hauptspiel ──────────────────────────────────────────────────────
-// Im 3D-Spiel verwenden wir aktuell nur:
-// Biomüll, Gelber Sack und Restmüll.
-
-export function getMainGameItems(): Item[] {
-  return ITEMS.filter(
-    (item) =>
-      item.category === "Biomüll" ||
-      item.category === "Gelber Sack" ||
-      item.category === "Restmüll",
-  );
-}
-
-// ── Helpers ─────────────────────────────────────────────────────────
-
-export function getRandomItem(exclude?: Item): Item {
-  let next = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-  let attempts = 0;
-
-  while (exclude && next.name === exclude.name && attempts < 50) {
-    next = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-    attempts++;
-  }
-
-  return next;
-}
-
-export function getItemsByDifficulty(
-  difficulty: "leicht" | "mittel" | "schwer",
-): Item[] {
-  return ITEMS.filter((item) => item.difficulty === difficulty);
-}
-
-export function getRandomItemByDifficulty(
-  difficulty: "leicht" | "mittel" | "schwer",
-  exclude?: Item,
-): Item {
-  const pool = getItemsByDifficulty(difficulty);
-
-  let next = pool[Math.floor(Math.random() * pool.length)];
-  let attempts = 0;
-
-  while (exclude && next.name === exclude.name && attempts < 50) {
-    next = pool[Math.floor(Math.random() * pool.length)];
-    attempts++;
-  }
-
-  return next;
-}
-
-export function getRoundOptions(
-  correct: Category,
-  count: number = 4,
-): Category[] {
-  const options = new Set<Category>([correct]);
-
-  while (options.size < Math.min(count, ALL_CATEGORIES.length)) {
-    options.add(
-      ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)],
-    );
-  }
-
-  return Array.from(options).sort(() => Math.random() - 0.5);
-}
-
-export type BinData = {
-  category: Category;
-  emoji: string;
-  binEmoji: string;
-  color: string;
-  colorLight: string;
-  glow: string;
-  label: string;
-};
-
-// ── Mülltonnen ──────────────────────────────────────────────────────
-
-export const BINS: BinData[] = [
-  {
-    category: "Biomüll",
-    emoji: "🟫",
-    binEmoji: "🗑️",
-    color: "#6D4C2A",
-    colorLight: "#8B6B3D",
-    glow: "#8B6B3D55",
-    label: "Bio",
-  },
-  {
-    category: "Papier",
-    emoji: "🔵",
-    binEmoji: "🗑️",
-    color: "#1565C0",
-    colorLight: "#1E88E5",
-    glow: "#1E88E555",
-    label: "Papier",
-  },
-  {
-    category: "Gelber Sack",
-    emoji: "🟡",
-    binEmoji: "🗑️",
-    color: "#F9A825",
-    colorLight: "#FBC02D",
-    glow: "#FBC02D55",
-    label: "Gelb",
-  },
-  {
-    category: "Glas",
-    emoji: "🟢",
-    binEmoji: "🗑️",
-    color: "#2E7D32",
-    colorLight: "#43A047",
-    glow: "#43A04755",
-    label: "Glas",
-  },
-  {
-    category: "Restmüll",
-    emoji: "⚫",
-    binEmoji: "🗑️",
-    color: "#37474F",
-    colorLight: "#546E7A",
-    glow: "#546E7A55",
-    label: "Rest",
-  },
-  {
-    category: "Sondermüll",
-    emoji: "🔴",
-    binEmoji: "🗑️",
-    color: "#C62828",
-    colorLight: "#E53935",
-    glow: "#E5393555",
-    label: "Sonder",
   },
 ];

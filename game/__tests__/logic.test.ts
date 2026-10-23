@@ -9,6 +9,12 @@ import {
   aimFromDrag,
   dailyItems,
   FEVER_EVERY,
+  aimBonus,
+  missAssist,
+  pullShot,
+  pullStrength,
+  SWEET_STRENGTH,
+  throwDepth,
   getMultiplier,
   getPoints,
   INITIAL_STATS,
@@ -100,6 +106,112 @@ describe("Zielen", () => {
   test("perfekt nur bei genauem Zielen", () => {
     expect(aimFromDrag(0, -100, angles)?.perfect).toBe(true);
     expect(aimFromDrag(25, -100, angles)?.perfect).toBe(false);
+  });
+});
+
+describe("Zielwurf (zurückziehen und loslassen)", () => {
+  const angles = [-30, 0, 30];
+  const xs = [-1.3, 0, 1.3];
+  const full = 200;
+  /** Zuglänge (px) für eine bestimmte Kraft. */
+  const pull = (strength: number) => 18 + strength * (full - 18);
+  /** Finger nach unten gezogen, Wurfrichtung `deg` (0 = gerade). */
+  const at = (deg: number, length: number, opts = {}) => {
+    const rad = (deg * Math.PI) / 180;
+    return pullShot(-Math.sin(rad) * length, Math.cos(rad) * length, full, angles, xs, opts);
+  };
+
+  test("gerade und genau richtig gezogen: mitten in die mittlere Tonne", () => {
+    const shot = at(0, pull(SWEET_STRENGTH));
+    expect(shot?.binIndex).toBe(1);
+    expect(shot?.perfect).toBe(true);
+  });
+
+  test("zu kurz gezogen fällt vor die Tonne, zu lang fliegt drüber", () => {
+    const short = at(0, pull(0.2));
+    expect(short?.binIndex).toBeNull();
+    expect(short?.depth).toBeGreaterThan(0);
+    const long = at(0, pull(1));
+    expect(long?.binIndex).toBeNull();
+    expect(long?.depth).toBeLessThan(0);
+  });
+
+  test("seitlich ziehen wirft zur Gegenseite", () => {
+    // Finger nach unten LINKS → Wurf nach rechts
+    expect(at(30, pull(SWEET_STRENGTH))?.binIndex).toBe(2);
+    expect(at(-30, pull(SWEET_STRENGTH))?.binIndex).toBe(0);
+  });
+
+  test("zwischen zwei Tonnen geht daneben", () => {
+    expect(at(15, pull(SWEET_STRENGTH))?.binIndex).toBeNull();
+  });
+
+  test("knapp daneben trifft den Rand", () => {
+    const rim = at(0, pull(SWEET_STRENGTH - 0.06));
+    expect(rim?.binIndex).toBeNull();
+    expect(rim?.rimIndex).toBe(1);
+  });
+
+  test("je länger gezogen, desto weiter der Wurf", () => {
+    for (let s = 0; s < 1; s += 0.1) expect(throwDepth(s)).toBeGreaterThan(throwDepth(s + 0.1));
+    expect(throwDepth(SWEET_STRENGTH)).toBe(0);
+    // Rund um die Tonne gutmütig: ±0,03 Kraft bleibt in der Öffnung (0,4)
+    expect(Math.abs(throwDepth(SWEET_STRENGTH - 0.03))).toBeLessThan(0.4);
+    expect(Math.abs(throwDepth(SWEET_STRENGTH + 0.03))).toBeLessThan(0.4);
+  });
+
+  test("Kraft aus der Zuglänge: 0 am Anfang, 1 ab voller Länge", () => {
+    expect(pullStrength(18, full)).toBe(0);
+    expect(pullStrength(full, full)).toBe(1);
+    expect(pullStrength(full * 2, full)).toBe(1);
+  });
+
+  test("Richtungshilfe: knapp neben der Tonne wird hineingezogen", () => {
+    // ~0,5 neben der mittleren Tonne → ohne Hilfe außerhalb (0,4)
+    expect(at((0.5 / 1.3) * 30, pull(SWEET_STRENGTH))?.binIndex).toBe(1);
+  });
+
+  test("zu wenig oder nach oben gezogen: kein Wurf", () => {
+    expect(pullShot(0, 10, full, angles, xs)).toBeNull();
+    expect(pullShot(0, -120, full, angles, xs)).toBeNull();
+  });
+});
+
+describe("Zielwurf: Pech-Hilfe", () => {
+  test("Pech-Hilfe erst ab 2 Fehlwürfen, dann zunehmend", () => {
+    expect(missAssist(0)).toBe(0);
+    expect(missAssist(1)).toBe(0);
+    expect(missAssist(2)).toBe(0.5);
+    expect(missAssist(3)).toBe(1);
+    expect(missAssist(9)).toBe(1);
+  });
+
+  test("Pech-Hilfe macht knappe Fehlwürfe zu Treffern, weite nicht", () => {
+    const angles = [-30, 0, 30];
+    const xs = [-1.3, 0, 1.3];
+    const full = 200;
+    const length = (strength: number) => 18 + strength * (full - 18);
+    const close = pullShot(0, length(SWEET_STRENGTH - 0.06), full, angles, xs);
+    expect(close?.binIndex).toBeNull();
+    const helped = pullShot(0, length(SWEET_STRENGTH - 0.06), full, angles, xs, { assist: 1 });
+    expect(helped?.binIndex).toBe(1);
+    const far = pullShot(0, length(SWEET_STRENGTH - 0.4), full, angles, xs, { assist: 1 });
+    expect(far?.binIndex).toBeNull();
+  });
+});
+
+describe("Zielwurf-Boni", () => {
+  test("Swish bringt Zeit, Deckel Punkte und Zeit, Rand etwas Punkte", () => {
+    expect(aimBonus({ perfect: true, via: null }, 30)).toEqual({ factor: 1, seconds: 2 });
+    expect(aimBonus({ perfect: false, via: "lid" }, 30)).toEqual({ factor: 1.5, seconds: 1 });
+    expect(aimBonus({ perfect: false, via: "rim" }, 30)).toEqual({ factor: 1.2, seconds: 0 });
+    expect(aimBonus({ perfect: false, via: "wall" }, 30)).toEqual({ factor: 1, seconds: 0 });
+  });
+
+  test("Endspurt verdoppelt in den letzten 10 Sekunden", () => {
+    expect(aimBonus({ perfect: false, via: null }, 10).factor).toBe(2);
+    expect(aimBonus({ perfect: false, via: "lid" }, 5).factor).toBe(3);
+    expect(aimBonus({ perfect: false, via: null }, 11).factor).toBe(1);
   });
 });
 

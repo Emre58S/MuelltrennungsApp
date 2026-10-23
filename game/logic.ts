@@ -46,6 +46,156 @@ export function aimFromDrag(
   return { binIndex: best, perfect: bestDiff <= perfectTolerance };
 }
 
+/* ── Zielwurf: zurückziehen, Flugbahn sehen, loslassen ────── */
+
+/** Ab dieser Zuglänge (px) wird gezielt; kürzer = abbrechen. */
+const MIN_PULL = 18;
+/** Zuglänge für volle Kraft als Anteil der Bildschirmhöhe. */
+export const FULL_PULL_SHARE = 0.24;
+/** Kraft (0…1), bei der ein Wurf genau in den Tonnen landet. */
+export const SWEET_STRENGTH = 0.7;
+/** Schwächster Wurf landet so weit vor den Tonnen (Welt-Einheiten). */
+const SHORT_RANGE = 6;
+/** Stärkster Wurf fliegt so weit hinter die Tonnen (bis zur Rückwand). */
+const LONG_RANGE = 2.2;
+/** Kurven-Form: 1 = gleichmäßig. Gleichmäßig ist am besten planbar – davor
+ *  stehen die Trick-Hindernisse, und die Vorschau zeigt den Rest. */
+const NEAR_CURVE = 1.0;
+const FAR_CURVE = 1.0;
+
+/** Zuglänge (px) → Kraft 0…1. `full` = Zuglänge für volle Kraft. */
+export function pullStrength(length: number, full: number): number {
+  return Math.min(Math.max((length - MIN_PULL) / (full - MIN_PULL), 0), 1);
+}
+
+/**
+ * Kraft → Landestelle vor (+) bzw. hinter (−) den Tonnen. Länger ziehen
+ * fliegt immer weiter (und höher); bei SWEET_STRENGTH genau in die Öffnung.
+ */
+export function throwDepth(strength: number): number {
+  const s = Math.min(Math.max(strength, 0), 1);
+  if (s <= SWEET_STRENGTH)
+    return SHORT_RANGE * Math.pow((SWEET_STRENGTH - s) / SWEET_STRENGTH, NEAR_CURVE);
+  return -LONG_RANGE * Math.pow((s - SWEET_STRENGTH) / (1 - SWEET_STRENGTH), FAR_CURVE);
+}
+
+/** Unsichtbare Hilfe nach Pech: 0 = keine … 1 = volle, ab 2 Fehlwürfen in Folge. */
+export function missAssist(missesInRow: number): number {
+  return missesInRow < 2 ? 0 : Math.min((missesInRow - 1) / 2, 1);
+}
+
+/** Richtungshilfe: knapp neben einer Tonne zieht ein Teil der Abweichung zur
+ *  Mitte – weit weg (z. B. genau zwischen zwei Tonnen) gar nicht. */
+function aimAssistX(x: number, binX: number, assist: number): number {
+  const off = x - binX;
+  const reach = 0.5 + 0.1 * assist;
+  const fade = Math.abs(off) <= reach ? 1 : Math.max(0, 1 - (Math.abs(off) - reach) / 0.12);
+  return x - off * (0.3 + 0.15 * assist) * fade;
+}
+
+/** Öffnung einer Tonne (halbe Breite/Tiefe, Welt-Einheiten) und Randbreite. */
+export const OPENING = { halfW: 0.4, halfD: 0.4, rim: 0.16 };
+
+export type FreeShot = {
+  /** Seitliche Landestelle (Welt-x auf Höhe der Öffnungen). */
+  x: number;
+  /** + = zu kurz (Richtung Kamera), − = zu weit (hinter die Tonnen). */
+  depth: number;
+  /** Tonne, in die der Wurf fällt – oder null (daneben). */
+  binIndex: number | null;
+  /** Daneben, aber knapp: prallt vom Rand dieser Tonne ab. */
+  rimIndex: number | null;
+  perfect: boolean;
+  /** Kraft 0…1 (aus der Zuglänge). */
+  strength: number;
+};
+
+/** Winkel → Welt-x: zwischen den Tonnen linear, außen weitergeführt. */
+function angleToX(angle: number, binAngles: number[], binXs: number[]): number {
+  const n = binAngles.length;
+  if (n === 1) return binXs[0] + (angle - binAngles[0]) * 0.05;
+  let i = 0;
+  while (i < n - 2 && angle > binAngles[i + 1]) i++;
+  const k = (angle - binAngles[i]) / (binAngles[i + 1] - binAngles[i]);
+  return binXs[i] + k * (binXs[i + 1] - binXs[i]);
+}
+
+/**
+ * Wie bei Dunk Shot oder Angry Birds: Finger nach unten ziehen (Schleuder),
+ * geworfen wird in die Gegenrichtung. Die RICHTUNG bestimmt, wo seitlich der
+ * Wurf ankommt, die ZUGLÄNGE, wie weit er fliegt – die Szene zeigt dabei die
+ * Flugbahn. `full` = Zuglänge (px) für volle Kraft, `assist` = Hilfe nach Pech
+ * (missAssist). Null = zu wenig oder nach oben gezogen.
+ */
+export function pullShot(
+  dx: number,
+  dy: number,
+  full: number,
+  binAngles: number[],
+  binXs: number[],
+  opts: { assist?: number } = {},
+): FreeShot | null {
+  const length = Math.hypot(dx, dy);
+  if (dy < MIN_PULL * 0.6 || length < MIN_PULL) return null;
+  const assist = opts.assist ?? 0;
+  const angle = (Math.atan2(-dx, dy) * 180) / Math.PI;
+  const rawX = angleToX(angle, binAngles, binXs);
+  const strength = pullStrength(length, full);
+  // Pech-Hilfe macht den Weiten-Bereich der Tonne etwas größer
+  const depth = throwDepth(strength) * (1 - 0.35 * assist);
+
+  let best = 0;
+  binXs.forEach((bx, i) => {
+    if (Math.abs(rawX - bx) < Math.abs(rawX - binXs[best])) best = i;
+  });
+  const x = aimAssistX(rawX, binXs[best], assist);
+  const ox = Math.abs(x - binXs[best]);
+  const oz = Math.abs(depth);
+  const inside = ox <= OPENING.halfW && oz <= OPENING.halfD;
+  const onRim =
+    !inside && ox <= OPENING.halfW + OPENING.rim && oz <= OPENING.halfD + OPENING.rim;
+
+  return {
+    x,
+    depth,
+    binIndex: inside ? best : null,
+    rimIndex: onRim ? best : null,
+    perfect: inside && ox < 0.12 && oz < 0.12,
+    strength,
+  };
+}
+
+/* ── Zielwurf: Trickwürfe und Endspurt ───────────────────── */
+
+/** Letzte Sekunden im Zielwurf: doppelte Punkte. */
+export const ENDSPURT_SECONDS = 10;
+
+export type AimBonus = {
+  /** Punkte-Faktor für den Wurf. */
+  factor: number;
+  /** Zeitbonus in Sekunden. */
+  seconds: number;
+};
+
+/**
+ * Belohnung für Trickwürfe: Swish (ohne Berührung) bringt Zeit, über den
+ * Deckel Punkte und Zeit, vom Rand rein etwas mehr Punkte. Im Endspurt ×2.
+ */
+export function aimBonus(
+  shot: { perfect: boolean; via: "rim" | "wall" | "lid" | null | undefined },
+  timeLeft: number,
+): AimBonus {
+  let factor = 1;
+  let seconds = 0;
+  if (shot.perfect) seconds = 2;
+  else if (shot.via === "lid") {
+    factor = 1.5;
+    seconds = 1;
+  } else if (shot.via === "rim") factor = 1.2;
+  if (timeLeft > 0 && timeLeft <= ENDSPURT_SECONDS) factor *= 2;
+  return { factor, seconds };
+}
+
 /* ── Wertung ───────────────────────────────────────────────── */
 
 const BASE_POINTS: Record<HitResult, number> = {

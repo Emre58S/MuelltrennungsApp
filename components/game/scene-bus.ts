@@ -13,7 +13,25 @@ import { type Item } from "@/constants/items";
 
 import { type Burst } from "./effects";
 
-export type BinEventType = "hit" | "perfect" | "reject" | "peek";
+export type BinEventType = "hit" | "perfect" | "reject" | "peek" | "bump";
+
+/** Ergebnis eines physikalischen Wurfs (Zielwurf): in welcher Tonne er
+ *  gelandet ist (oder null), ob ohne Anstoßen, und wo er liegt (Welt-x). */
+export type LandOutcome = {
+  bin: number | null;
+  clean: boolean;
+  x: number;
+  /** Zuletzt abgeprallt an (Rand/Wand/Deckel) – für Basketball-Lob. */
+  via?: "rim" | "wall" | "lid" | null;
+  /** Daneben, aber eine Tonne berührt („Knapp!“). */
+  near?: boolean;
+  /** Durchflogene Reifen (Trickwürfe), in Reihenfolge. */
+  props?: number[];
+};
+
+/** Flugbahn-Vorschau beim Zurückziehen (Zielwurf, Trickwürfe): Landestelle
+ *  und Kraft 0…1 (bestimmt Bogenhöhe und wie weit der Gegenstand gespannt ist). */
+export type ShotGuide = { x: number; z: number; strength: number };
 
 export type ThrowSpec = {
   id: number;
@@ -23,20 +41,43 @@ export type ThrowSpec = {
   perfect: boolean;
   /** Goldene Spur (Perfekt oder Fieber). */
   glow: boolean;
+  /** „On Fire“: orange Feuerspur (Serie ab 3 im Zielwurf). */
+  fire?: boolean;
   /** Wischstärke 0.8…1.3: höher = kräftiger, flacherer Wurf (Standard 1). */
   power?: number;
+  /** Zielwurf: eigene Landestelle (Welt x/z auf Höhe der Öffnungen). */
+  land?: { x: number; z: number };
+  /** Zielwurf: Kraft 0…1 aus der Zuglänge – derselbe Bogen wie die Vorschau. */
+  strength?: number;
+  /** Zielwurf: echte Physik entscheidet, wo er landet; `accept` = welche
+   *  Tonnen richtig wären (falsche spucken ihn wieder aus). */
+  free?: {
+    accept: boolean[];
+    /** Genau mittig gezielt (nur dann zählt ein sauberer Treffer als „Perfekt“). */
+    center: boolean;
+  };
 };
 
 export type SceneBus = {
   /** Anvisierte Tonne (oder null). */
   aim: number | null;
   aimListeners: Set<() => void>;
+  /** Schwebender Gegenstand (Vorschau). Die Szene tauscht das Modell selbst. */
+  preview: Item | null;
   /** Pro Tonne: Anzahl fliegender Treffer (Deckel bleibt dafür offen). */
   incoming: number[];
   throws: ThrowSpec[];
   bursts: Burst[];
   binEvents: (BinEventType | null)[];
-  onLand: (id: number) => void;
+  /** Aktueller Deckel-Winkel pro Tonne (rad) – für die Wurf-Physik. */
+  lids: number[];
+  /** Flugbahn-Vorschau (oder null). */
+  shotGuide: ShotGuide | null;
+  /** Uhr der Szene (s, läuft mit Zeitlupe): bewegte Reifen hängen davon ab. */
+  clock: number;
+  /** Wann (Szenen-Uhr) jeder Reifen zuletzt durchflogen wurde – er leuchtet kurz auf. */
+  ringPass: number[];
+  onLand: (id: number, outcome?: LandOutcome) => void;
 };
 
 export type BusRef = { readonly current: SceneBus };
@@ -45,10 +86,15 @@ export function createBus(): SceneBus {
   return {
     aim: null,
     aimListeners: new Set(),
+    preview: null,
     incoming: [],
     throws: [],
     bursts: [],
     binEvents: [],
+    lids: [],
+    shotGuide: null,
+    clock: 0,
+    ringPass: [],
     onLand: () => undefined,
   };
 }
@@ -105,15 +151,33 @@ export function takeThrows(bus: SceneBus): ThrowSpec[] {
 }
 
 /** Wurf ist angekommen: Tonne freigeben und die Spiel-Logik informieren. */
-export function landThrow(bus: SceneBus, spec: ThrowSpec) {
+export function landThrow(bus: SceneBus, spec: ThrowSpec, outcome?: LandOutcome) {
   if (spec.hit) {
     bus.incoming[spec.binIndex] = Math.max(0, (bus.incoming[spec.binIndex] ?? 0) - 1);
   }
-  bus.onLand(spec.id);
+  bus.onLand(spec.id, outcome);
 }
 
-export function setLandHandler(bus: SceneBus, handler: (id: number) => void) {
+export function setLandHandler(
+  bus: SceneBus,
+  handler: (id: number, outcome?: LandOutcome) => void,
+) {
   bus.onLand = handler;
+}
+
+/** Flugbahn-Vorschau setzen/ausblenden (ohne Neu-Rendern der Szene). */
+/** Reifen wurde durchflogen (für das Aufleuchten). */
+export function markRingPass(bus: SceneBus, ring: number) {
+  bus.ringPass[ring] = bus.clock;
+}
+
+export function setShotGuide(bus: SceneBus, guide: ShotGuide | null) {
+  bus.shotGuide = guide;
+}
+
+/** Tonne meldet ihren Deckel-Winkel (für die Wurf-Physik). */
+export function setLid(bus: SceneBus, index: number, angle: number) {
+  bus.lids[index] = angle;
 }
 
 /* ── Konfetti ───────────────────────────────────────────────── */
@@ -147,3 +211,10 @@ export function isBinActive(bus: SceneBus, index: number): boolean {
 
 const EMPTY: ThrowSpec[] = [];
 const EMPTY_BURSTS: Burst[] = [];
+
+/* ── Vorschau ──────────────────────────────────────────────── */
+
+/** Nächsten Gegenstand zeigen – ohne Neu-Rendern der 3D-Szene. */
+export function setPreview(bus: SceneBus, item: Item | null) {
+  bus.preview = item;
+}

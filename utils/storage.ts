@@ -7,6 +7,7 @@ export const StorageKeys = {
   HIGHSCORE_RUNDEN: "muell_highscore_runden",
   HIGHSCORE_ZEIT: "muell_highscore_zeit",
   HIGHSCORE_ENDLOS: "muell_highscore_endlos",
+  HIGHSCORE_ZIELWURF: "muell_highscore_zielwurf",
   STREAK_COUNT: "muell_streak_count",
   STREAK_LAST_DATE: "muell_streak_last_date",
   TOTAL_XP: "muell_total_xp",
@@ -19,6 +20,7 @@ export const StorageKeys = {
   LANGUAGE: "muell_language",
   LAST_MODE: "muell_last_mode",
   MODE_STATS: "muell_mode_stats",
+  TRICK_STARS: "muell_trick_stars",
   REDUCE_MOTION: "muell_reduce_motion",
   ITEM_STATS: "muell_item_stats",
   DAILY_RESULT: "muell_daily_result",
@@ -86,29 +88,31 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 }
 
 // ── Highscore Helpers ─────────────────────────────────────────────────
-export function getHighscoreKey(
-  mode: "runden" | "zeit" | "endlos",
-): StorageKey {
+export type HighscoreMode = "runden" | "zeit" | "endlos" | "zielwurf";
+
+export function getHighscoreKey(mode: HighscoreMode): StorageKey {
   const map: Record<string, StorageKey> = {
     runden: StorageKeys.HIGHSCORE_RUNDEN,
     zeit: StorageKeys.HIGHSCORE_ZEIT,
     endlos: StorageKeys.HIGHSCORE_ENDLOS,
+    zielwurf: StorageKeys.HIGHSCORE_ZIELWURF,
   };
   return map[mode];
 }
 
 export async function getBestHighscore(): Promise<number> {
-  const [runden, zeit, endlos] = await Promise.all([
+  const scores = await Promise.all([
     getNumber(StorageKeys.HIGHSCORE_RUNDEN),
     getNumber(StorageKeys.HIGHSCORE_ZEIT),
     getNumber(StorageKeys.HIGHSCORE_ENDLOS),
+    getNumber(StorageKeys.HIGHSCORE_ZIELWURF),
   ]);
-  return Math.max(runden, zeit, endlos);
+  return Math.max(...scores);
 }
 
 /** Speichert den Wert nur, wenn er besser ist. Gibt zurück, ob es ein neuer Bestwert war. */
 export function saveHighscore(
-  mode: "runden" | "zeit" | "endlos",
+  mode: HighscoreMode,
   score: number,
 ): Promise<boolean> {
   return enqueue(async () => {
@@ -124,7 +128,7 @@ export function saveHighscore(
 
 // ── Statistik pro Modus ───────────────────────────────────────────────
 
-export type ModeKey = "endless" | "survival" | "time";
+export type ModeKey = "endless" | "survival" | "time" | "aim";
 
 export type ModeStats = {
   games: number;
@@ -149,6 +153,7 @@ function emptyModeStatsMap(): ModeStatsMap {
     endless: { ...EMPTY_MODE_STATS },
     survival: { ...EMPTY_MODE_STATS },
     time: { ...EMPTY_MODE_STATS },
+    aim: { ...EMPTY_MODE_STATS },
   };
 }
 
@@ -163,6 +168,7 @@ export async function getModeStats(): Promise<ModeStatsMap> {
       endless: { ...base.endless, ...parsed.endless },
       survival: { ...base.survival, ...parsed.survival },
       time: { ...base.time, ...parsed.time },
+      aim: { ...base.aim, ...parsed.aim },
     };
   } catch {
     return base;
@@ -432,5 +438,29 @@ export function saveDaily(result: DailyResult): Promise<void> {
     const current = await getTodayDaily();
     if (current && current.score >= result.score) return;
     await setItem(StorageKeys.DAILY_RESULT, JSON.stringify(result));
+  });
+}
+
+// ── Trickwürfe: Sterne pro Level ─────────────────────────────────────
+
+export type TrickStars = Record<number, number>;
+
+export async function getTrickStars(): Promise<TrickStars> {
+  const raw = await getItem(StorageKeys.TRICK_STARS);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as TrickStars;
+  } catch {
+    return {};
+  }
+}
+
+/** Speichert nur, wenn es mehr Sterne als bisher sind. */
+export function saveTrickStars(level: number, stars: number): Promise<void> {
+  return enqueue(async () => {
+    const all = await getTrickStars();
+    if ((all[level] ?? 0) >= stars) return;
+    all[level] = stars;
+    await setItem(StorageKeys.TRICK_STARS, JSON.stringify(all));
   });
 }

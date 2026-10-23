@@ -115,3 +115,10 @@ export function computeLayout(
     binAngles,
   };
 }
+
+/** Landestelle eines Zielwurfs (Welt x/z auf Höhe der Öffnungen): `depth`
+ *  vor (+) bzw. hinter (−) den Tonnen – aber nie hinter dem Startpunkt. */
+export function shotLanding(layout: GameLayout, shot: { x: number; depth: number }) {
+  const binZ = layout.bins[0]?.z ?? 0;
+  return { x: shot.x, z: Math.min(binZ + shot.depth, layout.item.position.z - 1.2) };
+}

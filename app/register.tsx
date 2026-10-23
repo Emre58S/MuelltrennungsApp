@@ -11,8 +11,10 @@ import {
   View,
 } from "react-native";
 import { AppColors, FontSize, Radius, Spacing } from "@/constants/theme";
+import { useI18n } from "@/providers/app-settings";
 
 export default function RegisterScreen() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,15 +23,15 @@ export default function RegisterScreen() {
   const handleRegister = () => {
     setError("");
     if (!email.includes("@")) {
-      setError("Bitte gib eine gültige E-Mail-Adresse ein.");
+      setError(t("auth.error.email"));
       return;
     }
     if (password.length < 6) {
-      setError("Passwort muss mindestens 6 Zeichen haben.");
+      setError(t("auth.error.password", { n: 6 }));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwörter stimmen nicht überein!");
+      setError(t("auth.error.mismatch"));
       return;
     }
     // TODO: echte Registrierungs-Logik
@@ -42,14 +44,14 @@ export default function RegisterScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Text style={styles.logo}>📝</Text>
-      <Text style={styles.title}>Registrieren</Text>
-      <Text style={styles.subtitle}>Erstelle dein Konto</Text>
+      <Text style={styles.title}>{t("auth.register.title")}</Text>
+      <Text style={styles.subtitle}>{t("auth.register.subtitle")}</Text>
 
       <View style={styles.card}>
-        <Text style={styles.label}>E-Mail</Text>
+        <Text style={styles.label}>{t("auth.email")}</Text>
         <TextInput
           style={styles.input}
-          placeholder="deine@email.de"
+          placeholder={t("auth.emailPlaceholder")}
           placeholderTextColor={AppColors.textMuted}
           value={email}
           onChangeText={setEmail}
@@ -57,17 +59,17 @@ export default function RegisterScreen() {
           keyboardType="email-address"
         />
 
-        <Text style={styles.label}>Passwort</Text>
+        <Text style={styles.label}>{t("auth.password")}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Mindestens 6 Zeichen"
+          placeholder={t("auth.passwordMin", { n: 6 })}
           placeholderTextColor={AppColors.textMuted}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
 
-        <Text style={styles.label}>Passwort wiederholen</Text>
+        <Text style={styles.label}>{t("auth.passwordRepeat")}</Text>
         <TextInput
           style={styles.input}
           placeholder="••••••••"
@@ -80,13 +82,13 @@ export default function RegisterScreen() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity style={styles.registerButton} onPress={handleRegister} activeOpacity={0.8}>
-          <Text style={styles.registerButtonText}>Account erstellen</Text>
+          <Text style={styles.registerButtonText}>{t("auth.register.button")}</Text>
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity onPress={() => router.push("/login")}>
         <Text style={styles.footerText}>
-          Schon ein Konto? <Text style={styles.footerLink}>Zum Login</Text>
+          {t("auth.haveAccount")} <Text style={styles.footerLink}>{t("auth.toLogin")}</Text>
         </Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>

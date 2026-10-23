@@ -84,6 +84,7 @@ export default function EinstellungenScreen() {
     StorageKeys.HIGHSCORE_RUNDEN,
     StorageKeys.HIGHSCORE_ZEIT,
     StorageKeys.HIGHSCORE_ENDLOS,
+    StorageKeys.HIGHSCORE_ZIELWURF,
   ];
 
   const confirmLogout = () => {

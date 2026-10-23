@@ -1,4 +1,5 @@
-// Datei: app/(tabs)/explore.tsx — Spielrunde
+// Datei: components/game/game-round.tsx — eine Spielrunde
+// (Route: app/(tabs)/runde.tsx)
 //
 // Mehrere Würfe gleichzeitig, auch sehr schnell hintereinander. Würfe,
 // Konfetti und Tonnen-Reaktionen gehen über den SceneBus direkt an die
@@ -6,7 +7,7 @@
 // gibt es nur noch für das, was im HUD sichtbar ist. Gespeichert wird
 // gebündelt. Lernkarte nur im Üben-Modus.
 import { EndScreen, type Mistake } from "@/components/game/end-screen";
-import { cancelSlowMotion, createFx, shake } from "@/components/game/fx";
+import { cancelSlowMotion, createFx, hitStop, shake } from "@/components/game/fx";
 import { GameScene } from "@/components/game/game-scene";
 import {
   Banner,
@@ -28,41 +29,51 @@ import {
   queueThrow,
   setAim,
   setLandHandler,
+  setPreview,
+  setShotGuide,
+  type LandOutcome,
   type ThrowSpec,
 } from "@/components/game/scene-bus";
 import { IconButton } from "@/components/ui/icon-button";
 import { type Item } from "@/constants/items";
-import { type GameMode } from "@/constants/modes";
+import { type GameMode, isTimed } from "@/constants/modes";
 import { Spacing } from "@/constants/theme";
 import {
   getBinByCategory,
-  getBinsForLevel,
+  getBinsForScene,
   getItemsForBins,
   getUnlockAtLevel,
+  STANDARD_BINS,
 } from "@/game/bins";
-import { BIN_OPENING_Y, CAMERA_FOV, computeLayout } from "@/game/layout";
+import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, shotLanding } from "@/game/layout";
 import {
+  aimBonus,
   aimFromDrag,
   DAILY_COUNT,
   dailyItems,
+  ENDSPURT_SECONDS,
   FEVER_EVERY,
   FEVER_SECONDS,
+  type FreeShot,
+  FULL_PULL_SHARE,
   getMultiplier,
   getPoints,
   type HitResult,
   INITIAL_STATS,
   itemWeight,
+  missAssist,
   pickItem,
+  pullShot,
   recentLimit,
   statsReducer,
   XP_PER_RESULT,
 } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { devLog } from "@/utils/dev-error-reporter";
+import { perfTime } from "@/utils/perf-marks";
 import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import {
   EMPTY_ITEM_STAT,
-  flushThrowRecords,
   getHighscoreKey,
   getItemStats,
   getLevelFromXP,
@@ -70,17 +81,13 @@ import {
   getTodayDaily,
   type ItemStats,
   queueThrowRecord,
-  recordRound,
-  saveDaily,
-  saveHighscore,
-  StorageKeys,
   todayKey,
 } from "@/utils/storage";
 import { Canvas } from "@react-three/fiber/native";
-import { setAudioModeAsync } from "expo-audio";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
+  type ComponentProps,
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -95,91 +102,21 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
+import { nextScene } from "./stage";
 
 const ROUND_SECONDS = 60;
 /** Nach Zeitablauf: so lange dürfen fliegende Würfe noch landen. */
 const TIME_UP_GRACE_MS = 1000;
 /** Höchstens so viele „+10“ gleichzeitig. */
 const MAX_FLOATS = 5;
+/** Zielwurf: ab so vielen Treffern in Folge „On Fire“ (Feuerspur). */
+const ON_FIRE_STREAK = 3;
 /** expo-gl rendert immer in voller Auflösung. Auf 3x-Displays sind Kanten
  *  ohnehin fein – dort Kantenglättung (MSAA) sparen, das entlastet die GPU. */
 const ANTIALIAS = PixelRatio.get() < 3;
-const HIGHSCORE_MODE = {
-  endless: "endlos",
-  survival: "runden",
-  time: "zeit",
-} as const;
-
-export default function GameScreen() {
-  const { mode: rawMode, daily: rawDaily } = useLocalSearchParams<{
-    mode?: string;
-    daily?: string;
-  }>();
-  // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
-  const daily = rawDaily === "1";
-  const mode: GameMode = daily
-    ? "endless"
-    : rawMode === "survival" || rawMode === "time"
-      ? rawMode
-      : "endless";
-  const router = useRouter();
-  const { colors } = useAppTheme();
-  const [xp, setXp] = useState<number | null>(null);
-  const [round, setRound] = useState(0);
-  // Erst gesammelte Würfe schreiben, dann XP lesen (sonst veraltetes Level).
-  const loadXp = useCallback(() => {
-    flushThrowRecords()
-      .then(() => getNumber(StorageKeys.TOTAL_XP))
-      .then(setXp)
-      .catch(() => setXp(0));
-  }, []);
-  useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: true }).catch(() => undefined);
-  }, []);
-  // Beim Verlassen abbauen; beim erneuten Öffnen eine neue Runde erzeugen.
-  useFocusEffect(
-    useCallback(() => {
-      setRound((r) => r + 1);
-      loadXp();
-      return () => {
-        setXp(null);
-      };
-    }, [loadXp]),
-  );
-  const goBack = useCallback(() => {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  }, [router]);
-  const playAgain = useCallback(() => {
-    setXp(null);
-    loadXp();
-    setRound((r) => r + 1);
-  }, [loadXp]);
-  const level = xp !== null ? getLevelFromXP(xp) : null;
-  return (
-    <GestureHandlerRootView
-      style={[styles.root, { backgroundColor: colors.bg }]}
-    >
-      {xp !== null && level !== null && (
-        <GameRound
-          key={`${round}-${level}-${mode}-${daily}`}
-          mode={mode}
-          daily={daily}
-          level={level}
-          startXp={xp}
-          onAgain={playAgain}
-          onExit={goBack}
-        />
-      )}
-    </GestureHandlerRootView>
-  );
-}
 
 type Praised = { id: number; text: string; gold: boolean };
 type Picker = { recent: string[]; dailyIndex: number };
@@ -208,7 +145,7 @@ function drawItem(
 }
 type Learn = { id: number; item: Item; bin: Mistake["bin"] };
 
-function GameRound({
+export function GameRound({
   mode,
   daily,
   level,
@@ -225,17 +162,19 @@ function GameRound({
 }) {
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { reduceMotion } = useAppSettings();
   const fx = useRef(createFx());
   const bus = useRef(createBus());
   useEffect(() => {
     fx.current.calm = reduceMotion;
   }, [reduceMotion]);
-  // Tagesaufgabe immer mit den 3 Grund-Tonnen – damit sie für alle gleich ist.
+  // Jede Runde eine neue Szene; sie bestimmt die 3 Tonnen. Tagesaufgabe immer
+  // mit den Grund-Tonnen – damit sie für alle gleich ist.
+  const [scene] = useState(nextScene);
   const bins = useMemo(
-    () => getBinsForLevel(daily ? 1 : level),
-    [daily, level],
+    () => (daily ? STANDARD_BINS : getBinsForScene(scene, level)),
+    [daily, scene, level],
   );
   const pool = useMemo(() => getItemsForBins(bins), [bins]);
   const dailyQueue = useMemo(
@@ -247,6 +186,7 @@ function GameRound({
     () => computeLayout(screenW, screenH, bins.length),
     [screenW, screenH, bins.length],
   );
+  const binXs = useMemo(() => layout.bins.map((b) => b.x), [layout]);
   const [stats, dispatch] = useReducer(statsReducer, INITIAL_STATS);
   // Synchroner Spiegel von `stats`: bei schnellen Würfen landen mehrere Items,
   // bevor React neu gerendert hat – dann wäre `stats` im Handler veraltet.
@@ -258,9 +198,9 @@ function GameRound({
   const [currentItem, setCurrentItemState] = useState<Item | null>(() =>
     drawItem(picker, pool, dailyList, {}, 0),
   );
-  // Das nächste Item steht unsichtbar bereit (Modell schon aufgebaut).
-  const [nextItem, setNextItemState] = useState<Item | null>(() =>
-    drawItem(picker, pool, dailyList, {}, 0),
+  // Vorlagen bauen: das erste Item zuerst, dann der ganze Pool.
+  const [warmItems] = useState(() =>
+    currentItem ? [currentItem, ...pool] : pool,
   );
   const drawNext = () =>
     drawItem(
@@ -270,13 +210,21 @@ function GameRound({
       itemStats.current,
       liveStats.current.throws,
     );
-  const nextRef = useRef<Item | null>(nextItem);
   const itemRef = useRef<Item | null>(currentItem);
+  // Die 3D-Szene liest das Item direkt aus dem Bus (kein Neu-Rendern dort);
+  // der React-State ist nur für die Item-Karte im HUD.
   const setCurrentItem = useCallback((item: Item | null) => {
     itemRef.current = item;
+    setPreview(bus.current, item);
     setCurrentItemState(item);
   }, []);
+  useLayoutEffect(() => {
+    setPreview(bus.current, itemRef.current);
+  }, []);
   const throwMap = useRef(new Map<number, ThrowSpec>());
+  // Zielwurf: Fehlwürfe in Folge (Pech-Hilfe) und Kraft-Stufe fürs Vibrations-Klicken
+  const missesInRow = useRef(0);
+  const pullStep = useRef(-1);
   const [floats, setFloats] = useState<FloatText[]>([]);
   const [praise, setPraise] = useState<Praised | null>(null);
   const [learn, setLearn] = useState<Learn | null>(null);
@@ -286,6 +234,11 @@ function GameRound({
   const [feverId, setFeverId] = useState<number | null>(null);
   const feverRef = useRef(false);
   const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS);
+  // Für Handler, die zwischen zwei Renders laufen (Endspurt-Bonus)
+  const timeLeftRef = useRef(ROUND_SECONDS);
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
   const [timerStarted, setTimerStarted] = useState(false);
   const [hasThrown, setHasThrown] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -303,20 +256,7 @@ function GameRound({
     timeUp: false,
     id: 0,
   });
-  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
-  const later = useCallback((fn: () => void, ms: number) => {
-    const id = setTimeout(() => {
-      timers.current.delete(id);
-      fn();
-    }, ms);
-    timers.current.add(id);
-  }, []);
-  useEffect(() => {
-    const set = timers.current;
-    return () => {
-      set.forEach(clearTimeout);
-    };
-  }, []);
+  const later = useLater();
   // Dezentes Sound-Feedback (siehe utils/sfx.ts)
   useEffect(() => {
     refreshSfxSetting();
@@ -330,7 +270,7 @@ function GameRound({
     else getNumber(getHighscoreKey(HIGHSCORE_MODE[mode])).then(setBestBefore);
   }, [mode, daily]);
   const timerRunning =
-    mode === "time" && timerStarted && !finished && timeLeft > 0;
+    isTimed(mode) && timerStarted && !finished && timeLeft > 0;
   useEffect(() => {
     if (!timerRunning) return;
     const id = setInterval(() => {
@@ -339,7 +279,7 @@ function GameRound({
     return () => clearInterval(id);
   }, [timerRunning]);
   useEffect(() => {
-    if (mode !== "time" || !timerStarted) return;
+    if (!isTimed(mode) || !timerStarted) return;
     if (timeLeft <= 5 && timeLeft > 0) {
       sfx("tick");
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -351,48 +291,20 @@ function GameRound({
       lock.current.timeUp = true;
       lock.current.ended = true;
       setAim(bus.current, null);
+      setShotGuide(bus.current, null);
       later(() => setFinished(true), TIME_UP_GRACE_MS);
     }
   }, [mode, timerStarted, timeLeft, later]);
   const showEnd = finished;
-  const savedRound = useRef(false);
-  const latest = useRef({ mode, daily });
-  useLayoutEffect(() => {
-    latest.current = { mode, daily };
-  });
-  // Runde speichern (Statistik + Bestwert) – am Ende oder beim Verlassen.
-  const commitRound = useCallback(() => {
-    if (savedRound.current) return;
-    const s = liveStats.current;
-    const { mode: m, daily: d } = latest.current;
-    if (s.throws === 0) return;
-    savedRound.current = true;
-    if (d) {
-      saveDaily({
-        date: todayKey(),
-        score: s.score,
-        correct: s.correct,
-        total: s.throws,
-      }).catch(() => undefined);
-      flushThrowRecords().catch(() => undefined);
-      return;
-    }
-    recordRound(m, {
-      maxStreak: s.maxStreak,
-      throws: s.throws,
-      correct: s.correct,
-    }).catch(() => undefined);
-    if (s.score > 0)
-      saveHighscore(HIGHSCORE_MODE[m], s.score).catch(() => undefined);
-    flushThrowRecords().catch(() => undefined);
-  }, []);
+  const commitRound = useCommitRound(liveStats, mode, daily);
   useEffect(() => {
     if (!showEnd) return;
     setAim(bus.current, null);
+    setShotGuide(bus.current, null);
+    setPreview(bus.current, null);
     commitRound();
     sfx("end");
   }, [showEnd, commitRound]);
-  useEffect(() => commitRound, [commitRound]);
   const showBanner = useCallback(
     (text: string, ms = 2200) => {
       const id = ++lock.current.id;
@@ -403,6 +315,13 @@ function GameRound({
     },
     [later],
   );
+  // Zielwurf: Endspurt ankündigen (letzte Sekunden doppelte Punkte)
+  useEffect(() => {
+    if (mode === "aim" && timerStarted && timeLeft === ENDSPURT_SECONDS) {
+      showBanner(`🔥 ${t("game.endspurt")}`, 2600);
+      sfx("fever");
+    }
+  }, [mode, timerStarted, timeLeft, showBanner, t]);
   const startFever = useCallback(() => {
     const id = ++lock.current.id;
     feverRef.current = true;
@@ -419,51 +338,117 @@ function GameRound({
       });
     }, FEVER_SECONDS * 1000);
   }, [later]);
-  const throwTo = (binIndex: number, perfect: boolean, power = 1) => {
+  /** Wurf in eine Tonne – oder im Zielwurf frei (`shot`, auch daneben). */
+  const throwTo = (
+    binIndex: number,
+    perfect: boolean,
+    power = 1,
+    shot?: FreeShot,
+  ) => {
     const l = lock.current;
     const item = itemRef.current;
     if (!item || l.ended || finished) return;
     setAim(bus.current, null);
+    setShotGuide(bus.current, null);
     cancelSlowMotion(fx.current);
-    if (mode === "time" && !timerStarted) setTimerStarted(true);
+    if (isTimed(mode) && !timerStarted) setTimerStarted(true);
     if (!hasThrown) setHasThrown(true);
-    const hit = bins[binIndex].category === item.category;
+    // Zielwurf: Ergebnis entscheidet die Physik in der Szene (siehe handleLand)
+    const hit = !shot && bins[binIndex].category === item.category;
     const spec: ThrowSpec = {
       id: ++l.id,
       item,
-      binIndex,
+      binIndex: shot ? -1 : binIndex,
       hit,
       perfect: hit && perfect,
       glow: (hit && perfect) || feverRef.current,
+      // Zielwurf: ab 3 Treffern in Folge Feuerspur
+      fire: !!shot && liveStats.current.streak >= ON_FIRE_STREAK,
       power,
     };
+    if (shot) {
+      spec.land = shotLanding(layout, shot);
+      spec.strength = shot.strength;
+      spec.free = {
+        accept: bins.map((b) => b.category === item.category),
+        center: shot.perfect,
+      };
+    }
     throwMap.current.set(spec.id, spec);
     queueThrow(bus.current, spec);
 
-    // Nächstes Item ist schon aufgebaut → sofort zeigen. Das übernächste
-    // erst kurz danach aufbauen, nicht im selben Moment wie den Wurf.
-    const upcoming = nextRef.current ?? drawNext();
-    nextRef.current = null;
-    setNextItemState(null);
-    setCurrentItem(upcoming);
-    later(() => {
-      if (nextRef.current) return;
-      const following = drawNext();
-      nextRef.current = following;
-      setNextItemState(following);
-    }, 300);
+    // Nächstes Item: die Szene tauscht im nächsten Frame nur das Modell
+    // (Kopie der Vorlage) – gleich schnell bei jedem Wurftempo.
+    setCurrentItem(drawNext());
 
     sfx("throw", { rate: perfect ? 1.1 : 1 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
       () => undefined,
     );
   };
-  const handleLand = (throwId: number) => {
-    const ts = throwMap.current.get(throwId);
-    if (!ts) return;
+  /** Zielwurf daneben: kein Sortier-Fehler, aber die Serie reißt. */
+  const handleMiss = (ts: ThrowSpec, outcome: LandOutcome | undefined) => {
+    const worldX = outcome?.x ?? 0;
+    const id = ++lock.current.id;
+    const action = { type: "result", result: "wrong", points: 0 } as const;
+    liveStats.current = statsReducer(liveStats.current, action);
+    dispatch(action);
+    missesInRow.current += 1;
+    // Weich statt strafend: „Plopp“ statt Fehlerton
+    sfx("plop");
+    // Lernhilfe: knapp? zu kurz? zu weit?
+    const depth = (ts.land?.z ?? 0) - (layout.bins[0]?.z ?? 0);
+    const missText = outcome?.near
+      ? t("game.near")
+      : depth > 0.6
+        ? t("game.short")
+        : depth < -0.6
+          ? t("game.long")
+          : t("game.miss");
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+      () => undefined,
+    );
+    // „Daneben!“ über der Landestelle (Welt-x → Bildschirm-x zwischen den Tonnen)
+    const first = layout.binTops[0];
+    const last = layout.binTops[layout.binTops.length - 1];
+    const x0 = binXs[0];
+    const x1 = binXs[binXs.length - 1];
+    const k = x1 !== x0 ? (worldX - x0) / (x1 - x0) : 0.5;
+    setFloats((f) => [
+      ...f.slice(-(MAX_FLOATS - 1)),
+      {
+        id,
+        x: Math.min(Math.max(first.x + k * (last.x - first.x), 50), screenW - 50),
+        y: first.y,
+        text: missText,
+        color: "#FFFFFF",
+      },
+    ]);
+  };
+  const handleLand = (throwId: number, outcome?: LandOutcome) => {
+    const thrown = throwMap.current.get(throwId);
+    if (!thrown) return;
     throwMap.current.delete(throwId);
     const l = lock.current;
     if (mode === "survival" && l.over) return;
+    let ts = thrown;
+    // Zielwurf: über Deckel oder Rand hineingefallen → Basketball-Lob
+    const via = thrown.free ? outcome?.via : null;
+    const viaText =
+      via === "lid" ? t("game.viaLid") : via === "rim" ? t("game.viaRim") : null;
+    if (thrown.free) {
+      // Zielwurf: wo ist er gelandet? Daneben = kein Sortierfehler
+      if (!outcome || outcome.bin === null) {
+        handleMiss(thrown, outcome);
+        return;
+      }
+      const ok = thrown.free.accept[outcome.bin] ?? false;
+      // Falsche Tonne zählt für die Pech-Hilfe wie ein Fehlwurf
+      missesInRow.current = ok ? 0 : missesInRow.current + 1;
+      // Perfekt (Swish) = ohne Berührung UND genau mittig gezielt
+      const perfect = ok && outcome.clean && thrown.free.center;
+      ts = { ...thrown, binIndex: outcome.bin, hit: ok, perfect };
+    }
     const i = ts.binIndex;
     const bin = bins[i];
     const result: HitResult = ts.hit
@@ -473,7 +458,14 @@ function GameRound({
       : "wrong";
     const feverNow = feverRef.current;
     const before = liveStats.current;
-    const points = getPoints(result, before.streak, feverNow);
+    // Zielwurf: Trickwürfe und Endspurt bringen mehr Punkte (und Zeit)
+    const bonus =
+      thrown.free && ts.hit
+        ? aimBonus({ perfect: ts.perfect, via }, timeLeftRef.current)
+        : null;
+    const points = Math.round(
+      getPoints(result, before.streak, feverNow) * (bonus?.factor ?? 1),
+    );
     const top = layout.binTops[i];
     const id = ++l.id;
     const action = { type: "result", result, points } as const;
@@ -501,7 +493,15 @@ function GameRound({
       sfx("land");
       if (ts.perfect) sfx("perfect");
       else sfxStreak(streakNow);
-      if (ts.perfect)
+      if (ts.perfect && thrown.free) {
+        // Swish: „Wumms“ – kurzer Stillstand, Netz-Klang, doppelte Vibration
+        sfx("swish");
+        hitStop(fx.current, 70);
+        later(() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => undefined);
+        }, 90);
+      }
+      if (ts.perfect || viaText)
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
         ).catch(() => undefined);
@@ -509,7 +509,8 @@ function GameRound({
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
           () => undefined,
         );
-      shake(fx.current, ts.perfect ? 0.05 : 0.015);
+      // Nur Perfekt-Treffer wackeln (dezent) – sonst zittert die Kamera im Dauerfeuer
+      if (ts.perfect) shake(fx.current, thrown.free ? 0.032 : 0.022);
       queueBurst(bus.current, {
         id,
         x: layout.bins[i].x,
@@ -529,9 +530,27 @@ function GameRound({
           x: top.x,
           y: top.y,
           text: `+${points}`,
-          color: ts.perfect || feverNow ? "#FFD54A" : "#FFFFFF",
+          color:
+            ts.perfect || feverNow || (bonus?.factor ?? 1) > 1
+              ? "#FFD54A"
+              : "#FFFFFF",
         },
       ]);
+      // Zeitbonus (Zielwurf): „+2 s“ unter der Uhr, Zeit läuft länger
+      const extra = bonus?.seconds ?? 0;
+      if (extra > 0 && !l.timeUp) {
+        setTimeLeft((v) => Math.min(v + extra, ROUND_SECONDS));
+        setFloats((f) => [
+          ...f.slice(-(MAX_FLOATS - 1)),
+          {
+            id: ++l.id,
+            x: screenW / 2,
+            y: insets.top + 84,
+            text: t("game.timeBonus", { s: extra }),
+            color: "#8BE59A",
+          },
+        ]);
+      }
       const praiseKey = (
         [
           "game.praise.1",
@@ -540,13 +559,16 @@ function GameRound({
           "game.praise.4",
         ] as const
       )[id % 4];
-      // Dezent: Lob-Text nur bei Perfekt und bei Serien (5, 10, 15 …)
-      if (ts.perfect || streakNow % 5 === 0) {
+      // Zielwurf: genau beim 3. Treffer in Folge „On Fire!“
+      const fireText =
+        thrown.free && streakNow === ON_FIRE_STREAK ? t("game.onFire") : null;
+      // Dezent: Lob-Text nur bei Perfekt, Deckel/Rand, On Fire und Serien (5, 10 …)
+      if (ts.perfect || viaText || fireText || streakNow % 5 === 0) {
         setPraise({
           id,
           text: ts.perfect
             ? t("game.perfect")
-            : `${t(praiseKey)} ×${streakNow}`,
+            : (viaText ?? fireText ?? `${t(praiseKey)} ×${streakNow}`),
           gold: ts.perfect,
         });
         later(() => {
@@ -564,9 +586,13 @@ function GameRound({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
         () => undefined,
       );
-      shake(fx.current, 0.04, "x");
+      shake(fx.current, 0.022, "x");
       const correctBin = getBinByCategory(ts.item.category) ?? bin;
       if (mode === "endless") {
+        // Dezenter Hinweis: die richtige Tonne hüpft kurz
+        const correctIndex = bins.findIndex((b) => b.key === correctBin.key);
+        if (correctIndex !== -1)
+          later(() => queueBinEvent(bus.current, correctIndex, "peek"), 250);
         setLearn({ id, item: ts.item, bin: correctBin });
         later(() => {
           setLearn((v) => (v?.id === id ? null : v));
@@ -608,12 +634,34 @@ function GameRound({
     cancel: () => {},
     tap: (_x: number, _y: number) => {},
     throwTo: (_i: number) => {},
-    land: (_id: number) => {},
+    land: (_id: number, _outcome?: LandOutcome) => {},
   });
+  // Zielwurf: Zuglänge für volle Kraft (gleich auf jedem Handy: Anteil der Höhe)
+  const fullPull = screenH * FULL_PULL_SHARE;
+  const aimShot = (dx: number, dy: number) =>
+    pullShot(dx, dy, fullPull, layout.binAngles, binXs, {
+      assist: missAssist(missesInRow.current),
+    });
   useLayoutEffect(() => {
     handlers.current = {
       aim: (dx, dy) => {
         if (lock.current.ended) return;
+        if (mode === "aim") {
+          // Zurückziehen: Flugbahn zeigen, Kraft mit leisem Vibrations-Klicken
+          // (bewusst ohne Ton – der würde das Bild kurz anhalten)
+          const shot = aimShot(dx, dy);
+          setShotGuide(
+            bus.current,
+            shot ? { ...shotLanding(layout, shot), strength: shot.strength } : null,
+          );
+          const step = shot ? Math.floor(shot.strength * 10) : -1;
+          if (step !== pullStep.current) {
+            if (step > pullStep.current && step >= 0)
+              Haptics.selectionAsync().catch(() => undefined);
+            pullStep.current = step;
+          }
+          return;
+        }
         const idx = aimFromDrag(dx, dy, layout.binAngles)?.binIndex ?? null;
         if (idx === bus.current.aim) return;
         setAim(bus.current, idx);
@@ -623,14 +671,38 @@ function GameRound({
         }
       },
       release: (dx, dy, vy) => {
-        const aim = aimFromDrag(dx, dy, layout.binAngles);
         setAim(bus.current, null);
+        setShotGuide(bus.current, null);
+        pullStep.current = -1;
+        if (mode === "aim") {
+          // Zielwurf: Loslassen wirft genau so, wie die Vorschau es zeigte
+          const shot = aimShot(dx, dy);
+          if (!shot) {
+            // Aus Gewohnheit nach oben gewischt? Kurz erklären, wie es geht
+            if (dy < -60 && !lock.current.ended) showBanner(`👇 ${t("game.pullHint")}`, 1800);
+            return;
+          }
+          if (__DEV__)
+            // Zum Nachjustieren (landet im Metro-Log)
+            console.log(
+              `[wurf] zug=${Math.round(Math.hypot(dx, dy))}px kraft=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)} x=${shot.x.toFixed(2)}`,
+            );
+          throwTo(shot.binIndex ?? 0, shot.perfect, 1, shot);
+          return;
+        }
         // Schneller Wisch → kräftigere, flachere Bahn; langsamer → höherer Bogen
         const power = Math.min(Math.max(0.8 + -vy / 5000, 0.8), 1.3);
+        const aim = aimFromDrag(dx, dy, layout.binAngles);
         if (aim) throwTo(aim.binIndex, aim.perfect, power);
       },
-      cancel: () => setAim(bus.current, null),
+      cancel: () => {
+        setAim(bus.current, null);
+        setShotGuide(bus.current, null);
+        pullStep.current = -1;
+      },
       tap: (x, y) => {
+        // Im Zielwurf zählt nur echtes Werfen
+        if (mode === "aim") return;
         const i = layout.binRects.findIndex(
           (r) =>
             x >= r.x - 8 &&
@@ -641,12 +713,12 @@ function GameRound({
         if (i !== -1) throwTo(i, false);
       },
       throwTo: (i) => throwTo(i, false),
-      land: handleLand,
+      land: (id, outcome) => perfTime("landung", () => handleLand(id, outcome)),
     };
   });
   useEffect(() => {
     const b = bus.current;
-    setLandHandler(b, (id) => handlers.current.land(id));
+    setLandHandler(b, (id, outcome) => handlers.current.land(id, outcome));
     return () => setLandHandler(b, () => undefined);
   }, []);
   const onAim = useCallback(
@@ -655,7 +727,7 @@ function GameRound({
   );
   const onRelease = useCallback(
     (dx: number, dy: number, vy: number) =>
-      handlers.current.release(dx, dy, vy),
+      perfTime("wurf", () => handlers.current.release(dx, dy, vy)),
     [],
   );
   const onCancel = useCallback(() => handlers.current.cancel(), []);
@@ -695,56 +767,39 @@ function GameRound({
   );
   const ready = screenW > 0 && screenH > 0;
   const praiseTop = (layout.binRects[0]?.y ?? 200) - 80;
-  const endTitle = mode === "time" ? t("game.end.timeUp") : t("game.end.over");
+  // Name direkt unter dem schwebenden Item (≈ 30 % der Breite groß),
+  // Fehler-Hinweis knapp unter den Tonnen – beides im Bild, nicht davor.
+  const itemTagTop = layout.item.screen.y + screenW * 0.15 + 4;
+  const learnTop = Math.max(0, ...layout.binRects.map((r) => r.y + r.h)) + 10;
+  const endTitle = isTimed(mode) ? t("game.end.timeUp") : t("game.end.over");
   const newBest =
     bestBefore !== null && stats.score > bestBefore && stats.score > 0;
   return (
     <GestureDetector gesture={gesture}>
       <View style={[styles.root, { width: screenW, height: screenH }]}>
         {ready && (
-          <Canvas
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              width: screenW,
-              height: screenH,
-            }}
-            shadows={false}
-            camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
-            gl={{ antialias: ANTIALIAS }}
-            onCreated={(s) =>
-              devLog(
-                "CANVAS",
-                "erstellt",
-                s.size.width,
-                s.size.height,
-                "screen",
-                screenW,
-                screenH,
-              )
-            }
-          >
-            <GameScene
-              layout={layout}
-              bins={bins}
-              scheme={scheme}
-              fever={fever}
-              fx={fx}
-              bus={bus}
-              calm={reduceMotion}
-              previewItem={showEnd ? null : currentItem}
-              nextItem={showEnd ? null : nextItem}
-              warmItems={pool}
-            />
-          </Canvas>
+          <SceneCanvas
+            width={screenW}
+            height={screenH}
+            layout={layout}
+            bins={bins}
+            scheme={scheme}
+            fever={fever}
+            fx={fx}
+            bus={bus}
+            calm={reduceMotion}
+            lang={lang}
+            scene={scene}
+            guide={mode !== "aim"}
+            openLids={mode === "aim"}
+            warmItems={warmItems}
+          />
         )}
         {ready && !showEnd && (
           <>
             <BinLabels
               bins={bins}
               rects={layout.binRects}
-              bus={bus}
               onActivate={onActivateBin}
             />
             {floats.map((f) => (
@@ -785,7 +840,7 @@ function GameRound({
                   <View style={styles.topSpacer} />
                 )}
               </View>
-              {mode === "time" && (
+              {isTimed(mode) && (
                 <TimerBar timeLeft={timeLeft} total={ROUND_SECONDS} />
               )}
               {fever && <FeverBanner key={feverId} seconds={FEVER_SECONDS} />}
@@ -793,29 +848,33 @@ function GameRound({
             {banner && (
               <View
                 pointerEvents="none"
-                style={[styles.bannerWrap, { top: insets.top + 150 }]}
+                style={[styles.bannerWrap, { top: insets.top + 96 }]}
               >
                 <Banner key={banner.id} text={banner.text} />
               </View>
             )}
-            <View
-              pointerEvents="none"
-              style={[
-                styles.bottom,
-                { paddingBottom: insets.bottom + Spacing.md },
-              ]}
-            >
-              {mode === "endless" && learn && (
+            {mode === "endless" && learn && (
+              <View
+                pointerEvents="none"
+                style={[styles.overlayRow, { top: learnTop }]}
+              >
                 <LearnCard key={learn.id} item={learn.item} bin={learn.bin} />
-              )}
-              {currentItem && (
+              </View>
+            )}
+            {currentItem && (
+              <View
+                pointerEvents="none"
+                style={[styles.overlayRow, { top: itemTagTop }]}
+              >
                 <ItemCard
                   key={currentItem.name}
                   item={currentItem}
                   showHint={!hasThrown}
+                  hint={mode === "aim" ? t("game.aimHint") : undefined}
+                  pull={mode === "aim"}
                 />
-              )}
-            </View>
+              </View>
+            )}
           </>
         )}
         {showEnd && (
@@ -836,6 +895,36 @@ function GameRound({
     </GestureDetector>
   );
 }
+/** Die 3D-Fläche. Eigene memo-Komponente: Punkte, Lob, „+10“ und Timer
+ *  rendern nur das HUD neu – die Canvas (und R3F) bleiben unberührt. */
+export const SceneCanvas = memo(function SceneCanvas({
+  width,
+  height,
+  ...scene
+}: { width: number; height: number } & ComponentProps<typeof GameScene>) {
+  return (
+    <Canvas
+      style={{ position: "absolute", left: 0, top: 0, width, height }}
+      shadows={false}
+      camera={{ fov: CAMERA_FOV, near: 0.1, far: 80 }}
+      gl={{ antialias: ANTIALIAS }}
+      onCreated={(s) =>
+        devLog(
+          "CANVAS",
+          "erstellt",
+          s.size.width,
+          s.size.height,
+          "screen",
+          width,
+          height,
+        )
+      }
+    >
+      <GameScene {...scene} />
+    </Canvas>
+  );
+});
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
   top: {
@@ -853,11 +942,10 @@ const styles = StyleSheet.create({
   topSpacer: { width: 48 },
   praiseWrap: { position: "absolute", left: 0, right: 0 },
   bannerWrap: { position: "absolute", left: 0, right: 0 },
-  bottom: {
+  overlayRow: {
     position: "absolute",
     left: Spacing.md,
     right: Spacing.md,
-    bottom: 0,
-    gap: Spacing.sm,
+    alignItems: "center",
   },
 });

@@ -267,6 +267,53 @@ function ClockFace({
   );
 }
 
+/* ── Zielwurf: Korb mit hüpfendem Ball ────────────────────────── */
+
+function Hoop({ t, reduceMotion }: { t: ModeTheme; reduceMotion: boolean }) {
+  const bounce = useLoop(1400, reduceMotion);
+  const ballY = bounce.interpolate({ inputRange: [0, 1], outputRange: [36, -10] });
+  const BOX = 190;
+
+  return (
+    <View
+      style={[
+        s.anchor,
+        { width: BOX, height: BOX, right: -36, marginTop: -BOX / 2 },
+      ]}
+    >
+      {/* Brett + Ring */}
+      <View style={s.layer}>
+        <View
+          style={{
+            width: 120,
+            height: 86,
+            borderRadius: 14,
+            borderWidth: 6,
+            borderColor: t.deco1,
+            marginTop: -70,
+          }}
+        />
+      </View>
+      <View style={s.layer}>
+        <View
+          style={[
+            s.ring,
+            { width: 70, height: 22, borderColor: t.deco2, borderWidth: 5, marginTop: -6 },
+          ]}
+        />
+      </View>
+      <Animated.View style={[s.layer, { transform: [{ translateY: ballY }] }]}>
+        <View
+          style={[
+            s.dot,
+            { width: 30, height: 30, backgroundColor: t.accent, opacity: 0.5, marginTop: 80 },
+          ]}
+        />
+      </Animated.View>
+    </View>
+  );
+}
+
 /* ── Hülle ───────────────────────────────────────────────────── */
 
 export function ModeBackdrop({
@@ -288,6 +335,7 @@ export function ModeBackdrop({
       {mode === "endless" && <Meadow t={theme} reduceMotion={reduceMotion} />}
       {mode === "survival" && <Shield t={theme} reduceMotion={reduceMotion} />}
       {mode === "time" && <ClockFace t={theme} reduceMotion={reduceMotion} />}
+      {mode === "aim" && <Hoop t={theme} reduceMotion={reduceMotion} />}
     </View>
   );
 }

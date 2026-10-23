@@ -1,339 +1,197 @@
 // Datei: app/tutorial.tsx
+// „So geht's“: Werfen, Tonnen (mit Freischalt-Level), Punkte und Modi.
+// Inhalte kommen aus den echten Spieldaten, damit nichts veraltet.
 
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { type ComponentProps, type ReactNode } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppColors, FontSize, Radius, Spacing } from "@/constants/theme";
+import { AppText } from "@/components/ui/app-text";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { FadeIn } from "@/components/ui/fade-in";
+import { IconButton } from "@/components/ui/icon-button";
+import { MODES, startGame } from "@/constants/modes";
+import { Radius, Spacing } from "@/constants/theme";
+import { ALL_BINS } from "@/game/bins";
+import { FEVER_EVERY, FEVER_SECONDS } from "@/game/logic";
+import { type TranslationKey } from "@/i18n";
+import { useAppTheme, useI18n } from "@/providers/app-settings";
+
+type IconName = ComponentProps<typeof Feather>["name"];
+
+const BINS_BY_LEVEL = [...ALL_BINS].sort((a, b) => a.unlockLevel - b.unlockLevel);
 
 export default function TutorialScreen() {
-  const startClassic = () => {
-    router.push({
-      pathname: "/(tabs)/explore",
-      params: { mode: "classic" },
-    });
-  };
+  const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
+  const { t } = useI18n();
+
+  function handleBack() {
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
+  }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg), paddingBottom: Spacing.xl },
+        ]}
       >
-        <View style={styles.header}>
-          <Text style={styles.logo}>♻️</Text>
-          <Text style={styles.title}>So funktioniert’s</Text>
-          <Text style={styles.subtitle}>
-            Sortiere den Müll in den richtigen Mülleimer.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardIcon}>🎯</Text>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Dein Ziel</Text>
-            <Text style={styles.cardText}>
-              Wirf jeden Gegenstand mit einer Wischbewegung nach oben in den
-              passenden Mülleimer.
-            </Text>
+        <FadeIn>
+          <View style={styles.header}>
+            <IconButton icon="chevron-left" label={t("common.back")} onPress={handleBack} />
+            <View style={styles.flex}>
+              <AppText variant="title" accessibilityRole="header">
+                {t("home.tutorial")}
+              </AppText>
+              <AppText tone="textSecondary">{t("tutorial.subtitle")}</AppText>
+            </View>
           </View>
-        </View>
+        </FadeIn>
 
-        <Text style={styles.sectionTitle}>Die drei Kategorien</Text>
+        <FadeIn delay={60}>
+          <Section title={t("tutorial.throw")}>
+            <Card style={styles.list}>
+              <Row icon="arrow-up" text={t("modes.swipeUp")} />
+              <Row icon="target" text={t("modes.swipeLeft")} />
+            </Card>
+          </Section>
+        </FadeIn>
 
-        <View style={styles.categoryCard}>
-          <Text style={styles.categoryEmoji}>🟫</Text>
-          <View style={styles.categoryContent}>
-            <Text style={styles.categoryTitle}>Biomüll</Text>
-            <Text style={styles.categoryText}>
-              Zum Beispiel Bananenschalen, Kaffeesatz und Pflanzenreste.
-            </Text>
+        <FadeIn delay={120}>
+          <Section title={t("tutorial.bins")} hint={t("tutorial.binsHint")}>
+            {BINS_BY_LEVEL.map((bin) => (
+              <View key={bin.key} style={[styles.bin, { backgroundColor: bin.color }]}>
+                <AppText style={styles.binIcon}>{bin.icon}</AppText>
+                <View style={styles.flex}>
+                  <AppText variant="heading" color={bin.onColor}>
+                    {t(bin.labelKey)}
+                  </AppText>
+                  <AppText variant="caption" color={bin.onColor}>
+                    {t(`${bin.labelKey}.examples` as TranslationKey)}
+                  </AppText>
+                </View>
+                {bin.unlockLevel > 1 && (
+                  <View style={[styles.levelPill, { backgroundColor: colors.surface }]}>
+                    <AppText variant="caption">
+                      {t("tutorial.fromLevel", { level: bin.unlockLevel })}
+                    </AppText>
+                  </View>
+                )}
+              </View>
+            ))}
+          </Section>
+        </FadeIn>
+
+        <FadeIn delay={180}>
+          <Section title={t("tutorial.points")}>
+            <Card style={styles.list}>
+              <Row icon="trending-up" title={t("tutorial.streak.title")} text={t("tutorial.streak.text")} />
+              <Row icon="star" title={t("tutorial.perfect.title")} text={t("tutorial.perfect.text")} />
+              <Row
+                icon="zap"
+                title={t("tutorial.fever.title")}
+                text={t("tutorial.fever.text", { n: FEVER_EVERY, s: FEVER_SECONDS })}
+              />
+            </Card>
+          </Section>
+        </FadeIn>
+
+        <FadeIn delay={240}>
+          <Section title={t("tutorial.modes")}>
+            <Card style={styles.list}>
+              {MODES.map((m) => (
+                <Row key={m.mode} icon={m.icon} title={t(m.titleKey)} text={t(m.descKey)} />
+              ))}
+            </Card>
+          </Section>
+        </FadeIn>
+
+        <FadeIn delay={300}>
+          <View style={[styles.tip, { backgroundColor: colors.primarySoft }]}>
+            <AppText tone="onPrimarySoft">💡 {t("tutorial.tip")}</AppText>
           </View>
-        </View>
-
-        <View style={styles.categoryCard}>
-          <Text style={styles.categoryEmoji}>🟡</Text>
-          <View style={styles.categoryContent}>
-            <Text style={styles.categoryTitle}>Gelber Sack</Text>
-            <Text style={styles.categoryText}>
-              Leere Verpackungen aus Kunststoff, Metall und Verbundmaterial.
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.categoryCard}>
-          <Text style={styles.categoryEmoji}>⚫</Text>
-          <View style={styles.categoryContent}>
-            <Text style={styles.categoryTitle}>Restmüll</Text>
-            <Text style={styles.categoryText}>
-              Alles, was nicht in Biomüll oder Gelben Sack gehört.
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Punkte & Combo</Text>
-
-        <View style={styles.card}>
-          <Text style={styles.cardIcon}>🔥</Text>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Combo aufbauen</Text>
-            <Text style={styles.cardText}>
-              Mehrere richtige Würfe hintereinander erhöhen deinen Multiplikator
-              und bringen deutlich mehr Punkte.
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardIcon}>⭐</Text>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Perfekt treffen</Text>
-            <Text style={styles.cardText}>
-              Triff die Öffnung möglichst genau. Ein perfekter Treffer gibt dir
-              die meisten Punkte.
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Weitere Spielmodi</Text>
-
-        <View style={styles.modeInfo}>
-          <Text style={styles.modeInfoTitle}>🌱 Leicht</Text>
-          <Text style={styles.modeInfoText}>Nur einfache Gegenstände.</Text>
-        </View>
-
-        <View style={styles.modeInfo}>
-          <Text style={styles.modeInfoTitle}>🔥 Schwer</Text>
-          <Text style={styles.modeInfoText}>
-            Schwierigere Gegenstände und weniger Zielhilfe.
-          </Text>
-        </View>
-
-        <View style={styles.modeInfo}>
-          <Text style={styles.modeInfoTitle}>⏱️ Zeitmodus</Text>
-          <Text style={styles.modeInfoText}>
-            60 Sekunden – schaffe so viele Punkte wie möglich.
-          </Text>
-        </View>
-
-        <View style={styles.tipBox}>
-          <Text style={styles.tipIcon}>💡</Text>
-          <Text style={styles.tipText}>
-            Tipp: Lieber kontrolliert werfen als hektisch wischen. Präzise
-            Treffer bauen schneller eine hohe Combo auf.
-          </Text>
-        </View>
+        </FadeIn>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.playButton}
-          onPress={startClassic}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.playButtonText}>🎮 Jetzt spielen</Text>
-        </TouchableOpacity>
+      <View
+        style={[
+          styles.footer,
+          { backgroundColor: colors.bg, borderTopColor: colors.border, paddingBottom: insets.bottom + Spacing.md },
+        ]}
+      >
+        <Button title={t("tutorial.play")} icon="play" size="lg" onPress={() => startGame("endless")} />
+      </View>
+    </View>
+  );
+}
 
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8}>
-          <Text style={styles.backText}>Zurück zum Menü</Text>
-        </TouchableOpacity>
+function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <AppText variant="overline" tone="textMuted" accessibilityRole="header">
+        {title.toUpperCase()}
+      </AppText>
+      {hint && <AppText tone="textSecondary">{hint}</AppText>}
+      {children}
+    </View>
+  );
+}
+
+function Row({ icon, title, text }: { icon: IconName; title?: string; text: string }) {
+  const { colors } = useAppTheme();
+
+  return (
+    <View style={styles.row}>
+      <View style={[styles.rowIcon, { backgroundColor: colors.surfaceAlt }]}>
+        <Feather name={icon} size={20} color={colors.text} />
+      </View>
+      <View style={styles.flex}>
+        {title && <AppText variant="label">{title}</AppText>}
+        <AppText tone={title ? "textSecondary" : "text"}>{text}</AppText>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: AppColors.bg,
-  },
-
-  scrollContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: 55,
-    paddingBottom: 165,
-  },
-
-  header: {
-    alignItems: "center",
-    marginBottom: 28,
-  },
-
-  logo: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-
-  title: {
-    color: AppColors.textPrimary,
-    fontSize: FontSize.title,
-    fontWeight: "900",
-    textAlign: "center",
-  },
-
-  subtitle: {
-    color: AppColors.textSecondary,
-    fontSize: FontSize.md,
-    textAlign: "center",
-    marginTop: 7,
-    lineHeight: 20,
-  },
-
-  sectionTitle: {
-    color: AppColors.textPrimary,
-    fontSize: FontSize.lg,
-    fontWeight: "900",
-    marginTop: 24,
-    marginBottom: 10,
-  },
-
-  card: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: AppColors.card,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: AppColors.cardBorder,
-    padding: 14,
-    marginBottom: 10,
-  },
-
-  cardIcon: {
-    fontSize: 25,
-    marginRight: 11,
-  },
-
-  cardContent: {
-    flex: 1,
-  },
-
-  cardTitle: {
-    color: AppColors.textPrimary,
-    fontSize: FontSize.md,
-    fontWeight: "900",
-    marginBottom: 4,
-  },
-
-  cardText: {
-    color: AppColors.textSecondary,
-    fontSize: FontSize.sm,
-    lineHeight: 19,
-  },
-
-  categoryCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: AppColors.card,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: AppColors.cardBorder,
-    padding: 14,
-    marginBottom: 10,
-  },
-
-  categoryEmoji: {
-    fontSize: 26,
-    marginRight: 12,
-  },
-
-  categoryContent: {
-    flex: 1,
-  },
-
-  categoryTitle: {
-    color: AppColors.textPrimary,
-    fontSize: FontSize.md,
-    fontWeight: "900",
-    marginBottom: 3,
-  },
-
-  categoryText: {
-    color: AppColors.textSecondary,
-    fontSize: FontSize.sm,
-    lineHeight: 18,
-  },
-
-  modeInfo: {
-    backgroundColor: AppColors.card,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: AppColors.cardBorder,
-    padding: 14,
-    marginBottom: 10,
-  },
-
-  modeInfoTitle: {
-    color: AppColors.textPrimary,
-    fontSize: FontSize.md,
-    fontWeight: "900",
-    marginBottom: 3,
-  },
-
-  modeInfoText: {
-    color: AppColors.textSecondary,
-    fontSize: FontSize.sm,
-    lineHeight: 18,
-  },
-
-  tipBox: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: AppColors.card,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: AppColors.cardBorder,
-    padding: 14,
-    marginTop: 8,
-  },
-
-  tipIcon: {
-    fontSize: 22,
-    marginRight: 10,
-  },
-
-  tipText: {
-    flex: 1,
-    color: AppColors.textMuted,
-    fontSize: FontSize.sm,
-    lineHeight: 18,
-  },
-
-  footer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: AppColors.bg,
-    borderTopWidth: 1,
-    borderTopColor: AppColors.cardBorder,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: 12,
-    paddingBottom: 24,
-  },
-
-  playButton: {
-    backgroundColor: AppColors.green,
+  screen: { flex: 1 },
+  content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.lg },
+  flex: { flex: 1 },
+  header: { flexDirection: "row", alignItems: "flex-start", gap: Spacing.md },
+  section: { gap: Spacing.sm },
+  list: { gap: Spacing.md },
+  row: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  rowIcon: {
+    width: 40,
+    height: 40,
     borderRadius: Radius.md,
     alignItems: "center",
-    paddingVertical: 15,
-    marginBottom: 10,
+    justifyContent: "center",
   },
-
-  playButtonText: {
-    color: AppColors.textPrimary,
-    fontSize: FontSize.lg,
-    fontWeight: "900",
+  bin: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
   },
-
-  backText: {
-    color: AppColors.textSecondary,
-    fontSize: FontSize.sm,
-    fontWeight: "700",
-    textAlign: "center",
+  binIcon: { fontSize: 28, lineHeight: 34 },
+  levelPill: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Radius.pill,
+  },
+  tip: { padding: Spacing.md, borderRadius: Radius.lg },
+  footer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: Spacing.md + 4,
+    paddingTop: Spacing.md,
   },
 });

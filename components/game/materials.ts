@@ -105,3 +105,36 @@ export function roundedSlab(w: number, d: number, h: number, r: number, seg = 4)
   g.computeVertexNormals();
   return g;
 }
+
+/** Rahmen (z. B. Tonnen-Rand): abgerundetes Rechteck mit Loch in der Mitte,
+ *  liegt flach wie roundedSlab – man sieht durch die Öffnung hinein. */
+export function roundedFrame(
+  w: number,
+  d: number,
+  innerW: number,
+  innerD: number,
+  h: number,
+  r: number,
+  seg = 4,
+) {
+  const shape = new THREE.Shape();
+  roundedRect(w, d, r, seg).forEach(([x, z], i) => (i === 0 ? shape.moveTo(x, z) : shape.lineTo(x, z)));
+  shape.closePath();
+  const hole = new THREE.Path();
+  roundedRect(innerW, innerD, Math.max(r - (w - innerW) / 2, 0.02), seg).forEach(([x, z], i) =>
+    i === 0 ? hole.moveTo(x, z) : hole.lineTo(x, z),
+  );
+  hole.closePath();
+  shape.holes.push(hole);
+  const g = new THREE.ExtrudeGeometry(shape, {
+    depth: h,
+    bevelEnabled: true,
+    bevelThickness: h * 0.25,
+    bevelSize: h * 0.2,
+    bevelSegments: 2,
+  });
+  g.rotateX(Math.PI / 2);
+  g.translate(0, h, 0);
+  g.computeVertexNormals();
+  return g;
+}

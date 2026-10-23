@@ -4,12 +4,16 @@
 
 import * as THREE from "three";
 
+export { flightPoint } from "@/game/physics";
+
 export type Fx = {
   /** 1 = normal, < 1 = Zeitlupe. Alle Animationen multiplizieren delta damit. */
   timeScale: number;
   slowUntil: number;
   /** Frühestens ab hier darf eine neue Zeitlupe starten (kein Dauer-Bremsen). */
   slowCooldownUntil: number;
+  /** Hit-Stop: bis hier steht die Szene kurz fast still (Swish-„Wumms“). */
+  stopUntil: number;
   /** Anzahl gerade fliegender Würfe – Zeitlupe nur bei einem einzelnen. */
   flying: number;
   shake: number;
@@ -27,6 +31,7 @@ export function createFx(): Fx {
     timeScale: 1,
     slowUntil: 0,
     slowCooldownUntil: 0,
+    stopUntil: 0,
     flying: 0,
     shake: 0,
     shakeAxis: "y",
@@ -40,23 +45,24 @@ export function setLook(fx: Fx, position: THREE.Vector3) {
   fx.lookAt.copy(position);
 }
 
-export function slowMotion(fx: Fx, ms: number) {
-  const now = performance.now();
-  // Bei Schnellwürfen würde die Zeitlupe alle fliegenden Items bremsen.
-  if (fx.calm || fx.flying > 1 || now < fx.slowCooldownUntil) return;
-  fx.slowUntil = now + ms;
-  fx.slowCooldownUntil = now + ms + 1200;
-}
-
 /** Wurf startet (+1) bzw. ist gelandet/entfernt (−1). */
 export function trackFlying(fx: Fx, delta: 1 | -1) {
   fx.flying = Math.max(0, fx.flying + delta);
 }
 
-/** Zeitlupe sofort beenden (z. B. wenn der nächste Wurf losgeht). */
+/** Zeitlupe/Hit-Stop sofort beenden (z. B. wenn der nächste Wurf losgeht). */
 export function cancelSlowMotion(fx: Fx) {
   fx.slowUntil = 0;
+  fx.stopUntil = 0;
   fx.timeScale = 1;
+}
+
+/** Hit-Stop: ein paar Millisekunden Fast-Stillstand – der „Wumms“ bei
+ *  einem besonderen Treffer. Keine Zeitlupe; der nächste Wurf beendet ihn. */
+export function hitStop(fx: Fx, ms: number) {
+  if (fx.calm) return;
+  fx.stopUntil = performance.now() + ms;
+  fx.timeScale = 0.04;
 }
 
 export function shake(fx: Fx, amount: number, axis: "x" | "y" = "y") {
@@ -68,25 +74,18 @@ export function shake(fx: Fx, amount: number, axis: "x" | "y" = "y") {
 /** Pro Frame: Zeitlupe weich ein-/ausblenden, Wackeln abklingen lassen.
  *  Gibt den aktuellen Wackel-Versatz der Kamera zurück. */
 export function stepFx(fx: Fx, delta: number, time: number): number {
-  const slow = performance.now() < fx.slowUntil;
-  fx.timeScale = THREE.MathUtils.damp(fx.timeScale, slow ? 0.22 : 1, slow ? 30 : 8, delta);
+  const now = performance.now();
+  if (now < fx.stopUntil) fx.timeScale = 0.04;
+  else {
+    const slow = now < fx.slowUntil;
+    // Nach einem Hit-Stop schnell (aber nicht ruckartig) wieder auf Tempo
+    fx.timeScale = THREE.MathUtils.damp(fx.timeScale, slow ? 0.22 : 1, slow ? 30 : 18, delta);
+  }
   if (fx.shake <= 0.001) return 0;
-  const offset = Math.sin(time * 55) * fx.shake;
+  // Ruhigere Frequenz: wirkt wie ein Stoß, nicht wie Zittern
+  const offset = Math.sin(time * 34) * fx.shake;
   fx.shake *= Math.exp(-9 * delta);
   return offset;
-}
-
-/** Punkt auf der Wurfparabel (t = 0…1). */
-export function flightPoint(
-  out: THREE.Vector3,
-  start: THREE.Vector3,
-  end: THREE.Vector3,
-  t: number,
-  arc: number,
-) {
-  out.lerpVectors(start, end, t);
-  out.y += Math.sin(t * Math.PI) * arc;
-  return out;
 }
 
 export const easeOutBack = (t: number) => {
