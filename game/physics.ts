@@ -2,8 +2,10 @@
 // Kleine Wurf-Physik für Zielwurf und Trickwürfe: Schwerkraft, Abprallen an
 // Tonnenwand, Rand und (offenem) Deckel, an Hindernissen (Trampolin, Auto,
 // Zaun), Boden und Rückwand. Ob ein Wurf trifft, ergibt sich hier – auch vom
-// Rand hineinrollen oder vom Deckel abprallen geht. Dazu die feste Flugbahn
-// und simulateThrow(), das einen Wurf genau wie die Szene durchspielt.
+// Rand hineinrollen oder vom Deckel abprallen geht. Geworfen wird echt (ab
+// dem Loslassen, lobVelocity); simulateShot() und firstTouch() rechnen in
+// denselben festen Schritten wie die Szene – Vorschau = Wurf = Test.
+// Dazu die feste Flugbahn der klassischen Modi (Wischen ins Ziel).
 // Rein und ohne React, damit es sich testen lässt (siehe __tests__).
 
 import * as THREE from "three";
@@ -37,19 +39,13 @@ const RIM_NUDGE = 1.8;
 const BANK_ASSIST = 0.8;
 /** Ab diesem Winkel (rad) ist der Deckel offen genug zum Hineinfallen. */
 const LID_OPEN_MIN = 0.35;
+/** Deckel federt: Wer viel zu lang wirft, prallt zurück über die Tonne. */
+const LID_RESTITUTION = 0.55;
 
-/* ── Flugbahn (fest) und Übergabe an die Physik ───────────── */
+/* ── Feste Flugbahn (klassische Modi) ─────────────────────── */
 
 /** Dauer der festen Flugbahn (s): knackig, aber zum Mitverfolgen. */
 export const FLIGHT_TIME = 0.42;
-/** Berührung unterwegs: so viel vom (exakten) Flugtempo nimmt die Physik mit. */
-export const HANDOVER_SPEED = 0.8;
-/** Ankunft am Ziel: sanftes Hineinfallen – der Wurf landet, wo man hinzielt. */
-export const ARRIVAL_SPEED = 0.1;
-/** Höchstes Tempo bei der Übergabe: Die feste Flugbahn ist perspektivisch sehr
- *  schnell (~17/s) – ungedeckelt springt ein Gegenstand meterhoch vom Rand. */
-const MAX_HANDOVER = 6.5;
-
 /** Bogenhöhe der festen Flugbahn zwischen zwei Punkten. */
 export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
   return 0.9 + start.distanceTo(end) * 0.12;
@@ -58,13 +54,6 @@ export function arcFor(start: THREE.Vector3, end: THREE.Vector3) {
 /** Bogen eines Wurfs: kräftiger Wisch → flacher, sanfter → höher. */
 export function throwArc(start: THREE.Vector3, target: THREE.Vector3, power = 1) {
   return arcFor(start, target) * (1.35 - power * 0.35);
-}
-
-/** Bogen im Zielwurf (Zurückziehen): länger gezogen → weiter UND höher.
- *  Ein zu kräftiger Wurf fliegt so übers Brett (den offenen Deckel), statt
- *  flach dagegen zu prallen und doch hineinzufallen. `strength` = 0…1. */
-export function pullArc(start: THREE.Vector3, target: THREE.Vector3, strength: number) {
-  return arcFor(start, target) * (0.7 + 0.8 * strength);
 }
 
 /** Punkt auf der festen Wurfparabel (t = 0…1). */
@@ -78,20 +67,6 @@ export function flightPoint(
   out.lerpVectors(start, end, t);
   out.y += Math.sin(t * Math.PI) * arc;
   return out;
-}
-
-/** Tempo auf der festen Flugbahn (Ableitung von flightPoint, pro Sekunde) –
- *  exakt, unabhängig vom Bildtakt. */
-export function flightVelocity(
-  out: THREE.Vector3,
-  start: THREE.Vector3,
-  end: THREE.Vector3,
-  t: number,
-  arc: number,
-) {
-  out.subVectors(end, start);
-  out.y += Math.PI * arc * Math.cos(t * Math.PI);
-  return out.divideScalar(FLIGHT_TIME);
 }
 
 /* ── Hindernisse (Trickwürfe) ─────────────────────────────── */
@@ -206,7 +181,6 @@ export function launchBall(
 const n = new THREE.Vector3();
 const rel = new THREE.Vector3();
 const tangential = new THREE.Vector3();
-const point = new THREE.Vector3();
 
 /** Ball aus einer Fläche schieben und abprallen lassen. */
 function bounce(ball: Ball, normal: THREE.Vector3, depth: number, restitution: number): number {
@@ -305,19 +279,21 @@ function collideLid(ball: Ball, bin: BinCollider, i: number, events: BallEvent[]
   const side = dist >= 0 ? 1 : -1;
   n.multiplyScalar(side);
   const firstLid = ball.via !== "lid";
-  const speed = bounce(ball, n, reach - Math.abs(dist), 0.55);
+  const speed = bounce(ball, n, reach - Math.abs(dist), LID_RESTITUTION);
   touch(ball, events, i, "lid", speed);
   // Von vorn ans offene Brett: meistens Richtung Öffnung abprallen lassen
-  if (firstLid && side < 0 && speed > 0.4 && lid > LID_OPEN_MIN) bankAssist(ball, bin);
+  if (firstLid && side < 0 && speed > 0.4 && lid > LID_OPEN_MIN) bankAssist(ball, bin, along);
 }
 
 /** Brett-Wurf: Abpraller vom Deckel meist in die Öffnung lenken – weniger,
  *  je weiter außen der Deckel getroffen wurde (kein automatischer Treffer). */
-function bankAssist(ball: Ball, bin: BinCollider) {
+function bankAssist(ball: Ball, bin: BinCollider, along: number) {
   const s = BIN_SHAPE;
   const lx = ball.p.x - bin.x;
   const outer = Math.min(Math.abs(lx) / s.lidHalfW, 1);
-  const strength = BANK_ASSIST * (1 - outer * 0.7);
+  // Weit oben am Deckel (viel zu lang geworfen) hilft nichts mehr
+  const high = THREE.MathUtils.clamp((0.6 - along) / 0.3, 0, 1);
+  const strength = BANK_ASSIST * (1 - outer * 0.7) * high;
   // Zeit, bis der Ball (mit aktuellem Auf/Ab) auf Höhe der Öffnung fällt
   const drop = Math.max(ball.p.y - (s.top - 0.2), 0.05);
   const vy = ball.v.y;
@@ -342,7 +318,11 @@ function launchFrom(ball: Ball, l: Launch, bins: BinCollider[], offset: number) 
   const reach = 1 - THREE.MathUtils.clamp(offset, -1, 1) * l.spread;
   ball.v.z = ((goal.z + 0.05 - ball.p.z) / t) * reach;
   if (l.aim) ball.v.x += ((l.aim.x - ball.p.x) / t - ball.v.x) * l.assist;
-  else steerToBin(ball, bins, l.assist);
+  else {
+    // Die Matte schluckt den Seitenschwung: es geht geradeaus zur Tonne dahinter
+    ball.v.x *= 0.3;
+    steerToBin(ball, bins, l.assist);
+  }
 }
 
 /** Trampolin von oben getroffen: Sprungbrett. */
@@ -421,7 +401,7 @@ export function stepBall(
   events: BallEvent[],
   props: PropCollider[] = [],
 ) {
-  const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+  const steps = Math.max(1, Math.ceil(dt / (1 / 240) - 1e-6));
   const h = dt / steps;
   for (let k = 0; k < steps; k++) {
     ball.v.y -= GRAVITY * h;
@@ -457,72 +437,9 @@ export function stepBall(
   ball.still = ball.v.length() < 0.3 ? ball.still + dt : 0;
 }
 
-const probe: Ball = {
-  p: new THREE.Vector3(),
-  v: new THREE.Vector3(),
-  inside: null,
-  touched: false,
-  via: null,
-  still: 0,
-};
-const probeEvents: BallEvent[] = [];
-
-/** Würde ein Ball an Stelle `p` (mit Tempo `v`) gerade etwas berühren? */
-function touchesAt(
-  p: THREE.Vector3,
-  v: THREE.Vector3,
-  bins: BinCollider[],
-  props: PropCollider[],
-): boolean {
-  probe.p.copy(p);
-  probe.v.copy(v);
-  probe.inside = null;
-  probe.via = null;
-  probeEvents.length = 0;
-  stepBall(probe, 0, bins, probeEvents, props);
-  return probeEvents.some((e) => e.type === "bounce");
-}
-
-/**
- * Erste Berührung auf der Strecke from → to (in kleinen Schritten abgetastet,
- * sonst springt ein schneller Wurf zwischen zwei Bildern durch den dünnen
- * Deckel hindurch). Gibt die letzte freie Stelle davor zurück – oder null.
- */
-export function firstContact(
-  from: THREE.Vector3,
-  to: THREE.Vector3,
-  v: THREE.Vector3,
-  bins: BinCollider[],
-  out: THREE.Vector3,
-  props: PropCollider[] = [],
-): THREE.Vector3 | null {
-  const steps = Math.max(1, Math.ceil(from.distanceTo(to) / 0.04));
-  for (let k = 1; k <= steps; k++) {
-    point.lerpVectors(from, to, k / steps);
-    if (touchesAt(point, v, bins, props)) return out.lerpVectors(from, to, (k - 1) / steps);
-  }
-  return null;
-}
-
 /** Fertig: liegt still oder ist in einer Tonne verschwunden. */
 export function ballSettled(ball: Ball): boolean {
   return ball.still > 0.25;
-}
-
-/** Ball für die Physik ab der Übergabe-Stelle: bei Berührung unterwegs mit
- *  dem Flugtempo, bei Ankunft am Ziel sanft (`arrived`). */
-export function handOverBall(p: THREE.Vector3, v: THREE.Vector3, arrived = false): Ball {
-  return {
-    p: p.clone(),
-    v: v
-      .clone()
-      .multiplyScalar(arrived ? ARRIVAL_SPEED : HANDOVER_SPEED)
-      .clampLength(0, MAX_HANDOVER),
-    inside: null,
-    touched: false,
-    via: null,
-    still: 0,
-  };
 }
 
 export type ThrowResult = {
@@ -534,42 +451,54 @@ export type ThrowResult = {
   props: number[];
 };
 
+/* ── Echter Wurf (Zielwurf, Trickwürfe) ───────────────────── */
+
+/** Fester Physik-Schritt (s): Szene, Vorschau und Tests rechnen identisch –
+ *  gleicher Wurf, gleiches Ergebnis, egal wie flüssig das Handy läuft. */
+export const PHYSICS_STEP = 1 / 240;
+
 /**
- * Spielt einen Wurf genau wie die Szene durch (ThrowLayer): feste Flugbahn,
- * an der ersten Berührung (oder am Ziel) übernimmt die Physik; Bodenkontakt
- * außerhalb einer Tonne = daneben. Für Tests und das Prüfen von Levels.
+ * Abwurf-Tempo für einen Lob, der absteigend durch `target` fliegt (Ziel auf
+ * Höhe der Öffnungen). Weitere Würfe fliegen höher – wie beim Basketball.
+ * Rückgabe: Flugzeit bis zum Ziel (s).
  */
-export function simulateThrow(
+export function lobVelocity(out: THREE.Vector3, start: THREE.Vector3, target: THREE.Vector3): number {
+  const dist = Math.hypot(target.x - start.x, target.z - start.z);
+  const top = Math.max(start.y, target.y) + 0.5 + dist * 0.16;
+  const vy = Math.sqrt(2 * GRAVITY * (top - start.y));
+  const t = (vy + Math.sqrt(vy * vy - 2 * GRAVITY * (target.y - start.y))) / GRAVITY;
+  out.set((target.x - start.x) / t, vy, (target.z - start.z) / t);
+  return t;
+}
+
+/** Punkt der freien Wurfparabel nach `t` Sekunden. */
+export function ballisticPoint(out: THREE.Vector3, start: THREE.Vector3, v: THREE.Vector3, t: number) {
+  out.copy(start).addScaledVector(v, t);
+  out.y -= 0.5 * GRAVITY * t * t;
+  return out;
+}
+
+/** Neuer Ball an `p` mit Tempo `v`. */
+export function freshBall(p: THREE.Vector3, v: THREE.Vector3): Ball {
+  return { p: p.clone(), v: v.clone(), inside: null, touched: false, via: null, still: 0 };
+}
+
+/**
+ * Wurf genau wie die Szene (ThrowLayer): echter Wurf ab `start` mit Tempo `v`,
+ * in festen Schritten. Bodenkontakt außerhalb einer Tonne = daneben.
+ */
+export function simulateShot(
   start: THREE.Vector3,
-  target: THREE.Vector3,
-  strength: number,
+  v: THREE.Vector3,
   bins: BinCollider[],
   props: PropCollider[] = [],
-  dt = 1 / 60,
 ): ThrowResult {
-  const arc = pullArc(start, target, strength);
-  const prev = start.clone();
-  const cur = new THREE.Vector3();
-  const vel = new THREE.Vector3();
-  const hit = new THREE.Vector3();
+  const ball = freshBall(start, v);
   const touched: number[] = [];
   const events: BallEvent[] = [];
-  let t = 0;
-  let ball: Ball | null = null;
-  for (let time = 0; time < 6; time += dt) {
-    if (!ball) {
-      t = Math.min(t + dt / FLIGHT_TIME, 1);
-      flightPoint(cur, start, target, t, arc);
-      flightVelocity(vel, start, target, t, arc);
-      const contact = firstContact(prev, cur, vel, bins, hit, props);
-      if (!contact && t < 1) {
-        prev.copy(cur);
-        continue;
-      }
-      ball = handOverBall(contact ?? cur, vel, !contact);
-    }
+  for (let time = 0; time < 6; time += PHYSICS_STEP) {
     events.length = 0;
-    stepBall(ball, dt, bins, events, props);
+    stepBall(ball, PHYSICS_STEP, bins, events, props);
     for (const e of events) {
       if (e.type === "capture") return { bin: e.bin, clean: !ball.touched, props: touched };
       if (e.prop !== undefined && !touched.includes(e.prop)) touched.push(e.prop);
@@ -578,4 +507,43 @@ export function simulateThrow(
     if (ballSettled(ball)) break;
   }
   return { bin: null, clean: false, props: touched };
+}
+
+const traceBall = freshBall(new THREE.Vector3(), new THREE.Vector3());
+const traceEvents: BallEvent[] = [];
+
+/**
+ * Flugbahn-Vorschau: Wann berührt der Wurf zum ersten Mal etwas (Hindernis,
+ * Tonne, Boden)? Bis dahin ist die Bahn eine reine Parabel (ballisticPoint).
+ * `hit` = Stelle der Berührung; `prop` = berührtes Hindernis oder null.
+ */
+export function firstTouch(
+  start: THREE.Vector3,
+  v: THREE.Vector3,
+  bins: BinCollider[],
+  props: PropCollider[],
+  hit: THREE.Vector3,
+): { time: number; prop: number | null } {
+  const ball = traceBall;
+  ball.p.copy(start);
+  ball.v.copy(v);
+  ball.inside = null;
+  ball.touched = false;
+  ball.via = null;
+  for (let step = 1; step < 3 / PHYSICS_STEP; step++) {
+    traceEvents.length = 0;
+    stepBall(ball, PHYSICS_STEP, bins, traceEvents, props);
+    for (const e of traceEvents) {
+      hit.copy(ball.p);
+      if (e.type === "capture") return { time: step * PHYSICS_STEP, prop: null };
+      return { time: step * PHYSICS_STEP, prop: e.prop ?? null };
+    }
+    // Sauber in eine Öffnung gefallen: dort endet die Vorschau
+    if (ball.inside !== null) {
+      hit.copy(ball.p);
+      return { time: step * PHYSICS_STEP, prop: null };
+    }
+  }
+  hit.copy(ball.p);
+  return { time: 3, prop: null };
 }

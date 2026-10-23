@@ -138,8 +138,8 @@ describe("Zielwurf (zurückziehen und loslassen)", () => {
 
   test("seitlich ziehen wirft zur Gegenseite", () => {
     // Finger nach unten LINKS → Wurf nach rechts
-    expect(pullShot(-58, 100, full, angles, xs)?.binIndex).toBe(2);
-    expect(pullShot(58, 100, full, angles, xs)?.binIndex).toBe(0);
+    expect(at(30, pull(SWEET_STRENGTH))?.binIndex).toBe(2);
+    expect(at(-30, pull(SWEET_STRENGTH))?.binIndex).toBe(0);
   });
 
   test("zwischen zwei Tonnen geht daneben", () => {
@@ -147,7 +147,7 @@ describe("Zielwurf (zurückziehen und loslassen)", () => {
   });
 
   test("knapp daneben trifft den Rand", () => {
-    const rim = at(0, pull(0.47));
+    const rim = at(0, pull(SWEET_STRENGTH - 0.06));
     expect(rim?.binIndex).toBeNull();
     expect(rim?.rimIndex).toBe(1);
   });
@@ -191,11 +191,11 @@ describe("Zielwurf: Pech-Hilfe", () => {
     const xs = [-1.3, 0, 1.3];
     const full = 200;
     const length = (strength: number) => 18 + strength * (full - 18);
-    const close = pullShot(0, length(0.47), full, angles, xs);
+    const close = pullShot(0, length(SWEET_STRENGTH - 0.06), full, angles, xs);
     expect(close?.binIndex).toBeNull();
-    const helped = pullShot(0, length(0.47), full, angles, xs, { assist: 1 });
+    const helped = pullShot(0, length(SWEET_STRENGTH - 0.06), full, angles, xs, { assist: 1 });
     expect(helped?.binIndex).toBe(1);
-    const far = pullShot(0, length(0.3), full, angles, xs, { assist: 1 });
+    const far = pullShot(0, length(SWEET_STRENGTH - 0.4), full, angles, xs, { assist: 1 });
     expect(far?.binIndex).toBeNull();
   });
 });

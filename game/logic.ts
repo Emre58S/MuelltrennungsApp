@@ -51,17 +51,16 @@ export function aimFromDrag(
 /** Ab dieser Zuglänge (px) wird gezielt; kürzer = abbrechen. */
 const MIN_PULL = 18;
 /** Zuglänge für volle Kraft als Anteil der Bildschirmhöhe. */
-export const FULL_PULL_SHARE = 0.22;
+export const FULL_PULL_SHARE = 0.24;
 /** Kraft (0…1), bei der ein Wurf genau in den Tonnen landet. */
-export const SWEET_STRENGTH = 0.55;
+export const SWEET_STRENGTH = 0.7;
 /** Schwächster Wurf landet so weit vor den Tonnen (Welt-Einheiten). */
 const SHORT_RANGE = 6;
 /** Stärkster Wurf fliegt so weit hinter die Tonnen (bis zur Rückwand). */
 const LONG_RANGE = 2.2;
-/** > 1: Rund um die Tonnen ändert sich die Weite langsamer (fairer Treffer-
- *  Bereich). Davor fast gleichmäßig – dort stehen die Trick-Hindernisse –,
- *  dahinter stärker gebogen: wer etwas zu lang zieht, trifft noch. */
-const NEAR_CURVE = 1.3;
+/** Kurven-Form: 1 = gleichmäßig. Gleichmäßig ist am besten planbar – davor
+ *  stehen die Trick-Hindernisse, und die Vorschau zeigt den Rest. */
+const NEAR_CURVE = 1.0;
 const FAR_CURVE = 1.0;
 
 /** Zuglänge (px) → Kraft 0…1. `full` = Zuglänge für volle Kraft. */

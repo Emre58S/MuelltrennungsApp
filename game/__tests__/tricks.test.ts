@@ -20,21 +20,42 @@ describe("Trickwurf-Level", () => {
       expect(s.best).not.toBeNull();
       const { angle, strength } = s.best!;
 
-      // Tempo-Fenster am besten Wurf: mindestens ±0,04 Stärke
-      let tempo = 0;
-      for (let k = -0.1; k <= 0.1001; k += 0.01) if (success(level, angle, strength + k)) tempo += 1;
-      expect(tempo).toBeGreaterThanOrEqual(8);
+      // Weiten-Fenster am besten Wurf: mindestens 0,1 Kraft (≈ 18 px Zuglänge)
+      let reach = 0;
+      for (let k = -0.15; k <= 0.1501; k += 0.01) if (success(level, angle, strength + k)) reach += 1;
+      expect(reach).toBeGreaterThanOrEqual(10);
 
-      // Richtungs-Fenster: mindestens 5° breit
+      // Richtungs-Fenster: mindestens 8° breit
       let direction = 0;
       for (let a = -12; a <= 12; a += 1) if (success(level, angle + a, strength)) direction += 1;
-      expect(direction).toBeGreaterThanOrEqual(5);
+      expect(direction).toBeGreaterThanOrEqual(8);
 
       // Ein direkter Treffer in die Zieltonne ist möglich – zählt aber nicht
       expect(s.withoutTrick).toBeGreaterThan(0);
     },
     60000,
   );
+});
+
+describe("Zielwurf mit echtem Wurf", () => {
+  const middle = (strength: number) => throwAt({ props: [] }, 0, strength)?.bin === 1;
+
+  test("Treffer-Fenster: machbar, aber nicht automatisch", () => {
+    let hits = 0;
+    for (let s = 0; s <= 1.0001; s += 0.01) if (middle(s)) hits += 1;
+    // 12–30 % der Zuglänge treffen (≈ 22–55 px auf dem iPhone)
+    expect(hits).toBeGreaterThanOrEqual(12);
+    expect(hits).toBeLessThanOrEqual(30);
+  });
+
+  test("viel zu lang prallt vom Deckel ab und geht daneben", () => {
+    expect(middle(0.97)).toBe(false);
+    expect(middle(1)).toBe(false);
+  });
+
+  test("zu kurz fällt davor", () => {
+    expect(middle(0.5)).toBe(false);
+  });
 });
 
 describe("Sterne", () => {

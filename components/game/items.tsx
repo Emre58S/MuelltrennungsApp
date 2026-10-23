@@ -13,18 +13,19 @@ import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
 import {
+  arcFor,
   type Ball,
   type BallEvent,
+  ballisticPoint,
   ballSettled,
   BIN_SHAPE,
   type BinCollider,
-  arcFor,
-  firstContact,
+  firstTouch,
   FLIGHT_TIME,
-  flightVelocity,
-  handOverBall,
+  freshBall,
+  lobVelocity,
+  PHYSICS_STEP,
   type PropCollider,
-  pullArc,
   stepBall,
   throwArc,
 } from "@/game/physics";
@@ -148,39 +149,65 @@ export const PreviewItem = memo(function PreviewItem({
 /* ── Flugbahn-Vorschau ─────────────────────────────────────── */
 
 const DOTS = 14;
+const NO_PROPS: PropCollider[] = [];
 const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
 
 /** Flugbahn-Vorschau beim Zurückziehen (Zielwurf, Trickwürfe): genau die
- *  Bahn, die das Loslassen jetzt auslösen würde – länger gezogen = weiter und
- *  höher. Gezeigt wird nur der Anfang (`share`): planbar, aber das Ende und
- *  Abpraller schätzt man selbst. Liest bus.shotGuide, kein Neu-Rendern. */
-const GUIDE_DOTS = 14;
+ *  Bahn, die das Loslassen jetzt auslösen würde (dieselbe Physik wie der Wurf),
+ *  bis zur ersten Berührung. Im Zielwurf sieht man nur den Anfang (`share`) –
+ *  das Ende schätzt man selbst. Bei Tricks zeigt ein Ring, wo der Wurf aufkommt
+ *  (golden = auf einem Hindernis). Liest bus.shotGuide, kein Neu-Rendern. */
+const GUIDE_DOTS = 16;
 /** Dunkler Rand um jeden Punkt: lesbar auf Himmel, Wand und Rasen. */
 const GUIDE_HALO = 1.55;
+const TOUCH_GEO = new THREE.RingGeometry(0.2, 0.3, 28);
 
 export const ShotGuideDots = memo(function ShotGuideDots({
   start,
   openingY,
+  openings,
+  props = NO_PROPS,
   bus,
   share,
   calm,
+  showTouch = false,
 }: {
   start: THREE.Vector3;
   openingY: number;
+  /** Öffnungen der Tonnen (für die Berührung mit Tonne/Deckel). */
+  openings: THREE.Vector3[];
+  /** Hindernisse (Trickwürfe). */
+  props?: PropCollider[];
   bus: BusRef;
-  /** Anteil der Flugbahn, der zu sehen ist (0…1). */
+  /** Anteil der Bahn bis zur ersten Berührung, der zu sehen ist (0…1). */
   share: number;
   /** Weniger Bewegung: Punkte stehen still statt zu wandern. */
   calm: boolean;
+  /** Ring an der Stelle, an der der Wurf zuerst aufkommt (Trickwürfe). */
+  showTouch?: boolean;
 }) {
   const dots = useRef<THREE.InstancedMesh>(null);
   const halos = useRef<THREE.InstancedMesh>(null);
+  const ring = useRef<THREE.Mesh>(null);
   const phase = useRef(0);
   const target = useMemo(() => new THREE.Vector3(), []);
   const tmp = useMemo(() => new THREE.Vector3(), []);
+  const vel = useMemo(() => new THREE.Vector3(), []);
+  const hit = useMemo(() => new THREE.Vector3(), []);
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const s = useMemo(() => new THREE.Vector3(), []);
+  const colliders = useMemo<BinCollider[]>(
+    () => openings.map((o) => ({ x: o.x, z: o.z - 0.05, lid: 0 })),
+    [openings],
+  );
+  // Letzte Berechnung: nur neu rechnen, wenn sich der Zug ändert
+  const last = useRef<{ x: number; z: number; time: number; prop: number | null }>({
+    x: NaN,
+    z: NaN,
+    time: 0,
+    prop: null,
+  });
   // Immer obenauf (depthTest aus): die Bahn verschwindet nie hinter einer Tonne
   const mat = useMemo(
     () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", depthTest: false, depthWrite: false }),
@@ -197,28 +224,54 @@ export const ShotGuideDots = memo(function ShotGuideDots({
       }),
     [],
   );
+  const ringMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: "#FFFFFF",
+        transparent: true,
+        opacity: 0.9,
+        depthTest: false,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    [],
+  );
   useEffect(
     () => () => {
       mat.dispose();
       haloMat.dispose();
+      ringMat.dispose();
     },
-    [mat, haloMat],
+    [mat, haloMat, ringMat],
   );
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const dot = dots.current;
     const halo = halos.current;
     if (!dot || !halo) return;
     const guide = bus.current.shotGuide;
     dot.visible = halo.visible = !!guide;
+    if (ring.current) ring.current.visible = !!guide && showTouch;
     if (!guide) return;
     // Punkte wandern Richtung Ziel (wie ein Lauflicht): zeigt die Flugrichtung
     if (!calm) phase.current = (phase.current + Math.min(delta, 0.05) * 1.5) % 1;
     target.set(guide.x, openingY, guide.z);
-    const arc = pullArc(start, target, guide.strength);
+    lobVelocity(vel, start, target);
+    const l = last.current;
+    if (guide.x !== l.x || guide.z !== l.z) {
+      colliders.forEach((c, k) => {
+        c.lid = bus.current.lids[k] ?? 0;
+      });
+      const touch = firstTouch(start, vel, colliders, props, hit);
+      l.x = guide.x;
+      l.z = guide.z;
+      l.time = touch.time;
+      l.prop = touch.prop;
+    }
+    const span = l.time * share;
     for (let i = 0; i < GUIDE_DOTS; i++) {
       const k = (i + phase.current) / GUIDE_DOTS;
-      flightPoint(tmp, start, target, k * share, arc);
+      ballisticPoint(tmp, start, vel, k * span);
       // Nach vorn kleiner; der erste wächst herein, der letzte schrumpft weg
       let size = 0.078 - k * 0.04;
       if (i === 0) size *= phase.current;
@@ -230,6 +283,15 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     }
     dot.instanceMatrix.needsUpdate = true;
     halo.instanceMatrix.needsUpdate = true;
+    const r = ring.current;
+    if (r && showTouch) {
+      // Golden und pulsierend auf einem Hindernis: „hier gibt's den Trick“
+      const onProp = l.prop !== null;
+      ringMat.color.set(onProp ? "#FFD54A" : "#FFFFFF");
+      const pulse = calm || !onProp ? 1 : 1 + Math.sin(state.clock.elapsedTime * 9) * 0.12;
+      r.position.set(hit.x, hit.y - 0.08, hit.z);
+      r.scale.setScalar(pulse);
+    }
   });
 
   return (
@@ -246,6 +308,14 @@ export const ShotGuideDots = memo(function ShotGuideDots({
         args={[DOT_GEO, mat, GUIDE_DOTS]}
         frustumCulled={false}
         renderOrder={11}
+        visible={false}
+      />
+      <mesh
+        ref={ring}
+        geometry={TOUCH_GEO}
+        material={ringMat}
+        rotation={[-Math.PI / 2, 0, 0]}
+        renderOrder={12}
         visible={false}
       />
     </>
@@ -309,8 +379,6 @@ export const AimGuide = memo(function AimGuide({
 
 /* ── Geworfene Items (Pool) ────────────────────────────────── */
 
-// Flugzeit und Übergabe an die Physik: game/physics.ts (FLIGHT_TIME, handOverBall)
-const NO_PROPS: PropCollider[] = [];
 /** Markierung „letzter Wurf“: Ring am Boden, so lange sichtbar (s). */
 const MARKER_TIME = 1.8;
 const MARKER_GEO = new THREE.RingGeometry(0.16, 0.24, 24);
@@ -345,6 +413,8 @@ type Slot = {
   touched: number[];
   /** Zeit seit dem Abwurf (s) und geschätzte Flugzeit bis zum Ziel. */
   age: number;
+  /** Noch nicht gerechnete Zeit (feste Physik-Schritte). */
+  acc: number;
   flightT: number;
 };
 
@@ -368,6 +438,7 @@ function createSlot(): Slot {
     ball: null,
     touched: [],
     age: 0,
+    acc: 0,
     flightT: 1,
   };
 }
@@ -432,7 +503,6 @@ export const ThrowLayer = memo(function ThrowLayer({
     [],
   );
   useEffect(() => () => markerMat.dispose(), [markerMat]);
-  const contact = useMemo(() => new THREE.Vector3(), []);
 
   useEffect(() => () => trailMats.forEach((mat) => mat.dispose()), [trailMats]);
 
@@ -502,11 +572,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.started = now;
     if (spec.land) s.target.set(spec.land.x, openings[0]?.y ?? start.y, spec.land.z);
     else s.target.copy(openings[spec.binIndex] ?? start);
-    // Zielwurf: genau der Bogen der Vorschau. Sonst: kräftiger Wisch → flacher
-    s.arc =
-      spec.strength !== undefined
-        ? pullArc(start, s.target, spec.strength)
-        : throwArc(start, s.target, spec.power ?? 1);
+    // Kräftiger Wisch → flacherer Bogen (feste Bahn der klassischen Modi)
+    s.arc = throwArc(start, s.target, spec.power ?? 1);
     s.trail.forEach((v) => v.copy(start));
     s.head = 0;
     s.trailShown = true;
@@ -520,26 +587,21 @@ export const ThrowLayer = memo(function ThrowLayer({
     g.rotation.set(0, 0, 0);
     g.visible = true;
 
-    // Zielwurf: fliegt auf der festen Bahn; die Physik übernimmt erst an der Tonne
     s.ball = null;
     s.touched = [];
     s.age = 0;
+    s.acc = 0;
     s.flightT = FLIGHT_TIME;
+    if (spec.free) {
+      // Zielwurf/Trickwürfe: echter Wurf ab dem Loslassen – genau die Bahn der
+      // Vorschau, dieselbe Rechnung wie in den Tests (game/physics.ts)
+      s.flightT = lobVelocity(vel, start, s.target);
+      s.ball = freshBall(start, vel);
+      s.phase = "physics";
+    }
 
     trackFlying(fx.current, 1);
     s.counted = true;
-  };
-
-  /** Ab hier rechnet die Physik weiter – mit der Geschwindigkeit des Flugs
-   *  (etwas gebremst: die feste Bahn ist für die Perspektive sehr schnell). */
-  const handOver = (s: Slot, p: THREE.Vector3, v: THREE.Vector3, arrived: boolean) => {
-    s.ball = handOverBall(p, v, arrived);
-    s.phase = "physics";
-    s.age = s.flightT;
-    if (s.counted) {
-      s.counted = false;
-      trackFlying(fx.current, -1);
-    }
   };
 
   /** Ein Zielwurf-Frame: Physik rechnen, auf Anstoßen/Hineinfallen reagieren. */
@@ -552,7 +614,12 @@ export const ThrowLayer = memo(function ThrowLayer({
       c.lid = bus.current.lids[k] ?? 0;
     });
     events.length = 0;
-    stepBall(ball, delta, colliders, events, props);
+    // Feste Schritte: gleiches Ergebnis wie Vorschau und Tests, egal bei welcher Bildrate
+    s.acc += delta;
+    while (s.acc >= PHYSICS_STEP) {
+      stepBall(ball, PHYSICS_STEP, colliders, events, props);
+      s.acc -= PHYSICS_STEP;
+    }
 
     g.position.copy(ball.p);
     if (s.age < s.flightT) setLook(fx.current, ball.p);
@@ -688,21 +755,6 @@ export const ThrowLayer = memo(function ThrowLayer({
       if (s.phase === "flight") {
         s.t = Math.min(s.t + delta / FLIGHT_TIME, 1);
         flightPoint(tmp, start, s.target, s.t, s.arc);
-        if (s.spec.free && delta > 0) {
-          // Zielwurf: an der Tonne (oder am Ziel) übernimmt die Physik
-          // Exaktes Tempo aus der Flugbahn (nicht vom Bildtakt abhängig)
-          flightVelocity(vel, start, s.target, s.t, s.arc);
-          colliders.forEach((c, k) => {
-            c.lid = bus.current.lids[k] ?? 0;
-          });
-          // Ganze Strecke seit dem letzten Bild prüfen (nicht nur den Endpunkt)
-          const hitAt = firstContact(g.position, tmp, vel, colliders, contact, props);
-          if (hitAt || s.t >= 1) {
-            handOver(s, hitAt ?? tmp, vel, !hitAt);
-            g.position.copy(hitAt ?? tmp);
-            continue;
-          }
-        }
         g.position.copy(tmp);
         setLook(fx.current, tmp);
         const size = THREE.MathUtils.lerp(startScale, endScale, Math.min(s.t * 1.4, 1));

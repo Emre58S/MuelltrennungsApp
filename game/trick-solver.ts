@@ -1,13 +1,13 @@
 // Datei: game/trick-solver.ts
 // NUR FÜR TESTS: Löser für Trickwurf-Level. Probiert Würfe (Richtung ×
-// Kraft) mit derselben Rechnung wie das Spiel durch (pullShot → feste
-// Flugbahn → Physik) – so lässt sich prüfen, ob ein Level fair lösbar ist.
+// Kraft) mit derselben Rechnung wie das Spiel durch (pullShot → echter
+// Wurf → Physik) – so lässt sich prüfen, ob ein Level fair lösbar ist.
 
 import * as THREE from "three";
 
 import { BIN_OPENING_Y, computeLayout, shotLanding } from "./layout";
 import { FULL_PULL_SHARE, pullShot } from "./logic";
-import { type BinCollider, simulateThrow } from "./physics";
+import { type BinCollider, lobVelocity, simulateShot } from "./physics";
 import { levelColliders, meetsRequirement, type TrickLevel } from "./trick-levels";
 
 /** Deckel stehen im Trick-Modus offen (wie im Zielwurf). */
@@ -21,7 +21,7 @@ const binXs = layout.bins.map((b) => b.x);
 export const FULL_PULL = FULL_PULL_SHARE * SCREEN_H;
 
 /** Ein Wurf: Winkel (Grad, 0 = gerade) und Kraft (0…1 der vollen Zuglänge). */
-export function throwAt(level: TrickLevel, angle: number, strength: number) {
+export function throwAt(level: Pick<TrickLevel, "props" | "chain">, angle: number, strength: number) {
   // Zurückziehen: Finger nach unten, entgegen der Wurfrichtung
   const length = 18 + strength * (FULL_PULL - 18);
   const rad = (angle * Math.PI) / 180;
@@ -29,7 +29,9 @@ export function throwAt(level: TrickLevel, angle: number, strength: number) {
   if (!shot) return null;
   const land = shotLanding(layout, shot);
   const target = new THREE.Vector3(land.x, BIN_OPENING_Y + 0.1, land.z);
-  return simulateThrow(layout.item.position, target, strength, bins, levelColliders(level));
+  const v = new THREE.Vector3();
+  lobVelocity(v, layout.item.position, target);
+  return simulateShot(layout.item.position, v, bins, levelColliders(level));
 }
 
 export type Solve = {
@@ -60,7 +62,8 @@ export function solve(level: TrickLevel): Solve {
       } else if (r && r.bin === level.target) {
         withoutTrick += 1;
         row += "o";
-      } else row += r?.props.length ? "+" : ".";
+      } else if (r && r.bin !== null) row += "x";
+      else row += r?.props.length ? "+" : ".";
     }
     grid.push(`${strength.toFixed(2)} ${row}`);
   }

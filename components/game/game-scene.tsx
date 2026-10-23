@@ -232,13 +232,16 @@ export const GameScene = memo(function GameScene({
 
       {trick && <TrickProps props={trick.props} />}
 
-      {/* Zielwurf und Trickwürfe: Flugbahn beim Zurückziehen (Tricks zeigen weniger) */}
+      {/* Zielwurf und Trickwürfe: Flugbahn beim Zurückziehen (Tricks: bis zum Aufkommen) */}
       {(openLids || trick) && (
         <ShotGuideDots
           start={layout.item.position}
           openingY={BIN_OPENING_Y + 0.1}
+          openings={openings}
+          props={trick?.colliders}
           bus={bus}
-          share={trick ? 0.6 : 0.7}
+          share={trick ? 1 : 0.6}
+          showTouch={!!trick}
           calm={calm}
         />
       )}

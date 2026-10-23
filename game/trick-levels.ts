@@ -12,7 +12,7 @@ import { type TranslationKey } from "@/i18n";
 import { type Launch, type PropCollider } from "./physics";
 
 /** Trampolin: hoher Sprung, Weite ±20 % je nach Trefferlage. */
-const TRAMPOLINE: Launch = { minUp: 7, spread: 0.2, assist: 0.6 };
+const TRAMPOLINE: Launch = { minUp: 9, spread: 0.2, assist: 0.6 };
 /** Autodach: flacherer, schwächerer Absprung. */
 const CAR_ROOF: Launch = { minUp: 5.5, spread: 0.2, assist: 0.5 };
 
@@ -28,7 +28,7 @@ export type TrickLevel = {
   props: TrickProp[];
   /** Diese Hindernisse (Index in `props`) muss der Wurf vorher berühren. */
   requires: number[];
-  /** Trampolin zielt aufs nächste Hindernis statt auf die Tonnen (Index in `props`). */
+  /** Trampolin zielt aufs nächste Hindernis (Trampolin/Auto) statt auf die Tonnen (Index in `props`). */
   chain?: { from: number; to: number };
   /** Kurze Aufgabe, z. B. „Über das Trampolin“. */
   task: TranslationKey;
@@ -45,67 +45,54 @@ export const PROP_SIZE = {
 };
 
 export const TRICK_LEVELS: TrickLevel[] = [
-  {
-    id: 1,
-    target: 1,
-    props: [{ kind: "trampoline", x: 0, z: 3.0 }],
-    requires: [0],
-    task: "trick.task.trampoline",
-  },
-  {
-    id: 2,
-    target: 0,
-    props: [{ kind: "trampoline", x: -1.28, z: 2.8 }],
-    requires: [0],
-    task: "trick.task.trampoline",
-  },
-  {
-    id: 3,
-    target: 1,
-    props: [{ kind: "car", x: 0, z: 2.3, color: "#D9483B" }],
-    requires: [0],
-    task: "trick.task.car",
-  },
-  {
-    id: 4,
-    target: 2,
-    props: [{ kind: "trampoline", x: 1.28, z: 3.4 }],
-    requires: [0],
-    task: "trick.task.trampoline",
-  },
+  // Einstieg: Trampolin direkt vor der Tonne
+  { id: 1, target: 1, props: [{ kind: "trampoline", x: 0, z: 3.0 }], requires: [0], task: "trick.task.trampoline" },
+  { id: 2, target: 0, props: [{ kind: "trampoline", x: -1.28, z: 3.2 }], requires: [0], task: "trick.task.trampoline" },
+  // Autodach als Sprungbrett
+  { id: 3, target: 1, props: [{ kind: "car", x: 0, z: 2.4, color: "#D9483B" }], requires: [0], task: "trick.task.car" },
+  // Weiter weg
+  { id: 4, target: 2, props: [{ kind: "trampoline", x: 1.28, z: 3.9 }], requires: [0], task: "trick.task.trampoline" },
+  // Zaun vor den Tonnen: nur der hohe Sprung kommt drüber
   {
     id: 5,
-    target: 0,
-    props: [{ kind: "car", x: -1.1, z: 2.1, color: "#3B7BD9" }],
-    requires: [0],
-    task: "trick.task.car",
-  },
-  {
-    id: 6,
     target: 1,
     props: [
-      { kind: "fence", x: 0, z: 1.25, w: 4.2, h: 0.95 },
-      { kind: "trampoline", x: 0, z: 3.6 },
+      { kind: "fence", x: 0, z: 1.15, w: 4.2, h: 1.0 },
+      { kind: "trampoline", x: 0, z: 2.9 },
     ],
     requires: [1],
     task: "trick.task.fence",
   },
+  // Auto vor der linken Tonne, Trampolin als Ablenkung
   {
-    id: 7,
-    target: 2,
+    id: 6,
+    target: 0,
     props: [
-      { kind: "car", x: 1.0, z: 2.2, color: "#E3A92E" },
-      { kind: "trampoline", x: -0.2, z: 4.2 },
+      { kind: "car", x: -1.28, z: 2.3, color: "#3B7BD9" },
+      { kind: "trampoline", x: 1.1, z: 3.4 },
     ],
     requires: [0],
     task: "trick.task.car",
   },
+  // Doppel-Boing: vom ersten Trampolin aufs zweite
+  {
+    id: 7,
+    target: 2,
+    props: [
+      { kind: "trampoline", x: -1.0, z: 3.8 },
+      { kind: "trampoline", x: 1.28, z: 2.5 },
+    ],
+    requires: [0, 1],
+    chain: { from: 0, to: 1 },
+    task: "trick.task.double",
+  },
+  // Finale: Trampolin → Autodach → Tonne
   {
     id: 8,
     target: 1,
     props: [
-      { kind: "trampoline", x: 0, z: 4.4 },
-      { kind: "car", x: 0, z: 2.0, color: "#2E9E6E" },
+      { kind: "trampoline", x: 1.0, z: 3.8 },
+      { kind: "car", x: 0, z: 2.1, color: "#2E9E6E" },
     ],
     requires: [0, 1],
     chain: { from: 0, to: 1 },
@@ -114,14 +101,16 @@ export const TRICK_LEVELS: TrickLevel[] = [
 ];
 
 /** Physik-Körper eines Levels (Prop-id = Index in `props`). */
-export function levelColliders(level: TrickLevel): PropCollider[] {
+export function levelColliders(level: Pick<TrickLevel, "props" | "chain">): PropCollider[] {
   const out: PropCollider[] = [];
   level.props.forEach((prop, id) => {
     if (prop.kind === "trampoline") {
       const t = PROP_SIZE.trampoline;
       // Kette (Trampolin → Auto): Sprung zielt aufs Dach des nächsten Hindernisses
       const next = level.chain?.from === id ? level.props[level.chain.to] : undefined;
-      const aim = next ? { x: next.x, y: PROP_SIZE.car.cabin.y + PROP_SIZE.car.cabin.halfH, z: next.z } : undefined;
+      const aimY =
+        next?.kind === "car" ? PROP_SIZE.car.cabin.y + PROP_SIZE.car.cabin.halfH : PROP_SIZE.trampoline.top;
+      const aim = next ? { x: next.x, y: aimY, z: next.z } : undefined;
       out.push({
         kind: "trampoline",
         id,
@@ -130,7 +119,8 @@ export function levelColliders(level: TrickLevel): PropCollider[] {
         halfW: t.halfW,
         halfD: t.halfD,
         top: t.top,
-        launch: { ...TRAMPOLINE, aim },
+        // Kette: der Sprung trifft das nächste Hindernis zuverlässig (seitlich)
+        launch: aim ? { ...TRAMPOLINE, aim, assist: 0.9 } : TRAMPOLINE,
       });
     } else if (prop.kind === "car") {
       const { body, cabin } = PROP_SIZE.car;
