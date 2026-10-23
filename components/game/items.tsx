@@ -43,6 +43,7 @@ import { cloneModel, hasModel } from "./model-cache";
 import {
   type BusRef,
   landThrow,
+  markRingPass,
   queueBinEvent,
   queueBurst,
   type ThrowSpec,
@@ -154,13 +155,11 @@ const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
 
 /** Flugbahn-Vorschau beim Zurückziehen (Zielwurf, Trickwürfe): genau die
  *  Bahn, die das Loslassen jetzt auslösen würde (dieselbe Physik wie der Wurf),
- *  bis zur ersten Berührung. Im Zielwurf sieht man nur den Anfang (`share`) –
- *  das Ende schätzt man selbst. Bei Tricks zeigt ein Ring, wo der Wurf aufkommt
- *  (golden = auf einem Hindernis). Liest bus.shotGuide, kein Neu-Rendern. */
+ *  bis zur ersten Berührung. Man sieht nur den Anfang (`share`) – das Ende
+ *  schätzt man selbst. Liest bus.shotGuide, kein Neu-Rendern. */
 const GUIDE_DOTS = 16;
 /** Dunkler Rand um jeden Punkt: lesbar auf Himmel, Wand und Rasen. */
 const GUIDE_HALO = 1.55;
-const TOUCH_GEO = new THREE.RingGeometry(0.2, 0.3, 28);
 
 export const ShotGuideDots = memo(function ShotGuideDots({
   start,
@@ -170,30 +169,25 @@ export const ShotGuideDots = memo(function ShotGuideDots({
   bus,
   share,
   calm,
-  showTouch = false,
 }: {
   start: THREE.Vector3;
   openingY: number;
   /** Öffnungen der Tonnen (für die Berührung mit Tonne/Deckel). */
   openings: THREE.Vector3[];
-  /** Hindernisse (Trickwürfe). */
+  /** Reifen (Trickwürfe). */
   props?: PropCollider[];
   bus: BusRef;
   /** Anteil der Bahn bis zur ersten Berührung, der zu sehen ist (0…1). */
   share: number;
   /** Weniger Bewegung: Punkte stehen still statt zu wandern. */
   calm: boolean;
-  /** Ring an der Stelle, an der der Wurf zuerst aufkommt (Trickwürfe). */
-  showTouch?: boolean;
 }) {
   const dots = useRef<THREE.InstancedMesh>(null);
   const halos = useRef<THREE.InstancedMesh>(null);
-  const ring = useRef<THREE.Mesh>(null);
   const phase = useRef(0);
   const target = useMemo(() => new THREE.Vector3(), []);
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const vel = useMemo(() => new THREE.Vector3(), []);
-  const hit = useMemo(() => new THREE.Vector3(), []);
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const s = useMemo(() => new THREE.Vector3(), []);
@@ -202,12 +196,7 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     [openings],
   );
   // Letzte Berechnung: nur neu rechnen, wenn sich der Zug ändert
-  const last = useRef<{ x: number; z: number; time: number; prop: number | null }>({
-    x: NaN,
-    z: NaN,
-    time: 0,
-    prop: null,
-  });
+  const last = useRef({ x: NaN, z: NaN, time: 0 });
   // Immer obenauf (depthTest aus): die Bahn verschwindet nie hinter einer Tonne
   const mat = useMemo(
     () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", depthTest: false, depthWrite: false }),
@@ -224,49 +213,34 @@ export const ShotGuideDots = memo(function ShotGuideDots({
       }),
     [],
   );
-  const ringMat = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: "#FFFFFF",
-        transparent: true,
-        opacity: 0.9,
-        depthTest: false,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-      }),
-    [],
-  );
   useEffect(
     () => () => {
       mat.dispose();
       haloMat.dispose();
-      ringMat.dispose();
     },
-    [mat, haloMat, ringMat],
+    [mat, haloMat],
   );
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     const dot = dots.current;
     const halo = halos.current;
     if (!dot || !halo) return;
     const guide = bus.current.shotGuide;
     dot.visible = halo.visible = !!guide;
-    if (ring.current) ring.current.visible = !!guide && showTouch;
     if (!guide) return;
     // Punkte wandern Richtung Ziel (wie ein Lauflicht): zeigt die Flugrichtung
     if (!calm) phase.current = (phase.current + Math.min(delta, 0.05) * 1.5) % 1;
     target.set(guide.x, openingY, guide.z);
     lobVelocity(vel, start, target);
     const l = last.current;
-    if (guide.x !== l.x || guide.z !== l.z) {
+    // Neu rechnen, wenn sich der Wurf ändert – oder Reifen sich bewegen
+    if (guide.x !== l.x || guide.z !== l.z || props.some((p) => p.motion)) {
       colliders.forEach((c, k) => {
         c.lid = bus.current.lids[k] ?? 0;
       });
-      const touch = firstTouch(start, vel, colliders, props, hit);
       l.x = guide.x;
       l.z = guide.z;
-      l.time = touch.time;
-      l.prop = touch.prop;
+      l.time = firstTouch(start, vel, colliders, props, bus.current.clock);
     }
     const span = l.time * share;
     for (let i = 0; i < GUIDE_DOTS; i++) {
@@ -283,15 +257,6 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     }
     dot.instanceMatrix.needsUpdate = true;
     halo.instanceMatrix.needsUpdate = true;
-    const r = ring.current;
-    if (r && showTouch) {
-      // Golden und pulsierend auf einem Hindernis: „hier gibt's den Trick“
-      const onProp = l.prop !== null;
-      ringMat.color.set(onProp ? "#FFD54A" : "#FFFFFF");
-      const pulse = calm || !onProp ? 1 : 1 + Math.sin(state.clock.elapsedTime * 9) * 0.12;
-      r.position.set(hit.x, hit.y - 0.08, hit.z);
-      r.scale.setScalar(pulse);
-    }
   });
 
   return (
@@ -308,14 +273,6 @@ export const ShotGuideDots = memo(function ShotGuideDots({
         args={[DOT_GEO, mat, GUIDE_DOTS]}
         frustumCulled={false}
         renderOrder={11}
-        visible={false}
-      />
-      <mesh
-        ref={ring}
-        geometry={TOUCH_GEO}
-        material={ringMat}
-        rotation={[-Math.PI / 2, 0, 0]}
-        renderOrder={12}
         visible={false}
       />
     </>
@@ -596,7 +553,7 @@ export const ThrowLayer = memo(function ThrowLayer({
       // Zielwurf/Trickwürfe: echter Wurf ab dem Loslassen – genau die Bahn der
       // Vorschau, dieselbe Rechnung wie in den Tests (game/physics.ts)
       s.flightT = lobVelocity(vel, start, s.target);
-      s.ball = freshBall(start, vel);
+      s.ball = freshBall(start, vel, bus.current.clock);
       s.phase = "physics";
     }
 
@@ -635,17 +592,33 @@ export const ThrowLayer = memo(function ThrowLayer({
     }
 
     for (const e of events) {
+      if (e.type === "pass") {
+        // Durch den Reifen: leises Rauschen, Funkeln, der Reifen leuchtet auf
+        if (s.touched.includes(e.prop)) continue;
+        s.touched.push(e.prop);
+        markRingPass(bus.current, e.prop);
+        sfx("swish", { volume: 0.55, rate: 1.35 });
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+        queueBurst(bus.current, {
+          id: spec.id * 1000 + 20 + e.prop,
+          x: ball.p.x,
+          y: ball.p.y,
+          z: ball.p.z,
+          colors: ["#FFD54A", "#FFFFFF", "#FFB300"],
+          count: 10,
+          power: 0.6,
+          ring: false,
+        });
+        continue;
+      }
       if (e.type === "bounce") {
-        if (e.prop !== undefined && !s.touched.includes(e.prop)) s.touched.push(e.prop);
         if (e.speed > 1.2) {
           // Klang je Bauteil, Tonhöhe und Lautstärke nach Wucht
           const loud = Math.min(e.speed / 6, 0.9);
           const pitch = 0.85 + Math.min(e.speed / 12, 0.35);
           if (e.part === "lid") sfx("lid", { volume: loud, rate: pitch });
           else if (e.part === "ground") sfx("land", { volume: loud * 0.6, rate: 1.25 });
-          else if (e.part === "trampoline") sfx("boing", { volume: Math.max(loud, 0.6) });
-          else if (e.part === "car") sfx("car", { volume: loud, rate: pitch });
-          else if (e.part === "fence") sfx("lid", { volume: loud, rate: pitch * 0.75 });
+          else if (e.part === "ring") sfx("rim", { volume: loud, rate: pitch * 1.25 });
           else sfx("rim", { volume: loud, rate: e.part === "wall" ? pitch * 0.8 : pitch });
         }
         if (e.prop !== undefined && e.speed > 1.5)
@@ -732,6 +705,8 @@ export const ThrowLayer = memo(function ThrowLayer({
     }
 
     const delta = Math.min(rawDelta, 0.05) * fx.current.timeScale;
+    // Szenen-Uhr (bewegte Reifen): läuft genau wie die Wurf-Physik
+    bus.current.clock += delta;
 
     // Markierung „letzter Wurf“ blendet aus
     const marker = markerRef.current;

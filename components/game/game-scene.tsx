@@ -192,7 +192,7 @@ export const GameScene = memo(function GameScene({
   return (
     <>
       <CameraRig layout={layout} fx={fx} calm={calm} />
-      <Stage scheme={scheme} fever={fever} calm={calm} kind={scene} />
+      <Stage fever={fever} calm={calm} kind={scene} />
 
       {bins.map((bin, i) => (
         <TrashBin
@@ -230,9 +230,9 @@ export const GameScene = memo(function GameScene({
         props={trick?.colliders}
       />
 
-      {trick && <TrickProps props={trick.props} />}
+      {trick && <TrickProps rings={trick.colliders} bus={bus} />}
 
-      {/* Zielwurf und Trickwürfe: Flugbahn beim Zurückziehen (Tricks: bis zum Aufkommen) */}
+      {/* Zielwurf und Trickwürfe: Flugbahn beim Zielen (der Anfang davon) */}
       {(openLids || trick) && (
         <ShotGuideDots
           start={layout.item.position}
@@ -240,8 +240,7 @@ export const GameScene = memo(function GameScene({
           openings={openings}
           props={trick?.colliders}
           bus={bus}
-          share={trick ? 1 : 0.6}
-          showTouch={!!trick}
+          share={0.6}
           calm={calm}
         />
       )}

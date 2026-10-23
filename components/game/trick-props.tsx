@@ -1,109 +1,98 @@
 // Datei: components/game/trick-props.tsx
-// Hindernisse der Trickwürfe als Low-Poly-Modelle: Trampolin, Auto, Zaun.
-// Jedes wird einmal gebaut und „gebacken“ (model-cache: bake) – ein Auto
-// kostet so 1–2 Zeichenaufrufe statt Dutzender. Maße passen zur Physik
-// (game/trick-levels.ts → PROP_SIZE).
+// Reifen der Trickwürfe: rot-weiß gestreift wie ein Zirkusreifen, einmal
+// gebaut und „gebacken“ (model-cache: bake → ein Zeichenaufruf pro Reifen).
+// Bewegte Reifen folgen der Szenen-Uhr (bus.clock) – genau wie die Physik
+// (game/physics.ts → ringPose). Durchflogen: der Reifen leuchtet golden auf.
 
-import { memo, useEffect, useMemo } from "react";
+import { useFrame } from "@react-three/fiber/native";
+import { memo, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
-import { PROP_SIZE, type TrickProp } from "@/game/trick-levels";
+import { type PropCollider, ringPose } from "@/game/physics";
 
-import { lowpoly, roundedFrame } from "./materials";
+import { lowpoly } from "./materials";
 import { bake } from "./model-cache";
+import { type BusRef } from "./scene-bus";
 
-function add(
-  group: THREE.Group,
-  geometry: THREE.BufferGeometry,
-  color: string,
-  pos: [number, number, number],
-  rot?: [number, number, number],
-) {
-  const mesh = new THREE.Mesh(geometry, lowpoly(color));
-  mesh.position.set(...pos);
-  if (rot) mesh.rotation.set(...rot);
-  group.add(mesh);
-  return mesh;
-}
+const STRIPES = 10;
+/** So lange (s) leuchtet ein durchflogener Reifen. */
+const FLASH = 0.6;
 
-function trampoline(): THREE.Group {
+function hoop(radius: number, tube: number): THREE.Object3D {
   const g = new THREE.Group();
-  const { halfW, halfD, top } = PROP_SIZE.trampoline;
-  const w = halfW * 2;
-  const d = halfD * 2;
-  // Rahmen mit Polsterung, Sprungmatte, vier Beine
-  add(g, roundedFrame(w + 0.24, d + 0.24, w, d, 0.07, 0.14, 2), "#2563EB", [0, top - 0.06, 0]);
-  add(g, new THREE.BoxGeometry(w, 0.025, d), "#111827", [0, top - 0.01, 0]);
-  const leg = new THREE.CylinderGeometry(0.035, 0.035, top - 0.06, 6);
-  for (const sx of [-1, 1])
-    for (const sz of [-1, 1]) add(g, leg, "#6B7280", [sx * (halfW + 0.05), (top - 0.06) / 2, sz * (halfD + 0.05)]);
-  return g;
-}
-
-function car(color: string): THREE.Group {
-  const g = new THREE.Group();
-  const { body, cabin } = PROP_SIZE.car;
-  const dark = "#1F2937";
-  // Karosserie + Schweller, Kabine mit Fensterband, Räder, Lichter
-  add(g, new THREE.BoxGeometry(body.halfW * 2, body.halfH * 2, body.halfD * 2), color, [0, body.y, 0]);
-  add(g, new THREE.BoxGeometry(body.halfW * 2 + 0.02, 0.1, body.halfD * 2 + 0.02), dark, [0, body.y - body.halfH + 0.05, 0]);
-  add(g, new THREE.BoxGeometry(cabin.halfW * 2, cabin.halfH * 2, cabin.halfD * 2), color, [cabin.dx, cabin.y, 0]);
-  add(g, new THREE.BoxGeometry(cabin.halfW * 2 + 0.02, cabin.halfH * 1.1, cabin.halfD * 2 + 0.02), "#334155", [
-    cabin.dx,
-    cabin.y + 0.01,
-    0,
-  ]);
-  const wheel = new THREE.CylinderGeometry(0.2, 0.2, 0.16, 10);
-  for (const sx of [-1, 1])
-    for (const sz of [-1, 1])
-      add(g, wheel, "#111827", [sx * (body.halfW - 0.35), 0.2, sz * (body.halfD - 0.02)], [Math.PI / 2, 0, 0]);
-  const lamp = new THREE.BoxGeometry(0.04, 0.09, 0.16);
-  for (const sz of [-1, 1]) {
-    add(g, lamp, "#FDE68A", [body.halfW + 0.01, body.y + 0.08, sz * (body.halfD - 0.14)]);
-    add(g, lamp, "#EF4444", [-body.halfW - 0.01, body.y + 0.08, sz * (body.halfD - 0.14)]);
+  const arc = (Math.PI * 2) / STRIPES;
+  for (let i = 0; i < STRIPES; i++) {
+    const part = new THREE.Mesh(
+      new THREE.TorusGeometry(radius, tube, 8, 5, arc),
+      lowpoly(i % 2 ? "#FFFFFF" : "#F0533A"),
+    );
+    part.rotation.z = i * arc;
+    g.add(part);
   }
-  return g;
-}
-
-function fence(w: number, h: number): THREE.Group {
-  const g = new THREE.Group();
-  const wood = "#B45309";
-  const posts = Math.max(2, Math.round(w / 0.7) + 1);
-  const post = new THREE.BoxGeometry(0.09, h, 0.09);
-  for (let i = 0; i < posts; i++) add(g, post, wood, [-w / 2 + (w * i) / (posts - 1), h / 2, 0]);
-  const rail = new THREE.BoxGeometry(w, 0.08, 0.05);
-  add(g, rail, "#C2681C", [0, h * 0.38, 0.02]);
-  add(g, rail, "#C2681C", [0, h * 0.82, 0.02]);
-  return g;
-}
-
-function build(prop: TrickProp): THREE.Object3D {
-  const model =
-    prop.kind === "trampoline" ? trampoline() : prop.kind === "car" ? car(prop.color) : fence(prop.w, prop.h);
-  const baked = bake(model);
-  baked.position.set(prop.x, 0, prop.z);
-  // Bau-Geometrien wurden ins gebackene Modell kopiert
-  model.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
   return baked;
 }
 
-/** Alle Hindernisse eines Levels. */
-export const TrickProps = memo(function TrickProps({ props }: { props: TrickProp[] }) {
-  const objects = useMemo(() => props.map(build), [props]);
-  useEffect(
-    () => () =>
-      objects.forEach((o) =>
-        o.traverse((child) => {
-          const mesh = child as THREE.Mesh;
-          if (mesh.isMesh) mesh.geometry.dispose();
-        }),
-      ),
-    [objects],
+const Ring = memo(function Ring({ ring, bus }: { ring: PropCollider; bus: BusRef }) {
+  const group = useRef<THREE.Group>(null);
+  const glow = useRef<THREE.Mesh>(null);
+  const model = useMemo(() => hoop(ring.radius, ring.tube), [ring.radius, ring.tube]);
+  const glowGeo = useMemo(
+    () => new THREE.TorusGeometry(ring.radius, ring.tube * 2.2, 8, 36),
+    [ring.radius, ring.tube],
   );
+  const glowMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({ color: "#FFD54A", transparent: true, opacity: 0, depthWrite: false }),
+    [],
+  );
+  const center = useMemo(() => new THREE.Vector3(), []);
+  const normal = useMemo(() => new THREE.Vector3(), []);
+  useEffect(
+    () => () => {
+      model.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      glowGeo.dispose();
+      glowMat.dispose();
+    },
+    [model, glowGeo, glowMat],
+  );
+
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    const clock = bus.current.clock;
+    ringPose(ring, clock, center, normal);
+    g.position.copy(center);
+    g.rotation.y = Math.atan2(normal.x, normal.z);
+    // Aufleuchten nach dem Durchfliegen: kurz größer und golden
+    const since = clock - (bus.current.ringPass[ring.id] ?? -99);
+    const k = since >= 0 && since < FLASH ? 1 - since / FLASH : 0;
+    g.scale.setScalar(1 + k * 0.18);
+    glowMat.opacity = k * 0.85;
+    if (glow.current) glow.current.visible = k > 0;
+  });
+
+  return (
+    <group ref={group}>
+      <primitive object={model} />
+      <mesh ref={glow} geometry={glowGeo} material={glowMat} visible={false} />
+    </group>
+  );
+});
+
+/** Alle Reifen eines Levels. */
+export const TrickProps = memo(function TrickProps({
+  rings,
+  bus,
+}: {
+  rings: PropCollider[];
+  bus: BusRef;
+}) {
   return (
     <>
-      {objects.map((object, i) => (
-        <primitive key={i} object={object} />
+      {rings.map((ring) => (
+        <Ring key={ring.id} ring={ring} bus={bus} />
       ))}
     </>
   );

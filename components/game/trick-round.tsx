@@ -1,11 +1,11 @@
 // Datei: components/game/trick-round.tsx — ein Trickwurf-Level
 // (Route: app/(tabs)/runde.tsx mit mode=trick)
 //
-// Gleiche Wurf-Regeln wie der Zielwurf (zurückziehen: Richtung = Seite,
-// Zuglänge = Weite), dazu Hindernisse aus game/trick-levels.ts. Ein Wurf zur
+// Normal werfen (nach oben wischen: Richtung = Seite, Wischlänge = Weite),
+// dazu Reifen aus game/trick-levels.ts. Ein Wurf zur
 // Zeit: der nächste Gegenstand kommt erst nach der Landung – so ist klar,
 // welcher Wurf was ausgelöst hat. Kein Zufall in der Physik: gleicher Wurf,
-// gleiches Ergebnis. Beim Ziehen zeigt eine Vorschau die ersten ~60 % des Flugs.
+// gleiches Ergebnis. Beim Wischen zeigt eine Vorschau die ersten ~60 % des Flugs.
 import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
 import { computeLayout, shotLanding } from "@/game/layout";
 import {
@@ -241,15 +241,17 @@ export function TrickRound({
     cancel: () => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
   });
-  // Keine Pech-Hilfe hier: sie zöge Würfe zur Tonne – Tricks zielen woanders hin
-  const fullPull = screenH * FULL_PULL_SHARE;
+  // Normal werfen: nach oben wischen. Richtung = Seite, Wischlänge = Weite
+  // (gespiegelt dieselbe Rechnung wie das Zurückziehen im Zielwurf).
+  // Keine Pech-Hilfe hier: sie zöge Würfe zur Tonne – am Reifen vorbei.
+  const fullSwipe = screenH * FULL_PULL_SHARE;
   const aimShot = (dx: number, dy: number) =>
-    pullShot(dx, dy, fullPull, layout.binAngles, binXs);
+    pullShot(-dx, -dy, fullSwipe, layout.binAngles, binXs);
   useLayoutEffect(() => {
     handlers.current = {
       aim: (dx, dy) => {
         if (busy.current || done.current) return;
-        // Zurückziehen: so würde der Wurf jetzt fliegen (Kraft klickt leise mit)
+        // Beim Wischen: so würde der Wurf jetzt fliegen (Weite klickt leise mit)
         const shot = aimShot(dx, dy);
         setShotGuide(
           bus.current,
@@ -268,8 +270,8 @@ export function TrickRound({
         if (busy.current || done.current) return;
         const shot = aimShot(dx, dy);
         if (shot) throwShot(shot);
-        // Aus Gewohnheit nach oben gewischt? Kurz erklären, wie es geht
-        else if (dy < -60) float(`👇 ${t("game.pullHint")}`, screenW / 2, layout.binTops[0].y);
+        // Nach unten gewischt? Kurz erklären, wie es geht
+        else if (dy > 60) float(`👆 ${t("trick.swipeHint")}`, screenW / 2, layout.binTops[0].y);
       },
       cancel: () => {
         setShotGuide(bus.current, null);
@@ -347,7 +349,7 @@ export function TrickRound({
             </View>
             {item && !finished && (
               <View pointerEvents="none" style={[styles.overlayRow, { top: itemTagTop }]}>
-                <ItemCard key={item.name} item={item} showHint={!hasThrown} hint={t("trick.hint")} pull />
+                <ItemCard key={item.name} item={item} showHint={!hasThrown} hint={t("trick.hint")} />
               </View>
             )}
           </>

@@ -487,7 +487,7 @@ export default function HomeScreen() {
           <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
         </Pressable>
 
-        {/* Trickwürfe: Level mit Trampolin, Autos & Co */}
+        {/* Trickwürfe: Level mit Reifen (ruhig, gleitend, drehend) */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${t("home.tricks")}. ${t("home.tricksDesc")}`}

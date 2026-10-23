@@ -25,7 +25,7 @@ export type LandOutcome = {
   via?: "rim" | "wall" | "lid" | null;
   /** Daneben, aber eine Tonne berührt („Knapp!“). */
   near?: boolean;
-  /** Berührte Hindernisse (Trickwürfe), in Reihenfolge. */
+  /** Durchflogene Reifen (Trickwürfe), in Reihenfolge. */
   props?: number[];
 };
 
@@ -73,6 +73,10 @@ export type SceneBus = {
   lids: number[];
   /** Flugbahn-Vorschau (oder null). */
   shotGuide: ShotGuide | null;
+  /** Uhr der Szene (s, läuft mit Zeitlupe): bewegte Reifen hängen davon ab. */
+  clock: number;
+  /** Wann (Szenen-Uhr) jeder Reifen zuletzt durchflogen wurde – er leuchtet kurz auf. */
+  ringPass: number[];
   onLand: (id: number, outcome?: LandOutcome) => void;
 };
 
@@ -89,6 +93,8 @@ export function createBus(): SceneBus {
     binEvents: [],
     lids: [],
     shotGuide: null,
+    clock: 0,
+    ringPass: [],
     onLand: () => undefined,
   };
 }
@@ -160,6 +166,11 @@ export function setLandHandler(
 }
 
 /** Flugbahn-Vorschau setzen/ausblenden (ohne Neu-Rendern der Szene). */
+/** Reifen wurde durchflogen (für das Aufleuchten). */
+export function markRingPass(bus: SceneBus, ring: number) {
+  bus.ringPass[ring] = bus.clock;
+}
+
 export function setShotGuide(bus: SceneBus, guide: ShotGuide | null) {
   bus.shotGuide = guide;
 }

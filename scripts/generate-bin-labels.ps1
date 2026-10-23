@@ -1,7 +1,7 @@
 # Datei: scripts/generate-bin-labels.ps1
 # Erzeugt die Beschriftungen auf den Tonnen als Bilder (assets/labels/).
-# Stil wie die Kapseln der App: heller Aufkleber, Farbpunkt + Name in der
-# Tonnenfarbe. In der 3D-Szene liegt er als Textur auf der Tonnen-Front und
+# Stil wie die Kapseln der App: weißer Aufkleber mit Rand in Tonnenfarbe,
+# Farbpunkt + Name (gut lesbar, aber dezent). In der 3D-Szene liegt er als Textur auf der Tonnen-Front und
 # bekommt dasselbe Licht wie die Tonne.
 #
 # Texte = i18n/de.ts bzw. en.ts ("bin.*"; Umlaute als [char]-Code, weil
@@ -68,10 +68,11 @@ foreach ($bin in $bins) {
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $g.Clear([System.Drawing.Color]::Transparent)
 
-    # Aufkleber mit feinem Rand
+    # Weißer Aufkleber, Rand in Tonnenfarbe
+    $dotColor = [System.Drawing.ColorTranslator]::FromHtml($bin.dot)
     $pill = New-Pill $pillX $pillY $pillW $pillH
-    $g.FillPath((New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(242, 250, 249, 245))), $pill)
-    $g.DrawPath((New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(60, 0, 0, 0), 3)), $pill)
+    $g.FillPath((New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 255, 255, 255))), $pill)
+    $g.DrawPath((New-Object System.Drawing.Pen($dotColor, 8)), $pill)
 
     # Inhalt (Punkt + Text) mittig im Aufkleber
     $text = New-Object System.Drawing.Drawing2D.GraphicsPath
@@ -81,7 +82,6 @@ foreach ($bin in $bins) {
     $left = ($W - $contentW) / 2
     $cy = $H / 2
 
-    $dotColor = [System.Drawing.ColorTranslator]::FromHtml($bin.dot)
     $g.FillEllipse((New-Object System.Drawing.SolidBrush($dotColor)), [float]$left, [float]($cy - $dotD / 2), [float]$dotD, [float]$dotD)
 
     $move = New-Object System.Drawing.Drawing2D.Matrix

@@ -1,7 +1,7 @@
 // Datei: game/physics.ts
 // Kleine Wurf-Physik für Zielwurf und Trickwürfe: Schwerkraft, Abprallen an
-// Tonnenwand, Rand und (offenem) Deckel, an Hindernissen (Trampolin, Auto,
-// Zaun), Boden und Rückwand. Ob ein Wurf trifft, ergibt sich hier – auch vom
+// Tonnenwand, Rand und (offenem) Deckel, an Reifen (durchfliegen oder vom
+// Rohr abprallen), Boden und Rückwand. Ob ein Wurf trifft, ergibt sich hier – auch vom
 // Rand hineinrollen oder vom Deckel abprallen geht. Geworfen wird echt (ab
 // dem Loslassen, lobVelocity); simulateShot() und firstTouch() rechnen in
 // denselben festen Schritten wie die Szene – Vorschau = Wurf = Test.
@@ -69,51 +69,41 @@ export function flightPoint(
   return out;
 }
 
-/* ── Hindernisse (Trickwürfe) ─────────────────────────────── */
+/* ── Reifen (Trickwürfe) ─────────────────────────────────── */
 
-/**
- * Sprungbrett-Verhalten (Trampolin, Autodach): von oben getroffen springt der
- * Gegenstand mit mindestens `minUp` hoch und fliegt Richtung Tonnenreihe
- * (oder `aim`, z. B. das nächste Hindernis). Wo man das Hindernis trifft,
- * ändert die Weite um ±`spread`; ein grob passender Sprung wird zur Öffnung
- * gelenkt (`assist`). So macht der Trick, was man erwartet – ohne dass jeder
- * beliebige Wurf trifft (Hindernis selbst muss erst getroffen werden).
- */
-export type Launch = {
-  minUp: number;
-  spread: number;
-  assist: number;
-  aim?: { x: number; y: number; z: number };
+/** Bewegung eines Reifens über die Zeit (s): hin und her entlang einer Achse
+ *  oder Drehen um die senkrechte Achse. Rein zeitabhängig – Vorschau, Szene
+ *  und Tests sehen denselben Reifen zur selben Zeit. */
+export type RingMotion =
+  | { kind: "slide"; axis: "x" | "y"; amp: number; period: number; phase?: number }
+  | { kind: "spin"; period: number; phase?: number };
+
+/** Reifen, durch den man werfen muss. Steht senkrecht (zeigt zur Kamera). */
+export type PropCollider = {
+  kind: "ring";
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  /** Radius bis zur Mitte des Rohrs. */
+  radius: number;
+  /** Dicke des Rohrs (Radius). */
+  tube: number;
+  motion?: RingMotion;
 };
 
-export type PropPart = "trampoline" | "car" | "fence";
+const TAU = Math.PI * 2;
 
-export type PropCollider =
-  | {
-      kind: "trampoline";
-      id: number;
-      x: number;
-      z: number;
-      halfW: number;
-      halfD: number;
-      /** Höhe der Matte. */
-      top: number;
-      launch: Launch;
-    }
-  | {
-      kind: "box";
-      id: number;
-      part: "car" | "fence";
-      x: number;
-      y: number;
-      z: number;
-      halfW: number;
-      halfH: number;
-      halfD: number;
-      restitution: number;
-      /** Von oben getroffen: Sprungbrett (Autodach) – oder keins (Zaun). */
-      launch?: Launch;
-    };
+/** Mitte und Blickrichtung (Normale) eines Reifens zur Zeit `time`. */
+export function ringPose(ring: PropCollider, time: number, center: THREE.Vector3, normal: THREE.Vector3) {
+  center.set(ring.x, ring.y, ring.z);
+  normal.set(0, 0, 1);
+  const m = ring.motion;
+  if (!m) return;
+  const angle = (time / m.period) * TAU + (m.phase ?? 0);
+  if (m.kind === "slide") center[m.axis] += Math.sin(angle) * m.amp;
+  else normal.set(Math.sin(angle), 0, Math.cos(angle));
+}
 
 export type BinCollider = {
   x: number;
@@ -133,6 +123,8 @@ export type Ball = {
   via: BinPart | null;
   /** Wie lange der Ball schon fast still liegt (s). */
   still: number;
+  /** Uhr der Szene (s) – bewegte Reifen hängen davon ab. */
+  time: number;
 };
 
 export type BinPart = "rim" | "wall" | "lid";
@@ -143,10 +135,12 @@ export type BallEvent =
       type: "bounce";
       bin: number | null;
       speed: number;
-      part: BinPart | PropPart | "ground";
-      /** Hindernis (Trickwürfe), falls eins berührt wurde. */
+      part: BinPart | "ring" | "ground";
+      /** Reifen (Trickwürfe), falls einer berührt wurde. */
       prop?: number;
-    };
+    }
+  /** Sauber durch einen Reifen geflogen. */
+  | { type: "pass"; prop: number };
 
 function touch(ball: Ball, events: BallEvent[], bin: number, part: BinPart, speed: number) {
   if (speed <= 0.4) return;
@@ -173,6 +167,7 @@ export function launchBall(
     touched: false,
     via: null,
     still: 0,
+    time: 0,
   };
 }
 
@@ -181,6 +176,8 @@ export function launchBall(
 const n = new THREE.Vector3();
 const rel = new THREE.Vector3();
 const tangential = new THREE.Vector3();
+const point = new THREE.Vector3();
+const prevP = new THREE.Vector3();
 
 /** Ball aus einer Fläche schieben und abprallen lassen. */
 function bounce(ball: Ball, normal: THREE.Vector3, depth: number, restitution: number): number {
@@ -305,92 +302,38 @@ function bankAssist(ball: Ball, bin: BinCollider, along: number) {
   ball.v.z += (vz - ball.v.z) * strength;
 }
 
-/** Sprungbrett: hoch und Richtung Ziel (Tonnenreihe oder `aim`). `offset` =
- *  Trefferlage auf dem Hindernis in Wurfrichtung (−1 vorn … +1 hinten). */
-function launchFrom(ball: Ball, l: Launch, bins: BinCollider[], offset: number) {
-  const up = Math.max(ball.v.y, l.minUp);
-  const goal = l.aim ?? { x: ball.p.x, y: BIN_SHAPE.top + 0.1, z: bins[0]?.z ?? 0 };
-  const disc = up * up - 2 * GRAVITY * (goal.y - ball.p.y);
-  ball.v.y = up;
-  if (disc <= 0) return;
-  const t = (up + Math.sqrt(disc)) / GRAVITY;
-  // Weiter vorn getroffen → etwas weiter, hinten → etwas kürzer
-  const reach = 1 - THREE.MathUtils.clamp(offset, -1, 1) * l.spread;
-  ball.v.z = ((goal.z + 0.05 - ball.p.z) / t) * reach;
-  if (l.aim) ball.v.x += ((l.aim.x - ball.p.x) / t - ball.v.x) * l.assist;
-  else {
-    // Die Matte schluckt den Seitenschwung: es geht geradeaus zur Tonne dahinter
-    ball.v.x *= 0.3;
-    steerToBin(ball, bins, l.assist);
-  }
-}
+const ringCenter = new THREE.Vector3();
+const ringNormal = new THREE.Vector3();
+const prevRel = new THREE.Vector3();
 
-/** Trampolin von oben getroffen: Sprungbrett. */
-function collideTrampoline(
-  ball: Ball,
-  t: Extract<PropCollider, { kind: "trampoline" }>,
-  bins: BinCollider[],
-  events: BallEvent[],
-) {
-  const p = ball.p;
-  if (Math.abs(p.x - t.x) > t.halfW || Math.abs(p.z - t.z) > t.halfD) return;
-  if (ball.v.y >= 0 || p.y - BALL_R > t.top || p.y < t.top - 0.3) return;
-  const speed = -ball.v.y;
-  p.y = t.top + BALL_R;
-  ball.v.y = speed;
-  ball.touched = true;
-  events.push({ type: "bounce", bin: null, speed, part: "trampoline", prop: t.id });
-  launchFrom(ball, t.launch, bins, (t.z - p.z) / t.halfD);
-}
+/** Reifen: am Rohr abprallen; die Ebene innerhalb des Rings durchqueren = „pass“. */
+function collideRing(ball: Ball, ring: PropCollider, prev: THREE.Vector3, events: BallEvent[]) {
+  ringPose(ring, ball.time, ringCenter, ringNormal);
+  rel.subVectors(ball.p, ringCenter);
+  // Abstand zur Ebene und Lage in der Ebene
+  const along = rel.dot(ringNormal);
+  tangential.copy(rel).addScaledVector(ringNormal, -along);
+  const inPlane = tangential.length();
+  if (Math.abs(along) > ring.tube + BALL_R + 0.3 || inPlane > ring.radius + ring.tube + BALL_R) return;
 
-/** Wo fiele der Sprung auf Öffnungshöhe herunter? Liegt das grob bei einer
- *  Tonne, wird die Flugrichtung ein Stück dorthin gelenkt – sonst nicht. */
-function steerToBin(ball: Ball, bins: BinCollider[], assist: number) {
-  const y = BIN_SHAPE.top + 0.1;
-  const vy = ball.v.y;
-  const disc = vy * vy - 2 * GRAVITY * (y - ball.p.y);
-  if (disc <= 0) return;
-  const t = (vy + Math.sqrt(disc)) / GRAVITY;
-  const lx = ball.p.x + ball.v.x * t;
-  const lz = ball.p.z + ball.v.z * t;
-  let best = -1;
-  let bestOff = Infinity;
-  bins.forEach((bin, i) => {
-    const off = Math.max(Math.abs(lx - bin.x) / 0.9, Math.abs(lz - bin.z) / 1.1);
-    if (off < bestOff) {
-      bestOff = off;
-      best = i;
-    }
-  });
-  if (best < 0 || bestOff >= 1) return;
-  const strength = assist * (1 - bestOff * 0.5);
-  const target = bins[best];
-  ball.v.x += ((target.x - ball.p.x) / t - ball.v.x) * strength;
-  ball.v.z += ((target.z + 0.05 - ball.p.z) / t - ball.v.z) * strength;
-}
+  // Durchflogen? (Seite der Ebene gewechselt, innen genug Platz)
+  prevRel.subVectors(prev, ringCenter);
+  const before = prevRel.dot(ringNormal);
+  if (Math.sign(before) !== Math.sign(along) && inPlane < ring.radius - ring.tube - BALL_R * 0.5)
+    events.push({ type: "pass", prop: ring.id });
 
-/** Kasten-Hindernis (Auto, Zaun): abprallen; von oben getroffen ggf. Sprungbrett. */
-function collideBox(
-  ball: Ball,
-  b: Extract<PropCollider, { kind: "box" }>,
-  bins: BinCollider[],
-  events: BallEvent[],
-) {
-  const p = ball.p;
-  const cx = THREE.MathUtils.clamp(p.x, b.x - b.halfW, b.x + b.halfW);
-  const cy = THREE.MathUtils.clamp(p.y, b.y - b.halfH, b.y + b.halfH);
-  const cz = THREE.MathUtils.clamp(p.z, b.z - b.halfD, b.z + b.halfD);
-  n.set(p.x - cx, p.y - cy, p.z - cz);
-  const dist = n.length();
-  if (dist >= BALL_R) return;
-  if (dist < 1e-6) n.set(0, 1, 0);
-  else n.divideScalar(dist);
-  const fromAbove = n.y > 0.6;
-  const speed = bounce(ball, n, BALL_R - dist, b.restitution);
+  // Nächster Punkt auf dem Rohr-Kreis
+  if (inPlane < 1e-6) return;
+  point.copy(ringCenter).addScaledVector(tangential, ring.radius / inPlane);
+  n.subVectors(ball.p, point);
+  const d = n.length();
+  const reach = ring.tube + BALL_R;
+  if (d >= reach || d < 1e-6) return;
+  n.divideScalar(d);
+  const speed = bounce(ball, n, reach - d, 0.5);
   if (speed <= 0.4) return;
   ball.touched = true;
-  events.push({ type: "bounce", bin: null, speed, part: b.part, prop: b.id });
-  if (fromAbove && b.launch) launchFrom(ball, b.launch, bins, (b.z - p.z) / b.halfD);
+  events.push({ type: "bounce", bin: null, speed, part: "ring", prop: ring.id });
 }
 
 /** Ball einen Zeitschritt weiter (intern in kleinen Teilschritten). */
@@ -404,18 +347,16 @@ export function stepBall(
   const steps = Math.max(1, Math.ceil(dt / (1 / 240) - 1e-6));
   const h = dt / steps;
   for (let k = 0; k < steps; k++) {
+    prevP.copy(ball.p);
     ball.v.y -= GRAVITY * h;
     ball.p.addScaledVector(ball.v, h);
+    ball.time += h;
 
     for (let i = 0; i < bins.length; i++) {
       collideBin(ball, bins[i], i, events);
       collideLid(ball, bins[i], i, events);
     }
-    for (let i = 0; i < props.length; i++) {
-      const prop = props[i];
-      if (prop.kind === "trampoline") collideTrampoline(ball, prop, bins, events);
-      else collideBox(ball, prop, bins, events);
-    }
+    for (let i = 0; i < props.length; i++) collideRing(ball, props[i], prevP, events);
 
     // Boden: abprallen, dann rollen und ausrollen
     if (ball.p.y < BALL_R) {
@@ -447,7 +388,7 @@ export type ThrowResult = {
   bin: number | null;
   /** Ohne jede Berührung (Swish). */
   clean: boolean;
-  /** Berührte Hindernisse (ids), in Reihenfolge. */
+  /** Durchflogene Reifen (ids), in Reihenfolge. */
   props: number[];
 };
 
@@ -478,9 +419,9 @@ export function ballisticPoint(out: THREE.Vector3, start: THREE.Vector3, v: THRE
   return out;
 }
 
-/** Neuer Ball an `p` mit Tempo `v`. */
-export function freshBall(p: THREE.Vector3, v: THREE.Vector3): Ball {
-  return { p: p.clone(), v: v.clone(), inside: null, touched: false, via: null, still: 0 };
+/** Neuer Ball an `p` mit Tempo `v`, abgeworfen zur Szenen-Zeit `time`. */
+export function freshBall(p: THREE.Vector3, v: THREE.Vector3, time = 0): Ball {
+  return { p: p.clone(), v: v.clone(), inside: null, touched: false, via: null, still: 0, time };
 }
 
 /**
@@ -492,8 +433,9 @@ export function simulateShot(
   v: THREE.Vector3,
   bins: BinCollider[],
   props: PropCollider[] = [],
+  time = 0,
 ): ThrowResult {
-  const ball = freshBall(start, v);
+  const ball = freshBall(start, v, time);
   const touched: number[] = [];
   const events: BallEvent[] = [];
   for (let time = 0; time < 6; time += PHYSICS_STEP) {
@@ -501,8 +443,10 @@ export function simulateShot(
     stepBall(ball, PHYSICS_STEP, bins, events, props);
     for (const e of events) {
       if (e.type === "capture") return { bin: e.bin, clean: !ball.touched, props: touched };
-      if (e.prop !== undefined && !touched.includes(e.prop)) touched.push(e.prop);
-      if (e.part === "ground" && ball.inside === null) return { bin: null, clean: false, props: touched };
+      if (e.type === "pass") {
+        if (!touched.includes(e.prop)) touched.push(e.prop);
+      } else if (e.part === "ground" && ball.inside === null)
+        return { bin: null, clean: false, props: touched };
     }
     if (ballSettled(ball)) break;
   }
@@ -513,37 +457,30 @@ const traceBall = freshBall(new THREE.Vector3(), new THREE.Vector3());
 const traceEvents: BallEvent[] = [];
 
 /**
- * Flugbahn-Vorschau: Wann berührt der Wurf zum ersten Mal etwas (Hindernis,
+ * Flugbahn-Vorschau: Wann berührt der Wurf zum ersten Mal etwas (Reifen-Rand,
  * Tonne, Boden)? Bis dahin ist die Bahn eine reine Parabel (ballisticPoint).
- * `hit` = Stelle der Berührung; `prop` = berührtes Hindernis oder null.
+ * Durch einen Reifen fliegen zählt nicht als Berührung. `time` = Szenen-Zeit
+ * beim Abwurf (bewegte Reifen). Rückgabe: Flugzeit bis zur Berührung (s).
  */
 export function firstTouch(
   start: THREE.Vector3,
   v: THREE.Vector3,
   bins: BinCollider[],
   props: PropCollider[],
-  hit: THREE.Vector3,
-): { time: number; prop: number | null } {
+  time = 0,
+): number {
   const ball = traceBall;
   ball.p.copy(start);
   ball.v.copy(v);
   ball.inside = null;
   ball.touched = false;
   ball.via = null;
+  ball.time = time;
   for (let step = 1; step < 3 / PHYSICS_STEP; step++) {
     traceEvents.length = 0;
     stepBall(ball, PHYSICS_STEP, bins, traceEvents, props);
-    for (const e of traceEvents) {
-      hit.copy(ball.p);
-      if (e.type === "capture") return { time: step * PHYSICS_STEP, prop: null };
-      return { time: step * PHYSICS_STEP, prop: e.prop ?? null };
-    }
-    // Sauber in eine Öffnung gefallen: dort endet die Vorschau
-    if (ball.inside !== null) {
-      hit.copy(ball.p);
-      return { time: step * PHYSICS_STEP, prop: null };
-    }
+    // Berührt – oder sauber in eine Öffnung gefallen: dort endet die Vorschau
+    if (traceEvents.some((e) => e.type !== "pass") || ball.inside !== null) return step * PHYSICS_STEP;
   }
-  hit.copy(ball.p);
-  return { time: 3, prop: null };
+  return 3;
 }

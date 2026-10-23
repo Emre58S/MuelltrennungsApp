@@ -4,15 +4,13 @@
 // Gestaltungsregel für Übersicht: Hinter den Tonnen (Mitte) nur ruhige
 // Flächen – Details (Fenster, Bäume, Rohre) stehen an den Seiten.
 // Stil: flach schattierte Facetten + Pastellpalette (Townscaper/Islanders).
-// Dunkel-Modus = Abenddämmerung mit warm leuchtenden Fenstern.
-// Tageszeit: auch im hellen Modus abends (19–6 Uhr) Dämmerung.
-// Wetter: manchmal leichter Regen mit bedecktem Himmel (ein Draw-Call).
+// Immer heller, freundlicher Tag (auch im Dunkel-Modus und abends) – das
+// Spiel soll einladend wirken. Wetter: manchmal leichter Regen, der Himmel
+// bleibt dabei hell (ein Draw-Call).
 
 import { useFrame } from "@react-three/fiber/native";
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-
-import { type ColorScheme } from "@/constants/theme";
 
 import { lowpoly } from "./materials";
 
@@ -51,12 +49,12 @@ type Palette = {
 };
 
 const LIGHT: Palette = {
-  skyTop: "#8ECAE8",
-  skyHorizon: "#F7E6D4",
-  ground: "#E8E0D2",
-  groundLine: "#D8CDBB",
-  grass: "#A3D27F",
-  plaster: "#F1D6B4",
+  skyTop: "#74C3F2",
+  skyHorizon: "#FFF0DC",
+  ground: "#F2EADC",
+  groundLine: "#E2D6C2",
+  grass: "#9BDB78",
+  plaster: "#F8DFC0",
   plinth: "#D9BC98",
   roof: "#C7684C",
   frame: "#FBF7F0",
@@ -70,58 +68,25 @@ const LIGHT: Palette = {
   flowers: ["#F27C8A", "#F6C453", "#B58BE0"],
   metal: "#9AA3AC",
   cloud: "#FFFFFF",
-  sun: 1.55,
+  sun: 1.7,
   hemiSky: "#FFFFFF",
-  hemiGround: "#D9C7AC",
-  hemi: 1.0,
-};
-
-const DUSK: Palette = {
-  skyTop: "#2C3868",
-  skyHorizon: "#EFA286",
-  ground: "#8F8A92",
-  groundLine: "#7D7881",
-  grass: "#4F7A58",
-  plaster: "#9C8578",
-  plinth: "#7F6B62",
-  roof: "#7E4A3E",
-  frame: "#C9C2BA",
-  glass: "#FFD58A",
-  glassGlow: "#FFB347",
-  bricks: ["#8B5248", "#7C483F", "#955D51"],
-  mortar: "#9A8C82",
-  fence: "#B8B2AA",
-  trunk: "#5A3E2C",
-  leaves: ["#3E7350", "#356646", "#4A8159"],
-  flowers: ["#C66A79", "#C9A24A", "#8F72B5"],
-  metal: "#6E767E",
-  cloud: "#8D86A8",
-  sun: 0.7,
-  hemiSky: "#B8A6FF",
-  hemiGround: "#4A4040",
-  hemi: 0.8,
+  hemiGround: "#E3D3BA",
+  hemi: 1.15,
 };
 
 /** Bedeckter Himmel bei Regen (überschreibt nur Himmel und Licht). */
 function overcast(p: Palette): Palette {
-  const dusk = p === DUSK;
   return {
     ...p,
-    skyTop: dusk ? "#3A4258" : "#97A6B5",
-    skyHorizon: dusk ? "#8E8A99" : "#D9DEE3",
-    cloud: dusk ? "#6F7184" : "#E4E8EC",
-    sun: p.sun * 0.7,
-    hemi: p.hemi * 0.95,
+    skyTop: "#A9C8DE",
+    skyHorizon: "#EEF2F4",
+    cloud: "#F2F4F6",
+    sun: p.sun * 0.85,
   };
 }
 
 export type Weather = "clear" | "rain";
 const RAIN_CHANCE = 0.22;
-
-function isEvening(date = new Date()) {
-  const h = date.getHours();
-  return h >= 19 || h < 6;
-}
 
 const FEVER = new THREE.Color("#FFB070");
 const WALL_Z = -2.5;
@@ -456,12 +421,10 @@ function GardenScene({ p }: { p: Palette }) {
 /* ── Bühne ─────────────────────────────────────────────────── */
 
 export const Stage = memo(function Stage({
-  scheme,
   fever,
   calm,
   kind,
 }: {
-  scheme: ColorScheme;
   fever: boolean;
   calm: boolean;
   /** Feste Szene (sonst wechselt sie pro Runde). */
@@ -471,9 +434,7 @@ export const Stage = memo(function Stage({
   const [weather] = useState<Weather>(() =>
     !calm && Math.random() < RAIN_CHANCE ? "rain" : "clear",
   );
-  const [evening] = useState(isEvening);
-  const base = scheme === "dark" || evening ? DUSK : LIGHT;
-  const p = useMemo(() => (weather === "rain" ? overcast(base) : base), [weather, base]);
+  const p = useMemo(() => (weather === "rain" ? overcast(LIGHT) : LIGHT), [weather]);
   const garden = scene === "garten";
 
   return (

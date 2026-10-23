@@ -1,161 +1,114 @@
 // Datei: game/trick-levels.ts
-// Level des Modus „Trickwürfe“: Hindernisse (Trampolin, Auto, Zaun), welche
-// Tonne das Ziel ist und welche Hindernisse der Wurf vorher berühren muss.
+// Level des Modus „Trickwürfe“: Reifen in der Luft, durch die der Wurf auf
+// dem Weg zur Zieltonne fliegen muss – ruhig, gleitend oder drehend. Die
+// Reifen hängen dort, wo die Wurfkurve ohnehin vorbeikommt (eher hinten,
+// nahe den Tonnen), damit sich ein Trick wie ein guter Wurf anfühlt.
 // Jedes Level wird in __tests__/tricks.test.ts geprüft: lösbar, mit einem
-// fairen Fenster an Würfen – und ohne Trick zählt es nicht.
+// fairen Fenster an Würfen (bei bewegten Reifen auch zeitlich) – und ohne
+// Reifen zählt es nicht.
 //
 // Koordinaten: Welt-Einheiten. Tonnen stehen bei z = 0 (x = −1,28 / 0 / 1,28),
 // der Gegenstand startet bei z ≈ 7,3; + z = Richtung Spieler.
 
 import { type TranslationKey } from "@/i18n";
 
-import { type Launch, type PropCollider } from "./physics";
+import { type PropCollider, type RingMotion } from "./physics";
 
-/** Trampolin: hoher Sprung, Weite ±20 % je nach Trefferlage. */
-const TRAMPOLINE: Launch = { minUp: 9, spread: 0.2, assist: 0.6 };
-/** Autodach: flacherer, schwächerer Absprung. */
-const CAR_ROOF: Launch = { minUp: 5.5, spread: 0.2, assist: 0.5 };
+/** Dicke des Reifen-Rohrs (passend zu components/game/trick-props.tsx). */
+export const RING_TUBE = 0.05;
 
-export type TrickProp =
-  | { kind: "trampoline"; x: number; z: number }
-  | { kind: "car"; x: number; z: number; color: string }
-  | { kind: "fence"; x: number; z: number; w: number; h: number };
+export type TrickProp = {
+  kind: "ring";
+  x: number;
+  y: number;
+  z: number;
+  radius: number;
+  motion?: RingMotion;
+};
 
 export type TrickLevel = {
   id: number;
   /** Zieltonne (0 = links, 1 = Mitte, 2 = rechts; Grund-Tonnen Bio/Gelb/Rest). */
   target: 0 | 1 | 2;
   props: TrickProp[];
-  /** Diese Hindernisse (Index in `props`) muss der Wurf vorher berühren. */
+  /** Durch diese Reifen (Index in `props`) muss der Wurf fliegen. */
   requires: number[];
-  /** Trampolin zielt aufs nächste Hindernis (Trampolin/Auto) statt auf die Tonnen (Index in `props`). */
-  chain?: { from: number; to: number };
-  /** Kurze Aufgabe, z. B. „Über das Trampolin“. */
+  /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
 };
 
-/** Maße der Hindernisse (passend zu components/game/trick-props.tsx). */
-export const PROP_SIZE = {
-  trampoline: { halfW: 0.6, halfD: 0.7, top: 0.42 },
-  car: {
-    body: { halfW: 1.0, halfH: 0.3, halfD: 0.46, y: 0.45 },
-    cabin: { halfW: 0.56, halfH: 0.21, halfD: 0.4, y: 0.96, dx: -0.12 },
-  },
-  fence: { halfD: 0.05 },
-};
+const ring = (x: number, y: number, z: number, radius: number, motion?: RingMotion): TrickProp => ({
+  kind: "ring",
+  x,
+  y,
+  z,
+  radius,
+  motion,
+});
 
 export const TRICK_LEVELS: TrickLevel[] = [
-  // Einstieg: Trampolin direkt vor der Tonne
-  { id: 1, target: 1, props: [{ kind: "trampoline", x: 0, z: 3.0 }], requires: [0], task: "trick.task.trampoline" },
-  { id: 2, target: 0, props: [{ kind: "trampoline", x: -1.28, z: 3.2 }], requires: [0], task: "trick.task.trampoline" },
-  // Autodach als Sprungbrett
-  { id: 3, target: 1, props: [{ kind: "car", x: 0, z: 2.4, color: "#D9483B" }], requires: [0], task: "trick.task.car" },
-  // Weiter weg
-  { id: 4, target: 2, props: [{ kind: "trampoline", x: 1.28, z: 3.9 }], requires: [0], task: "trick.task.trampoline" },
-  // Zaun vor den Tonnen: nur der hohe Sprung kommt drüber
+  // Einstieg: ein großer Reifen kurz vor der mittleren Tonne
+  { id: 1, target: 1, props: [ring(0, 2.8, 1.5, 0.55)], requires: [0], task: "trick.task.ring" },
+  { id: 2, target: 0, props: [ring(-1.0, 2.8, 1.5, 0.55)], requires: [0], task: "trick.task.ring" },
+  // Hoch oben am Scheitel der Wurfkurve
+  { id: 3, target: 2, props: [ring(0.75, 3.35, 3.3, 0.5)], requires: [0], task: "trick.task.ring" },
+  // Zwei Reifen hintereinander
+  {
+    id: 4,
+    target: 1,
+    props: [ring(0, 3.35, 3.4, 0.5), ring(0, 2.6, 1.2, 0.5)],
+    requires: [0, 1],
+    task: "trick.task.rings",
+  },
+  // Bewegt: gleitet seitlich, dann auf und ab
   {
     id: 5,
     target: 1,
-    props: [
-      { kind: "fence", x: 0, z: 1.15, w: 4.2, h: 1.0 },
-      { kind: "trampoline", x: 0, z: 2.9 },
-    ],
-    requires: [1],
-    task: "trick.task.fence",
+    props: [ring(0, 2.8, 1.5, 0.55, { kind: "slide", axis: "x", amp: 0.9, period: 3.2 })],
+    requires: [0],
+    task: "trick.task.moving",
   },
-  // Auto vor der linken Tonne, Trampolin als Ablenkung
   {
     id: 6,
     target: 0,
-    props: [
-      { kind: "car", x: -1.28, z: 2.3, color: "#3B7BD9" },
-      { kind: "trampoline", x: 1.1, z: 3.4 },
-    ],
+    props: [ring(-1.0, 2.8, 1.5, 0.55, { kind: "slide", axis: "y", amp: 0.45, period: 2.6 })],
     requires: [0],
-    task: "trick.task.car",
+    task: "trick.task.moving",
   },
-  // Doppel-Boing: vom ersten Trampolin aufs zweite
+  // Drehender Reifen: nur werfen, wenn er zu dir schaut
   {
     id: 7,
     target: 2,
-    props: [
-      { kind: "trampoline", x: -1.0, z: 3.8 },
-      { kind: "trampoline", x: 1.28, z: 2.5 },
-    ],
-    requires: [0, 1],
-    chain: { from: 0, to: 1 },
-    task: "trick.task.double",
+    props: [ring(1.0, 2.8, 1.5, 0.55, { kind: "spin", period: 3.0 })],
+    requires: [0],
+    task: "trick.task.spin",
   },
-  // Finale: Trampolin → Autodach → Tonne
+  // Finale: oben ein ruhiger, unten ein gleitender Reifen
   {
     id: 8,
     target: 1,
     props: [
-      { kind: "trampoline", x: 1.0, z: 3.8 },
-      { kind: "car", x: 0, z: 2.1, color: "#2E9E6E" },
+      ring(0, 3.35, 3.3, 0.55),
+      ring(0, 2.6, 1.2, 0.58, { kind: "slide", axis: "x", amp: 0.7, period: 2.8 }),
     ],
     requires: [0, 1],
-    chain: { from: 0, to: 1 },
-    task: "trick.task.both",
+    task: "trick.task.rings",
   },
 ];
 
-/** Physik-Körper eines Levels (Prop-id = Index in `props`). */
-export function levelColliders(level: Pick<TrickLevel, "props" | "chain">): PropCollider[] {
-  const out: PropCollider[] = [];
-  level.props.forEach((prop, id) => {
-    if (prop.kind === "trampoline") {
-      const t = PROP_SIZE.trampoline;
-      // Kette (Trampolin → Auto): Sprung zielt aufs Dach des nächsten Hindernisses
-      const next = level.chain?.from === id ? level.props[level.chain.to] : undefined;
-      const aimY =
-        next?.kind === "car" ? PROP_SIZE.car.cabin.y + PROP_SIZE.car.cabin.halfH : PROP_SIZE.trampoline.top;
-      const aim = next ? { x: next.x, y: aimY, z: next.z } : undefined;
-      out.push({
-        kind: "trampoline",
-        id,
-        x: prop.x,
-        z: prop.z,
-        halfW: t.halfW,
-        halfD: t.halfD,
-        top: t.top,
-        // Kette: der Sprung trifft das nächste Hindernis zuverlässig (seitlich)
-        launch: aim ? { ...TRAMPOLINE, aim, assist: 0.9 } : TRAMPOLINE,
-      });
-    } else if (prop.kind === "car") {
-      const { body, cabin } = PROP_SIZE.car;
-      const car = { kind: "box", id, part: "car", restitution: 0.45, launch: CAR_ROOF } as const;
-      out.push({ ...car, x: prop.x, y: body.y, z: prop.z, halfW: body.halfW, halfH: body.halfH, halfD: body.halfD });
-      out.push({
-        ...car,
-        x: prop.x + cabin.dx,
-        y: cabin.y,
-        z: prop.z,
-        halfW: cabin.halfW,
-        halfH: cabin.halfH,
-        halfD: cabin.halfD,
-      });
-    } else {
-      out.push({
-        kind: "box",
-        id,
-        part: "fence",
-        x: prop.x,
-        y: prop.h / 2,
-        z: prop.z,
-        halfW: prop.w / 2,
-        halfH: prop.h / 2,
-        halfD: PROP_SIZE.fence.halfD,
-        restitution: 0.35,
-      });
-    }
-  });
-  return out;
+/** Physik-Körper eines Levels (Reifen-id = Index in `props`). */
+export function levelColliders(level: Pick<TrickLevel, "props">): PropCollider[] {
+  return level.props.map((p, id) => ({ ...p, id, tube: RING_TUBE }));
 }
 
-/** Hat der Wurf alle nötigen Hindernisse berührt (Reihenfolge egal)? */
-export function meetsRequirement(level: TrickLevel, touched: number[]): boolean {
-  return level.requires.every((id) => touched.includes(id));
+/** Längste Bewegungs-Periode eines Levels (0 = alles ruht). */
+export function levelPeriod(level: Pick<TrickLevel, "props">): number {
+  return Math.max(0, ...level.props.map((p) => p.motion?.period ?? 0));
+}
+
+/** Ist der Wurf durch alle nötigen Reifen geflogen (Reihenfolge egal)? */
+export function meetsRequirement(level: TrickLevel, passed: number[]): boolean {
+  return level.requires.every((id) => passed.includes(id));
 }
 
 /** Sterne nach Versuchen: 1. Versuch 3 ★, bis 3 Versuche 2 ★, sonst 1 ★. */

@@ -62,7 +62,7 @@ export const MenuScene = memo(function MenuScene({
   return (
     <>
       <MenuCamera layout={layout} fx={fx} />
-      <Stage scheme={scheme} fever={false} calm={calm} />
+      <Stage fever={false} calm={calm} />
 
       {bins.map((bin, i) => (
         <TrashBin

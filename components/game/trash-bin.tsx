@@ -49,7 +49,7 @@ const GEO = {
   pad: new THREE.CircleGeometry(0.8, 8),
   blob: new THREE.CircleGeometry(0.62, 16),
   ring: new THREE.RingGeometry(0.72, 0.86, 8),
-  label: new THREE.PlaneGeometry(0.52, 0.26),
+  label: new THREE.PlaneGeometry(0.6, 0.3),
 };
 
 /** Beschriftung: oberer Teil der eingelassenen Front, folgt deren Neigung. */
@@ -120,12 +120,16 @@ export const TrashBin = memo(function TrashBin({
     }),
     [bin],
   );
-  // Lambert: die Schrift bekommt dasselbe Licht wie die Tonne (wirkt aufgedruckt)
+  // Lambert: die Schrift bekommt dasselbe Licht wie die Tonne (wirkt aufgedruckt);
+  // ein Hauch Eigenleuchten hält sie auch im Schatten gut lesbar
   const labelMat = useMemo(
     () =>
       label
         ? new THREE.MeshLambertMaterial({
             map: label,
+            emissive: "#FFFFFF",
+            emissiveMap: label,
+            emissiveIntensity: 0.3,
             transparent: true,
             alphaTest: 0.02,
             polygonOffset: true,

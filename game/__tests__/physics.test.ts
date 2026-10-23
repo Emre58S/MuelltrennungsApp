@@ -71,6 +71,7 @@ describe("Zielwurf-Physik", () => {
     touched: false,
     via: null,
     still: 0,
+    time: 0,
   });
 
   test("zu weit: prallt vom offenen Deckel ab und fällt in die Tonne", () => {
