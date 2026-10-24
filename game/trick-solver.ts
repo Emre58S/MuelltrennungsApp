@@ -1,13 +1,13 @@
 // Datei: game/trick-solver.ts
 // NUR FÜR TESTS: Löser für Trickwurf-Level. Probiert Würfe (Richtung ×
 // Kraft × Abwurf-Zeitpunkt) mit derselben Rechnung wie das Spiel durch
-// (pullShot → echter Wurf → Physik) – so lässt sich prüfen, ob ein Level
+// (swipeShot → echter Wurf → Physik) – so lässt sich prüfen, ob ein Level
 // fair lösbar ist.
 
 import * as THREE from "three";
 
 import { BIN_OPENING_Y, computeLayout, shotLanding } from "./layout";
-import { FULL_PULL_SHARE, pullShot } from "./logic";
+import { FULL_SWIPE_SHARE, swipeShot } from "./logic";
 import { type BinCollider, lobVelocity, simulateShot } from "./physics";
 import { levelColliders, levelPeriod, meetsRequirement, type TrickLevel } from "./trick-levels";
 
@@ -18,16 +18,16 @@ export function createSolver(width = 390, height = 844) {
   const layout = computeLayout(width, height, 3);
   const bins: BinCollider[] = layout.bins.map((b) => ({ x: b.x, z: b.z, lid: LID_OPEN }));
   const binXs = layout.bins.map((b) => b.x);
-  /** Zuglänge (px) für volle Kraft – wie im Spiel. */
-  const full = FULL_PULL_SHARE * height;
+  /** Wischlänge (px) für volle Kraft – wie im Spiel. */
+  const full = FULL_SWIPE_SHARE * height;
 
-  /** Ein Wurf: Winkel (Grad, 0 = gerade), Kraft (0…1 der vollen Zuglänge)
+  /** Ein Wurf: Winkel (Grad, 0 = gerade), Kraft (0…1; Wischlänge oder -tempo)
    *  und Szenen-Zeit beim Abwurf (bewegte Reifen). */
   function throwAt(level: Pick<TrickLevel, "props">, angle: number, strength: number, time = 0) {
-    // Zurückziehen: Finger nach unten, entgegen der Wurfrichtung
+    // Halten-Modus: Wischlänge = Kraft (ein schneller Wurf mit gleicher Kraft fliegt gleich)
     const length = 18 + strength * (full - 18);
     const rad = (angle * Math.PI) / 180;
-    const shot = pullShot(-Math.sin(rad) * length, Math.cos(rad) * length, full, layout.binAngles, binXs);
+    const shot = swipeShot(Math.sin(rad) * length, -Math.cos(rad) * length, full, layout.binAngles, binXs);
     if (!shot) return null;
     const land = shotLanding(layout, shot);
     const target = new THREE.Vector3(land.x, BIN_OPENING_Y + 0.1, land.z);

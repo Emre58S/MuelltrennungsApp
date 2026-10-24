@@ -1,18 +1,17 @@
 // Datei: components/game/trick-round.tsx — ein Trickwurf-Level
 // (Route: app/(tabs)/runde.tsx mit mode=trick)
 //
-// Normal werfen (nach oben wischen: Richtung = Seite, Wischlänge = Weite),
+// Werfen wie im Zielwurf (schnell wischen = Tempo, halten = Flugbahn),
 // dazu Reifen aus game/trick-levels.ts. Ein Wurf zur
 // Zeit: der nächste Gegenstand kommt erst nach der Landung – so ist klar,
 // welcher Wurf was ausgelöst hat. Kein Zufall in der Physik: gleicher Wurf,
-// gleiches Ergebnis. Beim Wischen zeigt eine Vorschau die ersten ~60 % des Flugs.
+// gleiches Ergebnis. Beim Halten zeigt eine Vorschau die ersten ~60 % des Flugs.
 import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
 import { computeLayout, shotLanding } from "@/game/layout";
 import {
   type FreeShot,
-  FULL_PULL_SHARE,
+  FULL_SWIPE_SHARE,
   pickItem,
-  pullShot,
   recentLimit,
 } from "@/game/logic";
 import {
@@ -50,6 +49,13 @@ import {
   TrickResult,
 } from "./hud";
 import { useLater } from "./round-hooks";
+import {
+  beginThrow,
+  createThrowInput,
+  previewShot,
+  releaseShot,
+  stepClick,
+} from "./throw-input";
 import {
   createBus,
   type LandOutcome,
@@ -125,8 +131,8 @@ export function TrickRound({
   const busy = useRef(false);
   const done = useRef(false);
   const ids = useRef(0);
-  /** Kraft-Stufe fürs Vibrations-Klicken beim Ziehen. */
-  const pullStep = useRef(-1);
+  /** Wurf-Eingabe: schnell wischen oder halten (Vorschau). */
+  const input = useRef(createThrowInput());
   const attemptsRef = useRef(0);
   /** Angezeigter Versuch: der laufende bzw. der nächste nach einem Fehlwurf. */
   const [attempt, setAttempt] = useState(1);
@@ -236,46 +242,43 @@ export function TrickRound({
 
   // Gesten-Handler (aktuell halten, ohne die Geste neu zu bauen)
   const handlers = useRef({
+    begin: () => {},
     aim: (_dx: number, _dy: number) => {},
-    release: (_dx: number, _dy: number) => {},
+    release: (_dx: number, _dy: number, _vy: number) => {},
     cancel: () => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
   });
-  // Normal werfen: nach oben wischen. Richtung = Seite, Wischlänge = Weite
-  // (gespiegelt dieselbe Rechnung wie das Zurückziehen im Zielwurf).
+  // Wie im Zielwurf: schnell wischen = normaler Wurf, halten = Flugbahn.
   // Keine Pech-Hilfe hier: sie zöge Würfe zur Tonne – am Reifen vorbei.
-  const fullSwipe = screenH * FULL_PULL_SHARE;
-  const aimShot = (dx: number, dy: number) =>
-    pullShot(-dx, -dy, fullSwipe, layout.binAngles, binXs);
+  const throwCtx = () => ({
+    full: screenH * FULL_SWIPE_SHARE,
+    binAngles: layout.binAngles,
+    binXs,
+  });
   useLayoutEffect(() => {
     handlers.current = {
+      begin: () => beginThrow(input.current, Date.now()),
       aim: (dx, dy) => {
         if (busy.current || done.current) return;
-        // Beim Wischen: so würde der Wurf jetzt fliegen (Weite klickt leise mit)
-        const shot = aimShot(dx, dy);
+        // Länger gehalten: so würde der Wurf jetzt fliegen (Weite klickt leise mit)
+        const shot = previewShot(input.current, Date.now(), dx, dy, throwCtx());
+        if (!input.current.aiming) return;
         setShotGuide(
           bus.current,
           shot ? { ...shotLanding(layout, shot), strength: shot.strength } : null,
         );
-        const step = shot ? Math.floor(shot.strength * 10) : -1;
-        if (step !== pullStep.current) {
-          if (step > pullStep.current && step >= 0)
-            Haptics.selectionAsync().catch(() => undefined);
-          pullStep.current = step;
-        }
+        if (stepClick(input.current, shot)) Haptics.selectionAsync().catch(() => undefined);
       },
-      release: (dx, dy) => {
+      release: (dx, dy, vy) => {
         setShotGuide(bus.current, null);
-        pullStep.current = -1;
         if (busy.current || done.current) return;
-        const shot = aimShot(dx, dy);
+        const shot = releaseShot(input.current, dx, dy, vy, throwCtx());
         if (shot) throwShot(shot);
         // Nach unten gewischt? Kurz erklären, wie es geht
-        else if (dy > 60) float(`👆 ${t("trick.swipeHint")}`, screenW / 2, layout.binTops[0].y);
+        else if (dy > 60) float(`👆 ${t("game.swipeHint")}`, screenW / 2, layout.binTops[0].y);
       },
       cancel: () => {
         setShotGuide(bus.current, null);
-        pullStep.current = -1;
       },
       land: handleLand,
     };
@@ -286,9 +289,10 @@ export function TrickRound({
     return () => setLandHandler(b, () => undefined);
   }, []);
 
+  const onBegin = useCallback(() => handlers.current.begin(), []);
   const onAim = useCallback((dx: number, dy: number) => handlers.current.aim(dx, dy), []);
   const onRelease = useCallback(
-    (dx: number, dy: number) => handlers.current.release(dx, dy),
+    (dx: number, dy: number, vy: number) => handlers.current.release(dx, dy, vy),
     [],
   );
   const onCancel = useCallback(() => handlers.current.cancel(), []);
@@ -300,10 +304,11 @@ export function TrickRound({
         .enabled(!finished)
         .runOnJS(true)
         .minDistance(6)
+        .onBegin(onBegin)
         .onUpdate((e) => onAim(e.translationX, e.translationY))
-        .onEnd((e) => onRelease(e.translationX, e.translationY))
+        .onEnd((e) => onRelease(e.translationX, e.translationY, e.velocityY))
         .onFinalize(onCancel),
-    [onAim, onRelease, onCancel, finished],
+    [onBegin, onAim, onRelease, onCancel, finished],
   );
   /* eslint-enable react-hooks/refs */
   const onFloatDone = useCallback((id: number) => {

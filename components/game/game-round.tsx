@@ -55,7 +55,7 @@ import {
   FEVER_EVERY,
   FEVER_SECONDS,
   type FreeShot,
-  FULL_PULL_SHARE,
+  FULL_SWIPE_SHARE,
   getMultiplier,
   getPoints,
   type HitResult,
@@ -63,7 +63,6 @@ import {
   itemWeight,
   missAssist,
   pickItem,
-  pullShot,
   recentLimit,
   statsReducer,
   XP_PER_RESULT,
@@ -106,6 +105,13 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
+import {
+  beginThrow,
+  createThrowInput,
+  previewShot,
+  releaseShot,
+  stepClick,
+} from "./throw-input";
 
 const ROUND_SECONDS = 60;
 /** Nach Zeitablauf: so lange dürfen fliegende Würfe noch landen. */
@@ -222,9 +228,9 @@ export function GameRound({
     setPreview(bus.current, itemRef.current);
   }, []);
   const throwMap = useRef(new Map<number, ThrowSpec>());
-  // Zielwurf: Fehlwürfe in Folge (Pech-Hilfe) und Kraft-Stufe fürs Vibrations-Klicken
+  // Zielwurf: Fehlwürfe in Folge (Pech-Hilfe) und Wurf-Eingabe (Wischen/Halten)
   const missesInRow = useRef(0);
-  const pullStep = useRef(-1);
+  const input = useRef(createThrowInput());
   const [floats, setFloats] = useState<FloatText[]>([]);
   const [praise, setPraise] = useState<Praised | null>(null);
   const [learn, setLearn] = useState<Learn | null>(null);
@@ -629,6 +635,7 @@ export function GameRound({
     }
   };
   const handlers = useRef({
+    begin: () => {},
     aim: (_dx: number, _dy: number) => {},
     release: (_dx: number, _dy: number, _vy: number) => {},
     cancel: () => {},
@@ -636,30 +643,28 @@ export function GameRound({
     throwTo: (_i: number) => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
   });
-  // Zielwurf: Zuglänge für volle Kraft (gleich auf jedem Handy: Anteil der Höhe)
-  const fullPull = screenH * FULL_PULL_SHARE;
-  const aimShot = (dx: number, dy: number) =>
-    pullShot(dx, dy, fullPull, layout.binAngles, binXs, {
-      assist: missAssist(missesInRow.current),
-    });
+  // Zielwurf: Wischlänge für volle Kraft (gleich auf jedem Handy: Anteil der Höhe)
+  const throwCtx = () => ({
+    full: screenH * FULL_SWIPE_SHARE,
+    binAngles: layout.binAngles,
+    binXs,
+    assist: missAssist(missesInRow.current),
+  });
   useLayoutEffect(() => {
     handlers.current = {
+      begin: () => beginThrow(input.current, Date.now()),
       aim: (dx, dy) => {
         if (lock.current.ended) return;
         if (mode === "aim") {
-          // Zurückziehen: Flugbahn zeigen, Kraft mit leisem Vibrations-Klicken
+          // Länger gehalten: Flugbahn zeigen, Kraft mit leisem Vibrations-Klicken
           // (bewusst ohne Ton – der würde das Bild kurz anhalten)
-          const shot = aimShot(dx, dy);
+          const shot = previewShot(input.current, Date.now(), dx, dy, throwCtx());
+          if (!input.current.aiming) return;
           setShotGuide(
             bus.current,
             shot ? { ...shotLanding(layout, shot), strength: shot.strength } : null,
           );
-          const step = shot ? Math.floor(shot.strength * 10) : -1;
-          if (step !== pullStep.current) {
-            if (step > pullStep.current && step >= 0)
-              Haptics.selectionAsync().catch(() => undefined);
-            pullStep.current = step;
-          }
+          if (stepClick(input.current, shot)) Haptics.selectionAsync().catch(() => undefined);
           return;
         }
         const idx = aimFromDrag(dx, dy, layout.binAngles)?.binIndex ?? null;
@@ -673,19 +678,19 @@ export function GameRound({
       release: (dx, dy, vy) => {
         setAim(bus.current, null);
         setShotGuide(bus.current, null);
-        pullStep.current = -1;
         if (mode === "aim") {
-          // Zielwurf: Loslassen wirft genau so, wie die Vorschau es zeigte
-          const shot = aimShot(dx, dy);
+          // Schnell gewischt: Tempo = Weite; mit Vorschau: genau wie gezeigt
+          const aiming = input.current.aiming;
+          const shot = releaseShot(input.current, dx, dy, vy, throwCtx());
           if (!shot) {
-            // Aus Gewohnheit nach oben gewischt? Kurz erklären, wie es geht
-            if (dy < -60 && !lock.current.ended) showBanner(`👇 ${t("game.pullHint")}`, 1800);
+            // Nach unten gewischt? Kurz erklären, wie es geht
+            if (dy > 60 && !lock.current.ended) showBanner(`👆 ${t("game.swipeHint")}`, 1800);
             return;
           }
           if (__DEV__)
             // Zum Nachjustieren (landet im Metro-Log)
             console.log(
-              `[wurf] zug=${Math.round(Math.hypot(dx, dy))}px kraft=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)} x=${shot.x.toFixed(2)}`,
+              `[wurf] ${aiming ? "halten" : "wisch"} länge=${Math.round(Math.hypot(dx, dy))}px tempo=${Math.round(-vy)} kraft=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)} x=${shot.x.toFixed(2)}`,
             );
           throwTo(shot.binIndex ?? 0, shot.perfect, 1, shot);
           return;
@@ -698,7 +703,6 @@ export function GameRound({
       cancel: () => {
         setAim(bus.current, null);
         setShotGuide(bus.current, null);
-        pullStep.current = -1;
       },
       tap: (x, y) => {
         // Im Zielwurf zählt nur echtes Werfen
@@ -721,6 +725,7 @@ export function GameRound({
     setLandHandler(b, (id, outcome) => handlers.current.land(id, outcome));
     return () => setLandHandler(b, () => undefined);
   }, []);
+  const onBegin = useCallback(() => handlers.current.begin(), []);
   const onAim = useCallback(
     (dx: number, dy: number) => handlers.current.aim(dx, dy),
     [],
@@ -741,6 +746,7 @@ export function GameRound({
       .enabled(!showEnd)
       .runOnJS(true)
       .minDistance(6)
+      .onBegin(onBegin)
       .onUpdate((e) => {
         onAim(e.translationX, e.translationY);
       })
@@ -756,7 +762,7 @@ export function GameRound({
         if (success) onTap(e.x, e.y);
       });
     return Gesture.Race(pan, tap);
-  }, [onAim, onRelease, onCancel, onTap, showEnd]);
+  }, [onBegin, onAim, onRelease, onCancel, onTap, showEnd]);
   /* eslint-enable react-hooks/refs */
   const onFloatDone = useCallback((id: number) => {
     setFloats((f) => f.filter((x) => x.id !== id));
@@ -871,7 +877,6 @@ export function GameRound({
                   item={currentItem}
                   showHint={!hasThrown}
                   hint={mode === "aim" ? t("game.aimHint") : undefined}
-                  pull={mode === "aim"}
                 />
               </View>
             )}

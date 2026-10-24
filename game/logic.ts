@@ -46,12 +46,22 @@ export function aimFromDrag(
   return { binIndex: best, perfect: bestDiff <= perfectTolerance };
 }
 
-/* ── Zielwurf: zurückziehen, Flugbahn sehen, loslassen ────── */
+/* ── Zielwurf und Trickwürfe: werfen wie beim Basketball ───── */
+//
+// Zwei Arten, die man nicht umschalten muss:
+//  - schnell wischen: normaler Wurf, das TEMPO bestimmt die Weite (das
+//    „richtige“ Tempo lernt vom Spieler, siehe adaptiveIdeal)
+//  - länger halten: Flugbahn-Vorschau erscheint, die WISCHLÄNGE bestimmt
+//    die Weite – genau planbar
 
-/** Ab dieser Zuglänge (px) wird gezielt; kürzer = abbrechen. */
+/** Ab dieser Wischlänge (px) zählt ein Wurf; kürzer = abbrechen. */
 const MIN_PULL = 18;
-/** Zuglänge für volle Kraft als Anteil der Bildschirmhöhe. */
-export const FULL_PULL_SHARE = 0.24;
+/** Wischlänge für volle Kraft als Anteil der Bildschirmhöhe (Halten-Modus). */
+export const FULL_SWIPE_SHARE = 0.24;
+/** Standard-Wischtempo nach oben (px/s), das genau in der Tonne landet. */
+export const IDEAL_FLICK = 2000;
+/** So viele der letzten schnellen Würfe bestimmen das „richtige“ Tempo. */
+export const LEARN_WINDOW = 8;
 /** Kraft (0…1), bei der ein Wurf genau in den Tonnen landet. */
 export const SWEET_STRENGTH = 0.7;
 /** Schwächster Wurf landet so weit vor den Tonnen (Welt-Einheiten). */
@@ -63,7 +73,7 @@ const LONG_RANGE = 2.2;
 const NEAR_CURVE = 1.0;
 const FAR_CURVE = 1.0;
 
-/** Zuglänge (px) → Kraft 0…1. `full` = Zuglänge für volle Kraft. */
+/** Wischlänge (px) → Kraft 0…1. `full` = Länge für volle Kraft. */
 export function pullStrength(length: number, full: number): number {
   return Math.min(Math.max((length - MIN_PULL) / (full - MIN_PULL), 0), 1);
 }
@@ -77,6 +87,26 @@ export function throwDepth(strength: number): number {
   if (s <= SWEET_STRENGTH)
     return SHORT_RANGE * Math.pow((SWEET_STRENGTH - s) / SWEET_STRENGTH, NEAR_CURVE);
   return -LONG_RANGE * Math.pow((s - SWEET_STRENGTH) / (1 - SWEET_STRENGTH), FAR_CURVE);
+}
+
+/** Wisch-Tempo nach oben (px/s) → Kraft 0…1; beim gelernten Tempo genau
+ *  SWEET_STRENGTH (in die Tonne). */
+export function flickStrength(vy: number, ideal = IDEAL_FLICK): number {
+  return Math.min(Math.max((-vy / ideal) * SWEET_STRENGTH, 0), 1);
+}
+
+/**
+ * Das „richtige“ Tempo lernt vom Spieler: Median der letzten schnellen Würfe,
+ * höchstens ±25 % vom Standard und erst ab 3 Würfen. So zählt gleichmäßiges
+ * Werfen – nicht ein fremder Normwert, der auf jedem Handy anders wirkt.
+ */
+export function adaptiveIdeal(history: number[]): number {
+  const recent = history.slice(-LEARN_WINDOW).filter((v) => v > 0);
+  if (recent.length < 3) return IDEAL_FLICK;
+  const sorted = [...recent].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  return Math.min(Math.max(median, IDEAL_FLICK * 0.75), IDEAL_FLICK * 1.25);
 }
 
 /** Unsichtbare Hilfe nach Pech: 0 = keine … 1 = volle, ab 2 Fehlwürfen in Folge. */
@@ -106,7 +136,7 @@ export type FreeShot = {
   /** Daneben, aber knapp: prallt vom Rand dieser Tonne ab. */
   rimIndex: number | null;
   perfect: boolean;
-  /** Kraft 0…1 (aus der Zuglänge). */
+  /** Kraft 0…1 (aus Wischlänge oder -tempo). */
   strength: number;
 };
 
@@ -120,27 +150,15 @@ function angleToX(angle: number, binAngles: number[], binXs: number[]): number {
   return binXs[i] + k * (binXs[i + 1] - binXs[i]);
 }
 
-/**
- * Wie bei Dunk Shot oder Angry Birds: Finger nach unten ziehen (Schleuder),
- * geworfen wird in die Gegenrichtung. Die RICHTUNG bestimmt, wo seitlich der
- * Wurf ankommt, die ZUGLÄNGE, wie weit er fliegt – die Szene zeigt dabei die
- * Flugbahn. `full` = Zuglänge (px) für volle Kraft, `assist` = Hilfe nach Pech
- * (missAssist). Null = zu wenig oder nach oben gezogen.
- */
-export function pullShot(
-  dx: number,
-  dy: number,
-  full: number,
+/** Richtung (Grad) + Kraft → Landestelle und Vorhersage. */
+function shotFrom(
+  angle: number,
+  strength: number,
   binAngles: number[],
   binXs: number[],
-  opts: { assist?: number } = {},
-): FreeShot | null {
-  const length = Math.hypot(dx, dy);
-  if (dy < MIN_PULL * 0.6 || length < MIN_PULL) return null;
-  const assist = opts.assist ?? 0;
-  const angle = (Math.atan2(-dx, dy) * 180) / Math.PI;
+  assist: number,
+): FreeShot {
   const rawX = angleToX(angle, binAngles, binXs);
-  const strength = pullStrength(length, full);
   // Pech-Hilfe macht den Weiten-Bereich der Tonne etwas größer
   const depth = throwDepth(strength) * (1 - 0.35 * assist);
 
@@ -163,6 +181,48 @@ export function pullShot(
     perfect: inside && ox < 0.12 && oz < 0.12,
     strength,
   };
+}
+
+/** Wurfrichtung (Grad, 0 = gerade nach oben) eines Wischs – null, wenn er
+ *  zu kurz ist oder nicht nach oben geht. */
+function swipeAngle(dx: number, dy: number): number | null {
+  if (-dy < MIN_PULL * 0.6 || Math.hypot(dx, dy) < MIN_PULL) return null;
+  return (Math.atan2(dx, -dy) * 180) / Math.PI;
+}
+
+/**
+ * Halten-Modus: Wischlänge = Weite (gleichmäßig, mit Vorschau planbar), die
+ * Richtung bestimmt die Seite. `full` = Länge (px) für volle Kraft,
+ * `assist` = Hilfe nach Pech (missAssist).
+ */
+export function swipeShot(
+  dx: number,
+  dy: number,
+  full: number,
+  binAngles: number[],
+  binXs: number[],
+  opts: { assist?: number } = {},
+): FreeShot | null {
+  const angle = swipeAngle(dx, dy);
+  if (angle === null) return null;
+  return shotFrom(angle, pullStrength(Math.hypot(dx, dy), full), binAngles, binXs, opts.assist ?? 0);
+}
+
+/**
+ * Schneller Wurf: das Wisch-Tempo nach oben (`vy`, px/s) bestimmt die Weite,
+ * `ideal` = gelerntes Tempo (adaptiveIdeal). Die Richtung wie oben.
+ */
+export function flickShot(
+  dx: number,
+  dy: number,
+  vy: number,
+  binAngles: number[],
+  binXs: number[],
+  opts: { ideal?: number; assist?: number } = {},
+): FreeShot | null {
+  const angle = swipeAngle(dx, dy);
+  if (angle === null) return null;
+  return shotFrom(angle, flickStrength(vy, opts.ideal), binAngles, binXs, opts.assist ?? 0);
 }
 
 /* ── Zielwurf: Trickwürfe und Endspurt ───────────────────── */

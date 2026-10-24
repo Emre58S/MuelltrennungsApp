@@ -1,0 +1,79 @@
+// Datei: components/game/throw-input.ts
+// Wurf-Eingabe für Zielwurf und Trickwürfe – ohne Umschalten:
+//  - schnell wischen → normaler Wurf (Tempo = Weite, das Tempo lernt mit)
+//  - länger halten → Flugbahn-Vorschau, Wischlänge = Weite (planbar)
+// Rein und ohne React; die Runden halten den Zustand in einem useRef.
+
+import { adaptiveIdeal, type FreeShot, flickShot, LEARN_WINDOW, swipeShot } from "@/game/logic";
+
+/** Ab so langer Berührung (ms) erscheint die Vorschau (ein Wisch ist schneller). */
+export const HOLD_MS = 240;
+
+export type ThrowInput = {
+  /** Beginn der Berührung (ms). */
+  start: number;
+  /** Vorschau wurde gezeigt → Loslassen wirft genau so (Wischlänge). */
+  aiming: boolean;
+  /** Kraft-Stufe fürs leise Vibrations-Klicken in der Vorschau. */
+  step: number;
+  /** Tempo der letzten schnellen Würfe (lernt das „richtige“ Tempo). */
+  flicks: number[];
+};
+
+export type ThrowContext = {
+  /** Wischlänge (px) für volle Kraft. */
+  full: number;
+  binAngles: number[];
+  binXs: number[];
+  /** Hilfe nach Pech (missAssist). */
+  assist?: number;
+};
+
+export function createThrowInput(): ThrowInput {
+  return { start: 0, aiming: false, step: -1, flicks: [] };
+}
+
+export function beginThrow(input: ThrowInput, now: number) {
+  input.start = now;
+  input.aiming = false;
+  input.step = -1;
+}
+
+/** Während des Wischens: erst nach HOLD_MS gibt es eine Vorschau (sonst null). */
+export function previewShot(
+  input: ThrowInput,
+  now: number,
+  dx: number,
+  dy: number,
+  ctx: ThrowContext,
+): FreeShot | null {
+  if (!input.aiming && now - input.start < HOLD_MS) return null;
+  input.aiming = true;
+  return swipeShot(dx, dy, ctx.full, ctx.binAngles, ctx.binXs, { assist: ctx.assist });
+}
+
+/** Loslassen: mit Vorschau genau wie gezeigt, sonst schneller Wurf nach Tempo. */
+export function releaseShot(
+  input: ThrowInput,
+  dx: number,
+  dy: number,
+  vy: number,
+  ctx: ThrowContext,
+): FreeShot | null {
+  if (input.aiming)
+    return swipeShot(dx, dy, ctx.full, ctx.binAngles, ctx.binXs, { assist: ctx.assist });
+  const shot = flickShot(dx, dy, vy, ctx.binAngles, ctx.binXs, {
+    ideal: adaptiveIdeal(input.flicks),
+    assist: ctx.assist,
+  });
+  if (shot) input.flicks = [...input.flicks, -vy].slice(-LEARN_WINDOW);
+  return shot;
+}
+
+/** Vorschau-Klicken: true, wenn die Kraft eine neue (höhere) 10-%-Stufe erreicht. */
+export function stepClick(input: ThrowInput, shot: FreeShot | null): boolean {
+  const step = shot ? Math.floor(shot.strength * 10) : -1;
+  const click = step > input.step && step >= 0;
+  input.step = step;
+  return click;
+}

@@ -10,8 +10,9 @@
 
 import * as THREE from "three";
 
-/** Schwerkraft (Welt-Einheiten/s²; eine Tonne ist 1,6 hoch). */
-export const GRAVITY = 16;
+/** Schwerkraft (Welt-Einheiten/s²; eine Tonne ist 1,6 hoch). Höher = flotter
+ *  Flug bei gleicher Kurve (der Abwurf wird passend schneller). */
+export const GRAVITY = 25;
 /** Kollisions-Radius eines geworfenen Gegenstands. */
 export const BALL_R = 0.12;
 const BACK_WALL_Z = -2.4;
@@ -33,7 +34,7 @@ export const BIN_SHAPE = {
   funnel: 0.24,
 };
 /** Größter Schubs nach innen beim Rand-Abprallen (Welt-Einheiten/s). */
-const RIM_NUDGE = 1.8;
+const RIM_NUDGE = 2.25;
 /** Brett-Wurf: so stark wird der Abpraller vom Deckel Richtung Öffnung gelenkt
  *  (Mitte des Deckels; ganz außen deutlich weniger). */
 const BANK_ASSIST = 0.8;

@@ -11,8 +11,12 @@ import {
   FEVER_EVERY,
   aimBonus,
   missAssist,
-  pullShot,
+  adaptiveIdeal,
+  flickShot,
+  flickStrength,
+  IDEAL_FLICK,
   pullStrength,
+  swipeShot,
   SWEET_STRENGTH,
   throwDepth,
   getMultiplier,
@@ -109,7 +113,7 @@ describe("Zielen", () => {
   });
 });
 
-describe("Zielwurf (zurückziehen und loslassen)", () => {
+describe("Zielwurf (wischen bzw. halten)", () => {
   const angles = [-30, 0, 30];
   const xs = [-1.3, 0, 1.3];
   const full = 200;
@@ -118,7 +122,7 @@ describe("Zielwurf (zurückziehen und loslassen)", () => {
   /** Finger nach unten gezogen, Wurfrichtung `deg` (0 = gerade). */
   const at = (deg: number, length: number, opts = {}) => {
     const rad = (deg * Math.PI) / 180;
-    return pullShot(-Math.sin(rad) * length, Math.cos(rad) * length, full, angles, xs, opts);
+    return swipeShot(Math.sin(rad) * length, -Math.cos(rad) * length, full, angles, xs, opts);
   };
 
   test("gerade und genau richtig gezogen: mitten in die mittlere Tonne", () => {
@@ -171,9 +175,27 @@ describe("Zielwurf (zurückziehen und loslassen)", () => {
     expect(at((0.5 / 1.3) * 30, pull(SWEET_STRENGTH))?.binIndex).toBe(1);
   });
 
-  test("zu wenig oder nach oben gezogen: kein Wurf", () => {
-    expect(pullShot(0, 10, full, angles, xs)).toBeNull();
-    expect(pullShot(0, -120, full, angles, xs)).toBeNull();
+  test("zu wenig oder nach unten gewischt: kein Wurf", () => {
+    expect(swipeShot(0, -10, full, angles, xs)).toBeNull();
+    expect(swipeShot(0, 120, full, angles, xs)).toBeNull();
+  });
+});
+
+describe("Schneller Wurf (Tempo = Weite)", () => {
+  const angles = [-30, 0, 30];
+  const xs = [-1.3, 0, 1.3];
+
+  test("gelerntes Tempo landet genau in der Tonne, langsamer kürzer, schneller weiter", () => {
+    expect(flickStrength(-IDEAL_FLICK)).toBeCloseTo(SWEET_STRENGTH);
+    expect(flickShot(0, -80, -IDEAL_FLICK, angles, xs)?.binIndex).toBe(1);
+    expect(flickShot(0, -80, -IDEAL_FLICK * 0.5, angles, xs)?.depth).toBeGreaterThan(0.5);
+    expect(flickShot(0, -80, -IDEAL_FLICK * 1.4, angles, xs)?.depth).toBeLessThan(-0.5);
+  });
+
+  test("das richtige Tempo lernt mit (Median, höchstens ±25 %)", () => {
+    expect(adaptiveIdeal([1500, 1500])).toBe(IDEAL_FLICK);
+    expect(adaptiveIdeal([1700, 1800, 1750])).toBe(1750);
+    expect(adaptiveIdeal([900, 1000, 950])).toBe(IDEAL_FLICK * 0.75);
   });
 });
 
@@ -191,11 +213,11 @@ describe("Zielwurf: Pech-Hilfe", () => {
     const xs = [-1.3, 0, 1.3];
     const full = 200;
     const length = (strength: number) => 18 + strength * (full - 18);
-    const close = pullShot(0, length(SWEET_STRENGTH - 0.06), full, angles, xs);
+    const close = swipeShot(0, -length(SWEET_STRENGTH - 0.06), full, angles, xs);
     expect(close?.binIndex).toBeNull();
-    const helped = pullShot(0, length(SWEET_STRENGTH - 0.06), full, angles, xs, { assist: 1 });
+    const helped = swipeShot(0, -length(SWEET_STRENGTH - 0.06), full, angles, xs, { assist: 1 });
     expect(helped?.binIndex).toBe(1);
-    const far = pullShot(0, length(SWEET_STRENGTH - 0.4), full, angles, xs, { assist: 1 });
+    const far = swipeShot(0, -length(SWEET_STRENGTH - 0.4), full, angles, xs, { assist: 1 });
     expect(far?.binIndex).toBeNull();
   });
 });
