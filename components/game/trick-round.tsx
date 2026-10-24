@@ -52,6 +52,7 @@ import { useLater } from "./round-hooks";
 import {
   beginThrow,
   createThrowInput,
+  FLICK_SPEED,
   previewShot,
   releaseShot,
   stepClick,
@@ -243,7 +244,7 @@ export function TrickRound({
   // Gesten-Handler (aktuell halten, ohne die Geste neu zu bauen)
   const handlers = useRef({
     begin: () => {},
-    aim: (_dx: number, _dy: number) => {},
+    aim: (_dx: number, _dy: number, _vy: number) => {},
     release: (_dx: number, _dy: number, _vy: number) => {},
     cancel: () => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
@@ -258,10 +259,10 @@ export function TrickRound({
   useLayoutEffect(() => {
     handlers.current = {
       begin: () => beginThrow(input.current, Date.now()),
-      aim: (dx, dy) => {
+      aim: (dx, dy, vy) => {
         if (busy.current || done.current) return;
         // Länger gehalten: so würde der Wurf jetzt fliegen (Weite klickt leise mit)
-        const shot = previewShot(input.current, Date.now(), dx, dy, throwCtx());
+        const shot = previewShot(input.current, Date.now(), dx, dy, vy, throwCtx());
         if (!input.current.aiming) return;
         setShotGuide(
           bus.current,
@@ -272,7 +273,13 @@ export function TrickRound({
       release: (dx, dy, vy) => {
         setShotGuide(bus.current, null);
         if (busy.current || done.current) return;
+        const aiming = input.current.aiming && -vy < FLICK_SPEED;
         const shot = releaseShot(input.current, dx, dy, vy, throwCtx());
+        if (shot && __DEV__)
+          // Zum Nachjustieren (landet im Metro-Log)
+          console.log(
+            `[wurf] trick ${aiming ? "halten" : "wisch"} länge=${Math.round(Math.hypot(dx, dy))}px tempo=${Math.round(-vy)} kraft=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)}`,
+          );
         if (shot) throwShot(shot);
         // Nach unten gewischt? Kurz erklären, wie es geht
         else if (dy > 60) float(`👆 ${t("game.swipeHint")}`, screenW / 2, layout.binTops[0].y);
@@ -290,7 +297,10 @@ export function TrickRound({
   }, []);
 
   const onBegin = useCallback(() => handlers.current.begin(), []);
-  const onAim = useCallback((dx: number, dy: number) => handlers.current.aim(dx, dy), []);
+  const onAim = useCallback(
+    (dx: number, dy: number, vy: number) => handlers.current.aim(dx, dy, vy),
+    [],
+  );
   const onRelease = useCallback(
     (dx: number, dy: number, vy: number) => handlers.current.release(dx, dy, vy),
     [],
@@ -305,7 +315,7 @@ export function TrickRound({
         .runOnJS(true)
         .minDistance(6)
         .onBegin(onBegin)
-        .onUpdate((e) => onAim(e.translationX, e.translationY))
+        .onUpdate((e) => onAim(e.translationX, e.translationY, e.velocityY))
         .onEnd((e) => onRelease(e.translationX, e.translationY, e.velocityY))
         .onFinalize(onCancel),
     [onBegin, onAim, onRelease, onCancel, finished],

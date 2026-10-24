@@ -2,12 +2,16 @@
 // Wurf-Eingabe für Zielwurf und Trickwürfe – ohne Umschalten:
 //  - schnell wischen → normaler Wurf (Tempo = Weite, das Tempo lernt mit)
 //  - länger halten → Flugbahn-Vorschau, Wischlänge = Weite (planbar)
+// Entscheidend ist das Tempo beim Loslassen: Wer schnell loswischt, wirft
+// normal – auch wenn der Finger vorher kurz lag oder die Vorschau schon kam.
 // Rein und ohne React; die Runden halten den Zustand in einem useRef.
 
 import { adaptiveIdeal, type FreeShot, flickShot, LEARN_WINDOW, swipeShot } from "@/game/logic";
 
 /** Ab so langer Berührung (ms) erscheint die Vorschau (ein Wisch ist schneller). */
 export const HOLD_MS = 240;
+/** Ab diesem Tempo nach oben (px/s) ist es ein Wisch, kein gezieltes Halten. */
+export const FLICK_SPEED = 700;
 
 export type ThrowInput = {
   /** Beginn der Berührung (ms). */
@@ -39,20 +43,23 @@ export function beginThrow(input: ThrowInput, now: number) {
   input.step = -1;
 }
 
-/** Während des Wischens: erst nach HOLD_MS gibt es eine Vorschau (sonst null). */
+/** Während des Wischens: erst nach HOLD_MS und bei ruhigem Finger gibt es
+ *  eine Vorschau (sonst null). `vy` = aktuelles Tempo (px/s). */
 export function previewShot(
   input: ThrowInput,
   now: number,
   dx: number,
   dy: number,
+  vy: number,
   ctx: ThrowContext,
 ): FreeShot | null {
-  if (!input.aiming && now - input.start < HOLD_MS) return null;
+  if (!input.aiming && (now - input.start < HOLD_MS || -vy > FLICK_SPEED)) return null;
   input.aiming = true;
   return swipeShot(dx, dy, ctx.full, ctx.binAngles, ctx.binXs, { assist: ctx.assist });
 }
 
-/** Loslassen: mit Vorschau genau wie gezeigt, sonst schneller Wurf nach Tempo. */
+/** Loslassen: ruhig mit Vorschau → genau wie gezeigt; schnell losgewischt →
+ *  normaler Wurf nach Tempo. */
 export function releaseShot(
   input: ThrowInput,
   dx: number,
@@ -60,7 +67,7 @@ export function releaseShot(
   vy: number,
   ctx: ThrowContext,
 ): FreeShot | null {
-  if (input.aiming)
+  if (input.aiming && -vy < FLICK_SPEED)
     return swipeShot(dx, dy, ctx.full, ctx.binAngles, ctx.binXs, { assist: ctx.assist });
   const shot = flickShot(dx, dy, vy, ctx.binAngles, ctx.binXs, {
     ideal: adaptiveIdeal(input.flicks),

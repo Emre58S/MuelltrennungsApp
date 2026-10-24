@@ -192,10 +192,16 @@ describe("Schneller Wurf (Tempo = Weite)", () => {
     expect(flickShot(0, -80, -IDEAL_FLICK * 1.4, angles, xs)?.depth).toBeLessThan(-0.5);
   });
 
-  test("das richtige Tempo lernt mit (Median, höchstens ±25 %)", () => {
-    expect(adaptiveIdeal([1500, 1500])).toBe(IDEAL_FLICK);
+  test("das richtige Tempo lernt mit (ab dem ersten Wurf, Median, begrenzt)", () => {
+    expect(adaptiveIdeal([])).toBe(IDEAL_FLICK);
+    expect(adaptiveIdeal([1100])).toBe(1100);
     expect(adaptiveIdeal([1700, 1800, 1750])).toBe(1750);
-    expect(adaptiveIdeal([900, 1000, 950])).toBe(IDEAL_FLICK * 0.75);
+    expect(adaptiveIdeal([300, 400, 350])).toBe(IDEAL_FLICK * 0.5);
+  });
+
+  test("normale Streuung (±10 % Tempo) bleibt in der Tonne", () => {
+    for (const k of [0.9, 1, 1.1])
+      expect(flickShot(0, -80, -IDEAL_FLICK * k, angles, xs)?.binIndex).toBe(1);
   });
 });
 

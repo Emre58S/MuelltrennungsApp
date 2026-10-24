@@ -108,6 +108,7 @@ import { nextScene } from "./stage";
 import {
   beginThrow,
   createThrowInput,
+  FLICK_SPEED,
   previewShot,
   releaseShot,
   stepClick,
@@ -636,7 +637,7 @@ export function GameRound({
   };
   const handlers = useRef({
     begin: () => {},
-    aim: (_dx: number, _dy: number) => {},
+    aim: (_dx: number, _dy: number, _vy: number) => {},
     release: (_dx: number, _dy: number, _vy: number) => {},
     cancel: () => {},
     tap: (_x: number, _y: number) => {},
@@ -653,12 +654,12 @@ export function GameRound({
   useLayoutEffect(() => {
     handlers.current = {
       begin: () => beginThrow(input.current, Date.now()),
-      aim: (dx, dy) => {
+      aim: (dx, dy, vy) => {
         if (lock.current.ended) return;
         if (mode === "aim") {
           // Länger gehalten: Flugbahn zeigen, Kraft mit leisem Vibrations-Klicken
           // (bewusst ohne Ton – der würde das Bild kurz anhalten)
-          const shot = previewShot(input.current, Date.now(), dx, dy, throwCtx());
+          const shot = previewShot(input.current, Date.now(), dx, dy, vy, throwCtx());
           if (!input.current.aiming) return;
           setShotGuide(
             bus.current,
@@ -680,7 +681,7 @@ export function GameRound({
         setShotGuide(bus.current, null);
         if (mode === "aim") {
           // Schnell gewischt: Tempo = Weite; mit Vorschau: genau wie gezeigt
-          const aiming = input.current.aiming;
+          const aiming = input.current.aiming && -vy < FLICK_SPEED;
           const shot = releaseShot(input.current, dx, dy, vy, throwCtx());
           if (!shot) {
             // Nach unten gewischt? Kurz erklären, wie es geht
@@ -727,7 +728,7 @@ export function GameRound({
   }, []);
   const onBegin = useCallback(() => handlers.current.begin(), []);
   const onAim = useCallback(
-    (dx: number, dy: number) => handlers.current.aim(dx, dy),
+    (dx: number, dy: number, vy: number) => handlers.current.aim(dx, dy, vy),
     [],
   );
   const onRelease = useCallback(
@@ -748,7 +749,7 @@ export function GameRound({
       .minDistance(6)
       .onBegin(onBegin)
       .onUpdate((e) => {
-        onAim(e.translationX, e.translationY);
+        onAim(e.translationX, e.translationY, e.velocityY);
       })
       .onEnd((e) => {
         onRelease(e.translationX, e.translationY, e.velocityY);

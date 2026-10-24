@@ -58,8 +58,12 @@ export function aimFromDrag(
 const MIN_PULL = 18;
 /** Wischlänge für volle Kraft als Anteil der Bildschirmhöhe (Halten-Modus). */
 export const FULL_SWIPE_SHARE = 0.24;
-/** Standard-Wischtempo nach oben (px/s), das genau in der Tonne landet. */
-export const IDEAL_FLICK = 2000;
+/** Standard-Wischtempo nach oben (px/s), das genau in der Tonne landet –
+ *  ein ganz normaler Wisch. Danach zählt das gelernte Tempo des Spielers. */
+export const IDEAL_FLICK = 1500;
+/** Wie stark das Tempo die Weite ändert: ±10 % Tempo ≈ ±0,045 Kraft – ein
+ *  normal gestreuter Wisch bleibt in der Tonne, deutlich schneller/langsamer nicht. */
+const FLICK_SLOPE = 0.45;
 /** So viele der letzten schnellen Würfe bestimmen das „richtige“ Tempo. */
 export const LEARN_WINDOW = 8;
 /** Kraft (0…1), bei der ein Wurf genau in den Tonnen landet. */
@@ -92,21 +96,21 @@ export function throwDepth(strength: number): number {
 /** Wisch-Tempo nach oben (px/s) → Kraft 0…1; beim gelernten Tempo genau
  *  SWEET_STRENGTH (in die Tonne). */
 export function flickStrength(vy: number, ideal = IDEAL_FLICK): number {
-  return Math.min(Math.max((-vy / ideal) * SWEET_STRENGTH, 0), 1);
+  return Math.min(Math.max(SWEET_STRENGTH + (-vy / ideal - 1) * FLICK_SLOPE, 0), 1);
 }
 
 /**
- * Das „richtige“ Tempo lernt vom Spieler: Median der letzten schnellen Würfe,
- * höchstens ±25 % vom Standard und erst ab 3 Würfen. So zählt gleichmäßiges
- * Werfen – nicht ein fremder Normwert, der auf jedem Handy anders wirkt.
+ * Das „richtige“ Tempo lernt vom Spieler: Median der letzten schnellen Würfe
+ * (schon ab dem ersten), zwischen halbem und 1,6-fachem Standard. So zählt
+ * gleichmäßiges Werfen – nicht ein fremder Normwert, der bei jedem anders ist.
  */
 export function adaptiveIdeal(history: number[]): number {
   const recent = history.slice(-LEARN_WINDOW).filter((v) => v > 0);
-  if (recent.length < 3) return IDEAL_FLICK;
+  if (recent.length === 0) return IDEAL_FLICK;
   const sorted = [...recent].sort((a, b) => a - b);
   const mid = sorted.length >> 1;
   const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-  return Math.min(Math.max(median, IDEAL_FLICK * 0.75), IDEAL_FLICK * 1.25);
+  return Math.min(Math.max(median, IDEAL_FLICK * 0.5), IDEAL_FLICK * 1.6);
 }
 
 /** Unsichtbare Hilfe nach Pech: 0 = keine … 1 = volle, ab 2 Fehlwürfen in Folge. */
