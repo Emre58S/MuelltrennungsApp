@@ -80,7 +80,7 @@ export type RingMotion =
   | { kind: "spin"; period: number; phase?: number };
 
 /** Reifen, durch den man werfen muss. Steht senkrecht (zeigt zur Kamera). */
-export type PropCollider = {
+export type RingCollider = {
   kind: "ring";
   id: number;
   x: number;
@@ -93,10 +93,37 @@ export type PropCollider = {
   motion?: RingMotion;
 };
 
+/** Windrad: Flügel drehen sich (zur Kamera gewandt) durch die Wurfbahn –
+ *  man wirft durch die Lücke. Nabe bei x/y/z. */
+export type WindmillCollider = {
+  kind: "windmill";
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  blades: number;
+  /** Flügel-Länge ab der Nabe. */
+  length: number;
+  /** Halbe Flügel-Breite (in der Drehebene). */
+  breadth: number;
+  /** Eine Umdrehung (s). */
+  period: number;
+};
+
+export type PropCollider = RingCollider | WindmillCollider;
+
+/** Halbe Dicke eines Windrad-Flügels (Richtung Kamera). */
+export const BLADE_THICK = 0.04;
+
 const TAU = Math.PI * 2;
 
+/** Drehwinkel des Windrads zur Zeit `time` (rad). */
+export function windmillAngle(w: WindmillCollider, time: number) {
+  return (time / w.period) * TAU;
+}
+
 /** Mitte und Blickrichtung (Normale) eines Reifens zur Zeit `time`. */
-export function ringPose(ring: PropCollider, time: number, center: THREE.Vector3, normal: THREE.Vector3) {
+export function ringPose(ring: RingCollider, time: number, center: THREE.Vector3, normal: THREE.Vector3) {
   center.set(ring.x, ring.y, ring.z);
   normal.set(0, 0, 1);
   const m = ring.motion;
@@ -136,7 +163,7 @@ export type BallEvent =
       type: "bounce";
       bin: number | null;
       speed: number;
-      part: BinPart | "ring" | "ground";
+      part: BinPart | "ring" | "blade" | "ground";
       /** Reifen (Trickwürfe), falls einer berührt wurde. */
       prop?: number;
     }
@@ -308,7 +335,7 @@ const ringNormal = new THREE.Vector3();
 const prevRel = new THREE.Vector3();
 
 /** Reifen: am Rohr abprallen; die Ebene innerhalb des Rings durchqueren = „pass“. */
-function collideRing(ball: Ball, ring: PropCollider, prev: THREE.Vector3, events: BallEvent[]) {
+function collideRing(ball: Ball, ring: RingCollider, prev: THREE.Vector3, events: BallEvent[]) {
   ringPose(ring, ball.time, ringCenter, ringNormal);
   rel.subVectors(ball.p, ringCenter);
   // Abstand zur Ebene und Lage in der Ebene
@@ -337,6 +364,39 @@ function collideRing(ball: Ball, ring: PropCollider, prev: THREE.Vector3, events
   events.push({ type: "bounce", bin: null, speed, part: "ring", prop: ring.id });
 }
 
+/** Windrad: an den drehenden Flügeln (flache Kästen) abprallen. */
+function collideWindmill(ball: Ball, w: WindmillCollider, events: BallEvent[]) {
+  const dz = ball.p.z - w.z;
+  if (Math.abs(dz) > BLADE_THICK + BALL_R) return;
+  const rx = ball.p.x - w.x;
+  const ry = ball.p.y - w.y;
+  if (Math.hypot(rx, ry) > w.length + w.breadth + BALL_R) return;
+  const base = windmillAngle(w, ball.time);
+  for (let k = 0; k < w.blades; k++) {
+    const a = base + (k * TAU) / w.blades;
+    const cos = Math.cos(a);
+    const sin = Math.sin(a);
+    // In Flügel-Koordinaten: entlang, quer, Tiefe
+    const along = rx * cos + ry * sin;
+    const across = -rx * sin + ry * cos;
+    const ca = THREE.MathUtils.clamp(along, 0, w.length);
+    const cc = THREE.MathUtils.clamp(across, -w.breadth, w.breadth);
+    const cz = THREE.MathUtils.clamp(dz, -BLADE_THICK, BLADE_THICK);
+    const la = along - ca;
+    const lc = across - cc;
+    const lz = dz - cz;
+    const d = Math.hypot(la, lc, lz);
+    if (d >= BALL_R) continue;
+    if (d < 1e-6) n.set(0, 0, Math.sign(dz) || 1);
+    else n.set((la * cos - lc * sin) / d, (la * sin + lc * cos) / d, lz / d);
+    const speed = bounce(ball, n, BALL_R - d, 0.4);
+    if (speed <= 0.4) return;
+    ball.touched = true;
+    events.push({ type: "bounce", bin: null, speed, part: "blade", prop: w.id });
+    return;
+  }
+}
+
 /** Ball einen Zeitschritt weiter (intern in kleinen Teilschritten). */
 export function stepBall(
   ball: Ball,
@@ -357,7 +417,11 @@ export function stepBall(
       collideBin(ball, bins[i], i, events);
       collideLid(ball, bins[i], i, events);
     }
-    for (let i = 0; i < props.length; i++) collideRing(ball, props[i], prevP, events);
+    for (let i = 0; i < props.length; i++) {
+      const prop = props[i];
+      if (prop.kind === "ring") collideRing(ball, prop, prevP, events);
+      else collideWindmill(ball, prop, events);
+    }
 
     // Boden: abprallen, dann rollen und ausrollen
     if (ball.p.y < BALL_R) {
@@ -481,7 +545,10 @@ export function firstTouch(
     traceEvents.length = 0;
     stepBall(ball, PHYSICS_STEP, bins, traceEvents, props);
     // Berührt – oder sauber in eine Öffnung gefallen: dort endet die Vorschau
-    if (traceEvents.some((e) => e.type !== "pass") || ball.inside !== null) return step * PHYSICS_STEP;
+    // (Schleife statt .some(): keine neue Funktion pro Schritt → kein Speicher-Müll)
+    if (ball.inside !== null) return step * PHYSICS_STEP;
+    for (let i = 0; i < traceEvents.length; i++)
+      if (traceEvents[i].type !== "pass") return step * PHYSICS_STEP;
   }
   return 3;
 }

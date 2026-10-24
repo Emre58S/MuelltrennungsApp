@@ -49,8 +49,9 @@ export function aimFromDrag(
 /* ── Zielwurf und Trickwürfe: werfen wie beim Basketball ───── */
 //
 // Zwei Arten, die man nicht umschalten muss:
-//  - schnell wischen: normaler Wurf, das TEMPO bestimmt die Weite (das
-//    „richtige“ Tempo lernt vom Spieler, siehe adaptiveIdeal)
+//  - schnell wischen: normaler Wurf, der SCHWUNG (Tempo und Länge des
+//    Wischs) bestimmt die Weite; der „richtige“ Schwung lernt vom Spieler
+//    (siehe adaptiveIdeal)
 //  - länger halten: Flugbahn-Vorschau erscheint, die WISCHLÄNGE bestimmt
 //    die Weite – genau planbar
 
@@ -58,12 +59,12 @@ export function aimFromDrag(
 const MIN_PULL = 18;
 /** Wischlänge für volle Kraft als Anteil der Bildschirmhöhe (Halten-Modus). */
 export const FULL_SWIPE_SHARE = 0.24;
-/** Standard-Wischtempo nach oben (px/s), das genau in der Tonne landet –
- *  ein ganz normaler Wisch. Danach zählt das gelernte Tempo des Spielers. */
+/** Normaler Wisch: so schnell (px/s) und so lang (px) – Schwung 1. */
 export const IDEAL_FLICK = 1500;
-/** Wie stark das Tempo die Weite ändert: ±10 % Tempo ≈ ±0,045 Kraft – ein
- *  normal gestreuter Wisch bleibt in der Tonne, deutlich schneller/langsamer nicht. */
-const FLICK_SLOPE = 0.45;
+const FLICK_LENGTH = 120;
+/** Wie stark der Schwung die Weite ändert (logarithmisch: sehr kräftige
+ *  Wische fliegen weiter, aber nicht maßlos – Tempo allein schwankt stark). */
+const FLICK_SLOPE = 0.4;
 /** So viele der letzten schnellen Würfe bestimmen das „richtige“ Tempo. */
 export const LEARN_WINDOW = 8;
 /** Kraft (0…1), bei der ein Wurf genau in den Tonnen landet. */
@@ -93,24 +94,36 @@ export function throwDepth(strength: number): number {
   return -LONG_RANGE * Math.pow((s - SWEET_STRENGTH) / (1 - SWEET_STRENGTH), FAR_CURVE);
 }
 
-/** Wisch-Tempo nach oben (px/s) → Kraft 0…1; beim gelernten Tempo genau
- *  SWEET_STRENGTH (in die Tonne). */
-export function flickStrength(vy: number, ideal = IDEAL_FLICK): number {
-  return Math.min(Math.max(SWEET_STRENGTH + (-vy / ideal - 1) * FLICK_SLOPE, 0), 1);
+/**
+ * Schwung eines Wischs (1 = normal): Tempo UND Länge zählen, je zur Hälfte
+ * (geometrisches Mittel). Tempo allein schwankt beim selben gefühlten Wurf
+ * um das Doppelte – zusammen mit der Länge ist es deutlich verlässlicher.
+ */
+export function flickPower(dx: number, dy: number, vy: number): number {
+  const speed = Math.max(-vy, 0) / IDEAL_FLICK;
+  const length = Math.max(Math.hypot(dx, dy), 1) / FLICK_LENGTH;
+  return Math.sqrt(speed * length);
+}
+
+/** Schwung → Kraft 0…1; beim gelernten Schwung genau SWEET_STRENGTH (in die Tonne). */
+export function flickStrength(power: number, ideal = 1): number {
+  if (power <= 0) return 0;
+  return Math.min(Math.max(SWEET_STRENGTH + Math.log(power / ideal) * FLICK_SLOPE, 0), 1);
 }
 
 /**
- * Das „richtige“ Tempo lernt vom Spieler: Median der letzten schnellen Würfe
- * (schon ab dem ersten), zwischen halbem und 1,6-fachem Standard. So zählt
- * gleichmäßiges Werfen – nicht ein fremder Normwert, der bei jedem anders ist.
+ * Der „richtige“ Schwung lernt vom Spieler: Median der letzten schnellen
+ * Würfe. Bis 5 Würfe zählt der Standard (1) mit – ein einzelner Ausreißer
+ * verstellt nichts, wer aber dreimal ähnlich wirft, wird erkannt.
+ * Begrenzt auf 0,6–1,6.
  */
 export function adaptiveIdeal(history: number[]): number {
   const recent = history.slice(-LEARN_WINDOW).filter((v) => v > 0);
-  if (recent.length === 0) return IDEAL_FLICK;
-  const sorted = [...recent].sort((a, b) => a - b);
+  const list = [...recent, ...Array<number>(Math.max(0, 5 - recent.length)).fill(1)];
+  const sorted = list.sort((x, y) => x - y);
   const mid = sorted.length >> 1;
   const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-  return Math.min(Math.max(median, IDEAL_FLICK * 0.5), IDEAL_FLICK * 1.6);
+  return Math.min(Math.max(median, 0.6), 1.6);
 }
 
 /** Unsichtbare Hilfe nach Pech: 0 = keine … 1 = volle, ab 2 Fehlwürfen in Folge. */
@@ -213,8 +226,8 @@ export function swipeShot(
 }
 
 /**
- * Schneller Wurf: das Wisch-Tempo nach oben (`vy`, px/s) bestimmt die Weite,
- * `ideal` = gelerntes Tempo (adaptiveIdeal). Die Richtung wie oben.
+ * Schneller Wurf: der Schwung (flickPower aus Tempo `vy` und Länge) bestimmt
+ * die Weite, `ideal` = gelernter Schwung (adaptiveIdeal). Richtung wie oben.
  */
 export function flickShot(
   dx: number,
@@ -226,7 +239,8 @@ export function flickShot(
 ): FreeShot | null {
   const angle = swipeAngle(dx, dy);
   if (angle === null) return null;
-  return shotFrom(angle, flickStrength(vy, opts.ideal), binAngles, binXs, opts.assist ?? 0);
+  const strength = flickStrength(flickPower(dx, dy, vy), opts.ideal);
+  return shotFrom(angle, strength, binAngles, binXs, opts.assist ?? 0);
 }
 
 /* ── Zielwurf: Trickwürfe und Endspurt ───────────────────── */

@@ -13,6 +13,7 @@ import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "rea
 import * as THREE from "three";
 
 import { lowpoly } from "./materials";
+import { Baked } from "./model-cache";
 
 export type SceneKind = "haus" | "ziegel" | "garten";
 const ORDER: SceneKind[] = ["haus", "ziegel", "garten"];
@@ -486,9 +487,12 @@ export const Stage = memo(function Stage({
         </>
       )}
 
-      {scene === "haus" && <HouseScene p={p} />}
-      {scene === "ziegel" && <BrickScene p={p} />}
-      {garden && <GardenScene p={p} />}
+      {/* Kulisse gebacken: wenige Zeichenaufrufe statt Dutzender */}
+      <Baked>
+        {scene === "haus" && <HouseScene p={p} />}
+        {scene === "ziegel" && <BrickScene p={p} />}
+        {garden && <GardenScene p={p} />}
+      </Baked>
 
       <Clouds color={p.cloud} calm={calm} />
       {weather === "rain" && !calm && <Rain />}

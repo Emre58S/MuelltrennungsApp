@@ -20,7 +20,7 @@ describe("Wurf-Eingabe", () => {
     const input = createThrowInput();
     beginThrow(input, 0);
     expect(previewShot(input, 80, 0, -60, -IDEAL_FLICK, ctx)).toBeNull();
-    expect(releaseShot(input, 0, -90, -IDEAL_FLICK, ctx)?.binIndex).toBe(1);
+    expect(releaseShot(input, 0, -120, -IDEAL_FLICK, ctx)?.binIndex).toBe(1);
   });
 
   test("Finger erst aufgelegt, dann schnell gewischt: trotzdem normaler Wurf", () => {
@@ -28,8 +28,8 @@ describe("Wurf-Eingabe", () => {
     beginThrow(input, 0);
     // Nach der Haltezeit, aber schon schnell unterwegs: keine Vorschau
     expect(previewShot(input, HOLD_MS + 200, 0, -40, -IDEAL_FLICK, ctx)).toBeNull();
-    // Kurzer, schneller Wisch landet nicht zu kurz
-    expect(releaseShot(input, 0, -70, -IDEAL_FLICK, ctx)?.binIndex).toBe(1);
+    // Schneller Wisch nach dem Auflegen landet nicht zu kurz
+    expect(releaseShot(input, 0, -110, -IDEAL_FLICK * 1.1, ctx)?.binIndex).toBe(1);
   });
 
   test("ruhig gehalten: Vorschau, Loslassen wirft nach Wischlänge", () => {

@@ -187,7 +187,8 @@ export function TrickRound({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
   };
 
-  const succeed = () => {
+  /** Geschafft; `clean` = ohne jede Berührung hinein (Swish). */
+  const succeed = (clean: boolean) => {
     done.current = true;
     const stars = starsFor(attemptsRef.current);
     saveTrickStars(level.id, stars).catch(() => undefined);
@@ -210,6 +211,8 @@ export function TrickRound({
     later(() => sfx("levelup"), 350);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     float("★".repeat(stars), top.x, top.y, "#FFD54A");
+    // Swish: ohne Berührung (Reifen durchfliegen zählt nicht als Berührung)
+    if (clean) later(() => float(t("trick.swish"), top.x, top.y + 40, "#FFFFFF"), 250);
     const attempts = attemptsRef.current;
     later(() => setResult({ stars, attempts }), 1000);
   };
@@ -219,7 +222,7 @@ export function TrickRound({
     const bin = outcome?.bin ?? null;
     const y = layout.binTops[0].y;
     if (bin === level.target && meetsRequirement(level, outcome?.props ?? [])) {
-      succeed();
+      succeed(!!outcome?.clean);
       return;
     }
     if (bin === level.target) {

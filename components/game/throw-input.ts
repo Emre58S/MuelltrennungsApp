@@ -1,12 +1,19 @@
 // Datei: components/game/throw-input.ts
 // Wurf-Eingabe für Zielwurf und Trickwürfe – ohne Umschalten:
-//  - schnell wischen → normaler Wurf (Tempo = Weite, das Tempo lernt mit)
+//  - schnell wischen → normaler Wurf (Schwung = Weite, lernt mit)
 //  - länger halten → Flugbahn-Vorschau, Wischlänge = Weite (planbar)
 // Entscheidend ist das Tempo beim Loslassen: Wer schnell loswischt, wirft
 // normal – auch wenn der Finger vorher kurz lag oder die Vorschau schon kam.
 // Rein und ohne React; die Runden halten den Zustand in einem useRef.
 
-import { adaptiveIdeal, type FreeShot, flickShot, LEARN_WINDOW, swipeShot } from "@/game/logic";
+import {
+  adaptiveIdeal,
+  type FreeShot,
+  flickPower,
+  flickShot,
+  LEARN_WINDOW,
+  swipeShot,
+} from "@/game/logic";
 
 /** Ab so langer Berührung (ms) erscheint die Vorschau (ein Wisch ist schneller). */
 export const HOLD_MS = 240;
@@ -20,7 +27,7 @@ export type ThrowInput = {
   aiming: boolean;
   /** Kraft-Stufe fürs leise Vibrations-Klicken in der Vorschau. */
   step: number;
-  /** Tempo der letzten schnellen Würfe (lernt das „richtige“ Tempo). */
+  /** Schwung der letzten schnellen Würfe (lernt den „richtigen“ Schwung). */
   flicks: number[];
 };
 
@@ -73,7 +80,7 @@ export function releaseShot(
     ideal: adaptiveIdeal(input.flicks),
     assist: ctx.assist,
   });
-  if (shot) input.flicks = [...input.flicks, -vy].slice(-LEARN_WINDOW);
+  if (shot) input.flicks = [...input.flicks, flickPower(dx, dy, vy)].slice(-LEARN_WINDOW);
   return shot;
 }
 

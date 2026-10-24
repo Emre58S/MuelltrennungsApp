@@ -230,7 +230,7 @@ export const GameScene = memo(function GameScene({
         props={trick?.colliders}
       />
 
-      {trick && <TrickProps rings={trick.colliders} bus={bus} />}
+      {trick && <TrickProps props={trick.colliders} bus={bus} />}
 
       {/* Zielwurf und Trickwürfe: Flugbahn beim Zielen (der Anfang davon) */}
       {(openLids || trick) && (

@@ -9,11 +9,12 @@
 // viele gleichzeitig fliegen (in Expo Go läuft jeder Aufruf über JS).
 // Kopien entstehen per clone() und teilen Geometrie und Material.
 // <ModelWarmup> baut die Vorlagen schon vor dem ersten Wurf auf (ein paar pro
-// Frame, winzig klein im Bild, damit Shader und GPU-Puffer gleich mit
+// frame, winzig klein im Bild, damit Shader und GPU-Puffer gleich mit
 // vorbereitet werden). Vorlagen bleiben über Runden erhalten.
+// <Baked> backt genauso eine statische Kulisse (Wände, Bäume, Fenster …).
 
 import { useFrame } from "@react-three/fiber/native";
-import { useMemo, useRef, useState } from "react";
+import { type ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
@@ -82,7 +83,8 @@ function mergeParts(parts: Part[], withColor: boolean): THREE.BufferGeometry {
   return geometry;
 }
 
-/** Modell → wenige Meshes (siehe oben). Ursprung bleibt der des Modells. */
+/** Modell → wenige Meshes (siehe oben). Ursprung bleibt der des Modells.
+ *  InstancedMeshes bleiben außen vor (sind schon ein Zeichenaufruf). */
 export function bake(model: THREE.Object3D): THREE.Object3D {
   model.updateWorldMatrix(true, true);
   const toLocal = model.matrixWorld.clone().invert();
@@ -91,7 +93,8 @@ export function bake(model: THREE.Object3D): THREE.Object3D {
 
   model.traverseVisible((o) => {
     const mesh = o as THREE.Mesh;
-    if (!mesh.isMesh || Array.isArray(mesh.material)) return;
+    if (!mesh.isMesh || Array.isArray(mesh.material) || (o as THREE.InstancedMesh).isInstancedMesh)
+      return;
     const part = { mesh, matrix: toLocal.clone().multiply(mesh.matrixWorld) };
     if (isPlain(mesh.material)) plain.push(part);
     else {
@@ -107,6 +110,47 @@ export function bake(model: THREE.Object3D): THREE.Object3D {
     baked.add(new THREE.Mesh(mergeParts(parts, false), material));
   });
   return baked;
+}
+
+/**
+ * Statische Kulisse backen: Die Kinder werden einmal aufgebaut, zu wenigen
+ * Meshes zusammengefasst und die Originale ausgeblendet. Aus ~30 Zeichen-
+ * aufrufen (plus Schattenpass) werden 2–3. Nur für Teile, die sich nie
+ * bewegen; InstancedMeshes bleiben, wie sie sind.
+ */
+export function Baked({ children }: { children: ReactNode }) {
+  const source = useRef<THREE.Group>(null);
+  const target = useRef<THREE.Group>(null);
+  useLayoutEffect(() => {
+    const src = source.current;
+    const dst = target.current;
+    if (!src || !dst) return;
+    const baked = bake(src);
+    baked.traverse((o) => {
+      o.castShadow = true;
+      o.receiveShadow = true;
+    });
+    dst.add(baked);
+    const hidden: THREE.Object3D[] = [];
+    src.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (mesh.isMesh && !(o as THREE.InstancedMesh).isInstancedMesh && mesh.visible) {
+        mesh.visible = false;
+        hidden.push(mesh);
+      }
+    });
+    return () => {
+      dst.remove(baked);
+      baked.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      hidden.forEach((o) => (o.visible = true));
+    };
+  }, []);
+  return (
+    <>
+      <group ref={source}>{children}</group>
+      <group ref={target} />
+    </>
+  );
 }
 
 function remember(name: string, model: THREE.Object3D): THREE.Object3D | null {

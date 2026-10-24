@@ -195,6 +195,7 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     () => openings.map((o) => ({ x: o.x, z: o.z - 0.05, lid: 0 })),
     [openings],
   );
+  const moving = useMemo(() => props.some((p) => p.kind === "windmill" || !!p.motion), [props]);
   // Letzte Berechnung: nur neu rechnen, wenn sich der Zug ändert
   const last = useRef({ x: NaN, z: NaN, time: 0 });
   // Immer obenauf (depthTest aus): die Bahn verschwindet nie hinter einer Tonne
@@ -234,7 +235,7 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     lobVelocity(vel, start, target);
     const l = last.current;
     // Neu rechnen, wenn sich der Wurf ändert – oder Reifen sich bewegen
-    if (guide.x !== l.x || guide.z !== l.z || props.some((p) => p.motion)) {
+    if (guide.x !== l.x || guide.z !== l.z || moving) {
       colliders.forEach((c, k) => {
         c.lid = bus.current.lids[k] ?? 0;
       });
@@ -619,6 +620,7 @@ export const ThrowLayer = memo(function ThrowLayer({
           if (e.part === "lid") sfx("lid", { volume: loud, rate: pitch });
           else if (e.part === "ground") sfx("land", { volume: loud * 0.6, rate: 1.25 });
           else if (e.part === "ring") sfx("rim", { volume: loud, rate: pitch * 1.25 });
+          else if (e.part === "blade") sfx("lid", { volume: loud, rate: pitch * 0.7 });
           else sfx("rim", { volume: loud, rate: e.part === "wall" ? pitch * 0.8 : pitch });
         }
         if (e.prop !== undefined && e.speed > 1.5)

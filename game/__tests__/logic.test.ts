@@ -12,6 +12,7 @@ import {
   aimBonus,
   missAssist,
   adaptiveIdeal,
+  flickPower,
   flickShot,
   flickStrength,
   IDEAL_FLICK,
@@ -185,23 +186,29 @@ describe("Schneller Wurf (Tempo = Weite)", () => {
   const angles = [-30, 0, 30];
   const xs = [-1.3, 0, 1.3];
 
-  test("gelerntes Tempo landet genau in der Tonne, langsamer kürzer, schneller weiter", () => {
-    expect(flickStrength(-IDEAL_FLICK)).toBeCloseTo(SWEET_STRENGTH);
-    expect(flickShot(0, -80, -IDEAL_FLICK, angles, xs)?.binIndex).toBe(1);
-    expect(flickShot(0, -80, -IDEAL_FLICK * 0.5, angles, xs)?.depth).toBeGreaterThan(0.5);
-    expect(flickShot(0, -80, -IDEAL_FLICK * 1.4, angles, xs)?.depth).toBeLessThan(-0.5);
+  test("normaler Schwung landet in der Tonne, schwächer kürzer, kräftiger weiter", () => {
+    expect(flickPower(0, -120, -IDEAL_FLICK)).toBeCloseTo(1);
+    expect(flickStrength(1)).toBeCloseTo(SWEET_STRENGTH);
+    expect(flickShot(0, -120, -IDEAL_FLICK, angles, xs)?.binIndex).toBe(1);
+    expect(flickShot(0, -60, -IDEAL_FLICK * 0.5, angles, xs)?.depth).toBeGreaterThan(0.5);
+    expect(flickShot(0, -200, -IDEAL_FLICK * 2, angles, xs)?.depth).toBeLessThan(-0.5);
   });
 
-  test("das richtige Tempo lernt mit (ab dem ersten Wurf, Median, begrenzt)", () => {
-    expect(adaptiveIdeal([])).toBe(IDEAL_FLICK);
-    expect(adaptiveIdeal([1100])).toBe(1100);
-    expect(adaptiveIdeal([1700, 1800, 1750])).toBe(1750);
-    expect(adaptiveIdeal([300, 400, 350])).toBe(IDEAL_FLICK * 0.5);
+  test("Tempo allein verstellt die Weite weniger (Länge zählt mit)", () => {
+    // Doppeltes Tempo bei gleicher Länge: nur Faktor √2 Schwung
+    expect(flickPower(0, -120, -IDEAL_FLICK * 2)).toBeCloseTo(Math.SQRT2);
   });
 
-  test("normale Streuung (±10 % Tempo) bleibt in der Tonne", () => {
+  test("der richtige Schwung lernt mit – Ausreißer verstellen nichts", () => {
+    expect(adaptiveIdeal([])).toBe(1);
+    expect(adaptiveIdeal([1.5])).toBe(1);
+    expect(adaptiveIdeal([0.8, 0.8, 0.8])).toBe(0.8);
+    expect(adaptiveIdeal([0.2, 0.3, 0.3, 0.2, 0.3])).toBe(0.6);
+  });
+
+  test("normale Streuung (±10 % Schwung) bleibt in der Tonne", () => {
     for (const k of [0.9, 1, 1.1])
-      expect(flickShot(0, -80, -IDEAL_FLICK * k, angles, xs)?.binIndex).toBe(1);
+      expect(flickShot(0, -120 * k, -IDEAL_FLICK * k, angles, xs)?.binIndex).toBe(1);
   });
 });
 
