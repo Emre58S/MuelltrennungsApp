@@ -1,5 +1,5 @@
 // Datei: components/game/trick-round.tsx — ein Trickwurf-Level
-// (Route: app/(tabs)/runde.tsx mit mode=trick)
+// (Route: app/runde.tsx mit mode=trick)
 //
 // Werfen wie im Zielwurf (schnell wischen = Tempo, halten = Flugbahn),
 // dazu Reifen aus game/trick-levels.ts. Ein Wurf zur

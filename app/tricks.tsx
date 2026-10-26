@@ -44,7 +44,7 @@ export default function TricksScreen() {
 
   function open(id: number) {
     sfx("tap");
-    router.push({ pathname: "/(tabs)/runde", params: { mode: "trick", level: String(id) } });
+    router.push({ pathname: "/runde", params: { mode: "trick", level: String(id) } });
   }
 
   return (

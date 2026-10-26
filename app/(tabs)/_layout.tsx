@@ -1,7 +1,9 @@
 // Datei: app/(tabs)/_layout.tsx — Design v3
 //
-// Nur noch ein Ziel (Home = Spielen-Hub). Tab-Leiste ist ausgeblendet,
-// die Spielrunde („runde“) ist ein versteckter Tab.
+// Nur noch ein Ziel (Home = Spielen-Hub), Tab-Leiste ausgeblendet. Die
+// Spielrunde („runde“) ist eine eigene Seite im Haupt-Stack (app/runde.tsx):
+// Seit SDK 58 lässt sich ein versteckter Tab (href: null) nicht mehr per
+// router.push öffnen – das Menü lud dann nur neu.
 
 import { Tabs } from "expo-router";
 
@@ -19,7 +21,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="runde" options={{ href: null }} />
     </Tabs>
   );
 }

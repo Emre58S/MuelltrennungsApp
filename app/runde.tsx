@@ -1,4 +1,4 @@
-// Datei: app/(tabs)/runde.tsx — Spielrunde (Route)
+// Datei: app/runde.tsx — Spielrunde (Route)
 //
 // Liest Modus/Tagesaufgabe aus den Parametern, lädt die XP und baut pro
 // Runde eine frische GameRound auf (siehe components/game/game-round.tsx).
@@ -15,7 +15,7 @@ import {
   StorageKeys,
 } from "@/utils/storage";
 import { setAudioModeAsync } from "expo-audio";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { perfMark } from "@/utils/perf-marks";
 import { Profiler, useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
@@ -83,6 +83,8 @@ export default function GameScreen() {
     <GestureHandlerRootView
       style={[styles.root, { backgroundColor: colors.bg }]}
     >
+      {/* Wischen im Spiel darf nicht als „Zurück“-Geste vom Rand zählen */}
+      <Stack.Screen options={{ gestureEnabled: false }} />
       {isTrick && (
         <Profiler id="runde" onRender={onRender}>
           <TrickRound

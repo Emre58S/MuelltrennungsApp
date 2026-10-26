@@ -1,5 +1,5 @@
 // Datei: components/game/game-round.tsx — eine Spielrunde
-// (Route: app/(tabs)/runde.tsx)
+// (Route: app/runde.tsx)
 //
 // Mehrere Würfe gleichzeitig, auch sehr schnell hintereinander. Würfe,
 // Konfetti und Tonnen-Reaktionen gehen über den SceneBus direkt an die
