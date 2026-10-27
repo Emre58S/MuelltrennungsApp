@@ -49,6 +49,7 @@ export const en: Translations = {
   "tricks.subtitle": "Throw through the hoop into the right bin.",
   "tricks.level": "Level {n}",
   "tricks.locked": "Locked",
+  "tricks.lockedHint": "Beat level {n} first",
   "tricks.progress": "{stars} of {total} stars",
   "trick.attempt": "Try {n}",
   "trick.noTrick": "Through the hoop first!",

@@ -48,6 +48,7 @@ export const de = {
   "tricks.subtitle": "Wirf durch den Reifen in die richtige Tonne.",
   "tricks.level": "Level {n}",
   "tricks.locked": "Noch gesperrt",
+  "tricks.lockedHint": "Schaffe zuerst Level {n}",
   "tricks.progress": "{stars} von {total} Sternen",
   "trick.attempt": "Versuch {n}",
   "trick.noTrick": "Erst durch den Reifen!",

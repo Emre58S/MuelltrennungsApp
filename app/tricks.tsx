@@ -4,9 +4,10 @@
 // sobald das vorige geschafft ist.
 
 import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
@@ -32,6 +33,24 @@ export default function TricksScreen() {
   const { t } = useI18n();
   const [stars, setStars] = useState<TrickStars>({});
   const [daily, setDaily] = useState(0);
+  /** Hinweis nach Tipp auf ein gesperrtes Level (welches zuerst schaffen). */
+  const [lockHint, setLockHint] = useState<number | null>(null);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (hintTimer.current) clearTimeout(hintTimer.current);
+    },
+    [],
+  );
+
+  function showLocked(previous: number) {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+    setLockHint(previous);
+    // VoiceOver (iPhone) liest die Pille sonst nicht vor
+    AccessibilityInfo.announceForAccessibility(t("tricks.lockedHint", { n: previous }));
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setLockHint(null), 2600);
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -143,8 +162,9 @@ export default function TricksScreen() {
                               ? `${t("tricks.level", { n: level.id })}, ${got} / 3 ★`
                               : `${t("tricks.level", { n: level.id })}, ${t("tricks.locked")}`
                           }
-                          disabled={!unlocked}
-                          onPress={() => open(level.id)}
+                          onPress={() =>
+                            unlocked ? open(level.id) : showLocked(TRICK_LEVELS[index - 1].id)
+                          }
                           style={({ pressed }) => [
                             styles.tile,
                             {
@@ -188,11 +208,37 @@ export default function TricksScreen() {
           </View>
         ))}
       </ScrollView>
+
+      {/* Gesperrt angetippt: kurz erklären, statt nichts zu tun */}
+      {lockHint !== null && (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.lockHint,
+            { bottom: insets.bottom + Spacing.lg, backgroundColor: colors.text },
+          ]}
+        >
+          <Feather name="lock" size={16} color={colors.bg} />
+          <AppText variant="label" color={colors.bg}>
+            {t("tricks.lockedHint", { n: lockHint })}
+          </AppText>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  lockHint: {
+    position: "absolute",
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+    borderRadius: Radius.pill,
+  },
   screen: { flex: 1 },
   content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.md },
   flex: { flex: 1 },
