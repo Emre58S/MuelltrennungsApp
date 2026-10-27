@@ -9,9 +9,9 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Hauptmenü aufräumen und besser sortieren**: klare Reihenfolge (Spielen
-  zuerst, dann Trickwürfe/Tagesaufgabe, dann Rangliste/Belohnungen/Sammelbuch),
-  weniger Gedränge, ruhigere Hierarchie.
+- [ ] **Hauptmenü, Teil 2**: Fußzeile (Anleitung, Sammelbuch, Rangliste,
+  Belohnungen, Einstellungen) ruhiger gruppieren; Tagesaufgabe-Punkte bei
+  erledigt sichtbar zeigen („10/10 · 840“).
 - [ ] **Sanfte Übergänge**: Unterseiten gleiten weich herein; alle Knöpfe
   reagieren einheitlich beim Drücken (kurz kleiner, leichtes Vibrieren).
 - [ ] **Logo-Schriftzug im Menü**: gestalteter Titel „Müll Sortieren“, leicht
@@ -24,3 +24,6 @@ zu ändern.
   Wurfbogen, in den Spielfarben (statt Expo-Platzhalter).
 
 ## Erledigt
+
+- [x] Hauptmenü Teil 1: Weiter zuerst, Tagesaufgabe/Trickwürfe/Zielwurf als
+  Kachelreihe (ba07a0a)
