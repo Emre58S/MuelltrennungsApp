@@ -47,7 +47,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -241,6 +241,9 @@ export function TrickRound({
 
   const float = useCallback((text: string, x: number, y: number, color = "#FFFFFF") => {
     setFloats((f) => [...f.slice(-4), { id: ++ids.current, x, y, text, color }]);
+    // VoiceOver: schwebende Rückmeldungen auch vorlesen (ohne Zierzeichen)
+    const spoken = text.replace(/[★☆✨✓👆]/gu, "").trim();
+    if (spoken) AccessibilityInfo.announceForAccessibility(spoken);
   }, []);
 
   /** Welt-x → Bildschirm-x (zwischen den Tonnen linear). */
