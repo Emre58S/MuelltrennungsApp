@@ -14,7 +14,7 @@ import {
   pickItem,
   recentLimit,
 } from "@/game/logic";
-import { itemMass, MASS_FEEL } from "@/game/item-mass";
+import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
 import {
   bonusMet,
   hasWind,
@@ -28,7 +28,7 @@ import { type Item } from "@/constants/items";
 import { Spacing } from "@/constants/theme";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { preloadSfx, refreshSfxSetting, sfx } from "@/utils/sfx";
+import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
 import { dailyBoard, submitScore, trickScore } from "@/utils/leaderboard";
 import {
@@ -313,7 +313,7 @@ export function TrickRound({
     shake(fx.current, 0.035);
     sfx("perfect");
     sfx("swish");
-    later(() => sfx("levelup"), 350);
+    if (thrownRef.current) sfxMaterial(itemMaterial(thrownRef.current));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     float("★".repeat(stars), top.x, top.y, "#FFD54A");
     // Swish: ohne Berührung (Reifen durchfliegen zählt nicht als Berührung)
@@ -356,7 +356,7 @@ export function TrickRound({
     if (bin === right) {
       float(`✓ ${t("trick.sorted")}`, screenX(binXs[bin]), y, "#8BE59A");
       queueBinEvent(bus.current, bin, "hit");
-      sfx("land");
+      sfxMaterial(itemMaterial(thrown));
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     } else if (bin !== null) {
       // Falsch sortiert: kostet einen Versuch, die richtige Tonne hüpft

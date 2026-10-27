@@ -16,6 +16,7 @@ import { type ScreenRect } from "@/game/layout";
 import { type Mass } from "@/game/item-mass";
 import { type TrickBonus } from "@/game/trick-levels";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { sfx } from "@/utils/sfx";
 
 /* ── Hilfen ────────────────────────────────────────────────── */
 
@@ -481,8 +482,14 @@ export function TrickHud({
 }
 
 /** Ein Stern, der nacheinander „aufploppt“. */
-function Star({ filled, delay }: { filled: boolean; delay: number }) {
+function Star({ filled, delay, n }: { filled: boolean; delay: number; n: 1 | 2 | 3 }) {
   const pop = useEnter(380, Easing.out(Easing.back(2.4)), delay);
+  // Jeder verdiente Stern „ploppt“ mit eigenem, höherem Ton
+  useEffect(() => {
+    if (!filled) return;
+    const timer = setTimeout(() => sfx(`star${n}`), delay);
+    return () => clearTimeout(timer);
+  }, [filled, delay, n]);
   return (
     <Animated.View style={{ transform: [{ scale: pop }], opacity: pop }}>
       <AppText style={[styles.star, { opacity: filled ? 1 : 0.25 }]}>{filled ? "★" : "☆"}</AppText>
@@ -531,6 +538,12 @@ export function TrickResult({
   const { t } = useI18n();
   const { colors } = useAppTheme();
   const enter = useEnter(300, Easing.out(Easing.quad));
+  // Neue Wurfspur: kleine Fanfare, nachdem die Sterne aufgeploppt sind
+  useEffect(() => {
+    if (!unlocked) return;
+    const timer = setTimeout(() => sfx("unlock"), 1100);
+    return () => clearTimeout(timer);
+  }, [unlocked]);
   return (
     <Animated.View style={[StyleSheet.absoluteFill, styles.resultWrap, { backgroundColor: colors.overlay, opacity: enter }]}>
       <View style={[styles.resultCard, { backgroundColor: colors.surface }]}>
@@ -539,7 +552,7 @@ export function TrickResult({
         </AppText>
         <View style={styles.stars} accessible accessibilityLabel={`${stars} / 3`}>
           {[1, 2, 3].map((n) => (
-            <Star key={n} filled={n <= stars} delay={250 + n * 180} />
+            <Star key={n} n={n as 1 | 2 | 3} filled={n <= stars} delay={250 + n * 180} />
           ))}
         </View>
         <AppText tone="textSecondary" center>

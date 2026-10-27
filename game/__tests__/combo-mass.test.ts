@@ -5,7 +5,7 @@ import { describe, expect, test } from "@jest/globals";
 
 import { ITEMS } from "@/constants/items";
 
-import { itemMass, MASS_FEEL } from "../item-mass";
+import { itemMass, itemMaterial, MASS_FEEL } from "../item-mass";
 import { comboProgress } from "../logic";
 
 describe("Combo", () => {
@@ -20,6 +20,23 @@ describe("Combo", () => {
   test("ganz oben: Balken zählt bis zum nächsten Fieber", () => {
     expect(comboProgress(10)).toMatchObject({ multiplier: 3, next: null, progress: 0 });
     expect(comboProgress(15).progress).toBeCloseTo(0.5);
+  });
+});
+
+describe("Material (Landeklang)", () => {
+  test("Glas klirrt, Dosen scheppern, Papier raschelt, Plastik knistert", () => {
+    expect(itemMaterial({ name: "Weinflasche", category: "Glas" })).toBe("glas");
+    expect(itemMaterial({ name: "Kaputtes Geschirr", category: "Restmüll" })).toBe("glas");
+    expect(itemMaterial({ name: "Konservendose", category: "Gelber Sack" })).toBe("metall");
+    expect(itemMaterial({ name: "Zeitung", category: "Papier" })).toBe("papier");
+    expect(itemMaterial({ name: "Joghurtbecher", category: "Gelber Sack" })).toBe("plastik");
+    expect(itemMaterial({ name: "Bananenschale", category: "Biomüll" })).toBe("bio");
+    expect(itemMaterial({ name: "Windel", category: "Restmüll" })).toBe("rest");
+  });
+
+  test("jeder Gegenstand hat ein Material, keines fehlt ganz", () => {
+    const used = new Set(ITEMS.map(itemMaterial));
+    for (const m of ["glas", "papier", "plastik", "metall", "bio", "rest"]) expect(used.has(m as never)).toBe(true);
   });
 });
 

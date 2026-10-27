@@ -24,6 +24,7 @@
 import { type AudioPlayer, createAudioPlayer } from "expo-audio";
 
 import { perfMark } from "@/utils/perf-marks";
+import { type Material } from "@/game/item-mass";
 import { getBoolean, StorageKeys } from "@/utils/storage";
 
 const SOURCES = {
@@ -49,8 +50,17 @@ const SOURCES = {
   rim: require("../assets/sounds/sfx/rim.wav"),
   lid: require("../assets/sounds/sfx/lid.wav"),
   plop: require("../assets/sounds/sfx/plop.wav"),
-  boing: require("../assets/sounds/sfx/boing.wav"),
-  car: require("../assets/sounds/sfx/car.wav"),
+  matGlass: require("../assets/sounds/sfx/matGlass.wav"),
+  matPaper: require("../assets/sounds/sfx/matPaper.wav"),
+  matPlastic: require("../assets/sounds/sfx/matPlastic.wav"),
+  matMetal: require("../assets/sounds/sfx/matMetal.wav"),
+  matBio: require("../assets/sounds/sfx/matBio.wav"),
+  matRest: require("../assets/sounds/sfx/matRest.wav"),
+  star1: require("../assets/sounds/sfx/star1.wav"),
+  star2: require("../assets/sounds/sfx/star2.wav"),
+  star3: require("../assets/sounds/sfx/star3.wav"),
+  comboUp: require("../assets/sounds/sfx/comboUp.wav"),
+  unlock: require("../assets/sounds/sfx/unlock.wav"),
 } as const;
 
 export type SfxName = keyof typeof SOURCES;
@@ -79,8 +89,17 @@ const MIX: Record<SfxName, { volume: number; vary: number }> = {
   rim: { volume: 0.5, vary: 0.05 },
   lid: { volume: 0.5, vary: 0.05 },
   plop: { volume: 0.4, vary: 0.05 },
-  boing: { volume: 0.5, vary: 0.04 },
-  car: { volume: 0.55, vary: 0.05 },
+  matGlass: { volume: 0.42, vary: 0.06 },
+  matPaper: { volume: 0.45, vary: 0.08 },
+  matPlastic: { volume: 0.42, vary: 0.07 },
+  matMetal: { volume: 0.4, vary: 0.06 },
+  matBio: { volume: 0.5, vary: 0.06 },
+  matRest: { volume: 0.48, vary: 0.06 },
+  star1: { volume: 0.5, vary: 0 },
+  star2: { volume: 0.5, vary: 0 },
+  star3: { volume: 0.5, vary: 0 },
+  comboUp: { volume: 0.5, vary: 0 },
+  unlock: { volume: 0.55, vary: 0 },
 };
 
 /** Mehrere Player pro Ton, reihum: bei schnellen Würfen überlappen Töne,
@@ -100,6 +119,12 @@ const POOL_SIZE: Partial<Record<SfxName, number>> = {
   note8: 2,
   rim: 3,
   lid: 2,
+  matGlass: 2,
+  matPaper: 2,
+  matPlastic: 2,
+  matMetal: 2,
+  matBio: 2,
+  matRest: 2,
 };
 /** Ein Player mit zuletzt gesetzter Lautstärke/Tonhöhe: jeder Aufruf ans
  *  Handy-System kostet Zeit auf dem Thread, auf dem auch die 3D-Szene läuft. */
@@ -169,6 +194,20 @@ export function sfx(name: SfxName, opts: { rate?: number; volume?: number } = {}
 }
 
 /** Treffer-Melodie: jede Stufe der Serie eine Note höher (bis Note 8). */
+/** Landeklang je Material des Gegenstands (Glas klirrt, Papier raschelt …). */
+export function sfxMaterial(material: Material, opts: { rate?: number; volume?: number } = {}) {
+  sfx(MATERIAL_SOUND[material], opts);
+}
+
+const MATERIAL_SOUND: Record<Material, SfxName> = {
+  glas: "matGlass",
+  papier: "matPaper",
+  plastik: "matPlastic",
+  metall: "matMetal",
+  bio: "matBio",
+  rest: "matRest",
+};
+
 export function sfxStreak(streak: number) {
   const step = Math.max(1, Math.min(8, streak)) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   sfx(`note${step}`);

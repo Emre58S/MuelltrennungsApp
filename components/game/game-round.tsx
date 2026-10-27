@@ -74,7 +74,7 @@ import {
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { devLog } from "@/utils/dev-error-reporter";
 import { perfTime } from "@/utils/perf-marks";
-import { preloadSfx, refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
+import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxStreak } from "@/utils/sfx";
 import {
   EMPTY_ITEM_STAT,
   getHighscoreKey,
@@ -113,7 +113,7 @@ import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
 import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
-import { itemMass, MASS_FEEL } from "@/game/item-mass";
+import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
 import {
   beginThrow,
   createThrowInput,
@@ -160,6 +160,9 @@ function drawItem(
   return item;
 }
 type Learn = { id: number; item: Item; bin: Mistake["bin"] };
+
+/** Tonhöhe des Combo-Klangs je Multiplikator (steigt mit jeder Stufe). */
+const COMBO_PITCH: Record<number, number> = { 1.5: 1, 2: 1.12, 3: 1.26 };
 
 export function GameRound({
   mode,
@@ -545,7 +548,8 @@ export function GameRound({
     );
     if (ts.hit) {
       const streakNow = after.streak;
-      sfx("land");
+      // Landeklang je Material: Glas klirrt, Papier raschelt, Dose scheppert …
+      sfxMaterial(itemMaterial(ts.item));
       if (ts.perfect) sfx("perfect");
       else sfxStreak(streakNow);
       if (ts.perfect && thrown.free) {
@@ -621,7 +625,8 @@ export function GameRound({
       const comboUp = getMultiplier(streakNow) > getMultiplier(before.streak);
       if (comboUp) {
         showTip("combo");
-        sfx("levelup");
+        // Jede Stufe klingt höher (×1,5 → ×2 → ×3)
+        sfx("comboUp", { rate: COMBO_PITCH[getMultiplier(streakNow)] ?? 1 });
         later(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
         }, 120);
@@ -688,7 +693,10 @@ export function GameRound({
       const trails = newlyUnlocked(before, after);
       rewardProgress.current = after;
       if (trails.length)
-        later(() => showBanner(`🎁 ${t("reward.new", { name: t(trails[0].name) })}`, 3000), 3400);
+        later(() => {
+          sfx("unlock");
+          showBanner(`🎁 ${t("reward.new", { name: t(trails[0].name) })}`, 3000);
+        }, 3400);
       levelNow.current = newLevel;
       sfx("levelup");
       showBanner(`⬆ ${t("game.levelUp", { level: newLevel })}`);

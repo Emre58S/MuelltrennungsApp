@@ -2,7 +2,8 @@
 // Gewicht der Gegenstände: Schwere (Glas, Dosen, Geschirr …) fliegen flacher
 // und lassen sich vom Wind kaum schieben, leichte (Papier, Folie, Tüten …)
 // fliegen höher und treibt der Wind weit ab. Das Gewicht steht auf der
-// Gegenstand-Karte, damit man den Wurf planen kann.
+// Gegenstand-Karte, damit man den Wurf planen kann. Dazu das Material für
+// den Landeklang (Glas klirrt, Papier raschelt, Dose scheppert …).
 
 import { type Item } from "@/constants/items";
 
@@ -50,6 +51,42 @@ const LIGHT = new Set([
   "Wattestäbchen",
   "Pflaster",
 ]);
+
+/** Woraus ein Gegenstand ist – bestimmt seinen Landeklang (utils/sfx). */
+export type Material = "glas" | "papier" | "plastik" | "metall" | "bio" | "rest";
+
+const METAL = new Set([
+  "Konservendose",
+  "Alufolie",
+  "Einweg-Aluschale",
+  "Deckel (Metall)",
+  "Batterie",
+  "Altes Smartphone",
+  "Alter Laptop",
+  "Ladekabel",
+  "Fieberthermometer (Quecksilber)",
+]);
+/** Zerbrechliches, das klirrt wie Glas. */
+const BRITTLE = new Set(["Kaputtes Geschirr", "Zerbrochener Spiegel", "Kaputte Glühbirne", "Energiesparlampe"]);
+/** Papierartiges außerhalb der Papier-Tonne. */
+const PAPERY = new Set([
+  "Kassenzettel",
+  "Geschenkpapier (mit Folie)",
+  "Tapeten",
+  "Pizzakarton (fettig)",
+  "Küchenrolle (unbeschichtet)",
+  "Getränkekarton",
+  "Milchkarton",
+]);
+
+export function itemMaterial(item: Pick<Item, "name" | "category">): Material {
+  if (item.category === "Glas" || BRITTLE.has(item.name)) return "glas";
+  if (METAL.has(item.name)) return "metall";
+  if (item.category === "Papier" || PAPERY.has(item.name)) return "papier";
+  if (item.category === "Gelber Sack") return "plastik";
+  if (item.category === "Biomüll") return "bio";
+  return "rest";
+}
 
 /** Gewicht eines Gegenstands: Glas ist immer schwer, sonst laut Liste. */
 export function itemMass(item: Pick<Item, "name" | "category">): Mass {

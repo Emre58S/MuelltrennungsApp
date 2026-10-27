@@ -30,9 +30,10 @@ import {
   TRACE_POINTS,
   traceShot,
 } from "@/game/physics";
+import { itemMaterial } from "@/game/item-mass";
 import { type TrailId } from "@/game/rewards";
 import { perfMark } from "@/utils/perf-marks";
-import { sfx } from "@/utils/sfx";
+import { sfx, sfxMaterial } from "@/utils/sfx";
 
 import {
   easeOutBack,
@@ -700,7 +701,7 @@ export const ThrowLayer = memo(function ThrowLayer({
           const loud = Math.min(e.speed / 6, 0.9);
           const pitch = 0.85 + Math.min(e.speed / 12, 0.35);
           if (e.part === "lid") sfx("lid", { volume: loud, rate: pitch });
-          else if (e.part === "ground") sfx("land", { volume: loud * 0.6, rate: 1.25 });
+          else if (e.part === "ground") sfxMaterial(itemMaterial(spec.item), { volume: loud * 0.6 });
           else if (e.part === "ring") sfx("rim", { volume: loud, rate: pitch * 1.25 });
           else if (e.part === "blade") sfx("lid", { volume: loud, rate: pitch * 0.7 });
           else sfx("rim", { volume: loud, rate: e.part === "wall" ? pitch * 0.8 : pitch });
