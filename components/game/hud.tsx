@@ -34,6 +34,15 @@ const MATERIAL_TINT: Record<Material, string> = {
   bio: "#DDF0D2",
   rest: "#E6E3DF",
 };
+/** Dunkelmodus: gedämpfte Töne, damit die Blase nicht grell leuchtet. */
+const MATERIAL_TINT_DARK: Record<Material, string> = {
+  glas: "#1F4C5C",
+  papier: "#4D3A2E",
+  plastik: "#5A4B12",
+  metall: "#37424D",
+  bio: "#2C4D24",
+  rest: "#403D39",
+};
 
 function useEnter(duration = 320, easing = Easing.out(Easing.back(1.8)), delay = 0) {
   const { reduceMotion } = useAppSettings();
@@ -284,6 +293,7 @@ export function ItemCard({
   mass?: Mass;
 }) {
   const { t, itemName } = useI18n();
+  const { scheme } = useAppTheme();
   const material = itemMaterial(item);
   const enter = useEnter(260, Easing.out(Easing.quad));
   const { reduceMotion } = useAppSettings();
@@ -317,7 +327,7 @@ export function ItemCard({
     >
       <HudSurface style={styles.itemTag}>
         {/* Symbol des Gegenstands in einer Blase in Materialfarbe */}
-        <View style={[styles.itemBubble, { backgroundColor: MATERIAL_TINT[material] }]}>
+        <View style={[styles.itemBubble, { backgroundColor: (scheme === "dark" ? MATERIAL_TINT_DARK : MATERIAL_TINT)[material] }]}>
           <AppText style={styles.itemEmoji}>{item.emoji}</AppText>
         </View>
         <View style={styles.itemText}>
