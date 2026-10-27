@@ -199,6 +199,7 @@ export const en: Translations = {
   "game.noMistakes": "No mistakes",
   "game.throwTo": "Throw into {bin}",
   "game.end.great": "Great job!",
+  "game.end.good": "Good effort!",
   "game.end.timeUp": "Time's up!",
   "game.end.over": "Round over",
   "game.end.sorted": "{n} sorted correctly",

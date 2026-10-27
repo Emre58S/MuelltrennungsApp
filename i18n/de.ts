@@ -198,6 +198,7 @@ export const de = {
   "game.noMistakes": "Ohne Fehler",
   "game.throwTo": "In {bin} werfen",
   "game.end.great": "Super gemacht!",
+  "game.end.good": "Gut gemacht!",
   "game.end.timeUp": "Zeit ist um!",
   "game.end.over": "Runde vorbei",
   "game.end.sorted": "{n} richtig sortiert",

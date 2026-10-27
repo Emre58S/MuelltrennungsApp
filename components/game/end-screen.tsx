@@ -140,6 +140,15 @@ export function EndScreen({
   // Emoji und Überschrift folgen denselben Stufen, damit alles zusammenpasst.
   const rating = stats.throws === 0 ? 0 : accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1;
 
+  // Überschrift: nie strafend – ein Stern ist „Gut gemacht!“
+  const heading = daily
+    ? t("game.end.dailyTitle")
+    : rating >= 2 || newBest
+      ? t("game.end.great")
+      : rating === 1
+        ? t("game.end.good")
+        : title;
+
   // Jedes falsch sortierte Item nur einmal
   const unique = mistakes.filter(
     (m, i) => mistakes.findIndex((x) => x.item.name === m.item.name) === i,
@@ -180,7 +189,7 @@ export function EndScreen({
             {rating === 3 ? "🏆" : rating === 2 ? "🌟" : "💪"}
           </AppText>
           <AppText variant="title" center accessibilityRole="header">
-            {daily ? t("game.end.dailyTitle") : rating >= 2 || newBest ? t("game.end.great") : title}
+            {heading}
           </AppText>
           <AppText tone="textSecondary" center>
             {t("game.end.sorted", { n: stats.correct })}
