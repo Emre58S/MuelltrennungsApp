@@ -9,8 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Tipp-Karte im Spiel**: zeigen, dass man sie antippen kann
-  („Tippen zum Schließen“ oder ✕) (hud.tsx TipCard).
 - [ ] **Leerer Bildschirm beim Rundenstart**: Ladeanzeige, solange Level/XP
   noch laden (app/runde.tsx).
 - [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit während der Rückfrage
@@ -33,6 +31,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Tipp-Karte mit ✕ und Hinweis (46dc42f)
 - [x] Rundenende: alle Fehler zeigbar, Lernzeilen, Ranglisten-Pille (9e6db7b)
 - [x] Gesperrte Trick-Level erklären sich (b8edb5e)
 - [x] Runde: Rückfrage vor dem Beenden, Uhr hält an (3a9324d); Audit → Backlog
