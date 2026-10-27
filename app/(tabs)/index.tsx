@@ -691,17 +691,30 @@ function ThrowHint({ text, calm }: { text: string; calm: boolean }) {
   );
 }
 
+/** Runder Symbol-Knopf mit kurzer Beschriftung darunter (Fußzeile). */
 function FooterLink({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
-      hitSlop={8}
-      style={({ pressed }) => [styles.footerLink, pressed && { opacity: 0.6 }]}
+      onPress={() => {
+        sfx("tap");
+        onPress();
+      }}
+      hitSlop={4}
+      style={({ pressed }) => [styles.footerLink, pressed && styles.footerPressed]}
     >
-      <Feather name={icon} size={18} color={ON_SCENE_SOFT} />
-      <AppText variant="label" color={ON_SCENE_SOFT}>
+      <View style={styles.footerIcon}>
+        <Feather name={icon} size={20} color="#FFFFFF" />
+      </View>
+      <AppText
+        variant="caption"
+        color={ON_SCENE_SOFT}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
+        style={styles.footerLabel}
+      >
         {label}
       </AppText>
     </Pressable>
@@ -862,15 +875,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
-  // Bricht auf kleinen Handys in zwei Zeilen um (vier Links)
-  footer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  // Eine Reihe gleich breiter Symbol-Knöpfe (passt auch auf kleine Handys)
+  footer: { flexDirection: "row", justifyContent: "space-between", gap: 2 },
+  footerLink: { flex: 1, alignItems: "center", gap: 4, minHeight: 64 },
+  footerIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
-    columnGap: Spacing.md + 2,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
   },
-  footerLink: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 },
+  footerLabel: { textAlign: "center", fontSize: 12 },
+  footerPressed: { opacity: 0.7, transform: [{ scale: 0.94 }] },
 
   pressed: { transform: [{ scale: 0.98 }] },
 });

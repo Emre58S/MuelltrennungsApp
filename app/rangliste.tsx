@@ -6,7 +6,7 @@
 // Platz, falls man nicht unter den Besten steht.
 
 import { Feather } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,8 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
-import { FadeIn } from "@/components/ui/fade-in";
-import { IconButton } from "@/components/ui/icon-button";
+import { PageHeader } from "@/components/ui/page-header";
 import { Radius, Spacing } from "@/constants/theme";
 import { type TranslationKey } from "@/i18n";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
@@ -98,10 +97,6 @@ export default function LeaderboardScreen() {
     load(tab);
   }
 
-  function handleBack() {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  }
 
   async function saveName() {
     const saved = await setPlayerName(draft);
@@ -142,17 +137,7 @@ export default function LeaderboardScreen() {
         }
         keyboardShouldPersistTaps="handled"
       >
-        <FadeIn>
-          <View style={styles.header}>
-            <IconButton icon="chevron-left" label={t("common.back")} onPress={handleBack} />
-            <View style={styles.flex}>
-              <AppText variant="title" accessibilityRole="header">
-                {t("rank.title")}
-              </AppText>
-              <AppText tone="textSecondary">{t("rank.subtitle")}</AppText>
-            </View>
-          </View>
-        </FadeIn>
+        <PageHeader title={t("rank.title")} subtitle={t("rank.subtitle")} emoji="🏆" />
 
         {/* Eigener Spitzname */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>

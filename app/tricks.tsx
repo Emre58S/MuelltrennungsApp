@@ -11,10 +11,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
-import { IconButton } from "@/components/ui/icon-button";
+import { PageHeader } from "@/components/ui/page-header";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import {
   difficultyOf,
+  levelIcons,
   TRICK_LEVELS,
   type TrickDifficulty,
 } from "@/game/trick-levels";
@@ -48,10 +49,6 @@ export default function TricksScreen() {
 
   const total = TRICK_LEVELS.reduce((sum, l) => sum + (stars[l.id] ?? 0), 0);
 
-  function handleBack() {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  }
 
   function open(id: number) {
     sfx("tap");
@@ -77,21 +74,7 @@ export default function TricksScreen() {
           },
         ]}
       >
-        <FadeIn>
-          <View style={styles.header}>
-            <IconButton
-              icon="chevron-left"
-              label={t("common.back")}
-              onPress={handleBack}
-            />
-            <View style={styles.flex}>
-              <AppText variant="title" accessibilityRole="header">
-                {t("tricks.title")}
-              </AppText>
-              <AppText tone="textSecondary">{t("tricks.subtitle")}</AppText>
-            </View>
-          </View>
-        </FadeIn>
+        <PageHeader title={t("tricks.title")} subtitle={t("tricks.subtitle")} emoji="🎯" />
 
         <FadeIn delay={60}>
           <AppText variant="label" tone="textSecondary">
@@ -175,6 +158,10 @@ export default function TricksScreen() {
                           {unlocked ? (
                             <>
                               <AppText variant="number">{level.id}</AppText>
+                              {/* Was einen erwartet: Reifen, Windrad, Wind … */}
+                              <AppText style={styles.icons} importantForAccessibility="no">
+                                {levelIcons(level).join(" ")}
+                              </AppText>
                               <AppText style={styles.stars}>
                                 {[1, 2, 3]
                                   .map((n) => (n <= got ? "★" : "☆"))
@@ -208,6 +195,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "flex-start", gap: Spacing.md },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
+  icons: { fontSize: 13, lineHeight: 16 },
   group: { gap: Spacing.sm },
   daily: {
     flexDirection: "row",

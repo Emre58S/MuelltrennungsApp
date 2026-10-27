@@ -140,6 +140,7 @@ export const de = {
   "rank.empty": "Noch keine Einträge – sei der Erste!",
   "rank.myPlace": "Dein Platz: {rank}",
   "rank.today": "heute",
+  "rank.place": "Platz {rank} in der Rangliste",
   "home.rank": "Rangliste",
   "reward.title": "Belohnungen",
   "reward.subtitle": "Wurfspuren für deine Würfe – frei mit Sternen und Level.",

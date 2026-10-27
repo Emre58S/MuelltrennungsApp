@@ -3,7 +3,6 @@
 // Inhalte kommen aus den echten Spieldaten, damit nichts veraltet.
 
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { type ComponentProps, type ReactNode } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +11,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FadeIn } from "@/components/ui/fade-in";
-import { IconButton } from "@/components/ui/icon-button";
+import { PageHeader } from "@/components/ui/page-header";
 import { MODES, startGame } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS } from "@/game/bins";
@@ -29,10 +28,6 @@ export default function TutorialScreen() {
   const { colors } = useAppTheme();
   const { t } = useI18n();
 
-  function handleBack() {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  }
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
@@ -43,17 +38,7 @@ export default function TutorialScreen() {
           { paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg), paddingBottom: Spacing.xl },
         ]}
       >
-        <FadeIn>
-          <View style={styles.header}>
-            <IconButton icon="chevron-left" label={t("common.back")} onPress={handleBack} />
-            <View style={styles.flex}>
-              <AppText variant="title" accessibilityRole="header">
-                {t("home.tutorial")}
-              </AppText>
-              <AppText tone="textSecondary">{t("tutorial.subtitle")}</AppText>
-            </View>
-          </View>
-        </FadeIn>
+        <PageHeader title={t("home.tutorial")} subtitle={t("tutorial.subtitle")} emoji="💡" />
 
         <FadeIn delay={60}>
           <Section title={t("tutorial.throw")}>

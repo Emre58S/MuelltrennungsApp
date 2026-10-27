@@ -32,6 +32,33 @@ function useEnter(duration = 320, easing = Easing.out(Easing.back(1.8)), delay =
 }
 
 /** Kurzer Puls, wenn sich `value` ändert. */
+/** Zahl zählt sichtbar hoch statt zu springen (≈ 0,35 s; nur der Text der
+ *  Punkte rendert neu – die 3D-Szene bleibt unberührt). */
+function useCountUp(target: number) {
+  const { reduceMotion } = useAppSettings();
+  const [shown, setShown] = useState(target);
+  const [value] = useState(() => new Animated.Value(target));
+  useEffect(() => {
+    const id = value.addListener(({ value: v }) => setShown(Math.round(v)));
+    return () => value.removeListener(id);
+  }, [value]);
+  useEffect(() => {
+    if (reduceMotion) {
+      value.setValue(target);
+      return;
+    }
+    const run = Animated.timing(value, {
+      toValue: target,
+      duration: 350,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    });
+    run.start();
+    return () => run.stop();
+  }, [target, reduceMotion, value]);
+  return shown;
+}
+
 function usePulse(value: unknown, amount = 0.18) {
   const { reduceMotion } = useAppSettings();
   const [v] = useState(() => new Animated.Value(1));
@@ -77,6 +104,9 @@ export function ScoreBadge({
   const { t, formatNumber } = useI18n();
   const { colors } = useAppTheme();
   const pulse = usePulse(score, 0.1);
+  const shown = useCountUp(score);
+  // Multiplikator als eigenes Abzeichen: hüpft, wenn er steigt
+  const multPulse = usePulse(multiplier, 0.35);
 
   return (
     <Animated.View
@@ -87,12 +117,24 @@ export function ScoreBadge({
       <HudSurface style={styles.scorePill}>
         <View style={styles.scoreRow}>
           <AppText variant="heading" style={styles.tabular}>
-            {formatNumber(score)}
+            {formatNumber(shown)}
           </AppText>
           {streak >= 2 && (
             <AppText variant="label" tone="gold" style={styles.tabular}>
-              🔥{streak} ×{multiplier}
+              🔥{streak}
             </AppText>
+          )}
+          {multiplier > 1 && (
+            <Animated.View
+              style={[
+                styles.multChip,
+                { backgroundColor: fever ? "#FF8A2B" : "#F5B800", transform: [{ scale: multPulse }] },
+              ]}
+            >
+              <AppText variant="label" color="#3A2600" style={styles.tabular}>
+                ×{multiplier}
+              </AppText>
+            </Animated.View>
           )}
         </View>
         {/* Serie → nächster Combo-Schritt: füllt sich mit jedem Treffer, golden im Fieber */}
@@ -148,6 +190,8 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
   const { t } = useI18n();
   const warn = timeLeft <= 10;
   const pulse = usePulse(warn ? timeLeft : 0, 0.25);
+  // Zum Ende hin: grün → orange (ab 20 s) → rot (ab 10 s)
+  const barColor = warn ? "#E5484D" : timeLeft <= 20 ? "#F59E0B" : colors.primary;
   return (
     <View
       style={styles.timerRow}
@@ -159,7 +203,7 @@ export function TimerBar({ timeLeft, total }: { timeLeft: number; total: number 
           style={[
             styles.timerFill,
             {
-              backgroundColor: warn ? colors.warning : colors.primary,
+              backgroundColor: barColor,
               width: `${Math.max(0, Math.min(100, (timeLeft / total) * 100))}%`,
             },
           ]}
@@ -622,7 +666,8 @@ const styles = StyleSheet.create({
   surface: { borderRadius: Radius.pill, borderWidth: 1, ...shadow },
 
   scorePill: { alignItems: "center", paddingHorizontal: Spacing.md, paddingTop: 4, paddingBottom: 6, minWidth: 96 },
-  scoreRow: { flexDirection: "row", alignItems: "baseline", gap: Spacing.sm },
+  scoreRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  multChip: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 999 },
   feverMeter: { alignSelf: "stretch", height: 3, borderRadius: 2, overflow: "hidden", marginTop: 2 },
   feverMeterFill: { height: "100%", borderRadius: 2 },
 

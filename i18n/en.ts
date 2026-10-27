@@ -141,6 +141,7 @@ export const en: Translations = {
   "rank.empty": "No entries yet – be the first!",
   "rank.myPlace": "Your place: {rank}",
   "rank.today": "today",
+  "rank.place": "#{rank} on the leaderboard",
   "home.rank": "Leaderboard",
   "reward.title": "Rewards",
   "reward.subtitle": "Throw trails – unlocked with stars and level.",

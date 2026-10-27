@@ -4,6 +4,7 @@
 // antippen → Fakt), dann „Nochmal“. Tagesaufgabe: Ergebnis teilen.
 
 import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Animated, Easing, Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,11 +16,32 @@ import { Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
 import { type HitResult, type Stats } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { type Board, fetchBoard, leaderboardReady } from "@/utils/leaderboard";
 import { getLevelProgress, todayKey } from "@/utils/storage";
 
 export type Mistake = { item: Item; bin: BinDef };
 
 const SHARE_BOX: Record<HitResult, string> = { perfect: "⭐", correct: "🟩", wrong: "🟥" };
+
+/** Eigener Platz in der Rangliste nach der Runde (null = offline/keiner).
+ *  Kurz warten: das Ergebnis wird gerade erst eingereicht. */
+function useBoardPlace(board: Board | undefined, score: number): number | null {
+  const [place, setPlace] = useState<number | null>(null);
+  useEffect(() => {
+    if (!board || !leaderboardReady || score <= 0) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      fetchBoard(board, 1)
+        .then((r) => active && setPlace(r.me?.rank ?? null))
+        .catch(() => undefined);
+    }, 900);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [board, score]);
+  return place;
+}
 
 export function EndScreen({
   title,
@@ -32,6 +54,7 @@ export function EndScreen({
   results,
   onAgain,
   onMenu,
+  board,
 }: {
   title: string;
   stats: Stats;
@@ -46,11 +69,14 @@ export function EndScreen({
   results: HitResult[];
   onAgain: () => void;
   onMenu: () => void;
+  /** Rangliste dieser Runde: zeigt den eigenen Platz (falls online). */
+  board?: Board;
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { t, formatNumber, itemName, itemFact } = useI18n();
   const { reduceMotion } = useAppSettings();
+  const place = useBoardPlace(board, stats.score);
 
   const [enter] = useState(() => new Animated.Value(reduceMotion ? 1 : 0));
   const [counter] = useState(
@@ -168,6 +194,19 @@ export function EndScreen({
                 🏆 {t("game.end.newBest")}
               </AppText>
             </View>
+          )}
+
+          {/* Platz in der Rangliste (antippen öffnet sie) */}
+          {place !== null && (
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => router.push("/rangliste")}
+              style={({ pressed }) => [styles.pill, { backgroundColor: colors.primarySoft }, pressed && { opacity: 0.8 }]}
+            >
+              <AppText variant="label" tone="onPrimarySoft">
+                {place <= 3 ? ["🥇", "🥈", "🥉"][place - 1] : "📊"} {t("rank.place", { rank: place })} ›
+              </AppText>
+            </Pressable>
           )}
 
           {/* Level-Fortschritt */}

@@ -32,6 +32,11 @@ export const HIGHSCORE_MODE = {
 /** Rangliste je Modus (Üben/Endlos hat keine). */
 const BOARD: Partial<Record<GameMode, Board>> = { aim: "zielwurf", time: "zeit", survival: "runden" };
 
+/** Rangliste einer Runde (Tagesaufgabe: die von heute) – oder keine. */
+export function boardFor(mode: GameMode, daily: boolean): Board | undefined {
+  return daily ? dailyBoard("tagesaufgabe") : BOARD[mode];
+}
+
 /** Wie setTimeout, aber alle offenen Aufrufe fallen beim Abbau weg. */
 export function useLater() {
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
@@ -76,7 +81,7 @@ export function useCommitRound(
         total: s.throws,
       }).catch(() => undefined);
       // Tagesaufgabe: für alle gleich → eigene Tages-Rangliste
-      submitScore(dailyBoard("tagesaufgabe"), s.score).catch(() => undefined);
+      submitScore(boardFor(m, true)!, s.score).catch(() => undefined);
       flushThrowRecords().catch(() => undefined);
       return;
     }
@@ -87,7 +92,7 @@ export function useCommitRound(
     }).catch(() => undefined);
     if (s.score > 0)
       saveHighscore(HIGHSCORE_MODE[m], s.score).catch(() => undefined);
-    const board = BOARD[m];
+    const board = boardFor(m, false);
     if (board) submitScore(board, s.score).catch(() => undefined);
     flushThrowRecords().catch(() => undefined);
   }, [liveStats]);

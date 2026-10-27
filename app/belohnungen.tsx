@@ -5,14 +5,14 @@
 // alle Würfe; gesperrte zeigen, was noch fehlt.
 
 import { Feather } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
-import { IconButton } from "@/components/ui/icon-button";
+import { PageHeader } from "@/components/ui/page-header";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { isUnlocked, type Progress, type TrailId, TRAILS, usableTrail } from "@/game/rewards";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
@@ -52,10 +52,6 @@ export default function RewardsScreen() {
     }, []),
   );
 
-  function handleBack() {
-    if (router.canGoBack()) router.back();
-    else router.replace("/");
-  }
 
   function choose(id: TrailId) {
     sfx("tap");
@@ -74,17 +70,7 @@ export default function RewardsScreen() {
           },
         ]}
       >
-        <FadeIn>
-          <View style={styles.header}>
-            <IconButton icon="chevron-left" label={t("common.back")} onPress={handleBack} />
-            <View style={styles.flex}>
-              <AppText variant="title" accessibilityRole="header">
-                {t("reward.title")}
-              </AppText>
-              <AppText tone="textSecondary">{t("reward.subtitle")}</AppText>
-            </View>
-          </View>
-        </FadeIn>
+        <PageHeader title={t("reward.title")} subtitle={t("reward.subtitle")} emoji="🎁" />
 
         <FadeIn delay={60}>
           <AppText variant="label" tone="textSecondary">

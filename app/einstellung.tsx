@@ -11,8 +11,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Card } from "@/components/ui/card";
-import { IconButton } from "@/components/ui/icon-button";
 import { Segmented } from "@/components/ui/segmented";
+import { PageHeader } from "@/components/ui/page-header";
 import { Radius, Spacing, TOUCH_MIN } from "@/constants/theme";
 import { LANGUAGES } from "@/i18n";
 import {
@@ -116,19 +116,7 @@ export default function EinstellungenScreen() {
           },
         ]}
       >
-        <View style={styles.header}>
-          <IconButton
-            icon="chevron-left"
-            label={t("common.back")}
-            onPress={() => router.back()}
-          />
-          <View style={styles.flex}>
-            <AppText variant="title" accessibilityRole="header">
-              {t("settings.title")}
-            </AppText>
-            <AppText tone="textSecondary">{t("settings.subtitle")}</AppText>
-          </View>
-        </View>
+        <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} emoji="⚙️" />
 
         {/* Sprache */}
         <SectionLabel text={t("settings.language")} />

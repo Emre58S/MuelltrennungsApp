@@ -6,13 +6,13 @@
 // Motiviert, alle Gegenstände zu finden – und wiederholt nebenbei Wissen.
 
 import { Feather } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
-import { IconButton } from "@/components/ui/icon-button";
+import { PageHeader } from "@/components/ui/page-header";
 import { type Category, type Item, ITEMS } from "@/constants/items";
 import { BinColors, type BinKey, Radius, Spacing } from "@/constants/theme";
 import { type TranslationKey } from "@/i18n";
@@ -78,15 +78,7 @@ export default function CollectionScreen() {
           },
         ]}
       >
-        <View style={styles.header}>
-          <IconButton icon="chevron-left" label={t("common.back")} onPress={() => router.back()} />
-          <View style={styles.flex}>
-            <AppText variant="title" accessibilityRole="header">
-              {t("book.title")}
-            </AppText>
-            <AppText tone="textSecondary">{t("book.subtitle")}</AppText>
-          </View>
-        </View>
+        <PageHeader title={t("book.title")} subtitle={t("book.subtitle")} emoji="📖" />
 
         {/* Fortschritt */}
         <View

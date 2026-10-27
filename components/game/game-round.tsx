@@ -109,7 +109,7 @@ import {
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
+import { boardFor, HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
 import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
@@ -985,6 +985,7 @@ export function GameRound({
             mistakes={mistakes}
             onAgain={onAgain}
             onMenu={onExit}
+            board={boardFor(mode, daily)}
           />
         )}
       </View>

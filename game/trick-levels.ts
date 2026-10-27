@@ -189,6 +189,26 @@ export const TRICK_LEVELS: TrickLevel[] = [
   },
 ];
 
+/** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
+export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): string[] {
+  const icons: string[] = [];
+  for (const p of level.props) {
+    const icon =
+      p.kind === "fan"
+        ? "💨"
+        : p.kind === "windmill"
+          ? "🌀"
+          : p.motion?.kind === "spin"
+            ? "🔄"
+            : p.motion
+              ? "↔️"
+              : "⭕";
+    if (!icons.includes(icon)) icons.push(icon);
+  }
+  if (level.binSlide) icons.unshift("🗑️");
+  return icons.slice(0, 2);
+}
+
 /** Schwierigkeit für die Level-Liste. */
 export type TrickDifficulty = "easy" | "medium" | "hard";
 export function difficultyOf(level: TrickLevel): TrickDifficulty {
