@@ -96,12 +96,14 @@ const TEXT_SHADOW = {
   textShadowRadius: 6,
 } as const;
 
-/** Farbe pro Modus – Tonne, Schild und Flugbahn (nicht nur Farbe: Icon + Text). */
-const MODE_COLOR: Record<GameMode, { fill: string; on: string }> = {
-  endless: { fill: "#2FA86E", on: "#FFFFFF" },
-  survival: { fill: "#3D82D9", on: "#FFFFFF" },
-  time: { fill: "#E3A92E", on: "#2B1D00" },
-  aim: { fill: "#D9622B", on: "#FFFFFF" },
+/** Farbe pro Modus – Tonne, Schild und Flugbahn (nicht nur Farbe: Icon + Text).
+ *  `sign`: etwas dunklere Schild-Farbe, damit die Schrift mindestens 4,5 : 1
+ *  Kontrast hat – Tonne und Flugbahn bleiben hell und freundlich. */
+const MODE_COLOR: Record<GameMode, { fill: string; sign: string; on: string }> = {
+  endless: { fill: "#2FA86E", sign: "#258356", on: "#FFFFFF" },
+  survival: { fill: "#3D82D9", sign: "#3775C3", on: "#FFFFFF" },
+  time: { fill: "#E3A92E", sign: "#E3A92E", on: "#2B1D00" }, // dunkle Schrift: hell genug
+  aim: { fill: "#D9622B", sign: "#BD5525", on: "#FFFFFF" },
 };
 
 /** Die Menü-Tonnen: echte Tonnen-Modelle in Modus-Farben, Reihenfolge wie MENU_MODES. */
@@ -513,7 +515,7 @@ export default function HomeScreen() {
           />
           <SideTile
             icon="crosshair"
-            fill={MODE_COLOR.aim.fill}
+            fill={MODE_COLOR.aim.sign}
             on={MODE_COLOR.aim.on}
             title={t("mode.aim.title")}
             caption={loaded && scores.aim > 0 ? `🏆 ${formatNumber(scores.aim)}` : t("home.aimShort")}
@@ -559,7 +561,7 @@ function ModeBin({
   rect: ScreenRect | undefined;
   bus: BusRef;
   index: number;
-  color: { fill: string; on: string };
+  color: { fill: string; sign: string; on: string };
   icon: IconName;
   title: string;
   description: string;
@@ -593,7 +595,7 @@ function ModeBin({
             left,
             top: rect.y + rect.h + 4,
             width,
-            backgroundColor: color.fill,
+            backgroundColor: color.sign,
             transform: [{ scale: aimed ? 1.1 : pressed ? 0.96 : 1 }, { translateY: aimed ? -4 : 0 }],
           },
           aimed && [styles.modeSignAimed, { shadowColor: color.fill }],
@@ -605,7 +607,7 @@ function ModeBin({
           </View>
         )}
         <View style={styles.modeIcon}>
-          <Feather name={icon} size={16} color={color.fill} />
+          <Feather name={icon} size={16} color={color.sign} />
         </View>
         <AppText
           variant="label"
