@@ -526,7 +526,7 @@ export function TrickHud({
 }
 
 /** Ein Stern, der nacheinander „aufploppt“. */
-function Star({ filled, delay, n }: { filled: boolean; delay: number; n: 1 | 2 | 3 }) {
+export function Star({ filled, delay, n }: { filled: boolean; delay: number; n: 1 | 2 | 3 }) {
   const pop = useEnter(380, Easing.out(Easing.back(2.4)), delay);
   // Jeder verdiente Stern „ploppt“ mit eigenem, höherem Ton
   useEffect(() => {

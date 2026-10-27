@@ -114,7 +114,7 @@ import { nextScene } from "./stage";
 import { playMusic } from "@/utils/music";
 import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
-import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
+import { itemMass, itemMaterial, type Material, MASS_FEEL } from "@/game/item-mass";
 import {
   beginThrow,
   createThrowInput,
@@ -164,6 +164,15 @@ type Learn = { id: number; item: Item; bin: Mistake["bin"] };
 
 /** Tonhöhe des Combo-Klangs je Multiplikator (steigt mit jeder Stufe). */
 const COMBO_PITCH: Record<number, number> = { 1.5: 1, 2: 1.12, 3: 1.26 };
+/** Einwurf-Funken je Material – passend zum Klang. */
+const MATERIAL_SPARKS: Record<Material, string[]> = {
+  glas: ["#E0F7FF", "#9EE6FF", "#FFFFFF"],
+  papier: ["#F5F0E6", "#E8DCC4", "#FFFFFF"],
+  plastik: ["#FFD54A", "#5AC8FA", "#FF6B8B"],
+  metall: ["#FFE29A", "#C9D1D9", "#FFB300"],
+  bio: ["#7BC96F", "#A3D27F", "#8C5E3C"],
+  rest: ["#9AA3AC", "#C9CED3", "#FFFFFF"],
+};
 
 export function GameRound({
   mode,
@@ -585,9 +594,10 @@ export function GameRound({
         x: layout.bins[i].x,
         y: BIN_OPENING_Y + 0.15,
         z: layout.bins[i].z + 0.1,
+        // Funken je Material (Glas glitzert, Papier Schnipsel, Bio Blättchen …)
         colors: ts.perfect
-          ? ["#FFD54A", "#FFFFFF", bin.colorLight, "#FFB300"]
-          : [bin.color, bin.colorLight, "#FFFFFF"],
+          ? ["#FFD54A", "#FFFFFF", ...MATERIAL_SPARKS[itemMaterial(ts.item)]]
+          : [bin.colorLight, ...MATERIAL_SPARKS[itemMaterial(ts.item)]],
         count: ts.perfect ? 30 : feverNow ? 20 : 12,
         power: ts.perfect ? 1.25 : 1,
         ring: ts.perfect,

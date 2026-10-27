@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
+import { Star } from "@/components/game/hud";
 import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
@@ -134,6 +135,8 @@ export function EndScreen({
 
   const accuracy =
     stats.throws > 0 ? Math.round((stats.correct / stats.throws) * 100) : 0;
+  // Sterne-Bewertung wie bei den Trickwürfen: 90 % → ★★★, 70 % → ★★, sonst ★
+  const rating = stats.throws === 0 ? 0 : accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1;
 
   // Jedes falsch sortierte Item nur einmal
   const unique = mistakes.filter(
@@ -180,6 +183,14 @@ export function EndScreen({
           <AppText tone="textSecondary" center>
             {t("game.end.sorted", { n: stats.correct })}
           </AppText>
+
+          {rating > 0 && (
+            <View style={styles.starRow} accessible accessibilityLabel={`${rating} / 3`}>
+              {([1, 2, 3] as const).map((n) => (
+                <Star key={n} n={n} filled={n <= rating} delay={300 + n * 180} />
+              ))}
+            </View>
+          )}
 
           <AppText variant="display" tone="primary" style={styles.score}>
             {formatNumber(shown)}
@@ -359,6 +370,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   bigEmoji: { fontSize: 52, lineHeight: 62 },
+  starRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.xs },
   score: {
     fontSize: 56,
     lineHeight: 64,
