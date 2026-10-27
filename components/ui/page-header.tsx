@@ -12,6 +12,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
+import { press, tapHaptic } from "@/components/ui/press";
 import { Radius, Spacing } from "@/constants/theme";
 import { useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
@@ -54,9 +55,10 @@ export function PageHeader({
             hitSlop={8}
             onPress={() => {
               sfx("tap");
+              tapHaptic();
               onBack();
             }}
-            style={({ pressed }) => [styles.back, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.back, pressed && press.pressed]}
           >
             <Feather name="chevron-left" size={24} color="#FFFFFF" />
           </Pressable>
@@ -97,7 +99,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.4)",
   },
-  pressed: { opacity: 0.75, transform: [{ scale: 0.94 }] },
   badge: {
     width: 56,
     height: 56,

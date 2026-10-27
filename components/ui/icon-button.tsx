@@ -5,6 +5,8 @@ import { Pressable, type StyleProp, StyleSheet, type ViewStyle } from "react-nat
 import { TOUCH_MIN } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
 
+import { press, tapHaptic } from "./press";
+
 /** Runder Icon-Button (48×48). Label ist Pflicht – für Screenreader. */
 export function IconButton({
   icon,
@@ -23,7 +25,10 @@ export function IconButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
+      onPress={() => {
+        tapHaptic();
+        onPress();
+      }}
       hitSlop={6}
       style={({ pressed }) => [
         styles.base,
@@ -31,6 +36,7 @@ export function IconButton({
           backgroundColor: pressed ? colors.surfaceAlt : colors.surface,
           borderColor: colors.border,
         },
+        pressed && press.pressed,
         style,
       ]}
     >

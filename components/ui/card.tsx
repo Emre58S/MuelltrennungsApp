@@ -10,6 +10,8 @@ import {
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
 
+import { press, tapHaptic } from "./press";
+
 /** Fläche für zusammengehörige Inhalte. Mit onPress wird sie tippbar. */
 export function Card({
   children,
@@ -36,8 +38,11 @@ export function Card({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      onPress={onPress}
-      style={({ pressed }) => [base, pressed && styles.pressed, style]}
+      onPress={() => {
+        tapHaptic();
+        onPress();
+      }}
+      style={({ pressed }) => [base, pressed && press.pressedLarge, style]}
     >
       {children}
     </Pressable>
@@ -50,5 +55,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: Spacing.md,
   },
-  pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
 });

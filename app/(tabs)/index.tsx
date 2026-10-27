@@ -47,6 +47,7 @@ import {
   useAim,
 } from "@/components/game/scene-bus";
 import { AppText } from "@/components/ui/app-text";
+import { press, tapHaptic } from "@/components/ui/press";
 import { Scrim } from "@/components/ui/scrim";
 import { type Item } from "@/constants/items";
 import {
@@ -464,7 +465,7 @@ export default function HomeScreen() {
           style={({ pressed }) => [
             styles.continue,
             { backgroundColor: pressed ? colors.primaryPressed : colors.primary },
-            pressed && styles.pressed,
+            pressed && press.pressedLarge,
           ]}
         >
           <View style={styles.continueIcon}>
@@ -692,7 +693,7 @@ function SideTile({
       accessibilityRole="button"
       accessibilityLabel={a11y}
       onPress={onPress}
-      style={({ pressed }) => [styles.tile, dot && styles.tileNew, pressed && styles.tilePressed]}
+      style={({ pressed }) => [styles.tile, dot && styles.tileNew, pressed && press.pressed]}
     >
       <View style={[styles.tileIcon, { backgroundColor: fill }]}>
         <Feather name={icon} size={18} color={on} />
@@ -716,10 +717,11 @@ function ToolButton({ icon, label, onPress }: { icon: IconName; label: string; o
       accessibilityLabel={label}
       onPress={() => {
         sfx("tap");
+        tapHaptic();
         onPress();
       }}
       hitSlop={6}
-      style={({ pressed }) => [styles.tool, pressed && styles.footerPressed]}
+      style={({ pressed }) => [styles.tool, pressed && press.pressed]}
     >
       <Feather name={icon} size={18} color="#FFFFFF" />
     </Pressable>
@@ -734,10 +736,11 @@ function FooterLink({ icon, label, onPress }: { icon: IconName; label: string; o
       accessibilityLabel={label}
       onPress={() => {
         sfx("tap");
+        tapHaptic();
         onPress();
       }}
       hitSlop={4}
-      style={({ pressed }) => [styles.footerLink, pressed && styles.footerPressed]}
+      style={({ pressed }) => [styles.footerLink, pressed && press.pressed]}
     >
       <View style={styles.footerIcon}>
         <Feather name={icon} size={20} color="#FFFFFF" />
@@ -891,7 +894,6 @@ const styles = StyleSheet.create({
   },
   // Tagesaufgabe noch offen: dezent goldener Rand
   tileNew: { borderColor: "rgba(255,213,74,0.75)" },
-  tilePressed: { opacity: 0.8, transform: [{ scale: 0.96 }] },
   tileIcon: {
     width: 34,
     height: 34,
@@ -952,7 +954,5 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.35)",
   },
   footerLabel: { textAlign: "center", fontSize: 12 },
-  footerPressed: { opacity: 0.7, transform: [{ scale: 0.94 }] },
 
-  pressed: { transform: [{ scale: 0.98 }] },
 });

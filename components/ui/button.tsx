@@ -1,5 +1,4 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { type ComponentProps } from "react";
 import {
   Pressable,
@@ -13,6 +12,7 @@ import { Radius, Spacing, TOUCH_MIN } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
 
 import { AppText } from "./app-text";
+import { press, tapHaptic } from "./press";
 
 type Variant = "primary" | "secondary" | "ghost";
 
@@ -72,7 +72,7 @@ export function Button({
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={() => {
-        Haptics.selectionAsync().catch(() => undefined);
+        tapHaptic();
         onPress();
       }}
       style={({ pressed }) => [
@@ -80,7 +80,7 @@ export function Button({
         size === "lg" && styles.lg,
         { backgroundColor: pressed ? bgPressed : bg },
         variant === "ghost" && { borderWidth: 1, borderColor: colors.border },
-        pressed && styles.pressed,
+        pressed && (size === "lg" ? press.pressedLarge : press.pressed),
         disabled && styles.disabled,
         style,
       ]}
@@ -110,6 +110,5 @@ const styles = StyleSheet.create({
   },
   lg: { minHeight: 60, borderRadius: Radius.xl },
   row: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  pressed: { transform: [{ scale: 0.98 }] },
   disabled: { opacity: 0.5 },
 });
