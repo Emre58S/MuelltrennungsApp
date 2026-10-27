@@ -25,6 +25,7 @@ import {
 import {
   getBoolean,
   removeItems,
+  resetSeenTips,
   setBoolean,
   StorageKeys,
 } from "@/utils/storage";
@@ -202,10 +203,21 @@ export default function EinstellungenScreen() {
         {/* Daten */}
         <SectionLabel text={t("settings.data")} />
         <Card style={styles.group}>
+          {/* Harmlos, daher ohne Rückfrage: Tipps erscheinen im Spiel erneut */}
+          <ActionRow
+            icon="help-circle"
+            title={t("settings.showTips")}
+            subtitle={t("settings.showTips.desc")}
+            onPress={async () => {
+              await resetSeenTips();
+              Alert.alert(t("settings.done"));
+            }}
+          />
           <ActionRow
             icon="trash-2"
             title={t("settings.resetScores")}
             subtitle={t("settings.resetScores.desc")}
+            divider
             onPress={() =>
               confirmDelete(
                 t("settings.resetScores"),

@@ -512,6 +512,12 @@ export function markTipSeen(id: string): Promise<void> {
   });
 }
 
+/** Alle Tipps wieder zeigen (über die Warteschlange, damit kein
+ *  gleichzeitiges markTipSeen den alten Stand zurückschreibt). */
+export function resetSeenTips(): Promise<void> {
+  return enqueue(() => removeItems([StorageKeys.SEEN_TIPS]));
+}
+
 // ── Tages-Trick: Sterne von heute ───────────────────────────────────
 
 /** Sterne im heutigen Tages-Trick (0 = noch nicht geschafft). */

@@ -236,6 +236,8 @@ export const en: Translations = {
   "settings.reduceMotion": "Reduce motion",
   "settings.reduceMotion.desc": "Fewer animations",
   "settings.data": "Data",
+  "settings.showTips": "Show tips again",
+  "settings.showTips.desc": "The short in-game hints will appear again.",
   "settings.resetScores": "Delete best scores",
   "settings.resetScores.desc": "Deletes all best scores",
   "settings.resetScores.confirm": "All best scores will be deleted.",

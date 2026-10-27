@@ -235,6 +235,8 @@ export const de = {
   "settings.reduceMotion": "Weniger Bewegung",
   "settings.reduceMotion.desc": "Weniger Animationen",
   "settings.data": "Daten",
+  "settings.showTips": "Tipps wieder zeigen",
+  "settings.showTips.desc": "Die kurzen Hinweise im Spiel erscheinen erneut.",
   "settings.resetScores": "Bestwerte löschen",
   "settings.resetScores.desc": "Löscht alle Bestwerte",
   "settings.resetScores.confirm": "Alle Bestwerte werden gelöscht.",
