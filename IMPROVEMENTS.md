@@ -9,8 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Logo-Schriftzug im Menü**: gestalteter Titel „Müll Sortieren“, leicht
-  animiert hereinkommend.
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; Dunkelmodus prüfen; kleine Unsauberkeiten beheben.
 - [ ] **Druck-Effekt Teil 2**: eigene Druckstile auf press.ts umstellen –
@@ -24,6 +22,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Logo-Schriftzug animiert, Streifen in Tonnenfarben (1777d28)
 - [x] Einheitlicher Druck-Effekt für Basis-Knöpfe (ba4a12b)
 - [x] Sanfte Übergänge: Runde blendet ein, „Weniger Bewegung“ blendet (aa0dc2f)
 - [x] Hauptmenü Teil 2: Fußzeile gruppiert, Punkte der Tagesaufgabe (26b2489)
