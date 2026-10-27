@@ -127,7 +127,7 @@ export default function RewardsScreen() {
                 <View style={styles.flex}>
                   <AppText variant="label">{t(reward.name)}</AppText>
                   <AppText variant="caption" tone={active ? "primary" : "textSecondary"}>
-                    {active ? t("reward.selected") : open ? " " : need}
+                    {active ? t("reward.selected") : open ? t("reward.tapToSelect") : need}
                   </AppText>
                 </View>
                 {open ? (

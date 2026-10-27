@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Card } from "@/components/ui/card";
+import { tapHaptic } from "@/components/ui/press";
 import { Segmented } from "@/components/ui/segmented";
 import { PageHeader } from "@/components/ui/page-header";
 import { Radius, Spacing, TOUCH_MIN } from "@/constants/theme";
@@ -141,7 +142,10 @@ export default function EinstellungenScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ selected }}
                 accessibilityLabel={opt.label}
-                onPress={() => setLanguage(opt.value)}
+                onPress={() => {
+                  tapHaptic();
+                  setLanguage(opt.value);
+                }}
                 style={({ pressed }) => [
                   styles.row,
                   i > 0 && { borderTopWidth: 1, borderTopColor: colors.border },
@@ -320,6 +324,7 @@ function SwitchRow({
       </View>
       <Switch
         accessibilityLabel={title}
+        accessibilityHint={subtitle}
         value={value}
         onValueChange={onChange}
         trackColor={{ false: colors.border, true: colors.primary }}

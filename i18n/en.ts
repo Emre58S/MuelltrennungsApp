@@ -165,6 +165,7 @@ export const en: Translations = {
   "reward.needStars": "From {n} ★ (trick shots)",
   "reward.needLevel": "From level {n}",
   "reward.selected": "Selected",
+  "reward.tapToSelect": "Tap to select",
   "reward.new": "New throw trail: {name}!",
   "reward.trail.standard": "Standard",
   "reward.trail.gold": "Gold",

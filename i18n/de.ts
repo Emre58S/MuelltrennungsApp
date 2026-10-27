@@ -164,6 +164,7 @@ export const de = {
   "reward.needStars": "Ab {n} ★ (Trickwürfe)",
   "reward.needLevel": "Ab Level {n}",
   "reward.selected": "Ausgewählt",
+  "reward.tapToSelect": "Tippen zum Auswählen",
   "reward.new": "Neue Wurfspur: {name}!",
   "reward.trail.standard": "Standard",
   "reward.trail.gold": "Gold",
