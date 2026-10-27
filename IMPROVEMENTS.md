@@ -9,8 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Trick-Runde VoiceOver**: Rückmeldungen (falsche Tonne, daneben,
-  sortiert) per announceForAccessibility vorlesen (trick-round.tsx float()).
 - [ ] **Namenseingabe Rangliste**: Platzhalter, dunkle Tastatur im
   Dunkelmodus, „Abbrechen“ setzt Fehler-Rand zurück (rangliste.tsx).
 - [ ] **Material-Blase im Dunkelmodus**: gedämpfte Farbtöne statt heller
@@ -35,6 +33,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Trick-Runde: Rückmeldungen für VoiceOver (3a3d576)
 - [x] Trick-Ergebnis scrollt, Knöpfe fest, Sterne-Label (a7b26b5); 2. Audit → Backlog
 - [x] Sammelbuch: VoiceOver mit Lernstand/Tonne (0ddd4a2)
 - [x] Ladeanzeige beim Rundenstart (e3dfa1c)
