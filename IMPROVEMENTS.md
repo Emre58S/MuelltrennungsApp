@@ -10,7 +10,8 @@ zu ändern.
 ## Offen
 
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
-  vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste: erledigt)
+  vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste, Rundenende:
+  erledigt) Idee Tester: freundlicher Titel bei 1 Stern („Gut geübt!“).
 - [ ] **Eigenes App-Symbol und Startbildschirm**: Tonne mit Gegenstand im
   Wurfbogen, in den Spielfarben (statt Expo-Platzhalter).
   Hinweis: In Expo Go nicht sichtbar (Symbol gehört zur installierten App) –
@@ -18,6 +19,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Rundenende: Emoji/Überschrift passend zu den Sternen (312f12f)
 - [x] Töne: Lautstärke-Ausgleich nach Messung, Material unverändert (3198d61)
 - [x] Kleinigkeiten Menü: Punkt am „?“, kurze Punktanzeige (83a9415)
 - [x] Design: Kontrast der Menü-Schilder ≥ 4,5:1, Theme geprüft (alles ok) (980ad9e)
