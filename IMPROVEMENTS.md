@@ -11,13 +11,14 @@ zu ändern.
 
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste: erledigt)
-- [ ] **Töne minimal verfeinern**: nur Feinschliff (Lautstärke-Balance,
-  Klick-Töne der Oberfläche) – Material-Klänge unverändert lassen.
 - [ ] **Eigenes App-Symbol und Startbildschirm**: Tonne mit Gegenstand im
   Wurfbogen, in den Spielfarben (statt Expo-Platzhalter).
+  Hinweis: In Expo Go nicht sichtbar (Symbol gehört zur installierten App) –
+  erst mit eigenem Build. Daher zuletzt.
 
 ## Erledigt
 
+- [x] Töne: Lautstärke-Ausgleich nach Messung, Material unverändert (3198d61)
 - [x] Kleinigkeiten Menü: Punkt am „?“, kurze Punktanzeige (83a9415)
 - [x] Design: Kontrast der Menü-Schilder ≥ 4,5:1, Theme geprüft (alles ok) (980ad9e)
 - [x] Druck-Effekt Teil 2: alle Seiten einheitlich (6e06cba)
