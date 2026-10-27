@@ -49,10 +49,12 @@ import {
   FloatingText,
   type FloatText,
   ItemCard,
+  TipCard,
   TrickHud,
   TrickResult,
 } from "./hud";
 import { useLater } from "./round-hooks";
+import { useTips } from "./tips";
 import {
   beginThrow,
   createThrowInput,
@@ -154,6 +156,29 @@ export function TrickRound({
   const [result, setResult] = useState<{ stars: number; attempts: number; bonus: boolean } | null>(null);
   const [hasThrown, setHasThrown] = useState(false);
   const later = useLater();
+  // Einführung: je Hindernis einmal erklären; Halten-Tipp nach Fehlwürfen ohne Vorschau
+  const tips = useTips();
+  const showTip = tips.show;
+  const heldEver = useRef(false);
+  const missesNoHold = useRef(0);
+  useEffect(() => {
+    const has = (kind: string) => level.props.some((p) => p.kind === kind);
+    const ring = level.props.find((p) => p.kind === "ring");
+    const motion = ring?.kind === "ring" ? ring.motion : undefined;
+    const id = hasWind(level)
+      ? "wind"
+      : level.binSlide
+        ? "movingBin"
+        : has("windmill")
+          ? "windmill"
+          : motion?.kind === "spin"
+            ? "spin"
+            : motion
+              ? "movingRing"
+              : "stars";
+    const timer = setTimeout(() => showTip(id), 900);
+    return () => clearTimeout(timer);
+  }, [level, showTip]);
 
   useEffect(() => {
     refreshSfxSetting();
@@ -254,6 +279,8 @@ export function TrickRound({
       sfx("plop");
     }
     setAttempt(attemptsRef.current + 1);
+    // Zweimal daneben, nie gehalten: zeigen, dass Halten die Flugbahn zeigt
+    if (!heldEver.current && ++missesNoHold.current >= 2) tips.show("hold");
     later(() => {
       if (!done.current) setItem(draw());
     }, 350);
@@ -282,6 +309,7 @@ export function TrickRound({
         // Länger gehalten: so würde der Wurf jetzt fliegen (Weite klickt leise mit)
         const shot = previewShot(input.current, Date.now(), dx, dy, vy, throwCtx());
         if (!input.current.aiming) return;
+        heldEver.current = true;
         setShotGuide(
           bus.current,
           shot && itemRef.current
@@ -347,6 +375,8 @@ export function TrickRound({
 
   const ready = screenW > 0 && screenH > 0;
   const itemTagTop = layout.item.screen.y + screenW * 0.15 + 4;
+  // Tipps knapp unter den Tonnen – im Bild, aber nicht über dem Wurf
+  const tipTop = Math.max(0, ...layout.binRects.map((r) => r.y + r.h)) + 10;
   return (
     <GestureDetector gesture={gesture}>
       <View style={[styles.root, { width: screenW, height: screenH }]}>
@@ -395,6 +425,11 @@ export function TrickRound({
               </View>
             )}
           </>
+        )}
+        {ready && tips.tip && !finished && (
+          <View pointerEvents="box-none" style={[styles.overlayRow, { top: tipTop }]}>
+            <TipCard text={t(tips.tip.key)} onClose={tips.dismiss} />
+          </View>
         )}
         {result && (
           <TrickResult

@@ -23,6 +23,7 @@ export const StorageKeys = {
   // v2: neue Level-Reihe und Sterne mit Bonus-Ziel (alte Sterne passen nicht mehr)
   TRICK_STARS: "muell_trick_stars_v2",
   TRICK_DAILY: "muell_trick_daily",
+  SEEN_TIPS: "muell_seen_tips",
   REDUCE_MOTION: "muell_reduce_motion",
   ITEM_STATS: "muell_item_stats",
   DAILY_RESULT: "muell_daily_result",
@@ -464,6 +465,26 @@ export function saveTrickStars(level: number, stars: number): Promise<void> {
     if ((all[level] ?? 0) >= stars) return;
     all[level] = stars;
     await setItem(StorageKeys.TRICK_STARS, JSON.stringify(all));
+  });
+}
+
+// ── Einführung: welche Tipps schon gezeigt wurden ───────────────────
+
+export async function getSeenTips(): Promise<string[]> {
+  const raw = await getItem(StorageKeys.SEEN_TIPS);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as string[];
+  } catch {
+    return [];
+  }
+}
+
+export function markTipSeen(id: string): Promise<void> {
+  return enqueue(async () => {
+    const seen = await getSeenTips();
+    if (seen.includes(id)) return;
+    await setItem(StorageKeys.SEEN_TIPS, JSON.stringify([...seen, id]));
   });
 }
 

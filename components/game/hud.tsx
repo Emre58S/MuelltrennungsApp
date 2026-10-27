@@ -417,6 +417,34 @@ export function Banner({ text }: { text: string }) {
   );
 }
 
+/* ── Einführung: Tipp (einmalig, Tippen schließt) ─────────────── */
+
+export function TipCard({ text, onClose }: { text: string; onClose: () => void }) {
+  const { colors } = useAppTheme();
+  const enter = useEnter(300, Easing.out(Easing.back(1.6)));
+  return (
+    <Animated.View
+      style={{
+        opacity: enter,
+        transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }],
+      }}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={text}
+        onPress={onClose}
+        style={[styles.tip, { backgroundColor: colors.surface, borderColor: "#F5B800" }]}
+      >
+        <AppText style={styles.tipIcon}>💡</AppText>
+        <AppText variant="caption" style={styles.tipText}>
+          {text}
+        </AppText>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 /* ── Trickwürfe: Kopfzeile und Ergebnis ───────────────────── */
 
 /** Bonus-Ziel (dritter Stern) als Text. */
@@ -633,6 +661,18 @@ const styles = StyleSheet.create({
   star: { fontSize: 48, lineHeight: 56, color: "#F5B800" },
   resultButtons: { gap: Spacing.sm, marginTop: Spacing.sm },
   goals: { gap: 2, alignSelf: "center" },
+  tip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    maxWidth: 340,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 2,
+  },
+  tipIcon: { fontSize: 20 },
+  tipText: { flexShrink: 1, fontSize: 14 },
   goalRow: { fontSize: 15 },
 
   hudButton: {

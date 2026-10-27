@@ -18,6 +18,7 @@ import {
   HudButton,
   ItemCard,
   LearnCard,
+  TipCard,
   Praise,
   ScoreBadge,
   TimerBar,
@@ -107,6 +108,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
+import { useTips } from "./tips";
 import { itemMass, MASS_FEEL } from "@/game/item-mass";
 import {
   beginThrow,
@@ -267,6 +269,17 @@ export function GameRound({
     id: 0,
   });
   const later = useLater();
+  // Einführung: Gewicht, Combo und Halten je einmal erklären (siehe tips.ts)
+  const tips = useTips();
+  const showTip = tips.show;
+  const heldEver = useRef(false);
+  const flicksNoHold = useRef(0);
+  // Erster schwerer / leichter Gegenstand im Zielwurf: Gewicht erklären
+  useEffect(() => {
+    if (mode !== "aim" || !currentItem) return;
+    const mass = itemMass(currentItem);
+    if (mass !== "normal") showTip(mass === "schwer" ? "heavy" : "light");
+  }, [mode, currentItem, showTip]);
   // Dezentes Sound-Feedback (siehe utils/sfx.ts)
   useEffect(() => {
     refreshSfxSetting();
@@ -593,6 +606,7 @@ export function GameRound({
       // Combo steigt (×1,5 → ×2 → ×3): das soll man spüren
       const comboUp = getMultiplier(streakNow) > getMultiplier(before.streak);
       if (comboUp) {
+        showTip("combo");
         sfx("levelup");
         later(() => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
@@ -732,6 +746,9 @@ export function GameRound({
               `[wurf] ${aiming ? "halten" : "wisch"} länge=${Math.round(Math.hypot(dx, dy))}px tempo=${Math.round(-vy)} kraft=${shot.strength.toFixed(2)} weite=${shot.depth.toFixed(2)} x=${shot.x.toFixed(2)}`,
             );
           throwTo(shot.binIndex ?? 0, shot.perfect, 1, shot);
+          // Dreimal nur gewischt: zeigen, dass Halten die Flugbahn zeigt
+          if (aiming) heldEver.current = true;
+          else if (!heldEver.current && ++flicksNoHold.current >= 3) showTip("hold");
           return;
         }
         // Schneller Wisch → kräftigere, flachere Bahn; langsamer → höherer Bogen
@@ -896,6 +913,11 @@ export function GameRound({
                 style={[styles.bannerWrap, { top: insets.top + 96 }]}
               >
                 <Banner key={banner.id} text={banner.text} />
+              </View>
+            )}
+            {tips.tip && !showEnd && (
+              <View pointerEvents="box-none" style={[styles.overlayRow, { top: learnTop }]}>
+                <TipCard text={t(tips.tip.key)} onClose={tips.dismiss} />
               </View>
             )}
             {mode === "endless" && learn && (
