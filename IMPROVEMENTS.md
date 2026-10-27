@@ -11,8 +11,6 @@ zu ändern.
 
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste: erledigt)
-- [ ] **Kleinigkeiten Menü**: Punkt am „?“-Knopf, solange die Anleitung nie
-  geöffnet wurde; Tagesaufgaben-Punkte bei sehr großen Zahlen kürzen.
 - [ ] **Töne minimal verfeinern**: nur Feinschliff (Lautstärke-Balance,
   Klick-Töne der Oberfläche) – Material-Klänge unverändert lassen.
 - [ ] **Eigenes App-Symbol und Startbildschirm**: Tonne mit Gegenstand im
@@ -20,6 +18,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Kleinigkeiten Menü: Punkt am „?“, kurze Punktanzeige (83a9415)
 - [x] Design: Kontrast der Menü-Schilder ≥ 4,5:1, Theme geprüft (alles ok) (980ad9e)
 - [x] Druck-Effekt Teil 2: alle Seiten einheitlich (6e06cba)
 - [x] Logo-Schriftzug animiert, Streifen in Tonnenfarben (1777d28)
