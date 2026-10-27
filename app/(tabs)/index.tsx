@@ -490,7 +490,11 @@ export default function HomeScreen() {
             on="#3A2500"
             dot={loaded && !daily}
             title={t("home.daily")}
-            caption={daily ? t("home.dailyDoneShort", { correct: daily.correct, total: daily.total }) : t("home.dailyShort")}
+            caption={
+              daily
+                ? t("home.dailyDoneShort", { correct: daily.correct, total: daily.total, score: daily.score })
+                : t("home.dailyShort")
+            }
             a11y={`${t("home.daily")}. ${
               daily
                 ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
@@ -530,11 +534,15 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.footer}>
-          <FooterLink icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
           <FooterLink icon="book-open" label={t("home.book")} onPress={() => router.push("/sammelbuch")} />
           <FooterLink icon="award" label={t("home.rank")} onPress={() => router.push("/rangliste")} />
           <FooterLink icon="gift" label={t("home.rewards")} onPress={() => router.push("/belohnungen")} />
-          <FooterLink icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
+          {/* Selten gebraucht: klein und abgesetzt */}
+          <View style={styles.divider} />
+          <View style={styles.tools}>
+            <ToolButton icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
+            <ToolButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
+          </View>
         </View>
       </View>
     </View>
@@ -700,6 +708,24 @@ function SideTile({
   );
 }
 
+/** Kleiner runder Knopf ohne Beschriftung (Anleitung, Einstellungen). */
+function ToolButton({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={() => {
+        sfx("tap");
+        onPress();
+      }}
+      hitSlop={6}
+      style={({ pressed }) => [styles.tool, pressed && styles.footerPressed]}
+    >
+      <Feather name={icon} size={18} color="#FFFFFF" />
+    </Pressable>
+  );
+}
+
 /** Runder Symbol-Knopf mit kurzer Beschriftung darunter (Fußzeile). */
 function FooterLink({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
   return (
@@ -767,6 +793,18 @@ const styles = StyleSheet.create({
   logoTop: { fontSize: 22, lineHeight: 24, letterSpacing: 3 },
   logoBottom: { fontSize: 34, lineHeight: 38, letterSpacing: 0.5 },
 
+  tools: { flexDirection: "row", gap: Spacing.sm, paddingTop: 3 },
+  divider: { width: 1, height: 40, marginTop: 3, marginHorizontal: 4, backgroundColor: "rgba(255,255,255,0.25)" },
+  tool: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.32)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.22)",
+  },
   levelChip: {
     alignItems: "stretch",
     gap: 5,

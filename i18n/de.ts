@@ -39,7 +39,7 @@ export const de = {
   "home.tricks": "Trickwürfe",
   "home.tricksDesc": "Durch Reifen werfen – ruhig, gleitend, drehend",
   "home.dailyShort": "Neu für heute",
-  "home.dailyDoneShort": "Heute {correct}/{total} ✓",
+  "home.dailyDoneShort": "✓ {correct}/{total} · {score} P.",
   "home.tricksShort": "Durch Reifen",
   "home.aimShort": "Mit Schwung",
   "tricks.title": "Trickwürfe",
