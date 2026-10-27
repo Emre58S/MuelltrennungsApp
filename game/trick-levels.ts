@@ -206,6 +206,16 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "swish",
     task: "trick.task.ringSpin",
   },
+  // Doppeltes Timing: Reifen gleitet auf und ab, die Tonne fährt
+  {
+    id: 16,
+    target: 1,
+    props: [ring(0, 2.8, 1.5, 0.6, { kind: "slide", axis: "y", amp: 0.4, period: 2.6 })],
+    requires: [0],
+    binSlide: ROLL,
+    bonus: "firstTry",
+    task: "trick.task.doubleTiming",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -219,9 +229,11 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): strin
           ? "🌀"
           : p.motion?.kind === "spin"
             ? "🔄"
-            : p.motion
-              ? "↔️"
-              : "⭕";
+            : p.motion?.kind === "slide" && p.motion.axis === "y"
+              ? "↕️"
+              : p.motion
+                ? "↔️"
+                : "⭕";
     if (!icons.includes(icon)) icons.push(icon);
   }
   if (level.binSlide) icons.unshift("🗑️");
