@@ -124,7 +124,14 @@ export default function CollectionScreen() {
                     <Pressable
                       key={item.name}
                       accessibilityRole="button"
-                      accessibilityLabel={known ? itemName(item) : t("book.lockedItem")}
+                      // VoiceOver: bekannt mit Lernstand, unbekannt mit der Tonne des Abschnitts
+                      accessibilityLabel={
+                        known
+                          ? mastery === "known"
+                            ? itemName(item)
+                            : `${itemName(item)}, ${t(mastery === "mastered" ? "book.mastered" : "book.practice")}`
+                          : `${t("book.lockedItem")}, ${t(`bin.${CATEGORY_BIN[category]}` as TranslationKey)}`
+                      }
                       onPress={() => {
                         tapHaptic();
                         setSelected(item);
