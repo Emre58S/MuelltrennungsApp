@@ -125,6 +125,7 @@ export const de = {
   "trick.task.movingBin": "Die Tonne fährt – triff sie",
   "trick.task.wind": "Gegen den Wind",
   "trick.task.windRing": "Durch den Reifen, gegen den Wind",
+  "trick.task.ringMovingBin": "Durch den Reifen in die fahrende Tonne",
   "trick.goal.done": "Schaffen",
   "trick.goal.tries": "Höchstens 3 Versuche",
   "trick.goal.swish": "Swish: ohne Berührung",

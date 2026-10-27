@@ -187,6 +187,16 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "firstTry",
     task: "trick.task.windRing",
   },
+  // Oben durch den Reifen – und die rechte Tonne fährt
+  {
+    id: 14,
+    target: 2,
+    props: [ring(0.75, 3.35, 3.3, 0.6)],
+    requires: [0],
+    binSlide: ROLL,
+    bonus: "firstTry",
+    task: "trick.task.ringMovingBin",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
