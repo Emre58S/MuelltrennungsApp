@@ -32,6 +32,7 @@ import {
   setLandHandler,
   setPreview,
   setShotGuide,
+  setTrail,
   type LandOutcome,
   type ThrowSpec,
 } from "@/components/game/scene-bus";
@@ -84,6 +85,8 @@ import {
   type ItemStats,
   queueThrowRecord,
   todayKey,
+  getRewardProgress,
+  getTrail,
 } from "@/utils/storage";
 import { Canvas } from "@react-three/fiber/native";
 import * as Haptics from "expo-haptics";
@@ -108,6 +111,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
+import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
 import { itemMass, MASS_FEEL } from "@/game/item-mass";
 import {
@@ -274,6 +278,16 @@ export function GameRound({
   const showTip = tips.show;
   const heldEver = useRef(false);
   const flicksNoHold = useRef(0);
+  // Belohnungen: gewählte Wurfspur laden, Fortschritt für „neu freigeschaltet“
+  const rewardProgress = useRef<Progress>({ stars: 0, level: 0 });
+  useEffect(() => {
+    Promise.all([getTrail(), getRewardProgress()])
+      .then(([id, progress]) => {
+        rewardProgress.current = progress;
+        setTrail(bus.current, usableTrail(id, progress));
+      })
+      .catch(() => undefined);
+  }, []);
   // Erster schwerer / leichter Gegenstand im Zielwurf: Gewicht erklären
   useEffect(() => {
     if (mode !== "aim" || !currentItem) return;
@@ -668,6 +682,13 @@ export function GameRound({
     xpTotal.current += xp;
     const newLevel = getLevelFromXP(xpTotal.current);
     if (newLevel > levelNow.current) {
+      // Neue Wurfspur durch das Level? (Belohnungen)
+      const before = { ...rewardProgress.current, level: levelNow.current };
+      const after = { ...before, level: newLevel };
+      const trails = newlyUnlocked(before, after);
+      rewardProgress.current = after;
+      if (trails.length)
+        later(() => showBanner(`🎁 ${t("reward.new", { name: t(trails[0].name) })}`, 3000), 3400);
       levelNow.current = newLevel;
       sfx("levelup");
       showBanner(`⬆ ${t("game.levelUp", { level: newLevel })}`);

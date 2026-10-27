@@ -12,6 +12,7 @@ import { useSyncExternalStore } from "react";
 import { type Item } from "@/constants/items";
 
 import { type Burst } from "./effects";
+import { type TrailId } from "@/game/rewards";
 
 export type BinEventType = "hit" | "perfect" | "reject" | "peek" | "bump";
 
@@ -84,6 +85,8 @@ export type SceneBus = {
   shotGuide: ShotGuide | null;
   /** Uhr der Szene (s, läuft mit Zeitlupe): bewegte Reifen hängen davon ab. */
   clock: number;
+  /** Gewählte Wurfspur (Belohnungen, game/rewards.ts). */
+  trail: TrailId;
   /** Wann (Szenen-Uhr) jeder Reifen zuletzt durchflogen wurde – er leuchtet kurz auf. */
   ringPass: number[];
   onLand: (id: number, outcome?: LandOutcome) => void;
@@ -103,6 +106,7 @@ export function createBus(): SceneBus {
     lids: [],
     shotGuide: null,
     clock: 0,
+    trail: "standard",
     ringPass: [],
     onLand: () => undefined,
   };
@@ -175,6 +179,11 @@ export function setLandHandler(
 }
 
 /** Flugbahn-Vorschau setzen/ausblenden (ohne Neu-Rendern der Szene). */
+/** Wurfspur für die nächsten Würfe (Auswahl auf der Belohnungs-Seite). */
+export function setTrail(bus: SceneBus, trail: TrailId) {
+  bus.trail = trail;
+}
+
 /** Reifen wurde durchflogen (für das Aufleuchten). */
 export function markRingPass(bus: SceneBus, ring: number) {
   bus.ringPass[ring] = bus.clock;

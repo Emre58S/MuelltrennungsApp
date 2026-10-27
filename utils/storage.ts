@@ -24,6 +24,7 @@ export const StorageKeys = {
   TRICK_STARS: "muell_trick_stars_v2",
   TRICK_DAILY: "muell_trick_daily",
   SEEN_TIPS: "muell_seen_tips",
+  TRAIL: "muell_trail",
   REDUCE_MOTION: "muell_reduce_motion",
   ITEM_STATS: "muell_item_stats",
   DAILY_RESULT: "muell_daily_result",
@@ -466,6 +467,25 @@ export function saveTrickStars(level: number, stars: number): Promise<void> {
     all[level] = stars;
     await setItem(StorageKeys.TRICK_STARS, JSON.stringify(all));
   });
+}
+
+// ── Belohnungen: Fortschritt und gewählte Wurfspur ──────────────────
+
+/** Trick-Sterne (Summe) und XP-Level – daran hängen die Belohnungen. */
+export async function getRewardProgress(): Promise<{ stars: number; level: number }> {
+  const [stars, xp] = await Promise.all([getTrickStars(), getNumber(StorageKeys.TOTAL_XP)]);
+  return {
+    stars: Object.values(stars).reduce((sum, n) => sum + n, 0),
+    level: getLevelFromXP(xp),
+  };
+}
+
+export function getTrail(): Promise<string | null> {
+  return getItem(StorageKeys.TRAIL);
+}
+
+export function saveTrail(id: string): Promise<void> {
+  return setItem(StorageKeys.TRAIL, id);
 }
 
 // ── Einführung: welche Tipps schon gezeigt wurden ───────────────────

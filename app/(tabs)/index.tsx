@@ -563,9 +563,8 @@ export default function HomeScreen() {
 
         <View style={styles.footer}>
           <FooterLink icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
-          <View style={styles.footerDot} />
           <FooterLink icon="book-open" label={t("home.book")} onPress={() => router.push("/sammelbuch")} />
-          <View style={styles.footerDot} />
+          <FooterLink icon="gift" label={t("home.rewards")} onPress={() => router.push("/belohnungen")} />
           <FooterLink icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
         </View>
       </View>
@@ -862,14 +861,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
+  // Bricht auf kleinen Handys in zwei Zeilen um (vier Links)
   footer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.sm + 2,
+    columnGap: Spacing.md + 2,
   },
   footerLink: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 },
-  footerDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: ON_SCENE_SOFT },
 
   pressed: { transform: [{ scale: 0.98 }] },
 });

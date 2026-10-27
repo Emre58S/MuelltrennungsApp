@@ -507,6 +507,8 @@ export function TrickResult({
   attempts,
   bonus,
   bonusDone,
+  unlocked,
+  fact,
   isLast,
   onNext,
   onRetry,
@@ -517,6 +519,10 @@ export function TrickResult({
   attempts: number;
   bonus: TrickBonus;
   bonusDone: boolean;
+  /** Name einer neu freigeschalteten Wurfspur. */
+  unlocked?: string;
+  /** „Wusstest du?“ zum geworfenen Gegenstand. */
+  fact?: { name: string; text: string };
   isLast: boolean;
   onNext: () => void;
   onRetry: () => void;
@@ -544,6 +550,19 @@ export function TrickResult({
           <GoalRow done={attempts <= 3} text={t("trick.goal.tries")} />
           <GoalRow done={bonusDone} text={bonusText(t, bonus)} />
         </View>
+        {fact && (
+          <View style={[styles.fact, { backgroundColor: colors.surfaceAlt }]}>
+            <AppText variant="caption" tone="textSecondary">
+              💡 {t("trick.factTitle")} · {fact.name}
+            </AppText>
+            <AppText variant="caption">{fact.text}</AppText>
+          </View>
+        )}
+        {unlocked && (
+          <AppText variant="label" tone="gold" center>
+            🎁 {t("reward.new", { name: unlocked })}
+          </AppText>
+        )}
         <View style={styles.resultButtons}>
           <Button title={isLast ? t("trick.levels") : t("trick.next")} icon="arrow-right" iconPosition="end" onPress={isLast ? onLevels : onNext} />
           <Button title={t("trick.retry")} variant="secondary" icon="rotate-ccw" onPress={onRetry} />
@@ -661,6 +680,7 @@ const styles = StyleSheet.create({
   star: { fontSize: 48, lineHeight: 56, color: "#F5B800" },
   resultButtons: { gap: Spacing.sm, marginTop: Spacing.sm },
   goals: { gap: 2, alignSelf: "center" },
+  fact: { gap: 2, padding: Spacing.sm, borderRadius: Radius.md },
   tip: {
     flexDirection: "row",
     alignItems: "center",

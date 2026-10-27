@@ -29,7 +29,14 @@ import { Spacing } from "@/constants/theme";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx } from "@/utils/sfx";
-import { saveTrickDaily, saveTrickStars } from "@/utils/storage";
+import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
+import {
+  getRewardProgress,
+  getTrail,
+  getTrickStars,
+  saveTrickDaily,
+  saveTrickStars,
+} from "@/utils/storage";
 import * as Haptics from "expo-haptics";
 import {
   useCallback,
@@ -72,8 +79,14 @@ import {
   setLandHandler,
   setPreview,
   setShotGuide,
+  setTrail,
   type ThrowSpec,
 } from "./scene-bus";
+
+/** Ab diesem Level kommen auch Gegenstände, die woanders hingehören. */
+const DECOY_FROM = 5;
+/** So oft ist der nächste Gegenstand einer zum Sortieren. */
+const DECOY_CHANCE = 0.3;
 
 export function TrickRound({
   level,
@@ -92,7 +105,7 @@ export function TrickRound({
   const isLast = daily || level.id === TRICK_LEVELS[TRICK_LEVELS.length - 1].id;
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
-  const { t, lang } = useI18n();
+  const { t, lang, itemName, itemFact } = useI18n();
   const { reduceMotion } = useAppSettings();
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -121,19 +134,33 @@ export function TrickRound({
    *  aber leichte Sachen treibt der Wind weiter ab. */
   const feelOf = (it: Item) => ({ loft: 1, drift: MASS_FEEL[itemMass(it)].drift });
 
-  // Gegenstände: immer aus der Zieltonne, ohne direkte Wiederholung
-  // (veränderliche Liste wie der „picker“ der Spielrunde – darf beim ersten Render gelesen werden)
+  // Gegenstände aus der Zieltonne, ohne direkte Wiederholung. Ab den mittleren
+  // Leveln (und im Tages-Trick) kommt manchmal einer, der woanders hingehört:
+  // den richtig sortieren – falsch kostet einen Versuch.
+  // (veränderliche Listen wie der „picker“ der Spielrunde – dürfen beim ersten Render gelesen werden)
+  const decoys = useMemo(
+    () => (daily || level.id >= DECOY_FROM ? getItemsForBins(bins.filter((b) => b !== target)) : []),
+    [daily, level.id, bins, target],
+  );
   const [recent] = useState<string[]>(() => []);
+  /** Je gezogenem Gegenstand: war es einer zum Sortieren? */
+  const [drawn] = useState<boolean[]>(() => []);
   const draw = useCallback(() => {
-    const item = pickItem(pool, () => 1, recent);
+    // Nie gleich am Anfang, nie zweimal hintereinander
+    const decoy =
+      decoys.length > 0 && drawn.length > 0 && !drawn[drawn.length - 1] && Math.random() < DECOY_CHANCE;
+    const from = decoy ? decoys : pool;
+    const item = pickItem(from, () => 1, recent);
+    drawn.push(decoy);
     if (item) {
       recent.push(item.name);
       while (recent.length > recentLimit(pool.length)) recent.shift();
     }
     return item;
-  }, [pool, recent]);
+  }, [pool, decoys, recent, drawn]);
   const [item, setItemState] = useState<Item | null>(draw);
-  const [warmItems] = useState(() => pool);
+  // Alle Modelle vorab aufbauen – auch die zum Sortieren (sonst ruckelt der erste)
+  const [warmItems] = useState(() => [...pool, ...decoys]);
   const itemRef = useRef<Item | null>(item);
   const setItem = useCallback((next: Item | null) => {
     itemRef.current = next;
@@ -145,6 +172,8 @@ export function TrickRound({
   }, []);
 
   const busy = useRef(false);
+  /** Zuletzt geworfener Gegenstand (ein Wurf zur Zeit). */
+  const thrownRef = useRef<Item | null>(null);
   const done = useRef(false);
   const ids = useRef(0);
   /** Wurf-Eingabe: schnell wischen oder halten (Vorschau). */
@@ -153,14 +182,36 @@ export function TrickRound({
   /** Angezeigter Versuch: der laufende bzw. der nächste nach einem Fehlwurf. */
   const [attempt, setAttempt] = useState(1);
   const [floats, setFloats] = useState<FloatText[]>([]);
-  const [result, setResult] = useState<{ stars: number; attempts: number; bonus: boolean } | null>(null);
+  const [result, setResult] = useState<{
+    stars: number;
+    attempts: number;
+    bonus: boolean;
+    unlocked?: string;
+    fact?: { name: string; text: string };
+  } | null>(null);
   const [hasThrown, setHasThrown] = useState(false);
   const later = useLater();
   // Einführung: je Hindernis einmal erklären; Halten-Tipp nach Fehlwürfen ohne Vorschau
   const tips = useTips();
   const showTip = tips.show;
+  // Belohnungen: gewählte Spur, Fortschritt und bisherige Sterne dieses Levels
+  const rewardProgress = useRef<Progress>({ stars: 0, level: 0 });
+  const levelStars = useRef(0);
+  useEffect(() => {
+    Promise.all([getTrail(), getRewardProgress(), getTrickStars()])
+      .then(([id, progress, stars]) => {
+        rewardProgress.current = progress;
+        levelStars.current = stars[level.id] ?? 0;
+        setTrail(bus.current, usableTrail(id, progress));
+      })
+      .catch(() => undefined);
+  }, [level.id]);
   const heldEver = useRef(false);
   const missesNoHold = useRef(0);
+  // Erster Gegenstand, der nicht in die Zieltonne gehört: kurz erklären
+  useEffect(() => {
+    if (item && item.category !== target.category) showTip("decoy");
+  }, [item, target, showTip]);
   useEffect(() => {
     const has = (kind: string) => level.props.some((p) => p.kind === kind);
     const ring = level.props.find((p) => p.kind === "ring");
@@ -203,8 +254,12 @@ export function TrickRound({
     const current = itemRef.current;
     if (!current || busy.current || done.current) return;
     busy.current = true;
-    attemptsRef.current += 1;
-    setAttempt(attemptsRef.current);
+    thrownRef.current = current;
+    // Versuch zählt nur für Gegenstände der Zieltonne (falsch Sortiertes zählt bei der Landung)
+    if (current.category === target.category) {
+      attemptsRef.current += 1;
+      setAttempt(attemptsRef.current);
+    }
     if (!hasThrown) setHasThrown(true);
     cancelSlowMotion(fx.current);
     const spec: ThrowSpec = {
@@ -233,6 +288,10 @@ export function TrickRound({
     const bonus = bonusMet(level.bonus, { attempts, clean });
     const stars = starsFor(attempts, bonus);
     (daily ? saveTrickDaily(stars) : saveTrickStars(level.id, stars)).catch(() => undefined);
+    // Neue Wurfspur durch die Sterne? (Tages-Trick zählt nicht)
+    const before = rewardProgress.current;
+    const gained = daily ? 0 : Math.max(0, stars - levelStars.current);
+    const unlocked = newlyUnlocked(before, { ...before, stars: before.stars + gained })[0];
     const top = layout.binTops[level.target];
     queueBinEvent(bus.current, level.target, "perfect");
     queueBurst(bus.current, {
@@ -254,12 +313,51 @@ export function TrickRound({
     float("★".repeat(stars), top.x, top.y, "#FFD54A");
     // Swish: ohne Berührung (Reifen durchfliegen zählt nicht als Berührung)
     if (clean) later(() => float(t("trick.swish"), top.x, top.y + 40, "#FFFFFF"), 250);
-    later(() => setResult({ stars, attempts, bonus }), 1000);
+    // „Wusstest du?“ zum geworfenen Gegenstand
+    const thrown = thrownRef.current;
+    const fact = thrown ? itemFact(thrown) : undefined;
+    const tip = thrown && fact ? { name: itemName(thrown), text: fact } : undefined;
+    later(
+      () => setResult({ stars, attempts, bonus, unlocked: unlocked && t(unlocked.name), fact: tip }),
+      1000,
+    );
+  };
+
+  /** Gegenstand, der nicht in die Zieltonne gehört: richtig sortieren lernen. */
+  const landDecoy = (thrown: Item, bin: number | null, x: number | undefined) => {
+    const y = layout.binTops[0].y;
+    const right = bins.findIndex((b) => b.category === thrown.category);
+    if (bin === right) {
+      float(`✓ ${t("trick.sorted")}`, screenX(binXs[bin]), y, "#8BE59A");
+      queueBinEvent(bus.current, bin, "hit");
+      sfx("land");
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+    } else if (bin !== null) {
+      // Falsch sortiert: kostet einen Versuch, die richtige Tonne hüpft
+      attemptsRef.current += 1;
+      queueBinEvent(bus.current, bin, "reject");
+      if (right >= 0) later(() => queueBinEvent(bus.current, right, "peek"), 250);
+      float(t("trick.decoyWrong", { bin: t(bins[right]?.labelKey ?? target.labelKey) }), screenX(binXs[bin]), y);
+      sfx("wrong");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+    } else {
+      float(t("game.miss"), screenX(x ?? 0), y);
+      sfx("plop");
+    }
   };
 
   const handleLand = (_id: number, outcome?: LandOutcome) => {
     busy.current = false;
     const bin = outcome?.bin ?? null;
+    const thrown = thrownRef.current;
+    if (thrown && thrown.category !== target.category) {
+      landDecoy(thrown, bin, outcome?.x);
+      setAttempt(attemptsRef.current + 1);
+      later(() => {
+        if (!done.current) setItem(draw());
+      }, 350);
+      return;
+    }
     const y = layout.binTops[0].y;
     if (bin === level.target && meetsRequirement(level, outcome?.props ?? [])) {
       succeed(!!outcome?.clean);
@@ -437,6 +535,8 @@ export function TrickRound({
             attempts={result.attempts}
             bonus={level.bonus}
             bonusDone={result.bonus}
+            unlocked={result.unlocked}
+            fact={result.fact}
             title={daily || !isLast ? t("trick.done") : t("trick.allDone")}
             isLast={isLast}
             onNext={onNext}

@@ -19,7 +19,8 @@ export type TipId =
   | "windmill"
   | "movingRing"
   | "spin"
-  | "stars";
+  | "stars"
+  | "decoy";
 
 /** So lange (ms) bleibt ein Tipp stehen (Tippen schließt ihn früher). */
 const TIP_MS = 4500;

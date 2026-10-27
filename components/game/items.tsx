@@ -30,6 +30,7 @@ import {
   TRACE_POINTS,
   traceShot,
 } from "@/game/physics";
+import { type TrailId } from "@/game/rewards";
 import { perfMark } from "@/utils/perf-marks";
 import { sfx } from "@/utils/sfx";
 
@@ -370,6 +371,31 @@ const TRAIL = 10;
  *  Platz ~1,5 s – 10 Plätze reichen auch für sehr schnelles Werfen. */
 const SLOTS = 10;
 const TRAIL_GEO = new THREE.SphereGeometry(1, 8, 6);
+const WHITE = new THREE.Color("#FFFFFF");
+const KONFETTI = ["#FF5A5F", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"].map((c) => new THREE.Color(c));
+const KOMET_TAIL = new THREE.Color("#5AA9FF");
+
+/** Farbe eines Spur-Punkts: `k` = 0 (Ende) … 1 (Kopf), `t` = Zeit (s),
+ *  `i` = Nummer des Punkts. */
+function trailColor(out: THREE.Color, style: TrailId | "fire" | "glow", k: number, t: number, i: number) {
+  switch (style) {
+    case "fire":
+      return out.setHSL(0.05 + k * 0.06, 1, 0.55);
+    case "glow":
+    case "gold":
+      return out.setHSL(0.13, 1, 0.5 + k * 0.25);
+    case "komet":
+      return out.copy(KOMET_TAIL).lerp(WHITE, k);
+    case "regenbogen":
+      return out.setHSL((k * 0.7 + t * 0.6) % 1, 0.9, 0.6);
+    case "konfetti":
+      return out.copy(KONFETTI[(i + Math.floor(t * 6)) % KONFETTI.length]);
+    case "polarlicht":
+      return out.setHSL(0.42 + 0.33 * k + 0.04 * Math.sin(t * 3 + k * 6), 0.85, 0.6);
+    default:
+      return out.copy(WHITE);
+  }
+}
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
 /** physics = Zielwurf: echte Wurf-Physik (game/physics.ts) statt fester Bahn. */
@@ -388,6 +414,8 @@ type Slot = {
   trail: THREE.Vector3[];
   head: number;
   trailShown: boolean;
+  /** Spur dieses Wurfs: gewählte Belohnung – oder Feuer/Gold als Rückmeldung. */
+  style: TrailId | "fire" | "glow";
   model: THREE.Object3D | null;
   target: THREE.Vector3;
   arc: number;
@@ -415,6 +443,7 @@ function createSlot(): Slot {
     trail: Array.from({ length: TRAIL }, () => new THREE.Vector3()),
     head: 0,
     trailShown: false,
+    style: "standard",
     model: null,
     target: new THREE.Vector3(),
     arc: 1,
@@ -468,6 +497,7 @@ export const ThrowLayer = memo(function ThrowLayer({
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const sv = useMemo(() => new THREE.Vector3(), []);
+  const tint = useMemo(() => new THREE.Color(), []);
   const colliders = useMemo(() => binColliders(openings, binSlide), [openings, binSlide]);
   const events = useMemo<BallEvent[]>(() => [], []);
   const vel = useMemo(() => new THREE.Vector3(), []);
@@ -492,7 +522,11 @@ export const ThrowLayer = memo(function ThrowLayer({
   useLayoutEffect(() => {
     trails.current.forEach((mesh) => {
       if (!mesh) return;
-      for (let i = 0; i < TRAIL; i++) mesh.setMatrixAt(i, ZERO);
+      for (let i = 0; i < TRAIL; i++) {
+        mesh.setMatrixAt(i, ZERO);
+        // Farbe je Punkt (Wurfspuren): Puffer einmal anlegen
+        mesh.setColorAt(i, WHITE);
+      }
       mesh.instanceMatrix.needsUpdate = true;
     });
   }, []);
@@ -562,8 +596,9 @@ export const ThrowLayer = memo(function ThrowLayer({
     s.trailShown = true;
     const trail = trails.current[i];
     if (trail) trail.visible = true;
-    // Gold = Perfekt/Fieber, Orange = „On Fire“ (Serie im Zielwurf)
-    trailMats[i].color.set(spec.fire ? "#FF8A2B" : spec.glow ? "#FFD54A" : "#FFFFFF");
+    // Orange = „On Fire“ (Serie im Zielwurf), Gold = Perfekt/Fieber – sonst die
+    // gewählte Wurfspur (Belohnungen)
+    s.style = spec.fire ? "fire" : spec.glow ? "glow" : bus.current.trail;
 
     g.position.copy(start);
     g.scale.setScalar(startScale);
@@ -837,14 +872,16 @@ export const ThrowLayer = memo(function ThrowLayer({
       }
       s.trail[s.head].copy(g.position);
       s.head = (s.head + 1) % TRAIL;
-      const glow = s.spec.glow || !!s.spec.fire;
+      const big = s.style === "fire" || s.style === "glow" || s.style === "komet";
       for (let k = 0; k < TRAIL; k++) {
         const idx = (s.head + k) % TRAIL;
-        sv.setScalar(0.03 + (k / TRAIL) * (glow ? 0.09 : 0.06));
+        sv.setScalar(0.03 + (k / TRAIL) * (big ? 0.09 : 0.06));
         m.compose(s.trail[idx], q, sv);
         mesh.setMatrixAt(k, m);
+        mesh.setColorAt(k, trailColor(tint, s.style, k / TRAIL, now, k));
       }
       mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }
     if (__DEV__) {
       const ms = performance.now() - started;
