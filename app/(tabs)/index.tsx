@@ -387,24 +387,12 @@ export default function HomeScreen() {
 
       {/* Kopf: Logo links, Fortschritt rechts */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]} pointerEvents="box-none">
-        <View
-          style={styles.logo}
-          accessible
-          accessibilityRole="header"
-          accessibilityLabel={`${t("home.titleTop")} ${t("home.titleBottom")}`}
-        >
-          <View style={[styles.logoBadge, { backgroundColor: colors.primary }]}>
-            <AppText style={styles.logoIcon}>♻️</AppText>
-          </View>
-          <View>
-            <AppText variant="title" color={ON_SCENE} style={[styles.logoTop, TEXT_SHADOW]}>
-              {t("home.titleTop").toUpperCase()}
-            </AppText>
-            <AppText variant="display" color={ON_SCENE} style={[styles.logoBottom, TEXT_SHADOW]}>
-              {t("home.titleBottom").toUpperCase()}
-            </AppText>
-          </View>
-        </View>
+        <Logo
+          top={t("home.titleTop")}
+          bottom={t("home.titleBottom")}
+          badgeColor={colors.primary}
+          calm={reduceMotion}
+        />
 
         <View
           style={styles.levelChip}
@@ -668,6 +656,93 @@ function ThrowHint({ text, calm }: { text: string; calm: boolean }) {
   );
 }
 
+/** Farben der Mülltonnen für den Streifen unter dem Schriftzug. */
+const LOGO_STRIPE = ALL_BINS;
+/** Der Auftritt läuft nur einmal pro App-Start, nicht bei jeder Rückkehr. */
+let logoShown = false;
+
+/** Schriftzug „Müll Sortieren“: Abzeichen ploppt auf, Wörter gleiten herein,
+ *  darunter ein Streifen in den Tonnenfarben. Bei „Weniger Bewegung“ ruhig. */
+function Logo({
+  top,
+  bottom,
+  badgeColor,
+  calm,
+}: {
+  top: string;
+  bottom: string;
+  badgeColor: string;
+  calm: boolean;
+}) {
+  const [still] = useState(() => calm || logoShown);
+  const [badge] = useState(() => new Animated.Value(still ? 1 : 0));
+  const [word1] = useState(() => new Animated.Value(still ? 1 : 0));
+  const [word2] = useState(() => new Animated.Value(still ? 1 : 0));
+  const [stripe] = useState(() => new Animated.Value(still ? 1 : 0));
+  useEffect(() => {
+    logoShown = true;
+    if (still) return;
+    const ease = Easing.out(Easing.cubic);
+    // Kurz warten, bis der Startbildschirm sicher weg ist
+    const anim = Animated.sequence([Animated.delay(150), Animated.parallel([
+      Animated.spring(badge, { toValue: 1, friction: 5, tension: 90, useNativeDriver: true }),
+      Animated.timing(word1, { toValue: 1, duration: 360, delay: 120, easing: ease, useNativeDriver: true }),
+      Animated.timing(word2, { toValue: 1, duration: 380, delay: 220, easing: ease, useNativeDriver: true }),
+      Animated.timing(stripe, { toValue: 1, duration: 420, delay: 420, easing: ease, useNativeDriver: true }),
+    ])]);
+    anim.start();
+    return () => anim.stop();
+  }, [still, badge, word1, word2, stripe]);
+
+  const slide = (v: Animated.Value) => ({
+    opacity: v,
+    transform: [{ translateX: v.interpolate({ inputRange: [0, 1], outputRange: [-14, 0] }) }],
+  });
+
+  return (
+    <View style={styles.logo} accessible accessibilityRole="header" accessibilityLabel={`${top} ${bottom}`}>
+      <Animated.View
+        style={[
+          styles.logoBadge,
+          {
+            backgroundColor: badgeColor,
+            opacity: badge.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }),
+            transform: [
+              { scale: badge.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) },
+              { rotate: badge.interpolate({ inputRange: [0, 1], outputRange: ["-25deg", "0deg"] }) },
+            ],
+          },
+        ]}
+      >
+        <AppText style={styles.logoIcon}>♻️</AppText>
+      </Animated.View>
+      <View>
+        <Animated.View style={slide(word1)}>
+          <AppText variant="title" color={ON_SCENE} style={[styles.logoTop, TEXT_SHADOW]}>
+            {top.toUpperCase()}
+          </AppText>
+        </Animated.View>
+        <Animated.View style={slide(word2)}>
+          <AppText variant="display" color={ON_SCENE} style={[styles.logoBottom, TEXT_SHADOW]}>
+            {bottom.toUpperCase()}
+          </AppText>
+        </Animated.View>
+        {/* Liegt über dem Rand (absolut) – nimmt keinen Platz weg */}
+        <Animated.View
+          style={[
+            styles.logoStripe,
+            { opacity: stripe, transform: [{ scaleX: stripe }] },
+          ]}
+        >
+          {LOGO_STRIPE.map((b) => (
+            <View key={b.key} style={[styles.logoStripePart, { backgroundColor: b.color }]} />
+          ))}
+        </Animated.View>
+      </View>
+    </View>
+  );
+}
+
 /** Kleine Kachel für weitere Spielarten (Symbol, Name, kurze Zeile). */
 function SideTile({
   icon,
@@ -795,6 +870,22 @@ const styles = StyleSheet.create({
   logoIcon: { fontSize: 28, lineHeight: 34 },
   logoTop: { fontSize: 22, lineHeight: 24, letterSpacing: 3 },
   logoBottom: { fontSize: 34, lineHeight: 38, letterSpacing: 0.5 },
+  logoStripe: {
+    position: "absolute",
+    left: 2,
+    right: 2,
+    bottom: -3,
+    height: 4,
+    flexDirection: "row",
+    gap: 3,
+    transformOrigin: "left",
+  },
+  logoStripePart: {
+    flex: 1,
+    borderRadius: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.6)",
+  },
 
   tools: { flexDirection: "row", gap: Spacing.sm, paddingTop: 3 },
   divider: { width: 1, height: 40, marginTop: 3, marginHorizontal: 4, backgroundColor: "rgba(255,255,255,0.25)" },
