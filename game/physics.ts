@@ -110,7 +110,21 @@ export type WindmillCollider = {
   period: number;
 };
 
-export type PropCollider = RingCollider | WindmillCollider;
+/** Ventilator: Windfeld (Kasten), das den Wurf seitlich schiebt – leichte
+ *  Gegenstände stärker (Ball.drift). `force` = Beschleunigung in x (+ = rechts). */
+export type FanCollider = {
+  kind: "fan";
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  halfW: number;
+  halfH: number;
+  halfD: number;
+  force: number;
+};
+
+export type PropCollider = RingCollider | WindmillCollider | FanCollider;
 
 /** Halbe Dicke eines Windrad-Flügels (Richtung Kamera). */
 export const BLADE_THICK = 0.04;
@@ -133,11 +147,24 @@ export function ringPose(ring: RingCollider, time: number, center: THREE.Vector3
   else normal.set(Math.sin(angle), 0, Math.cos(angle));
 }
 
+/** Tonne fährt hin und her (Trickwürfe) entlang `axis` (z = auf dich zu und
+ *  weg): Versatz = shift + sin(…)·amp. */
+export type BinSlide = { axis: "x" | "z"; amp: number; period: number; shift?: number; phase?: number };
+
+/** Versatz einer fahrenden Tonne zur Szenen-Zeit `time`. */
+export function slideOffset(slide: BinSlide, time: number) {
+  return (slide.shift ?? 0) + Math.sin((time / slide.period) * TAU + (slide.phase ?? 0)) * slide.amp;
+}
+
 export type BinCollider = {
   x: number;
   z: number;
   /** Deckel-Winkel in rad (0 = zu, ~1 = offen). */
   lid: number;
+  /** Fahrende Tonne: Ruhelage und Bewegung (x/z wird pro Schritt gesetzt). */
+  slide?: BinSlide;
+  baseX?: number;
+  baseZ?: number;
 };
 
 export type Ball = {
@@ -153,6 +180,8 @@ export type Ball = {
   still: number;
   /** Uhr der Szene (s) – bewegte Reifen hängen davon ab. */
   time: number;
+  /** Wie stark Wind den Gegenstand schiebt (1 = normal, leicht > 1). */
+  drift: number;
 };
 
 export type BinPart = "rim" | "wall" | "lid";
@@ -196,6 +225,7 @@ export function launchBall(
     via: null,
     still: 0,
     time: 0,
+    drift: 1,
   };
 }
 
@@ -397,6 +427,14 @@ function collideWindmill(ball: Ball, w: WindmillCollider, events: BallEvent[]) {
   }
 }
 
+/** Ventilator: im Windfeld seitlich beschleunigen (je nach Gewicht). */
+function blowFan(ball: Ball, fan: FanCollider, h: number) {
+  const p = ball.p;
+  if (Math.abs(p.x - fan.x) > fan.halfW || Math.abs(p.y - fan.y) > fan.halfH) return;
+  if (Math.abs(p.z - fan.z) > fan.halfD) return;
+  ball.v.x += fan.force * ball.drift * h;
+}
+
 /** Ball einen Zeitschritt weiter (intern in kleinen Teilschritten). */
 export function stepBall(
   ball: Ball,
@@ -414,13 +452,20 @@ export function stepBall(
     ball.time += h;
 
     for (let i = 0; i < bins.length; i++) {
-      collideBin(ball, bins[i], i, events);
-      collideLid(ball, bins[i], i, events);
+      const bin = bins[i];
+      if (bin.slide) {
+        const off = slideOffset(bin.slide, ball.time);
+        if (bin.slide.axis === "z") bin.z = (bin.baseZ ?? 0) + off;
+        else bin.x = (bin.baseX ?? 0) + off;
+      }
+      collideBin(ball, bin, i, events);
+      collideLid(ball, bin, i, events);
     }
     for (let i = 0; i < props.length; i++) {
       const prop = props[i];
       if (prop.kind === "ring") collideRing(ball, prop, prevP, events);
-      else collideWindmill(ball, prop, events);
+      else if (prop.kind === "windmill") collideWindmill(ball, prop, events);
+      else blowFan(ball, prop, h);
     }
 
     // Boden: abprallen, dann rollen und ausrollen
@@ -466,11 +511,17 @@ export const PHYSICS_STEP = 1 / 240;
 /**
  * Abwurf-Tempo für einen Lob, der absteigend durch `target` fliegt (Ziel auf
  * Höhe der Öffnungen). Weitere Würfe fliegen höher – wie beim Basketball.
+ * `loft` = Bogenhöhe (schwere Gegenstände < 1 flacher, leichte > 1 höher).
  * Rückgabe: Flugzeit bis zum Ziel (s).
  */
-export function lobVelocity(out: THREE.Vector3, start: THREE.Vector3, target: THREE.Vector3): number {
+export function lobVelocity(
+  out: THREE.Vector3,
+  start: THREE.Vector3,
+  target: THREE.Vector3,
+  loft = 1,
+): number {
   const dist = Math.hypot(target.x - start.x, target.z - start.z);
-  const top = Math.max(start.y, target.y) + 0.5 + dist * 0.16;
+  const top = Math.max(start.y, target.y) + (0.5 + dist * 0.16) * loft;
   const vy = Math.sqrt(2 * GRAVITY * (top - start.y));
   const t = (vy + Math.sqrt(vy * vy - 2 * GRAVITY * (target.y - start.y))) / GRAVITY;
   out.set((target.x - start.x) / t, vy, (target.z - start.z) / t);
@@ -484,9 +535,10 @@ export function ballisticPoint(out: THREE.Vector3, start: THREE.Vector3, v: THRE
   return out;
 }
 
-/** Neuer Ball an `p` mit Tempo `v`, abgeworfen zur Szenen-Zeit `time`. */
-export function freshBall(p: THREE.Vector3, v: THREE.Vector3, time = 0): Ball {
-  return { p: p.clone(), v: v.clone(), inside: null, touched: false, via: null, still: 0, time };
+/** Neuer Ball an `p` mit Tempo `v`, abgeworfen zur Szenen-Zeit `time`;
+ *  `drift` = Wind-Empfindlichkeit (Gewicht). */
+export function freshBall(p: THREE.Vector3, v: THREE.Vector3, time = 0, drift = 1): Ball {
+  return { p: p.clone(), v: v.clone(), inside: null, touched: false, via: null, still: 0, time, drift };
 }
 
 /**
@@ -499,8 +551,9 @@ export function simulateShot(
   bins: BinCollider[],
   props: PropCollider[] = [],
   time = 0,
+  drift = 1,
 ): ThrowResult {
-  const ball = freshBall(start, v, time);
+  const ball = freshBall(start, v, time, drift);
   const touched: number[] = [];
   const events: BallEvent[] = [];
   for (let time = 0; time < 6; time += PHYSICS_STEP) {
@@ -521,18 +574,26 @@ export function simulateShot(
 const traceBall = freshBall(new THREE.Vector3(), new THREE.Vector3());
 const traceEvents: BallEvent[] = [];
 
+/** Abstand der Vorschau-Punkte (Physik-Schritte): 60 Punkte pro Sekunde. */
+const TRACE_EVERY = 4;
+/** Längste Vorschau (s) → so viele Punkte braucht der Puffer höchstens. */
+export const TRACE_POINTS = (3 / PHYSICS_STEP / TRACE_EVERY) | 0;
+
 /**
- * Flugbahn-Vorschau: Wann berührt der Wurf zum ersten Mal etwas (Reifen-Rand,
- * Tonne, Boden)? Bis dahin ist die Bahn eine reine Parabel (ballisticPoint).
- * Durch einen Reifen fliegen zählt nicht als Berührung. `time` = Szenen-Zeit
- * beim Abwurf (bewegte Reifen). Rückgabe: Flugzeit bis zur Berührung (s).
+ * Flugbahn-Vorschau: rechnet den Wurf genau wie die Szene (inklusive Wind)
+ * bis zur ersten Berührung (Reifen-Rand, Tonne, Boden) und legt die Bahn in
+ * `path` ab – ein Punkt je 1/60 s, `path[0]` = Start. Durch einen Reifen
+ * fliegen zählt nicht als Berührung. Rückgabe: Anzahl der Punkte.
+ * `path` muss TRACE_POINTS + 1 Vektoren fassen (wiederverwendet, kein Müll).
  */
-export function firstTouch(
+export function traceShot(
   start: THREE.Vector3,
   v: THREE.Vector3,
   bins: BinCollider[],
   props: PropCollider[],
+  path: THREE.Vector3[],
   time = 0,
+  drift = 1,
 ): number {
   const ball = traceBall;
   ball.p.copy(start);
@@ -541,14 +602,20 @@ export function firstTouch(
   ball.touched = false;
   ball.via = null;
   ball.time = time;
+  ball.drift = drift;
+  path[0].copy(start);
+  let count = 1;
   for (let step = 1; step < 3 / PHYSICS_STEP; step++) {
     traceEvents.length = 0;
     stepBall(ball, PHYSICS_STEP, bins, traceEvents, props);
-    // Berührt – oder sauber in eine Öffnung gefallen: dort endet die Vorschau
-    // (Schleife statt .some(): keine neue Funktion pro Schritt → kein Speicher-Müll)
-    if (ball.inside !== null) return step * PHYSICS_STEP;
-    for (let i = 0; i < traceEvents.length; i++)
-      if (traceEvents[i].type !== "pass") return step * PHYSICS_STEP;
+    let touched = ball.inside !== null;
+    // Schleife statt .some(): keine neue Funktion pro Schritt → kein Speicher-Müll
+    for (let i = 0; i < traceEvents.length && !touched; i++)
+      if (traceEvents[i].type !== "pass") touched = true;
+    if (touched || step % TRACE_EVERY === 0) {
+      if (count < path.length) path[count++].copy(ball.p);
+      if (touched) break;
+    }
   }
-  return 3;
+  return count;
 }

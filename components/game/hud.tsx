@@ -13,6 +13,8 @@ import { type Item } from "@/constants/items";
 import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
 import { type ScreenRect } from "@/game/layout";
+import { type Mass } from "@/game/item-mass";
+import { type TrickBonus } from "@/game/trick-levels";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 
 /* ── Hilfen ────────────────────────────────────────────────── */
@@ -67,7 +69,7 @@ export function ScoreBadge({
   score: number;
   streak: number;
   multiplier: number;
-  /** 0…1: wie nah die Serie am nächsten Fieber ist. */
+  /** 0…1: wie nah die Serie am nächsten Combo-Schritt ist (ganz oben: am Fieber). */
   feverProgress: number;
   fever: boolean;
 }) {
@@ -92,7 +94,7 @@ export function ScoreBadge({
             </AppText>
           )}
         </View>
-        {/* Serie → Fieber: füllt sich mit jedem Treffer, golden im Fieber */}
+        {/* Serie → nächster Combo-Schritt: füllt sich mit jedem Treffer, golden im Fieber */}
         <View style={[styles.feverMeter, { backgroundColor: colors.surfaceAlt }]}>
           <View
             style={[
@@ -213,14 +215,14 @@ export function ItemCard({
   item,
   showHint,
   hint,
-  pull = false,
+  mass,
 }: {
   item: Item;
   showHint: boolean;
   /** Eigener Hinweis beim ersten Wurf (sonst Wischen/Tippen). */
   hint?: string;
-  /** Zielwurf/Trickwürfe: die Hand zeigt Zurückziehen (nach unten) statt Wischen. */
-  pull?: boolean;
+  /** Zielwurf/Trickwürfe: Gewicht des Gegenstands (normal = keine Angabe). */
+  mass?: Mass;
 }) {
   const { t, itemName } = useI18n();
   const enter = useEnter(260, Easing.out(Easing.quad));
@@ -257,6 +259,12 @@ export function ItemCard({
         <AppText variant="label" numberOfLines={1}>
           {itemName(item)}
         </AppText>
+        {/* Gewicht: schwer fliegt flach, leicht hoch und treibt im Wind */}
+        {mass && mass !== "normal" && (
+          <AppText variant="caption" tone="textSecondary" numberOfLines={1}>
+            {mass === "schwer" ? "🪨" : "🪶"} {t(`item.mass.${mass}`)}
+          </AppText>
+        )}
       </HudSurface>
       {showHint && (
         <View style={styles.hint}>
@@ -269,7 +277,7 @@ export function ItemCard({
                   {
                     translateY: hand.interpolate({
                       inputRange: [0, 1],
-                      outputRange: pull ? [-8, 22] : [6, -24],
+                      outputRange: [6, -24],
                     }),
                   },
                 ],
@@ -411,16 +419,34 @@ export function Banner({ text }: { text: string }) {
 
 /* ── Trickwürfe: Kopfzeile und Ergebnis ───────────────────── */
 
-/** Kopfzeile einer Trick-Runde: Level, Versuch und die Aufgabe. */
-export function TrickHud({ level, attempt, task }: { level: number; attempt: number; task: string }) {
+/** Bonus-Ziel (dritter Stern) als Text. */
+function bonusText(t: ReturnType<typeof useI18n>["t"], bonus: TrickBonus) {
+  return bonus === "swish" ? t("trick.goal.swish") : t("trick.goal.firstTry");
+}
+
+/** Kopfzeile einer Trick-Runde: Level, Versuch, Aufgabe und die Sterne-Ziele. */
+export function TrickHud({
+  title,
+  attempt,
+  task,
+  bonus,
+}: {
+  title: string;
+  attempt: number;
+  task: string;
+  bonus: TrickBonus;
+}) {
   const { t } = useI18n();
   return (
     <HudSurface style={styles.trickHud}>
       <AppText variant="caption" tone="textMuted" center>
-        {t("tricks.level", { n: level })} · {t("trick.attempt", { n: Math.max(attempt, 1) })}
+        {title} · {t("trick.attempt", { n: Math.max(attempt, 1) })}
       </AppText>
       <AppText variant="label" center numberOfLines={2}>
         {task}
+      </AppText>
+      <AppText variant="caption" tone="gold" center numberOfLines={1}>
+        ★ {t("trick.goal.tries")} · ★ {bonusText(t, bonus)}
       </AppText>
     </HudSurface>
   );
@@ -436,17 +462,33 @@ function Star({ filled, delay }: { filled: boolean; delay: number }) {
   );
 }
 
-/** Ergebnis eines geschafften Levels: Sterne + weiter / nochmal / alle Level. */
+/** Eine Zeile der Sterne-Ziele im Ergebnis: geschafft ✓ oder offen. */
+function GoalRow({ done, text }: { done: boolean; text: string }) {
+  return (
+    <AppText tone={done ? "text" : "textMuted"} style={styles.goalRow}>
+      {done ? "★" : "☆"} {text}
+    </AppText>
+  );
+}
+
+/** Ergebnis eines geschafften Levels: Sterne, welche Ziele erreicht sind,
+ *  weiter / nochmal / alle Level. */
 export function TrickResult({
+  title,
   stars,
   attempts,
+  bonus,
+  bonusDone,
   isLast,
   onNext,
   onRetry,
   onLevels,
 }: {
+  title: string;
   stars: number;
   attempts: number;
+  bonus: TrickBonus;
+  bonusDone: boolean;
   isLast: boolean;
   onNext: () => void;
   onRetry: () => void;
@@ -459,7 +501,7 @@ export function TrickResult({
     <Animated.View style={[StyleSheet.absoluteFill, styles.resultWrap, { backgroundColor: colors.overlay, opacity: enter }]}>
       <View style={[styles.resultCard, { backgroundColor: colors.surface }]}>
         <AppText variant="title" center accessibilityRole="header">
-          {isLast ? t("trick.allDone") : t("trick.done")}
+          {title}
         </AppText>
         <View style={styles.stars} accessible accessibilityLabel={`${stars} / 3`}>
           {[1, 2, 3].map((n) => (
@@ -469,6 +511,11 @@ export function TrickResult({
         <AppText tone="textSecondary" center>
           {attempts <= 1 ? t("trick.attemptsOne") : t("trick.attempts", { n: attempts })}
         </AppText>
+        <View style={styles.goals}>
+          <GoalRow done text={t("trick.goal.done")} />
+          <GoalRow done={attempts <= 3} text={t("trick.goal.tries")} />
+          <GoalRow done={bonusDone} text={bonusText(t, bonus)} />
+        </View>
         <View style={styles.resultButtons}>
           <Button title={isLast ? t("trick.levels") : t("trick.next")} icon="arrow-right" iconPosition="end" onPress={isLast ? onLevels : onNext} />
           <Button title={t("trick.retry")} variant="secondary" icon="rotate-ccw" onPress={onRetry} />
@@ -585,6 +632,8 @@ const styles = StyleSheet.create({
   stars: { flexDirection: "row", justifyContent: "center", gap: Spacing.sm },
   star: { fontSize: 48, lineHeight: 56, color: "#F5B800" },
   resultButtons: { gap: Spacing.sm, marginTop: Spacing.sm },
+  goals: { gap: 2, alignSelf: "center" },
+  goalRow: { fontSize: 15 },
 
   hudButton: {
     minHeight: 44,

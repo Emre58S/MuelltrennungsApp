@@ -20,7 +20,9 @@ export const StorageKeys = {
   LANGUAGE: "muell_language",
   LAST_MODE: "muell_last_mode",
   MODE_STATS: "muell_mode_stats",
-  TRICK_STARS: "muell_trick_stars",
+  // v2: neue Level-Reihe und Sterne mit Bonus-Ziel (alte Sterne passen nicht mehr)
+  TRICK_STARS: "muell_trick_stars_v2",
+  TRICK_DAILY: "muell_trick_daily",
   REDUCE_MOTION: "muell_reduce_motion",
   ITEM_STATS: "muell_item_stats",
   DAILY_RESULT: "muell_daily_result",
@@ -462,5 +464,27 @@ export function saveTrickStars(level: number, stars: number): Promise<void> {
     if ((all[level] ?? 0) >= stars) return;
     all[level] = stars;
     await setItem(StorageKeys.TRICK_STARS, JSON.stringify(all));
+  });
+}
+
+// ── Tages-Trick: Sterne von heute ───────────────────────────────────
+
+/** Sterne im heutigen Tages-Trick (0 = noch nicht geschafft). */
+export async function getTrickDaily(): Promise<number> {
+  const raw = await getItem(StorageKeys.TRICK_DAILY);
+  if (!raw) return 0;
+  try {
+    const result = JSON.parse(raw) as { date: string; stars: number };
+    return result.date === todayKey() ? result.stars : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Speichert die heutigen Sterne, wenn es mehr als bisher sind. */
+export function saveTrickDaily(stars: number): Promise<void> {
+  return enqueue(async () => {
+    if ((await getTrickDaily()) >= stars) return;
+    await setItem(StorageKeys.TRICK_DAILY, JSON.stringify({ date: todayKey(), stars }));
   });
 }

@@ -2,10 +2,11 @@
 //
 // Liest Modus/Tagesaufgabe aus den Parametern, lädt die XP und baut pro
 // Runde eine frische GameRound auf (siehe components/game/game-round.tsx).
-// mode=trick&level=N: ein Trickwurf-Level (components/game/trick-round.tsx).
+// mode=trick&level=N: ein Trickwurf-Level (components/game/trick-round.tsx),
+// mode=trick&daily=1: der Tages-Trick.
 import { GameRound } from "@/components/game/game-round";
 import { TrickRound } from "@/components/game/trick-round";
-import { TRICK_LEVELS } from "@/game/trick-levels";
+import { dailyTrick, TRICK_LEVELS } from "@/game/trick-levels";
 import { type GameMode } from "@/constants/modes";
 import { useAppTheme } from "@/providers/app-settings";
 import {
@@ -13,6 +14,7 @@ import {
   getLevelFromXP,
   getNumber,
   StorageKeys,
+  todayKey,
 } from "@/utils/storage";
 import { setAudioModeAsync } from "expo-audio";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -79,6 +81,11 @@ export default function GameScreen() {
     setRound((r) => r + 1);
   }, []);
   const retryTrick = useCallback(() => setRound((r) => r + 1), []);
+  // Tages-Trick (für alle gleich) oder ein Level der Liste
+  const [trickDay] = useState(todayKey);
+  const trick = isTrick && daily
+    ? dailyTrick(trickDay)
+    : (TRICK_LEVELS.find((l) => l.id === trickLevel) ?? TRICK_LEVELS[0]);
   return (
     <GestureHandlerRootView
       style={[styles.root, { backgroundColor: colors.bg }]}
@@ -88,8 +95,9 @@ export default function GameScreen() {
       {isTrick && (
         <Profiler id="runde" onRender={onRender}>
           <TrickRound
-            key={`${round}-trick-${trickLevel}`}
-            levelId={trickLevel}
+            key={`${round}-trick-${daily ? trickDay : trickLevel}`}
+            level={trick}
+            daily={daily}
             onExit={goBack}
             onNext={nextTrick}
             onRetry={retryTrick}

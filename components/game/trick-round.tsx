@@ -14,18 +14,22 @@ import {
   pickItem,
   recentLimit,
 } from "@/game/logic";
+import { itemMass, MASS_FEEL } from "@/game/item-mass";
 import {
+  bonusMet,
+  hasWind,
   levelColliders,
   meetsRequirement,
   starsFor,
   TRICK_LEVELS,
+  type TrickLevel,
 } from "@/game/trick-levels";
 import { type Item } from "@/constants/items";
 import { Spacing } from "@/constants/theme";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx } from "@/utils/sfx";
-import { saveTrickStars } from "@/utils/storage";
+import { saveTrickDaily, saveTrickStars } from "@/utils/storage";
 import * as Haptics from "expo-haptics";
 import {
   useCallback,
@@ -70,18 +74,20 @@ import {
 } from "./scene-bus";
 
 export function TrickRound({
-  levelId,
+  level,
   onExit,
   onNext,
   onRetry,
+  daily = false,
 }: {
-  levelId: number;
+  level: TrickLevel;
   onExit: () => void;
   onNext: () => void;
   onRetry: () => void;
+  /** Tages-Trick: eigene Wertung, kein „Nächstes Level“. */
+  daily?: boolean;
 }) {
-  const level = TRICK_LEVELS.find((l) => l.id === levelId) ?? TRICK_LEVELS[0];
-  const isLast = level.id === TRICK_LEVELS[TRICK_LEVELS.length - 1].id;
+  const isLast = daily || level.id === TRICK_LEVELS[TRICK_LEVELS.length - 1].id;
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
   const { t, lang } = useI18n();
@@ -102,9 +108,16 @@ export function TrickRound({
   );
   const binXs = useMemo(() => layout.bins.map((b) => b.x), [layout]);
   const trick = useMemo(
-    () => ({ props: level.props, colliders: levelColliders(level) }),
+    () => ({
+      props: level.props,
+      colliders: levelColliders(level),
+      binSlide: level.binSlide ? { bin: level.target, slide: level.binSlide } : undefined,
+    }),
     [level],
   );
+  /** Gewicht im Trickmodus: gleicher Bogen (die Reifen hängen an der Wurfkurve),
+   *  aber leichte Sachen treibt der Wind weiter ab. */
+  const feelOf = (it: Item) => ({ loft: 1, drift: MASS_FEEL[itemMass(it)].drift });
 
   // Gegenstände: immer aus der Zieltonne, ohne direkte Wiederholung
   // (veränderliche Liste wie der „picker“ der Spielrunde – darf beim ersten Render gelesen werden)
@@ -138,7 +151,7 @@ export function TrickRound({
   /** Angezeigter Versuch: der laufende bzw. der nächste nach einem Fehlwurf. */
   const [attempt, setAttempt] = useState(1);
   const [floats, setFloats] = useState<FloatText[]>([]);
-  const [result, setResult] = useState<{ stars: number; attempts: number } | null>(null);
+  const [result, setResult] = useState<{ stars: number; attempts: number; bonus: boolean } | null>(null);
   const [hasThrown, setHasThrown] = useState(false);
   const later = useLater();
 
@@ -178,6 +191,7 @@ export function TrickRound({
       glow: false,
       land: shotLanding(layout, shot),
       strength: shot.strength,
+      feel: feelOf(current),
       free: { accept: bins.map((b) => b.category === current.category), center: shot.perfect },
     };
     queueThrow(bus.current, spec);
@@ -190,8 +204,10 @@ export function TrickRound({
   /** Geschafft; `clean` = ohne jede Berührung hinein (Swish). */
   const succeed = (clean: boolean) => {
     done.current = true;
-    const stars = starsFor(attemptsRef.current);
-    saveTrickStars(level.id, stars).catch(() => undefined);
+    const attempts = attemptsRef.current;
+    const bonus = bonusMet(level.bonus, { attempts, clean });
+    const stars = starsFor(attempts, bonus);
+    (daily ? saveTrickDaily(stars) : saveTrickStars(level.id, stars)).catch(() => undefined);
     const top = layout.binTops[level.target];
     queueBinEvent(bus.current, level.target, "perfect");
     queueBurst(bus.current, {
@@ -213,8 +229,7 @@ export function TrickRound({
     float("★".repeat(stars), top.x, top.y, "#FFD54A");
     // Swish: ohne Berührung (Reifen durchfliegen zählt nicht als Berührung)
     if (clean) later(() => float(t("trick.swish"), top.x, top.y + 40, "#FFFFFF"), 250);
-    const attempts = attemptsRef.current;
-    later(() => setResult({ stars, attempts }), 1000);
+    later(() => setResult({ stars, attempts, bonus }), 1000);
   };
 
   const handleLand = (_id: number, outcome?: LandOutcome) => {
@@ -269,7 +284,9 @@ export function TrickRound({
         if (!input.current.aiming) return;
         setShotGuide(
           bus.current,
-          shot ? { ...shotLanding(layout, shot), strength: shot.strength } : null,
+          shot && itemRef.current
+            ? { ...shotLanding(layout, shot), strength: shot.strength, ...feelOf(itemRef.current) }
+            : null,
         );
         if (stepClick(input.current, shot)) Haptics.selectionAsync().catch(() => undefined);
       },
@@ -362,12 +379,19 @@ export function TrickRound({
               style={[styles.top, { paddingTop: insets.top + Spacing.sm }]}
             >
               <IconButton icon="x" label={t("common.close")} onPress={onExit} />
-              <TrickHud level={level.id} attempt={attempt} task={t(level.task)} />
+              <TrickHud
+                title={daily ? t("tricks.daily") : t("tricks.level", { n: level.id })}
+                attempt={attempt}
+                task={t(level.task)}
+                bonus={level.bonus}
+              />
               <View style={styles.topSpacer} />
             </View>
             {item && !finished && (
               <View pointerEvents="none" style={[styles.overlayRow, { top: itemTagTop }]}>
-                <ItemCard key={item.name} item={item} showHint={!hasThrown} hint={t("trick.hint")} />
+                <ItemCard key={item.name} item={item} showHint={!hasThrown} hint={t("trick.hint")}
+                  mass={hasWind(level) ? itemMass(item) : undefined}
+                />
               </View>
             )}
           </>
@@ -376,6 +400,9 @@ export function TrickRound({
           <TrickResult
             stars={result.stars}
             attempts={result.attempts}
+            bonus={level.bonus}
+            bonusDone={result.bonus}
+            title={daily || !isLast ? t("trick.done") : t("trick.allDone")}
             isLast={isLast}
             onNext={onNext}
             onRetry={onRetry}

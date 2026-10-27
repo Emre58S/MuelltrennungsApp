@@ -5,7 +5,7 @@
 // nur neu, wenn sich Fieber oder Layout ändern (nie pro Wurf).
 
 import { useFrame } from "@react-three/fiber/native";
-import { memo, useMemo, useRef } from "react";
+import { memo, type ReactNode, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 import { type Item } from "@/constants/items";
@@ -20,10 +20,10 @@ import { binLabelTexture } from "./bin-label-textures";
 import { BurstLayer } from "./effects";
 import { type SceneKind, Stage } from "./stage";
 import { type FxRef, stepFx } from "./fx";
-import { type PropCollider } from "@/game/physics";
+import { type BinSlide, type PropCollider, slideOffset } from "@/game/physics";
 import { type TrickProp } from "@/game/trick-levels";
 
-import { AimGuide, PreviewItem, ShotGuideDots, ThrowLayer } from "./items";
+import { AimGuide, type BinSlideSpec, PreviewItem, ShotGuideDots, ThrowLayer } from "./items";
 import { TrickProps } from "./trick-props";
 import { ModelWarmup } from "./model-cache";
 import { type BusRef } from "./scene-bus";
@@ -145,6 +145,16 @@ function PerfProbe() {
   return null;
 }
 
+/** Fährt eine Tonne hin und her (seitlich oder auf dich zu) – nach der
+ *  Szenen-Uhr wie die Physik (slideOffset). */
+function SlidingBin({ slide, bus, children }: { slide: BinSlide; bus: BusRef; children: ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (ref.current) ref.current.position[slide.axis] = slideOffset(slide, bus.current.clock);
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
 export const GameScene = memo(function GameScene({
   layout,
   bins,
@@ -175,8 +185,8 @@ export const GameScene = memo(function GameScene({
   guide?: boolean;
   /** Zielwurf: Deckel stehen offen (und zählen für die Physik), Flugbahn-Vorschau beim Zurückziehen. */
   openLids?: boolean;
-  /** Trickwürfe: Hindernisse (Modelle + Physik) und Flugbahn-Vorschau. */
-  trick?: { props: TrickProp[]; colliders: PropCollider[] };
+  /** Trickwürfe: Hindernisse (Modelle + Physik), gleitende Zieltonne, Vorschau. */
+  trick?: { props: TrickProp[]; colliders: PropCollider[]; binSlide?: BinSlideSpec };
   /** Items, deren Modelle vorab aufgebaut werden (ganzer Item-Pool). */
   warmItems: Item[];
 }) {
@@ -194,19 +204,29 @@ export const GameScene = memo(function GameScene({
       <CameraRig layout={layout} fx={fx} calm={calm} />
       <Stage fever={fever} calm={calm} kind={scene} />
 
-      {bins.map((bin, i) => (
-        <TrashBin
-          key={bin.key}
-          bin={bin}
-          x={layout.bins[i].x}
-          z={layout.bins[i].z}
-          index={i}
-          fx={fx}
-          bus={bus}
-          label={binLabelTexture(bin.key, lang)}
-          openLid={openLids}
-        />
-      ))}
+      {bins.map((bin, i) => {
+        const tonne = (
+          <TrashBin
+            key={bin.key}
+            bin={bin}
+            x={layout.bins[i].x}
+            z={layout.bins[i].z}
+            index={i}
+            fx={fx}
+            bus={bus}
+            label={binLabelTexture(bin.key, lang)}
+            openLid={openLids}
+          />
+        );
+        // Fahrende Zieltonne (Trickwürfe): bewegt sich genau wie in der Physik
+        return trick?.binSlide?.bin === i ? (
+          <SlidingBin key={bin.key} slide={trick.binSlide.slide} bus={bus}>
+            {tonne}
+          </SlidingBin>
+        ) : (
+          tonne
+        );
+      })}
 
       <PreviewItem
         position={layout.item.position}
@@ -228,9 +248,10 @@ export const GameScene = memo(function GameScene({
         endScale={END_SCALE}
         openings={openings}
         props={trick?.colliders}
+        binSlide={trick?.binSlide}
       />
 
-      {trick && <TrickProps props={trick.colliders} bus={bus} />}
+      {trick && <TrickProps props={trick.colliders} bus={bus} calm={calm} />}
 
       {/* Zielwurf und Trickwürfe: Flugbahn beim Zielen (der Anfang davon) */}
       {(openLids || trick) && (
@@ -239,6 +260,7 @@ export const GameScene = memo(function GameScene({
           openingY={BIN_OPENING_Y + 0.1}
           openings={openings}
           props={trick?.colliders}
+          binSlide={trick?.binSlide}
           bus={bus}
           share={0.6}
           calm={calm}

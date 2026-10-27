@@ -31,7 +31,14 @@ export type LandOutcome = {
 
 /** Flugbahn-Vorschau beim Zurückziehen (Zielwurf, Trickwürfe): Landestelle
  *  und Kraft 0…1 (bestimmt Bogenhöhe und wie weit der Gegenstand gespannt ist). */
-export type ShotGuide = { x: number; z: number; strength: number };
+export type ShotGuide = {
+  x: number;
+  z: number;
+  strength: number;
+  /** Gewicht des Gegenstands (game/item-mass.ts): Bogenhöhe und Wind. */
+  loft?: number;
+  drift?: number;
+};
 
 export type ThrowSpec = {
   id: number;
@@ -49,6 +56,8 @@ export type ThrowSpec = {
   land?: { x: number; z: number };
   /** Zielwurf: Kraft 0…1 aus der Zuglänge – derselbe Bogen wie die Vorschau. */
   strength?: number;
+  /** Gewicht des Gegenstands: Bogenhöhe und Wind (wie die Vorschau). */
+  feel?: { loft: number; drift: number };
   /** Zielwurf: echte Physik entscheidet, wo er landet; `accept` = welche
    *  Tonnen richtig wären (falsche spucken ihn wieder aus). */
   free?: {

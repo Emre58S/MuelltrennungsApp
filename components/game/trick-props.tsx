@@ -4,6 +4,8 @@
 //  - Reifen: rot-weiß gestreift wie ein Zirkusreifen; durchflogen leuchtet
 //    er golden auf
 //  - Windrad: Mast + Nabe, die Flügel drehen sich
+//  - Ventilator: Gerät am Rand des Windfelds, Windstreifen zeigen Richtung
+//    und Stärke
 // Bewegung folgt der Szenen-Uhr (bus.clock) – genau wie die Physik
 // (game/physics.ts → ringPose, windmillAngle).
 
@@ -13,6 +15,7 @@ import * as THREE from "three";
 
 import {
   BLADE_THICK,
+  type FanCollider,
   type PropCollider,
   type RingCollider,
   ringPose,
@@ -144,21 +147,106 @@ const Windmill = memo(function Windmill({ mill, bus }: { mill: WindmillCollider;
   );
 });
 
+/** Ventilator: Mast, Gehäuse, drehende Blätter – auf der Seite, von der der
+ *  Wind kommt – und Windstreifen, die durch das Feld ziehen. */
+const STREAKS = 16;
+const STREAK_GEO = new THREE.BoxGeometry(0.32, 0.018, 0.018);
+
+function fanParts(f: FanCollider) {
+  const body = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, f.y, 8), lowpoly("#6B7280"));
+  pole.position.y = -f.y / 2;
+  body.add(pole);
+  const housing = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.05, 6, 20), lowpoly("#3B82F6"));
+  housing.rotation.y = Math.PI / 2;
+  body.add(housing);
+  const hub = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), lowpoly("#1E3A8A"));
+  body.add(hub);
+  const blades = new THREE.Group();
+  for (let k = 0; k < 3; k++) {
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.3, 0.12), lowpoly("#E5E7EB"));
+    blade.position.y = 0.16;
+    const arm = new THREE.Group();
+    arm.rotation.x = (k * Math.PI * 2) / 3;
+    arm.add(blade);
+    blades.add(arm);
+  }
+  const bakedBody = bake(body);
+  const bakedBlades = bake(blades);
+  for (const g of [body, blades]) g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return { body: bakedBody, blades: bakedBlades };
+}
+
+const Fan = memo(function Fan({ fan, calm }: { fan: FanCollider; calm: boolean }) {
+  const dir = Math.sign(fan.force) || 1;
+  const blades = useRef<THREE.Group>(null);
+  const streaks = useRef<THREE.InstancedMesh>(null);
+  const parts = useMemo(() => fanParts(fan), [fan]);
+  const mat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.55, depthWrite: false }),
+    [],
+  );
+  // Startlage der Streifen (fest verteilt, damit es ruhig wirkt)
+  const seeds = useMemo(
+    () => Array.from({ length: STREAKS }, (_, i) => ({ u: (i * 0.61) % 1, y: ((i * 0.37) % 1) * 2 - 1, z: ((i * 0.73) % 1) * 2 - 1 })),
+    [],
+  );
+  const m = useMemo(() => new THREE.Matrix4(), []);
+  useEffect(
+    () => () => {
+      mat.dispose();
+      for (const o of [parts.body, parts.blades]) o.traverse((c) => (c as THREE.Mesh).geometry?.dispose());
+    },
+    [mat, parts],
+  );
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (blades.current) blades.current.rotation.x = t * 14 * dir;
+    const mesh = streaks.current;
+    if (!mesh) return;
+    // Streifen ziehen mit dem Wind durchs Feld (Tempo passt zur Stärke)
+    const speed = calm ? 0 : 0.25 + Math.abs(fan.force) * 0.04;
+    for (let i = 0; i < STREAKS; i++) {
+      const s = seeds[i];
+      const u = (s.u + t * speed) % 1;
+      m.makeTranslation(fan.x + dir * (u * 2 - 1) * fan.halfW, fan.y + s.y * fan.halfH, fan.z + s.z * fan.halfD);
+      mesh.setMatrixAt(i, m);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+  const fx = fan.x - dir * (fan.halfW + 0.35);
+  return (
+    <>
+      <group position={[fx, fan.y, fan.z]} rotation={[0, dir > 0 ? 0 : Math.PI, 0]}>
+        <primitive object={parts.body} />
+        <group ref={blades}>
+          <primitive object={parts.blades} />
+        </group>
+      </group>
+      <instancedMesh ref={streaks} args={[STREAK_GEO, mat, STREAKS]} frustumCulled={false} />
+    </>
+  );
+});
+
 /** Alle Hindernisse eines Levels. */
 export const TrickProps = memo(function TrickProps({
   props,
   bus,
+  calm,
 }: {
   props: PropCollider[];
   bus: BusRef;
+  calm: boolean;
 }) {
   return (
     <>
       {props.map((prop) =>
         prop.kind === "ring" ? (
           <Ring key={prop.id} ring={prop} bus={bus} />
-        ) : (
+        ) : prop.kind === "windmill" ? (
           <Windmill key={prop.id} mill={prop} bus={bus} />
+        ) : (
+          <Fan key={prop.id} fan={prop} calm={calm} />
         ),
       )}
     </>

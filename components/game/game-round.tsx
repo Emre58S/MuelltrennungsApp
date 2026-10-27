@@ -49,6 +49,8 @@ import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, shotLanding } from "@/game/la
 import {
   aimBonus,
   aimFromDrag,
+  COMBO_MIN,
+  comboProgress,
   DAILY_COUNT,
   dailyItems,
   ENDSPURT_SECONDS,
@@ -105,6 +107,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
+import { itemMass, MASS_FEEL } from "@/game/item-mass";
 import {
   beginThrow,
   createThrowInput,
@@ -376,6 +379,8 @@ export function GameRound({
     if (shot) {
       spec.land = shotLanding(layout, shot);
       spec.strength = shot.strength;
+      // Gewicht: schwer fliegt flacher, leicht höher (wie die Vorschau)
+      spec.feel = MASS_FEEL[itemMass(item)];
       spec.free = {
         accept: bins.map((b) => b.category === item.category),
         center: shot.perfect,
@@ -393,11 +398,27 @@ export function GameRound({
       () => undefined,
     );
   };
+  /** Serie gerissen: ab einer echten Combo kurz zeigen, was weg ist. */
+  const comboLost = (streakBefore: number) => {
+    if (streakBefore < COMBO_MIN) return;
+    const m = getMultiplier(streakBefore);
+    setFloats((f) => [
+      ...f.slice(-(MAX_FLOATS - 1)),
+      {
+        id: ++lock.current.id,
+        x: screenW / 2,
+        y: insets.top + 84,
+        text: `${t("game.comboLost")} ×${m}`,
+        color: "#FFB4A8",
+      },
+    ]);
+  };
   /** Zielwurf daneben: kein Sortier-Fehler, aber die Serie reißt. */
   const handleMiss = (ts: ThrowSpec, outcome: LandOutcome | undefined) => {
     const worldX = outcome?.x ?? 0;
     const id = ++lock.current.id;
     const action = { type: "result", result: "wrong", points: 0 } as const;
+    comboLost(liveStats.current.streak);
     liveStats.current = statsReducer(liveStats.current, action);
     dispatch(action);
     missesInRow.current += 1;
@@ -569,14 +590,24 @@ export function GameRound({
       // Zielwurf: genau beim 3. Treffer in Folge „On Fire!“
       const fireText =
         thrown.free && streakNow === ON_FIRE_STREAK ? t("game.onFire") : null;
-      // Dezent: Lob-Text nur bei Perfekt, Deckel/Rand, On Fire und Serien (5, 10 …)
-      if (ts.perfect || viaText || fireText || streakNow % 5 === 0) {
+      // Combo steigt (×1,5 → ×2 → ×3): das soll man spüren
+      const comboUp = getMultiplier(streakNow) > getMultiplier(before.streak);
+      if (comboUp) {
+        sfx("levelup");
+        later(() => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+        }, 120);
+      }
+      // Dezent: Lob-Text nur bei Combo, Perfekt, Deckel/Rand, On Fire und Serien (5, 10 …)
+      if (comboUp || ts.perfect || viaText || fireText || streakNow % 5 === 0) {
         setPraise({
           id,
-          text: ts.perfect
-            ? t("game.perfect")
-            : (viaText ?? fireText ?? `${t(praiseKey)} ×${streakNow}`),
-          gold: ts.perfect,
+          text: comboUp
+            ? t("game.comboUp", { m: getMultiplier(streakNow) })
+            : ts.perfect
+              ? t("game.perfect")
+              : (viaText ?? fireText ?? `${t(praiseKey)} ×${streakNow}`),
+          gold: comboUp || ts.perfect,
         });
         later(() => {
           setPraise((p) => (p?.id === id ? null : p));
@@ -589,6 +620,7 @@ export function GameRound({
           if (k !== i) queueBinEvent(bus.current, k, "peek");
         });
     } else {
+      comboLost(before.streak);
       sfx("wrong");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
         () => undefined,
@@ -663,7 +695,13 @@ export function GameRound({
           if (!input.current.aiming) return;
           setShotGuide(
             bus.current,
-            shot ? { ...shotLanding(layout, shot), strength: shot.strength } : null,
+            shot && itemRef.current
+              ? {
+                  ...shotLanding(layout, shot),
+                  strength: shot.strength,
+                  ...MASS_FEEL[itemMass(itemRef.current)],
+                }
+              : null,
           );
           if (stepClick(input.current, shot)) Haptics.selectionAsync().catch(() => undefined);
           return;
@@ -835,7 +873,7 @@ export function GameRound({
                   score={stats.score}
                   streak={stats.streak}
                   multiplier={getMultiplier(stats.streak) * (fever ? 2 : 1)}
-                  feverProgress={(stats.streak % FEVER_EVERY) / FEVER_EVERY}
+                  feverProgress={comboProgress(stats.streak).progress}
                   fever={fever}
                 />
                 {mode === "endless" && !daily && stats.throws > 0 ? (
@@ -878,6 +916,7 @@ export function GameRound({
                   item={currentItem}
                   showHint={!hasThrown}
                   hint={mode === "aim" ? t("game.aimHint") : undefined}
+                  mass={mode === "aim" ? itemMass(currentItem) : undefined}
                 />
               </View>
             )}

@@ -301,6 +301,23 @@ export function getMultiplier(streak: number): number {
   return m;
 }
 
+/** Ab dieser Serie lohnt sich ein „Combo weg“-Hinweis beim Fehlwurf. */
+export const COMBO_MIN = 3;
+
+/**
+ * Combo-Fortschritt für die Anzeige: aktueller Multiplikator, der nächste
+ * (oder null ganz oben) und wie weit es bis dahin ist (0…1). Ganz oben füllt
+ * sich der Balken bis zum nächsten Fieber.
+ */
+export function comboProgress(streak: number): { multiplier: number; next: number | null; progress: number } {
+  const multiplier = getMultiplier(streak);
+  const i = STREAK_TIERS.findIndex((tier) => tier.min > streak);
+  if (i === -1) return { multiplier, next: null, progress: (streak % FEVER_EVERY) / FEVER_EVERY };
+  const from = STREAK_TIERS[i - 1].min;
+  const to = STREAK_TIERS[i].min;
+  return { multiplier, next: STREAK_TIERS[i].multiplier, progress: (streak - from) / (to - from) };
+}
+
 /** Fieber: alle 10 Treffer in Folge für einige Sekunden doppelte Punkte. */
 export const FEVER_EVERY = 10;
 export const FEVER_SECONDS = 8;
@@ -451,7 +468,7 @@ export function recentLimit(poolSize: number) {
 
 export const DAILY_COUNT = 10;
 
-function hashString(text: string): number {
+export function hashString(text: string): number {
   let h = 2166136261;
   for (let i = 0; i < text.length; i++) {
     h ^= text.charCodeAt(i);

@@ -16,11 +16,10 @@ import {
   arcFor,
   type Ball,
   type BallEvent,
-  ballisticPoint,
   ballSettled,
   BIN_SHAPE,
   type BinCollider,
-  firstTouch,
+  type BinSlide,
   FLIGHT_TIME,
   freshBall,
   lobVelocity,
@@ -28,6 +27,8 @@ import {
   type PropCollider,
   stepBall,
   throwArc,
+  TRACE_POINTS,
+  traceShot,
 } from "@/game/physics";
 import { perfMark } from "@/utils/perf-marks";
 import { sfx } from "@/utils/sfx";
@@ -151,11 +152,23 @@ export const PreviewItem = memo(function PreviewItem({
 
 const DOTS = 14;
 const NO_PROPS: PropCollider[] = [];
+
+/** Fahrende Zieltonne (Trickwürfe): welche Tonne, wie sie sich bewegt. */
+export type BinSlideSpec = { bin: number; slide: BinSlide };
+
+/** Physik-Tonnen aus den Öffnungen (gleitende Tonne mit Ruhelage). */
+function binColliders(openings: THREE.Vector3[], binSlide?: BinSlideSpec): BinCollider[] {
+  return openings.map((o, i) =>
+    binSlide?.bin === i
+      ? { x: o.x, z: o.z - 0.05, lid: 0, slide: binSlide.slide, baseX: o.x, baseZ: o.z - 0.05 }
+      : { x: o.x, z: o.z - 0.05, lid: 0 },
+  );
+}
 const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
 
-/** Flugbahn-Vorschau beim Zurückziehen (Zielwurf, Trickwürfe): genau die
- *  Bahn, die das Loslassen jetzt auslösen würde (dieselbe Physik wie der Wurf),
- *  bis zur ersten Berührung. Man sieht nur den Anfang (`share`) – das Ende
+/** Flugbahn-Vorschau beim Halten (Zielwurf, Trickwürfe): genau die Bahn,
+ *  die das Loslassen jetzt auslösen würde (dieselbe Physik wie der Wurf,
+ *  inklusive Wind und Gewicht), bis zur ersten Berührung. Man sieht nur den Anfang (`share`) – das Ende
  *  schätzt man selbst. Liest bus.shotGuide, kein Neu-Rendern. */
 const GUIDE_DOTS = 16;
 /** Dunkler Rand um jeden Punkt: lesbar auf Himmel, Wand und Rasen. */
@@ -166,6 +179,7 @@ export const ShotGuideDots = memo(function ShotGuideDots({
   openingY,
   openings,
   props = NO_PROPS,
+  binSlide,
   bus,
   share,
   calm,
@@ -174,8 +188,10 @@ export const ShotGuideDots = memo(function ShotGuideDots({
   openingY: number;
   /** Öffnungen der Tonnen (für die Berührung mit Tonne/Deckel). */
   openings: THREE.Vector3[];
-  /** Reifen (Trickwürfe). */
+  /** Hindernisse (Trickwürfe). */
   props?: PropCollider[];
+  /** Gleitende Zieltonne (Trickwürfe). */
+  binSlide?: BinSlideSpec;
   bus: BusRef;
   /** Anteil der Bahn bis zur ersten Berührung, der zu sehen ist (0…1). */
   share: number;
@@ -191,13 +207,15 @@ export const ShotGuideDots = memo(function ShotGuideDots({
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const s = useMemo(() => new THREE.Vector3(), []);
-  const colliders = useMemo<BinCollider[]>(
-    () => openings.map((o) => ({ x: o.x, z: o.z - 0.05, lid: 0 })),
-    [openings],
+  // Bahn als Punkte (1/60 s), einmal angelegt und wiederverwendet
+  const path = useMemo(() => Array.from({ length: TRACE_POINTS + 1 }, () => new THREE.Vector3()), []);
+  const colliders = useMemo(() => binColliders(openings, binSlide), [openings, binSlide]);
+  const moving = useMemo(
+    () => !!binSlide || props.some((p) => p.kind === "windmill" || (p.kind === "ring" && !!p.motion)),
+    [props, binSlide],
   );
-  const moving = useMemo(() => props.some((p) => p.kind === "windmill" || !!p.motion), [props]);
-  // Letzte Berechnung: nur neu rechnen, wenn sich der Zug ändert
-  const last = useRef({ x: NaN, z: NaN, time: 0 });
+  // Letzte Berechnung: nur neu rechnen, wenn sich der Wurf ändert
+  const last = useRef({ x: NaN, z: NaN, loft: 1, drift: 1, count: 0 });
   // Immer obenauf (depthTest aus): die Bahn verschwindet nie hinter einer Tonne
   const mat = useMemo(
     () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", depthTest: false, depthWrite: false }),
@@ -231,22 +249,29 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     if (!guide) return;
     // Punkte wandern Richtung Ziel (wie ein Lauflicht): zeigt die Flugrichtung
     if (!calm) phase.current = (phase.current + Math.min(delta, 0.05) * 1.5) % 1;
-    target.set(guide.x, openingY, guide.z);
-    lobVelocity(vel, start, target);
+    const loft = guide.loft ?? 1;
+    const drift = guide.drift ?? 1;
     const l = last.current;
-    // Neu rechnen, wenn sich der Wurf ändert – oder Reifen sich bewegen
-    if (guide.x !== l.x || guide.z !== l.z || moving) {
+    // Neu rechnen, wenn sich der Wurf ändert – oder Hindernisse sich bewegen
+    if (guide.x !== l.x || guide.z !== l.z || loft !== l.loft || drift !== l.drift || moving) {
+      target.set(guide.x, openingY, guide.z);
+      lobVelocity(vel, start, target, loft);
       colliders.forEach((c, k) => {
         c.lid = bus.current.lids[k] ?? 0;
       });
       l.x = guide.x;
       l.z = guide.z;
-      l.time = firstTouch(start, vel, colliders, props, bus.current.clock);
+      l.loft = loft;
+      l.drift = drift;
+      l.count = traceShot(start, vel, colliders, props, path, bus.current.clock, drift);
     }
-    const span = l.time * share;
+    // Sichtbarer Teil der Bahn (inklusive Wind) – zwischen den Punkten gemischt
+    const span = Math.max(l.count - 1, 1) * share;
     for (let i = 0; i < GUIDE_DOTS; i++) {
       const k = (i + phase.current) / GUIDE_DOTS;
-      ballisticPoint(tmp, start, vel, k * span);
+      const at = Math.min(k * span, l.count - 1);
+      const a = Math.floor(at);
+      tmp.lerpVectors(path[a], path[Math.min(a + 1, l.count - 1)], at - a);
       // Nach vorn kleiner; der erste wächst herein, der letzte schrumpft weg
       let size = 0.078 - k * 0.04;
       if (i === 0) size *= phase.current;
@@ -409,6 +434,7 @@ export const ThrowLayer = memo(function ThrowLayer({
   endScale,
   openings,
   props = NO_PROPS,
+  binSlide,
 }: {
   bus: BusRef;
   fx: FxRef;
@@ -418,6 +444,8 @@ export const ThrowLayer = memo(function ThrowLayer({
   openings: THREE.Vector3[];
   /** Hindernisse (Trickwürfe) für die Physik. */
   props?: PropCollider[];
+  /** Gleitende Zieltonne (Trickwürfe). */
+  binSlide?: BinSlideSpec;
 }) {
   const groups = useRef<(THREE.Group | null)[]>([]);
   const trails = useRef<(THREE.InstancedMesh | null)[]>([]);
@@ -440,10 +468,7 @@ export const ThrowLayer = memo(function ThrowLayer({
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const sv = useMemo(() => new THREE.Vector3(), []);
-  const colliders = useMemo<BinCollider[]>(
-    () => openings.map((o) => ({ x: o.x, z: o.z - 0.05, lid: 0 })),
-    [openings],
-  );
+  const colliders = useMemo(() => binColliders(openings, binSlide), [openings, binSlide]);
   const events = useMemo<BallEvent[]>(() => [], []);
   const vel = useMemo(() => new THREE.Vector3(), []);
   // Markierung „letzter Wurf“ (Zielwurf, nach einem Fehlwurf)
@@ -553,8 +578,9 @@ export const ThrowLayer = memo(function ThrowLayer({
     if (spec.free) {
       // Zielwurf/Trickwürfe: echter Wurf ab dem Loslassen – genau die Bahn der
       // Vorschau, dieselbe Rechnung wie in den Tests (game/physics.ts)
-      s.flightT = lobVelocity(vel, start, s.target);
-      s.ball = freshBall(start, vel, bus.current.clock);
+      // Gewicht: schwer = flacher, leicht = höher und windanfällig
+      s.flightT = lobVelocity(vel, start, s.target, spec.feel?.loft ?? 1);
+      s.ball = freshBall(start, vel, bus.current.clock, spec.feel?.drift ?? 1);
       s.phase = "physics";
     }
 

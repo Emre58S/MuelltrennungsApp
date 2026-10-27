@@ -1,23 +1,40 @@
-// Tests für die Trickwurf-Level (game/trick-levels.ts): jedes Level ist mit
-// einem fairen Fenster an Würfen lösbar – bei bewegten Reifen auch mit einem
-// fairen Zeitfenster – und das auch auf einem kleinen iPhone.
+// Tests für die Trickwurf-Level (game/trick-levels.ts): jedes Level und jede
+// Tages-Vorlage ist mit einem fairen Fenster an Würfen lösbar – bei Bewegung
+// auch mit einem fairen Zeitfenster, im Wind mit jedem Gewicht – und das auch
+// auf einem kleinen iPhone. Dazu: Sterne, Tages-Trick, Gewicht im Zielwurf.
 // Ausführen: npm test
 
 import { describe, expect, test } from "@jest/globals";
+import * as THREE from "three";
 
-import { levelPeriod, starsFor, TRICK_LEVELS, type TrickLevel } from "../trick-levels";
-import { createSolver, sampleTimes, success, throwAt } from "../trick-solver";
+import { type Mass, MASS_FEEL } from "../item-mass";
+import { BIN_OPENING_Y, shotLanding } from "../layout";
+import { FULL_SWIPE_SHARE, swipeShot } from "../logic";
+import { lobVelocity, simulateShot } from "../physics";
+import {
+  bonusMet,
+  DAILY_TEMPLATES,
+  dailyTrick,
+  hasWind,
+  levelPeriod,
+  mirrorLevel,
+  starsFor,
+  TRICK_LEVELS,
+  type TrickLevel,
+} from "../trick-levels";
+import { createSolver, layout, sampleTimes, success, throwAt } from "../trick-solver";
 
+type Level = Omit<TrickLevel, "id">;
 const small = createSolver(375, 667);
 
 /** Bester Wurf: unter den Würfen, die zu den meisten Zeitpunkten treffen,
  *  der mittlere (Richtung und Kraft) – dort, wo ein Spieler hinzielt. */
-function findBest(level: TrickLevel, hit: typeof success = success) {
+function findBest(level: Level, hit: typeof success = success, mass: Mass = "normal") {
   const times = sampleTimes(level, 12);
   const cells: { angle: number; strength: number; times: number[]; n: number }[] = [];
   for (let strength = 0.6; strength <= 0.86; strength += 0.02)
     for (let angle = -28; angle <= 28; angle += 2) {
-      const ok = times.filter((t) => hit(level, angle, strength, t));
+      const ok = times.filter((t) => hit(level, angle, strength, t, mass));
       if (ok.length) cells.push({ angle, strength, times: ok, n: ok.length });
     }
   const most = Math.max(0, ...cells.map((c) => c.n));
@@ -36,43 +53,81 @@ function findBest(level: TrickLevel, hit: typeof success = success) {
   return { angle: pick.angle, strength: pick.strength, times: pick.times };
 }
 
+/** Lösbar mit fairem Fenster (für ein Gewicht). */
+function expectFair(level: Level, mass: Mass = "normal") {
+  const best = findBest(level, success, mass);
+  expect(best).not.toBeNull();
+  const { angle, strength, times } = best!;
+
+  // Zum günstigsten Zeitpunkt (Bewegung: wenn es gut steht):
+  // Weiten-Fenster mindestens 0,1 Kraft (≈ 18 px), Richtung mindestens 6°
+  let reach = 0;
+  let direction = 0;
+  for (const time of times) {
+    let r = 0;
+    for (let k = -0.15; k <= 0.1501; k += 0.01) if (success(level, angle, strength + k, time, mass)) r += 1;
+    let d = 0;
+    for (let a = -12; a <= 12; a += 1) if (success(level, angle + a, strength, time, mass)) d += 1;
+    reach = Math.max(reach, r);
+    direction = Math.max(direction, d);
+  }
+  expect(reach).toBeGreaterThanOrEqual(10);
+  expect(direction).toBeGreaterThanOrEqual(6);
+
+  // Bewegung: das Timing zählt – aber mindestens 20 % der Zeit passt es
+  if (levelPeriod(level) > 0) {
+    const all = sampleTimes(level, 40);
+    const share = all.filter((t) => success(level, angle, strength, t, mass)).length / all.length;
+    expect(share).toBeGreaterThanOrEqual(0.2);
+    expect(share).toBeLessThan(0.95);
+  }
+}
+
+const cases: [string, Level][] = [
+  ...TRICK_LEVELS.map((l): [string, Level] => [`Level ${l.id}`, l]),
+  ...DAILY_TEMPLATES.map((l, i): [string, Level] => [`Tages-Vorlage ${i + 1}`, l]),
+];
+
 describe("Trickwurf-Level", () => {
-  test.each(TRICK_LEVELS.map((l) => [l.id, l] as const))(
-    "Level %i: lösbar mit fairem Fenster",
-    (_id, level) => {
-      const best = findBest(level);
-      expect(best).not.toBeNull();
-      const { angle, strength, times } = best!;
-
-      // Zum günstigsten Zeitpunkt (bewegte Reifen: wenn er gut steht):
-      // Weiten-Fenster mindestens 0,1 Kraft (≈ 18 px), Richtung mindestens 6°
-      let reach = 0;
-      let direction = 0;
-      for (const time of times) {
-        let r = 0;
-        for (let k = -0.15; k <= 0.1501; k += 0.01) if (success(level, angle, strength + k, time)) r += 1;
-        let d = 0;
-        for (let a = -12; a <= 12; a += 1) if (success(level, angle + a, strength, time)) d += 1;
-        reach = Math.max(reach, r);
-        direction = Math.max(direction, d);
+  test.each(cases)(
+    "%s: lösbar mit fairem Fenster (auch auf kleinem iPhone, im Wind mit jedem Gewicht)",
+    (_name, level) => {
+      expectFair(level);
+      // Wind: Leichtes treibt weit ab, Schweres kaum – lösbar muss es mit allem sein
+      if (hasWind(level)) {
+        expectFair(level, "leicht");
+        expectFair(level, "schwer");
       }
-      expect(reach).toBeGreaterThanOrEqual(10);
-      expect(direction).toBeGreaterThanOrEqual(6);
-
-      // Bewegte Reifen: das Timing zählt – aber mindestens 20 % der Zeit passt es
-      const period = levelPeriod(level);
-      if (period > 0) {
-        const times = sampleTimes(level, 40);
-        const share = times.filter((t) => success(level, angle, strength, t)).length / times.length;
-        expect(share).toBeGreaterThanOrEqual(0.2);
-        expect(share).toBeLessThan(0.95);
-      }
-
-      // Auch auf einem kleinen iPhone (SE) lösbar
       expect(findBest(level, small.success)).not.toBeNull();
     },
-    120000,
+    240000,
   );
+
+  test("Gespiegelte Level sind genauso lösbar (Szene ist symmetrisch)", () => {
+    const level = TRICK_LEVELS.find((l) => l.id === 13)!;
+    expect(findBest(mirrorLevel(level))).not.toBeNull();
+  }, 120000);
+
+  test("Wind schiebt leichte Gegenstände weiter als schwere", () => {
+    const level = TRICK_LEVELS.find((l) => l.id === 9)!;
+    // Gerade auf die rechte Tonne gezielt: Mit Wind landet es nicht dort – leicht noch weniger
+    const straight = (mass: Mass) => {
+      let hits = 0;
+      for (let s = 0.6; s <= 0.86; s += 0.02) if (success(level, 18.7, s, 0, mass)) hits += 1;
+      return hits;
+    };
+    expect(straight("leicht")).toBeLessThanOrEqual(straight("schwer"));
+  });
+});
+
+describe("Tages-Trick", () => {
+  test("für alle gleich und täglich anders", () => {
+    expect(dailyTrick("2026-10-26")).toEqual(dailyTrick("2026-10-26"));
+    const days = ["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30"];
+    const distinct = new Set(days.map((d) => JSON.stringify(dailyTrick(d))));
+    expect(distinct.size).toBeGreaterThan(1);
+    expect(dailyTrick("2026-10-26").id).toBe(0);
+  });
 });
 
 describe("Zielwurf mit echtem Wurf", () => {
@@ -94,14 +149,42 @@ describe("Zielwurf mit echtem Wurf", () => {
   test("zu kurz fällt davor", () => {
     expect(middle(0.5)).toBe(false);
   });
+
+  test("schwer und leicht: anderer Bogen, aber ebenso treffbar", () => {
+    const bins = layout.bins.map((b) => ({ x: b.x, z: b.z, lid: 1.85 }));
+    const full = FULL_SWIPE_SHARE * 844;
+    const hitsFor = (mass: Mass) => {
+      let hits = 0;
+      for (let s = 0; s <= 1.0001; s += 0.01) {
+        const shot = swipeShot(0, -(18 + s * (full - 18)), full, layout.binAngles, layout.bins.map((b) => b.x));
+        if (!shot) continue;
+        const land = shotLanding(layout, shot);
+        const v = new THREE.Vector3();
+        lobVelocity(v, layout.item.position, new THREE.Vector3(land.x, BIN_OPENING_Y + 0.1, land.z), MASS_FEEL[mass].loft);
+        if (simulateShot(layout.item.position, v, bins).bin === 1) hits += 1;
+      }
+      return hits;
+    };
+    for (const mass of ["leicht", "schwer"] as Mass[]) {
+      expect(hitsFor(mass)).toBeGreaterThanOrEqual(10);
+      expect(hitsFor(mass)).toBeLessThanOrEqual(34);
+    }
+  });
 });
 
 describe("Sterne", () => {
-  test("1. Versuch 3 ★, bis 3 Versuche 2 ★, danach 1 ★", () => {
-    expect(starsFor(1)).toBe(3);
-    expect(starsFor(2)).toBe(2);
-    expect(starsFor(3)).toBe(2);
-    expect(starsFor(4)).toBe(1);
-    expect(starsFor(12)).toBe(1);
+  test("★ geschafft · ★ höchstens 3 Versuche · ★ Bonus-Ziel", () => {
+    expect(starsFor(1, true)).toBe(3);
+    expect(starsFor(1, false)).toBe(2);
+    expect(starsFor(3, false)).toBe(2);
+    expect(starsFor(4, false)).toBe(1);
+    expect(starsFor(6, true)).toBe(2);
+  });
+
+  test("Bonus-Ziele: Swish = ohne Berührung, firstTry = 1. Versuch", () => {
+    expect(bonusMet("swish", { attempts: 4, clean: true })).toBe(true);
+    expect(bonusMet("swish", { attempts: 1, clean: false })).toBe(false);
+    expect(bonusMet("firstTry", { attempts: 1, clean: false })).toBe(true);
+    expect(bonusMet("firstTry", { attempts: 2, clean: true })).toBe(false);
   });
 });

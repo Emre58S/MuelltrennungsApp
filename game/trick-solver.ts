@@ -1,6 +1,6 @@
 // Datei: game/trick-solver.ts
 // NUR FÜR TESTS: Löser für Trickwurf-Level. Probiert Würfe (Richtung ×
-// Kraft × Abwurf-Zeitpunkt) mit derselben Rechnung wie das Spiel durch
+// Kraft × Abwurf-Zeitpunkt × Gewicht) mit derselben Rechnung wie das Spiel durch
 // (swipeShot → echter Wurf → Physik) – so lässt sich prüfen, ob ein Level
 // fair lösbar ist.
 
@@ -8,22 +8,39 @@ import * as THREE from "three";
 
 import { BIN_OPENING_Y, computeLayout, shotLanding } from "./layout";
 import { FULL_SWIPE_SHARE, swipeShot } from "./logic";
+import { type Mass, MASS_FEEL } from "./item-mass";
 import { type BinCollider, lobVelocity, simulateShot } from "./physics";
 import { levelColliders, levelPeriod, meetsRequirement, type TrickLevel } from "./trick-levels";
+
+type SolverLevel = Pick<TrickLevel, "props" | "binSlide">;
 
 /** Deckel stehen im Trick-Modus offen (wie im Zielwurf). */
 const LID_OPEN = 1.85;
 
 export function createSolver(width = 390, height = 844) {
   const layout = computeLayout(width, height, 3);
-  const bins: BinCollider[] = layout.bins.map((b) => ({ x: b.x, z: b.z, lid: LID_OPEN }));
   const binXs = layout.bins.map((b) => b.x);
   /** Wischlänge (px) für volle Kraft – wie im Spiel. */
   const full = FULL_SWIPE_SHARE * height;
 
-  /** Ein Wurf: Winkel (Grad, 0 = gerade), Kraft (0…1; Wischlänge oder -tempo)
-   *  und Szenen-Zeit beim Abwurf (bewegte Reifen). */
-  function throwAt(level: Pick<TrickLevel, "props">, angle: number, strength: number, time = 0) {
+  /** Physik-Tonnen wie in der Szene (fahrende Zieltonne mit Ruhelage). */
+  const binsFor = (level: SolverLevel, target: number): BinCollider[] =>
+    layout.bins.map((b, i) =>
+      level.binSlide && i === target
+        ? { x: b.x, z: b.z, lid: LID_OPEN, slide: level.binSlide, baseX: b.x, baseZ: b.z }
+        : { x: b.x, z: b.z, lid: LID_OPEN },
+    );
+
+  /** Ein Wurf: Winkel (Grad, 0 = gerade), Kraft (0…1; Wischlänge oder -tempo),
+   *  Szenen-Zeit beim Abwurf (Bewegung) und Gewicht (Wind; Bogen bleibt im
+   *  Trickmodus gleich). */
+  function throwAt(
+    level: SolverLevel & { target?: number },
+    angle: number,
+    strength: number,
+    time = 0,
+    mass: Mass = "normal",
+  ) {
     // Halten-Modus: Wischlänge = Kraft (ein schneller Wurf mit gleicher Kraft fliegt gleich)
     const length = 18 + strength * (full - 18);
     const rad = (angle * Math.PI) / 180;
@@ -33,11 +50,18 @@ export function createSolver(width = 390, height = 844) {
     const target = new THREE.Vector3(land.x, BIN_OPENING_Y + 0.1, land.z);
     const v = new THREE.Vector3();
     lobVelocity(v, layout.item.position, target);
-    return simulateShot(layout.item.position, v, bins, levelColliders(level), time);
+    const bins = binsFor(level, level.target ?? -1);
+    return simulateShot(layout.item.position, v, bins, levelColliders(level), time, MASS_FEEL[mass].drift);
   }
 
-  const success = (level: TrickLevel, angle: number, strength: number, time = 0) => {
-    const r = throwAt(level, angle, strength, time);
+  const success = (
+    level: Omit<TrickLevel, "id">,
+    angle: number,
+    strength: number,
+    time = 0,
+    mass: Mass = "normal",
+  ) => {
+    const r = throwAt(level, angle, strength, time, mass);
     return !!r && r.bin === level.target && meetsRequirement(level, r.props);
   };
 
@@ -57,7 +81,7 @@ export type Solve = {
 };
 
 /** Abwurf-Zeitpunkte, die probiert werden (ruhende Level: nur einer). */
-export function sampleTimes(level: TrickLevel, count: number): number[] {
+export function sampleTimes(level: SolverLevel, count: number): number[] {
   const period = levelPeriod(level);
   return period > 0 ? Array.from({ length: count }, (_, i) => (period * i) / count) : [0];
 }
