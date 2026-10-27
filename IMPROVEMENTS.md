@@ -9,13 +9,11 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit während der Rückfrage
-  anhalten; Trick-Runde einheitlich; Android-Zurück-Taste.
-- [ ] **Sammelbuch VoiceOver**: unbekannte Gegenstände mit Tonne vorlesen
-  (sammelbuch.tsx:126).
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste, Rundenende:
   erledigt)
+- [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit während der Rückfrage
+  anhalten; Trick-Runde einheitlich; Android-Zurück-Taste. (Geringer Nutzen auf dem iPhone.)
 - [ ] **Neue Trick-Level (Inhalt, vom Nutzer gewünscht)**: erst wenn sonst
   nichts Sinnvolles mehr offen ist. Je Zyklus 1–2 neue Level aus den
   vorhandenen Hindernissen (Reifen, Windrad, Wind, gleitende Tonne) –
@@ -29,6 +27,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Sammelbuch: VoiceOver mit Lernstand/Tonne (0ddd4a2)
 - [x] Ladeanzeige beim Rundenstart (e3dfa1c)
 - [x] Tipp-Karte mit ✕ und Hinweis (46dc42f)
 - [x] Rundenende: alle Fehler zeigbar, Lernzeilen, Ranglisten-Pille (9e6db7b)
