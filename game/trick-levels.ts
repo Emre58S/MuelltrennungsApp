@@ -197,6 +197,15 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "firstTry",
     task: "trick.task.ringMovingBin",
   },
+  // Oben ein ruhiger Reifen, unten ein drehender – beide treffen
+  {
+    id: 15,
+    target: 2,
+    props: [ring(0.75, 3.35, 3.3, 0.58), ring(1.0, 2.8, 1.5, 0.58, { kind: "spin", period: 3.4 })],
+    requires: [0, 1],
+    bonus: "swish",
+    task: "trick.task.ringSpin",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */

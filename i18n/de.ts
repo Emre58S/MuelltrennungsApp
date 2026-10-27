@@ -126,6 +126,7 @@ export const de = {
   "trick.task.wind": "Gegen den Wind",
   "trick.task.windRing": "Durch den Reifen, gegen den Wind",
   "trick.task.ringMovingBin": "Durch den Reifen in die fahrende Tonne",
+  "trick.task.ringSpin": "Durch beide Reifen – der untere dreht sich",
   "trick.goal.done": "Schaffen",
   "trick.goal.tries": "Höchstens 3 Versuche",
   "trick.goal.swish": "Swish: ohne Berührung",

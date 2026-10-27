@@ -127,6 +127,7 @@ export const en: Translations = {
   "trick.task.wind": "Against the wind",
   "trick.task.windRing": "Through the hoop, against the wind",
   "trick.task.ringMovingBin": "Through the hoop into the moving bin",
+  "trick.task.ringSpin": "Through both hoops – the lower one spins",
   "trick.goal.done": "Make it",
   "trick.goal.tries": "3 tries at most",
   "trick.goal.swish": "Swish: touch nothing",
