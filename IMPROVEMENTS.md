@@ -9,8 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Material-Blase im Dunkelmodus**: gedämpfte Farbtöne statt heller
-  Pastell (hud.tsx MATERIAL_TINT).
 - [ ] **Kleinigkeiten Einstellungen/Belohnungen**: „Tippen zum Auswählen“ bei
   freien Spuren, Vibration bei Sprachwahl, Schalter lesen Untertitel vor.
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
@@ -31,6 +29,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Material-Blase im Dunkelmodus (763a3a2)
 - [x] Rangliste: Namenseingabe verbessert (2df7f91)
 - [x] Trick-Runde: Rückmeldungen für VoiceOver (3a3d576)
 - [x] Trick-Ergebnis scrollt, Knöpfe fest, Sterne-Label (a7b26b5); 2. Audit → Backlog
