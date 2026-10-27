@@ -27,6 +27,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Neues Trick-Level 16, ↕️-Symbol (d0d6c74)
 - [x] Neues Trick-Level 15: zwei Reifen, unten drehend (323ff56)
 - [x] Neues Trick-Level 14 (a15caca); Windrad+Gegenwind verworfen (nicht fair genug)
 - [x] Kleinigkeiten Einstellungen/Belohnungen (f250002)
