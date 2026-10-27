@@ -136,7 +136,8 @@ export function EndScreen({
 
   const accuracy =
     stats.throws > 0 ? Math.round((stats.correct / stats.throws) * 100) : 0;
-  // Sterne-Bewertung wie bei den Trickwürfen: 90 % → ★★★, 70 % → ★★, sonst ★
+  // Sterne-Bewertung wie bei den Trickwürfen: 90 % → ★★★, 70 % → ★★, sonst ★.
+  // Emoji und Überschrift folgen denselben Stufen, damit alles zusammenpasst.
   const rating = stats.throws === 0 ? 0 : accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1;
 
   // Jedes falsch sortierte Item nur einmal
@@ -176,10 +177,10 @@ export function EndScreen({
           accessibilityViewIsModal
         >
           <AppText style={styles.bigEmoji}>
-            {accuracy >= 80 ? "🏆" : accuracy >= 50 ? "🌟" : "💪"}
+            {rating === 3 ? "🏆" : rating === 2 ? "🌟" : "💪"}
           </AppText>
           <AppText variant="title" center accessibilityRole="header">
-            {daily ? t("game.end.dailyTitle") : accuracy >= 50 ? t("game.end.great") : title}
+            {daily ? t("game.end.dailyTitle") : rating >= 2 || newBest ? t("game.end.great") : title}
           </AppText>
           <AppText tone="textSecondary" center>
             {t("game.end.sorted", { n: stats.correct })}
