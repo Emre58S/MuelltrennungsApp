@@ -9,10 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Rundenende: mehr als 4 Fehler**: „+N weitere“ anzeigen
-  (end-screen.tsx:285).
-- [ ] **Rundenende: Lernzeilen** mit Druck-Effekt + Vibration; Ranglisten-Pille
-  ≥ 44 pt hoch und mit klarem Bedienungshilfe-Text (end-screen.tsx).
 - [ ] **Tipp-Karte im Spiel**: zeigen, dass man sie antippen kann
   („Tippen zum Schließen“ oder ✕) (hud.tsx TipCard).
 - [ ] **Leerer Bildschirm beim Rundenstart**: Ladeanzeige, solange Level/XP
@@ -37,6 +33,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Rundenende: alle Fehler zeigbar, Lernzeilen, Ranglisten-Pille (9e6db7b)
 - [x] Gesperrte Trick-Level erklären sich (b8edb5e)
 - [x] Runde: Rückfrage vor dem Beenden, Uhr hält an (3a9324d); Audit → Backlog
 - [x] Einstellungen: „Tipps wieder zeigen“ (1566886); Texte geprüft: alles DE+EN
