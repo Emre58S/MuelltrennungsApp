@@ -19,6 +19,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Rangliste: „Nochmal versuchen“, Tab-Wettlauf behoben (4f4b029)
 - [x] Rundenende: „Gut gemacht!“ bei einem Stern (ed0e4aa)
 - [x] Rundenende: Emoji/Überschrift passend zu den Sternen (312f12f)
 - [x] Töne: Lautstärke-Ausgleich nach Messung, Material unverändert (3198d61)
