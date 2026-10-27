@@ -25,6 +25,13 @@ Expo Go.
    unter „Gelernt“ notieren.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
 
+## Nachtbetrieb (ohne Aufsicht)
+- Reihenfolge: Backlog abarbeiten → ist er leer, einmal ein Audit mit dem
+  Tester → dessen Punkte abarbeiten → dann neue Trick-Level (siehe Backlog).
+- Wenn danach nichts Sinnvolles mehr bleibt: Loop beenden statt basteln und
+  eine Zusammenfassung aller Änderungen der Nacht schreiben.
+- Lieber eine Änderung verwerfen als eine zweifelhafte durchwinken.
+
 ## Grenzen
 - Nur Branch `auto-improve`. Nie auf `main` oder `sdk-58` committen oder pushen.
 - EAS-Updates nur auf Kanal `auto` (nie `preview` – das ist die Spielversion).

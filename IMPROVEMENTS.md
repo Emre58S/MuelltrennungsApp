@@ -24,6 +24,12 @@ zu ändern.
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste, Rundenende:
   erledigt)
+- [ ] **Neue Trick-Level (Inhalt, vom Nutzer gewünscht)**: erst wenn sonst
+  nichts Sinnvolles mehr offen ist. Je Zyklus 1–2 neue Level aus den
+  vorhandenen Hindernissen (Reifen, Windrad, Wind, gleitende Tonne) –
+  keine neue Mechanik. Pflicht: Fairness-Test
+  `npx jest game/__tests__/tricks.test.ts` (~4 min) grün, Texte DE+EN,
+  Schwierigkeit steigt sanft an.
 - [ ] **Eigenes App-Symbol und Startbildschirm**: Tonne mit Gegenstand im
   Wurfbogen, in den Spielfarben (statt Expo-Platzhalter).
   Hinweis: In Expo Go nicht sichtbar (Symbol gehört zur installierten App) –
