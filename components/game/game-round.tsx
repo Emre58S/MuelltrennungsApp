@@ -102,6 +102,7 @@ import {
   useState,
 } from "react";
 import {
+  Alert,
   PixelRatio,
   StyleSheet,
   useWindowDimensions,
@@ -271,6 +272,8 @@ export function GameRound({
   const [timerStarted, setTimerStarted] = useState(false);
   const [hasThrown, setHasThrown] = useState(false);
   const [finished, setFinished] = useState(false);
+  /** Rückfrage „Runde beenden?“ offen – die Uhr hält solange an. */
+  const [asking, setAsking] = useState(false);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   // Ergebnis pro Wurf (nur Tagesaufgabe: für die Teilen-Kästchen)
   const [results, setResults] = useState<HitResult[]>([]);
@@ -320,7 +323,7 @@ export function GameRound({
     else getNumber(getHighscoreKey(HIGHSCORE_MODE[mode])).then(setBestBefore);
   }, [mode, daily]);
   const timerRunning =
-    isTimed(mode) && timerStarted && !finished && timeLeft > 0;
+    isTimed(mode) && timerStarted && !finished && !asking && timeLeft > 0;
   useEffect(() => {
     if (!timerRunning) return;
     const id = setInterval(() => {
@@ -346,6 +349,21 @@ export function GameRound({
     }
   }, [mode, timerStarted, timeLeft, later]);
   const showEnd = finished;
+
+  // „X“ oben: nach den ersten Würfen erst nachfragen – ein versehentlicher
+  // Tipp soll eine laufende Runde nicht vorzeitig beenden (gespeichert wird sie
+  // beim Verlassen trotzdem – siehe useCommitRound).
+  const askExit = () => {
+    if (finished || stats.throws === 0) {
+      onExit();
+      return;
+    }
+    setAsking(true);
+    Alert.alert(t("game.quit.title"), t(daily ? "game.quit.messageDaily" : "game.quit.message"), [
+      { text: t("game.quit.stay"), style: "cancel", onPress: () => setAsking(false) },
+      { text: t("game.quit.leave"), style: "destructive", onPress: onExit },
+    ], { cancelable: true, onDismiss: () => setAsking(false) });
+  };
   const commitRound = useCommitRound(liveStats, mode, daily);
   useEffect(() => {
     if (!showEnd) return;
@@ -930,7 +948,7 @@ export function GameRound({
                 <IconButton
                   icon="x"
                   label={t("common.close")}
-                  onPress={onExit}
+                  onPress={askExit}
                 />
                 <ScoreBadge
                   score={stats.score}
