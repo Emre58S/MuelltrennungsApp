@@ -3,7 +3,7 @@
 // Inhalte kommen aus den echten Spieldaten, damit nichts veraltet.
 
 import { Feather } from "@expo/vector-icons";
-import { type ComponentProps, type ReactNode } from "react";
+import { type ComponentProps, type ReactNode, useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,6 +18,7 @@ import { ALL_BINS } from "@/game/bins";
 import { FEVER_EVERY, FEVER_SECONDS } from "@/game/logic";
 import { type TranslationKey } from "@/i18n";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
+import { setBoolean, StorageKeys } from "@/utils/storage";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 
@@ -28,6 +29,10 @@ export default function TutorialScreen() {
   const { colors } = useAppTheme();
   const { t } = useI18n();
 
+  // Einmal geöffnet: der Hinweis-Punkt am „?“ im Menü verschwindet
+  useEffect(() => {
+    setBoolean(StorageKeys.HAS_SEEN_TUTORIAL, true).catch(() => undefined);
+  }, []);
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>

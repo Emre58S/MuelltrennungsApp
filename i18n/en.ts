@@ -41,6 +41,7 @@ export const en: Translations = {
   "home.tricksDesc": "Throw through hoops – still, sliding, spinning",
   "home.dailyShort": "New today",
   "home.dailyDoneShort": "✓ {correct}/{total} · {score} pts",
+  "home.dailyDoneTiny": "✓ {correct}/{total}",
   "home.tricksShort": "Through hoops",
   "home.aimShort": "Power shots",
   "tricks.title": "Trick shots",

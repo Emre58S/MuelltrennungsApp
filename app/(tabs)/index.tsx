@@ -70,6 +70,7 @@ import {
   type DailyResult,
   flushThrowRecords,
   getActiveStreak,
+  getBoolean,
   getHighscoreKey,
   getLevelProgress,
   getNumber,
@@ -130,6 +131,7 @@ export default function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [daily, setDaily] = useState<DailyResult | null>(null);
+  const [seenTutorial, setSeenTutorial] = useState(true);
 
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -270,10 +272,12 @@ export default function HomeScreen() {
             getNumber(StorageKeys.TOTAL_XP),
             getLastMode(),
             getTodayDaily(),
+            getBoolean(StorageKeys.HAS_SEEN_TUTORIAL, false),
           ]),
         )
-        .then(([endless, survival, time, aim, activeStreak, xp, mode, today]) => {
+        .then(([endless, survival, time, aim, activeStreak, xp, mode, today, seen]) => {
           if (!active) return;
+          setSeenTutorial(seen);
           setDaily(today);
           setScores({ endless, survival, time, aim });
           setStreak(activeStreak);
@@ -483,7 +487,9 @@ export default function HomeScreen() {
             title={t("home.daily")}
             caption={
               daily
-                ? t("home.dailyDoneShort", { correct: daily.correct, total: daily.total, score: daily.score })
+                ? daily.score < 10000
+                  ? t("home.dailyDoneShort", { correct: daily.correct, total: daily.total, score: daily.score })
+                  : t("home.dailyDoneTiny", { correct: daily.correct, total: daily.total })
                 : t("home.dailyShort")
             }
             a11y={`${t("home.daily")}. ${
@@ -531,7 +537,7 @@ export default function HomeScreen() {
           {/* Selten gebraucht: klein und abgesetzt */}
           <View style={styles.divider} />
           <View style={styles.tools}>
-            <ToolButton icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
+            <ToolButton icon="help-circle" label={t("home.tutorial")} dot={loaded && !seenTutorial} onPress={() => router.push("/tutorial")} />
             <ToolButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
           </View>
         </View>
@@ -787,7 +793,17 @@ function SideTile({
 }
 
 /** Kleiner runder Knopf ohne Beschriftung (Anleitung, Einstellungen). */
-function ToolButton({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
+function ToolButton({
+  icon,
+  label,
+  dot,
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  dot?: boolean;
+  onPress: () => void;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -801,6 +817,7 @@ function ToolButton({ icon, label, onPress }: { icon: IconName; label: string; o
       style={({ pressed }) => [styles.tool, pressed && press.pressed]}
     >
       <Feather name={icon} size={18} color="#FFFFFF" />
+      {dot && <View style={[styles.tileDot, styles.toolDot]} />}
     </Pressable>
   );
 }
@@ -889,6 +906,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.6)",
   },
 
+  // Punkt auf dem runden Knopf etwas nach innen, damit er am Kreis sitzt
+  toolDot: { top: 1, right: 1 },
   tools: { flexDirection: "row", gap: Spacing.sm, paddingTop: 3 },
   divider: { width: 1, height: 40, marginTop: 3, marginHorizontal: 4, backgroundColor: "rgba(255,255,255,0.25)" },
   tool: {
