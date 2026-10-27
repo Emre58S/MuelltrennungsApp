@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { PageHeader } from "@/components/ui/page-header";
+import { press, tapHaptic } from "@/components/ui/press";
 import { type Category, type Item, ITEMS } from "@/constants/items";
 import { BinColors, type BinKey, Radius, Spacing } from "@/constants/theme";
 import { type TranslationKey } from "@/i18n";
@@ -124,7 +125,10 @@ export default function CollectionScreen() {
                       key={item.name}
                       accessibilityRole="button"
                       accessibilityLabel={known ? itemName(item) : t("book.lockedItem")}
-                      onPress={() => setSelected(item)}
+                      onPress={() => {
+                        tapHaptic();
+                        setSelected(item);
+                      }}
                       style={({ pressed }) => [
                         styles.tile,
                         {
@@ -133,7 +137,7 @@ export default function CollectionScreen() {
                           backgroundColor: known ? colors.surface : colors.surfaceAlt,
                           borderColor: known ? bin.fill : colors.border,
                         },
-                        pressed && styles.pressed,
+                        pressed && press.pressed,
                       ]}
                     >
                       <AppText style={[styles.tileEmoji, !known && styles.locked]}>
@@ -243,8 +247,11 @@ function DetailSheet({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t("common.close")}
-                onPress={onClose}
-                style={({ pressed }) => [styles.close, { backgroundColor: colors.surfaceAlt }, pressed && styles.pressed]}
+                onPress={() => {
+                  tapHaptic();
+                  onClose();
+                }}
+                style={({ pressed }) => [styles.close, { backgroundColor: colors.surfaceAlt }, pressed && press.pressed]}
               >
                 <Feather name="x" size={18} color={colors.text} />
                 <AppText variant="label">{t("common.close")}</AppText>
@@ -306,5 +313,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     borderRadius: Radius.pill,
   },
-  pressed: { opacity: 0.75, transform: [{ scale: 0.97 }] },
 });

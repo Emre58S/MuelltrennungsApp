@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
+import { press, tapHaptic } from "@/components/ui/press";
 import { Star } from "@/components/game/hud";
 import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
@@ -211,8 +212,11 @@ export function EndScreen({
           {place !== null && (
             <Pressable
               accessibilityRole="link"
-              onPress={() => router.push("/rangliste")}
-              style={({ pressed }) => [styles.pill, { backgroundColor: colors.primarySoft }, pressed && { opacity: 0.8 }]}
+              onPress={() => {
+                tapHaptic();
+                router.push("/rangliste");
+              }}
+              style={({ pressed }) => [styles.pill, { backgroundColor: colors.primarySoft }, pressed && press.pressed]}
             >
               <AppText variant="label" tone="onPrimarySoft">
                 {place <= 3 ? ["🥇", "🥈", "🥉"][place - 1] : "📊"} {t("rank.place", { rank: place })} ›

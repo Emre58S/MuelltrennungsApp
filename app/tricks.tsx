@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
+import { press, tapHaptic } from "@/components/ui/press";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import {
   difficultyOf,
@@ -52,6 +53,7 @@ export default function TricksScreen() {
 
   function open(id: number) {
     sfx("tap");
+    tapHaptic();
     router.push({
       pathname: "/runde",
       params: { mode: "trick", level: String(id) },
@@ -60,6 +62,7 @@ export default function TricksScreen() {
 
   function openDaily() {
     sfx("tap");
+    tapHaptic();
     router.push({ pathname: "/runde", params: { mode: "trick", daily: "1" } });
   }
 
@@ -99,7 +102,7 @@ export default function TricksScreen() {
                 borderColor: daily === 3 ? "#F5B800" : colors.primary,
               },
               scheme === "light" && Shadow,
-              pressed && styles.pressed,
+              pressed && press.pressedLarge,
             ]}
           >
             <Feather name="sun" size={26} color={colors.primary} />
@@ -152,7 +155,7 @@ export default function TricksScreen() {
                                 got === 3 ? "#F5B800" : colors.border,
                             },
                             scheme === "light" && unlocked && Shadow,
-                            pressed && styles.pressed,
+                            pressed && press.pressed,
                           ]}
                         >
                           {unlocked ? (
@@ -215,5 +218,4 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   stars: { color: "#F5B800", fontSize: 14, letterSpacing: 1 },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
 });

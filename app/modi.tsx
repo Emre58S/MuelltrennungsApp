@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { FadeIn } from "@/components/ui/fade-in";
 import { IconButton } from "@/components/ui/icon-button";
 import { ModeBackdrop } from "@/components/ui/mode-backdrop";
+import { press, tapHaptic } from "@/components/ui/press";
 import { ModeThemes } from "@/constants/mode-themes";
 import { type ModeConfig, MODES, startGame } from "@/constants/modes";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
@@ -111,7 +112,10 @@ function ModeCard({ item }: { item: ModeConfig }) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${desc}`}
-      onPress={() => startGame(item.mode)}
+      onPress={() => {
+        tapHaptic();
+        startGame(item.mode);
+      }}
       style={({ pressed }) => [
         styles.modeCard,
         {
@@ -119,7 +123,7 @@ function ModeCard({ item }: { item: ModeConfig }) {
           borderWidth: item.recommended ? 2 : 0,
         },
         scheme === "light" && Shadow,
-        pressed && styles.pressed,
+        pressed && press.pressedLarge,
       ]}
     >
       <ModeBackdrop mode={item.mode} theme={theme} />
@@ -210,8 +214,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     overflow: "hidden",
   },
-
-  pressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
 
   modeIcon: {
     width: 60,

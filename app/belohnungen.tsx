@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
+import { press, tapHaptic } from "@/components/ui/press";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { isUnlocked, type Progress, type TrailId, TRAILS, usableTrail } from "@/game/rewards";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
@@ -55,6 +56,7 @@ export default function RewardsScreen() {
 
   function choose(id: TrailId) {
     sfx("tap");
+    tapHaptic();
     setSelected(id);
     saveTrail(id).catch(() => undefined);
   }
@@ -102,7 +104,7 @@ export default function RewardsScreen() {
                     borderColor: active ? colors.primary : colors.border,
                   },
                   scheme === "light" && open && Shadow,
-                  pressed && styles.pressed,
+                  pressed && press.pressedLarge,
                 ]}
               >
                 {/* Kleine Spur als Vorschau: Punkte werden zum Kopf hin größer */}
@@ -158,5 +160,4 @@ const styles = StyleSheet.create({
   },
   swatch: { width: 96, flexDirection: "row", alignItems: "center", gap: 3 },
   dot: { borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
 });

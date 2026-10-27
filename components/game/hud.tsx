@@ -9,6 +9,7 @@ import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
+import { press, tapHaptic } from "@/components/ui/press";
 import { type Item } from "@/constants/items";
 import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
@@ -655,12 +656,15 @@ export function HudButton({ label, onPress }: { label: string; onPress: () => vo
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
+      onPress={() => {
+        tapHaptic();
+        onPress();
+      }}
       hitSlop={8}
       style={({ pressed }) => [
         styles.hudButton,
         { backgroundColor: colors.hud, borderColor: colors.hudBorder },
-        pressed && { opacity: 0.8 },
+        pressed && press.pressed,
       ]}
     >
       <AppText variant="label">{label}</AppText>
