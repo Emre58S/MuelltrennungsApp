@@ -216,6 +216,8 @@ export const en: Translations = {
   "game.end.again": "Play again",
   "game.end.menu": "Back to menu",
   "game.end.learned": "Remember:",
+  "game.end.moreMistakes": "Show {n} more",
+  "game.end.rankA11y": "Rank {rank} on the leaderboard – open",
   "game.end.perfects": "Perfect",
   "game.end.share": "Share result",
   "game.end.shareText": "♻️ Waste Sorting · Daily challenge {date}\n{boxes}\n{correct}/{total} correct · {score} points",

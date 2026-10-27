@@ -215,6 +215,8 @@ export const de = {
   "game.end.again": "Nochmal spielen",
   "game.end.menu": "Zum Menü",
   "game.end.learned": "Merk dir:",
+  "game.end.moreMistakes": "{n} weitere zeigen",
+  "game.end.rankA11y": "Platz {rank} in der Rangliste – öffnen",
   "game.end.perfects": "Perfekt",
   "game.end.share": "Ergebnis teilen",
   "game.end.shareText": "♻️ Müll-Sortieren · Tagesaufgabe {date}\n{boxes}\n{correct}/{total} richtig · {score} Punkte",

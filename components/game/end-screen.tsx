@@ -86,6 +86,8 @@ export function EndScreen({
   );
   const [shown, setShown] = useState(reduceMotion ? stats.score : 0);
   const [open, setOpen] = useState<string | null>(null);
+  /** Mehr als 4 Fehler: erst die ersten 4, auf Wunsch alle. */
+  const [showAll, setShowAll] = useState(false);
 
   // Level-Leiste: von vorher nach nachher (bei Aufstieg bis zum Ende füllen)
   const before = getLevelProgress(startXp);
@@ -222,11 +224,12 @@ export function EndScreen({
           {place !== null && (
             <Pressable
               accessibilityRole="link"
+              accessibilityLabel={t("game.end.rankA11y", { rank: place })}
               onPress={() => {
                 tapHaptic();
                 router.push("/rangliste");
               }}
-              style={({ pressed }) => [styles.pill, { backgroundColor: colors.primarySoft }, pressed && press.pressed]}
+              style={({ pressed }) => [styles.pill, styles.pillTap, { backgroundColor: colors.primarySoft }, pressed && press.pressed]}
             >
               <AppText variant="label" tone="onPrimarySoft">
                 {place <= 3 ? ["🥇", "🥈", "🥉"][place - 1] : "📊"} {t("rank.place", { rank: place })} ›
@@ -282,13 +285,20 @@ export function EndScreen({
               <AppText variant="caption" tone="textMuted">
                 {t("game.end.tapToLearn")}
               </AppText>
-              {unique.slice(0, 4).map((m) => {
+              {(showAll ? unique : unique.slice(0, 4)).map((m) => {
                 const expanded = open === m.item.name;
                 return (
                   <Pressable
                     key={m.item.name}
-                    style={[styles.learnItem, { borderColor: colors.border }]}
-                    onPress={() => setOpen(expanded ? null : m.item.name)}
+                    style={({ pressed }) => [
+                      styles.learnItem,
+                      { borderColor: colors.border },
+                      pressed && press.pressedLarge,
+                    ]}
+                    onPress={() => {
+                      tapHaptic();
+                      setOpen(expanded ? null : m.item.name);
+                    }}
                     accessibilityRole="button"
                     accessibilityState={{ expanded }}
                     accessibilityLabel={`${itemName(m.item)} → ${t(m.bin.labelKey)}`}
@@ -317,6 +327,20 @@ export function EndScreen({
                   </Pressable>
                 );
               })}
+              {!showAll && unique.length > 4 && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    tapHaptic();
+                    setShowAll(true);
+                  }}
+                  style={({ pressed }) => [styles.moreLink, pressed && press.pressed]}
+                >
+                  <AppText variant="label" tone="primary">
+                    {t("game.end.moreMistakes", { n: unique.length - 4 })}
+                  </AppText>
+                </Pressable>
+              )}
             </View>
           )}
 
@@ -391,6 +415,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     fontVariant: ["tabular-nums"],
   },
+  moreLink: { minHeight: 44, alignItems: "center", justifyContent: "center" },
+  // Antippbare Pille: mindestens 44 pt hoch
+  pillTap: { minHeight: 44, justifyContent: "center" },
   pill: {
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
