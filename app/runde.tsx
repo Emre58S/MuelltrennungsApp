@@ -18,6 +18,7 @@ import {
 } from "@/utils/storage";
 import { setAudioModeAsync } from "expo-audio";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { playMusic, refreshMusicSetting } from "@/utils/music";
 import { perfMark } from "@/utils/perf-marks";
 import { Profiler, useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
@@ -61,6 +62,8 @@ export default function GameScreen() {
     useCallback(() => {
       setRound((r) => r + 1);
       loadXp();
+      // Lebendigere Runden-Musik
+      refreshMusicSetting().then(() => playMusic("game"));
       return () => {
         setXp(null);
       };

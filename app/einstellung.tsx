@@ -29,6 +29,7 @@ import {
   StorageKeys,
 } from "@/utils/storage";
 import { setSfxEnabled } from "@/utils/sfx";
+import { setMusicEnabled } from "@/utils/music";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 
@@ -45,11 +46,15 @@ export default function EinstellungenScreen() {
     setReduceMotion,
   } = useAppSettings();
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabledState] = useState(true);
 
   useEffect(() => {
     let active = true;
     getBoolean(StorageKeys.SOUND_ENABLED, true).then((sound) => {
       if (active) setSoundEnabled(sound);
+    });
+    getBoolean(StorageKeys.MUSIC_ENABLED, true).then((music) => {
+      if (active) setMusicEnabledState(music);
     });
     return () => {
       active = false;
@@ -60,6 +65,12 @@ export default function EinstellungenScreen() {
     setSoundEnabled(value);
     setSfxEnabled(value);
     setBoolean(StorageKeys.SOUND_ENABLED, value);
+  };
+
+  const toggleMusic = (value: boolean) => {
+    setMusicEnabledState(value);
+    setMusicEnabled(value);
+    setBoolean(StorageKeys.MUSIC_ENABLED, value);
   };
 
   const confirmDelete = (
@@ -169,6 +180,14 @@ export default function EinstellungenScreen() {
             subtitle={t(soundEnabled ? "settings.sound.on" : "settings.sound.off")}
             value={soundEnabled}
             onChange={toggleSound}
+          />
+          <SwitchRow
+            icon="music"
+            title={t("settings.music")}
+            subtitle={t(musicEnabled ? "settings.music.on" : "settings.music.off")}
+            value={musicEnabled}
+            onChange={toggleMusic}
+            divider
           />
           <SwitchRow
             icon="wind"

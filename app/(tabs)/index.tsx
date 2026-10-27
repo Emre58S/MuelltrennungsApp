@@ -64,6 +64,7 @@ import { aimFromDrag, drawFromBag } from "@/game/logic";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
+import { playMusic, refreshMusicSetting } from "@/utils/music";
 import {
   type DailyResult,
   flushThrowRecords,
@@ -251,6 +252,8 @@ export default function HomeScreen() {
       resetBus(bus.current);
       setLandHandler(bus.current, (id) => onLand.current(id));
       refreshSfxSetting();
+      // Ruhige Menü-Musik (blendet sanft von der Runde herüber)
+      refreshMusicSetting().then(() => playMusic("menu"));
 
       // Erst gesammelte Würfe der letzten Runde schreiben, dann lesen
       flushThrowRecords()

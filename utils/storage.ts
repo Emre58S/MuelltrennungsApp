@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // ── Storage Keys ──────────────────────────────────────────────────────
 export const StorageKeys = {
   SOUND_ENABLED: "muell_sound_enabled",
+  MUSIC_ENABLED: "muell_music_enabled",
   HIGHSCORE_RUNDEN: "muell_highscore_runden",
   HIGHSCORE_ZEIT: "muell_highscore_zeit",
   HIGHSCORE_ENDLOS: "muell_highscore_endlos",

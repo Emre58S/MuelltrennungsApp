@@ -111,6 +111,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { boardFor, HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
+import { playMusic } from "@/utils/music";
 import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
 import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
@@ -344,6 +345,8 @@ export function GameRound({
     setPreview(bus.current, null);
     commitRound();
     sfx("end");
+    // Ergebnis: zurück zur ruhigen Musik
+    playMusic("menu");
   }, [showEnd, commitRound]);
   const showBanner = useCallback(
     (text: string, ms = 2200) => {
@@ -355,6 +358,10 @@ export function GameRound({
     },
     [later],
   );
+  // Letzte Sekunden (Zeit-Modi): Musik wird schneller und spannender
+  useEffect(() => {
+    if (isTimed(mode) && timerStarted && timeLeft === ENDSPURT_SECONDS) playMusic("endspurt");
+  }, [mode, timerStarted, timeLeft]);
   // Zielwurf: Endspurt ankündigen (letzte Sekunden doppelte Punkte)
   useEffect(() => {
     if (mode === "aim" && timerStarted && timeLeft === ENDSPURT_SECONDS) {
