@@ -11,8 +11,6 @@ zu ändern.
 
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; Dunkelmodus prüfen; kleine Unsauberkeiten beheben.
-- [ ] **Druck-Effekt Teil 2**: eigene Druckstile auf press.ts umstellen –
-  belohnungen, modi, sammelbuch, tricks, einstellung, end-screen, hud.
 - [ ] **Kleinigkeiten Menü**: Punkt am „?“-Knopf, solange die Anleitung nie
   geöffnet wurde; Tagesaufgaben-Punkte bei sehr großen Zahlen kürzen.
 - [ ] **Töne minimal verfeinern**: nur Feinschliff (Lautstärke-Balance,
@@ -22,6 +20,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Druck-Effekt Teil 2: alle Seiten einheitlich (6e06cba)
 - [x] Logo-Schriftzug animiert, Streifen in Tonnenfarben (1777d28)
 - [x] Einheitlicher Druck-Effekt für Basis-Knöpfe (ba4a12b)
 - [x] Sanfte Übergänge: Runde blendet ein, „Weniger Bewegung“ blendet (aa0dc2f)
