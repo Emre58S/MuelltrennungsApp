@@ -9,8 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Leerer Bildschirm beim Rundenstart**: Ladeanzeige, solange Level/XP
-  noch laden (app/runde.tsx).
 - [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit während der Rückfrage
   anhalten; Trick-Runde einheitlich; Android-Zurück-Taste.
 - [ ] **Sammelbuch VoiceOver**: unbekannte Gegenstände mit Tonne vorlesen
@@ -31,6 +29,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Ladeanzeige beim Rundenstart (e3dfa1c)
 - [x] Tipp-Karte mit ✕ und Hinweis (46dc42f)
 - [x] Rundenende: alle Fehler zeigbar, Lernzeilen, Ranglisten-Pille (9e6db7b)
 - [x] Gesperrte Trick-Level erklären sich (b8edb5e)
