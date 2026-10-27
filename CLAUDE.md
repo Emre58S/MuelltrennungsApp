@@ -50,5 +50,7 @@ Expo Go.
   bis dahin general-purpose mit Verweis auf die Datei.
 - Menü-Modusfarben färben auch 3D-Tonnen und Flugbahn – dunkle Töne wirken
   dort wie echte Glas-/Papiertonnen. Für Text eigene `sign`-Farbe nutzen.
+- Verlassen einer Runde speichert alles (useCommitRound beim Unmount) –
+  Texte dürfen nie „geht verloren“ behaupten.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.

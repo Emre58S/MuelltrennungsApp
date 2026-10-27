@@ -9,6 +9,20 @@ zu ändern.
 
 ## Offen
 
+- [ ] **Gesperrte Trick-Level**: Tipp gibt Rückmeldung (kurz rütteln +
+  „Schaffe zuerst Level N–1“) statt gar nichts (app/tricks.tsx:147).
+- [ ] **Rundenende: mehr als 4 Fehler**: „+N weitere“ anzeigen
+  (end-screen.tsx:285).
+- [ ] **Rundenende: Lernzeilen** mit Druck-Effekt + Vibration; Ranglisten-Pille
+  ≥ 44 pt hoch und mit klarem Bedienungshilfe-Text (end-screen.tsx).
+- [ ] **Tipp-Karte im Spiel**: zeigen, dass man sie antippen kann
+  („Tippen zum Schließen“ oder ✕) (hud.tsx TipCard).
+- [ ] **Leerer Bildschirm beim Rundenstart**: Ladeanzeige, solange Level/XP
+  noch laden (app/runde.tsx).
+- [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit während der Rückfrage
+  anhalten; Trick-Runde einheitlich; Android-Zurück-Taste.
+- [ ] **Sammelbuch VoiceOver**: unbekannte Gegenstände mit Tonne vorlesen
+  (sammelbuch.tsx:126).
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste, Rundenende:
   erledigt)
@@ -19,6 +33,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Runde: Rückfrage vor dem Beenden, Uhr hält an (3a9324d); Audit → Backlog
 - [x] Einstellungen: „Tipps wieder zeigen“ (1566886); Texte geprüft: alles DE+EN
 - [x] Rangliste: „Nochmal versuchen“, Tab-Wettlauf behoben (4f4b029)
 - [x] Rundenende: „Gut gemacht!“ bei einem Stern (ed0e4aa)
