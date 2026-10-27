@@ -42,5 +42,7 @@ Expo Go.
   useState-Objekten ändern (Listen mit push sind ok).
 - expo-router 58: versteckte Tabs (href: null) lassen sich nicht öffnen;
   Tab-Ansicht nutzte RNSScreenNavigationContainer (fehlt in Expo Go via EAS).
+- Menü-Kopf: Tonnen-Tippflächen liegen darüber und reichen auf kleinen Handys
+  bis y≈84 – im Kopf nichts unterhalb des Level-Chips platzieren.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.

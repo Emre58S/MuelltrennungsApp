@@ -9,15 +9,14 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Hauptmenü, Teil 2**: Fußzeile (Anleitung, Sammelbuch, Rangliste,
-  Belohnungen, Einstellungen) ruhiger gruppieren; Tagesaufgabe-Punkte bei
-  erledigt sichtbar zeigen („10/10 · 840“).
 - [ ] **Sanfte Übergänge**: Unterseiten gleiten weich herein; alle Knöpfe
   reagieren einheitlich beim Drücken (kurz kleiner, leichtes Vibrieren).
 - [ ] **Logo-Schriftzug im Menü**: gestalteter Titel „Müll Sortieren“, leicht
   animiert hereinkommend.
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; Dunkelmodus prüfen; kleine Unsauberkeiten beheben.
+- [ ] **Kleinigkeiten Menü**: Punkt am „?“-Knopf, solange die Anleitung nie
+  geöffnet wurde; Tagesaufgaben-Punkte bei sehr großen Zahlen kürzen.
 - [ ] **Töne minimal verfeinern**: nur Feinschliff (Lautstärke-Balance,
   Klick-Töne der Oberfläche) – Material-Klänge unverändert lassen.
 - [ ] **Eigenes App-Symbol und Startbildschirm**: Tonne mit Gegenstand im
@@ -25,5 +24,6 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Hauptmenü Teil 2: Fußzeile gruppiert, Punkte der Tagesaufgabe (26b2489)
 - [x] Hauptmenü Teil 1: Weiter zuerst, Tagesaufgabe/Trickwürfe/Zielwurf als
   Kachelreihe (ba07a0a)
