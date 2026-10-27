@@ -80,9 +80,9 @@ const MIX: Record<SfxName, { volume: number; vary: number }> = {
   note8: { volume: 0.45, vary: 0 },
   perfect: { volume: 0.45, vary: 0 },
   wrong: { volume: 0.4, vary: 0.02 },
-  fever: { volume: 0.45, vary: 0 },
+  fever: { volume: 0.55, vary: 0 }, // wichtiger Moment – war zu leise
   levelup: { volume: 0.5, vary: 0 },
-  end: { volume: 0.45, vary: 0 },
+  end: { volume: 0.5, vary: 0 },
   tick: { volume: 0.3, vary: 0 },
   tap: { volume: 0.25, vary: 0.03 },
   swish: { volume: 0.5, vary: 0.04 },
@@ -95,9 +95,9 @@ const MIX: Record<SfxName, { volume: number; vary: number }> = {
   matMetal: { volume: 0.4, vary: 0.06 },
   matBio: { volume: 0.5, vary: 0.06 },
   matRest: { volume: 0.48, vary: 0.06 },
-  star1: { volume: 0.5, vary: 0 },
-  star2: { volume: 0.5, vary: 0 },
-  star3: { volume: 0.5, vary: 0 },
+  star1: { volume: 0.4, vary: 0 }, // Sterne lagen über „Perfekt“ und Level-Aufstieg
+  star2: { volume: 0.4, vary: 0 },
+  star3: { volume: 0.4, vary: 0 },
   comboUp: { volume: 0.5, vary: 0 },
   unlock: { volume: 0.55, vary: 0 },
 };
