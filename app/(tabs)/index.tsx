@@ -63,7 +63,8 @@ import { HIGHSCORE_MODE } from "@/components/game/round-hooks";
 import { aimFromDrag, drawFromBag } from "@/game/logic";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
+import { refreshSfxSetting, sfx, sfxMaterial, sfxStreak } from "@/utils/sfx";
+import { itemMaterial } from "@/game/item-mass";
 import { playMusic, refreshMusicSetting } from "@/utils/music";
 import {
   type DailyResult,
@@ -164,6 +165,8 @@ export default function HomeScreen() {
   /* ── Start per Wurf ─────────────────────────────────────────── */
   const starting = useRef(false);
   const pendingMode = useRef<GameMode | null>(null);
+  /** Gerade geworfener Gegenstand (für den Landeklang nach Material). */
+  const thrownItem = useRef<Item | null>(null);
   const throwId = useRef(0);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const later = useCallback((fn: () => void, ms: number) => {
@@ -193,6 +196,7 @@ export default function HomeScreen() {
       // Modi ohne Menü-Tonne (Zielwurf) starten direkt
       const binIndex = MENU_MODES.findIndex((m) => m.mode === mode);
       const current = itemRef.current;
+      thrownItem.current = current;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
 
       if (!current || reduceMotion || binIndex < 0) {
@@ -236,7 +240,8 @@ export default function HomeScreen() {
         ring: true,
       });
       shake(fx.current, 0.03);
-      sfx("land");
+      if (thrownItem.current) sfxMaterial(itemMaterial(thrownItem.current));
+      else sfx("land");
       sfxStreak(3);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       later(() => go(mode), LAUNCH_DELAY_MS);
