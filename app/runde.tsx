@@ -21,7 +21,7 @@ import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-rou
 import { playMusic, refreshMusicSetting } from "@/utils/music";
 import { perfMark } from "@/utils/perf-marks";
 import { Profiler, useCallback, useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function GameScreen() {
@@ -84,6 +84,18 @@ export default function GameScreen() {
     setRound((r) => r + 1);
   }, []);
   const retryTrick = useCallback(() => setRound((r) => r + 1), []);
+  // Ladeanzeige erst nach kurzer Zeit – meist ist alles sofort da, dann blitzt nichts
+  const loading = !isTrick && (xp === null || level === null);
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!loading) return;
+    const id = setTimeout(() => setSlow(true), 250);
+    return () => {
+      clearTimeout(id);
+      setSlow(false);
+    };
+  }, [loading]);
+
   // Tages-Trick (für alle gleich) oder ein Level der Liste
   const [trickDay] = useState(todayKey);
   const trick = isTrick && daily
@@ -106,6 +118,11 @@ export default function GameScreen() {
             onRetry={retryTrick}
           />
         </Profiler>
+      )}
+      {loading && slow && (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       )}
       {!isTrick && xp !== null && level !== null && (
         // Profiler: Render-Dauer der Runde für die Hänger-Messung (nur Entwicklung)
@@ -131,4 +148,5 @@ function onRender(_id: string, phase: string, duration: number) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
 });
