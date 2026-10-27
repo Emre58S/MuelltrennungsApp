@@ -48,5 +48,7 @@ Expo Go.
   in der Seite – sonst gilt die Animation erst ab dem zweiten Öffnen.
 - Neue Agenten in .claude/agents/ sind erst in einer neuen Sitzung nutzbar;
   bis dahin general-purpose mit Verweis auf die Datei.
+- Menü-Modusfarben färben auch 3D-Tonnen und Flugbahn – dunkle Töne wirken
+  dort wie echte Glas-/Papiertonnen. Für Text eigene `sign`-Farbe nutzen.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.

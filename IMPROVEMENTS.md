@@ -10,7 +10,7 @@ zu ändern.
 ## Offen
 
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
-  vereinheitlichen; Dunkelmodus prüfen; kleine Unsauberkeiten beheben.
+  vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste: erledigt)
 - [ ] **Kleinigkeiten Menü**: Punkt am „?“-Knopf, solange die Anleitung nie
   geöffnet wurde; Tagesaufgaben-Punkte bei sehr großen Zahlen kürzen.
 - [ ] **Töne minimal verfeinern**: nur Feinschliff (Lautstärke-Balance,
@@ -20,6 +20,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Design: Kontrast der Menü-Schilder ≥ 4,5:1, Theme geprüft (alles ok) (980ad9e)
 - [x] Druck-Effekt Teil 2: alle Seiten einheitlich (6e06cba)
 - [x] Logo-Schriftzug animiert, Streifen in Tonnenfarben (1777d28)
 - [x] Einheitlicher Druck-Effekt für Basis-Knöpfe (ba4a12b)
