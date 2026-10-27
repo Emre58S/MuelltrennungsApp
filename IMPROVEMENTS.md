@@ -9,8 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Gesperrte Trick-Level**: Tipp gibt Rückmeldung (kurz rütteln +
-  „Schaffe zuerst Level N–1“) statt gar nichts (app/tricks.tsx:147).
 - [ ] **Rundenende: mehr als 4 Fehler**: „+N weitere“ anzeigen
   (end-screen.tsx:285).
 - [ ] **Rundenende: Lernzeilen** mit Druck-Effekt + Vibration; Ranglisten-Pille
@@ -33,6 +31,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Gesperrte Trick-Level erklären sich (b8edb5e)
 - [x] Runde: Rückfrage vor dem Beenden, Uhr hält an (3a9324d); Audit → Backlog
 - [x] Einstellungen: „Tipps wieder zeigen“ (1566886); Texte geprüft: alles DE+EN
 - [x] Rangliste: „Nochmal versuchen“, Tab-Wettlauf behoben (4f4b029)
