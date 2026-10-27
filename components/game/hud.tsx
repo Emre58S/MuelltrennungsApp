@@ -4,6 +4,7 @@
 // für Screenreader (Beschriftung ist auf die 3D-Tonnen gedruckt), dezenter Item-Name unter
 // dem Gegenstand, schmale Hinweiszeile bei Fehlern, Lob und „+10“.
 
+import { Feather } from "@expo/vector-icons";
 import { type ReactNode, useEffect, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 
@@ -484,6 +485,7 @@ export function Banner({ text }: { text: string }) {
 
 export function TipCard({ text, onClose }: { text: string; onClose: () => void }) {
   const { colors } = useAppTheme();
+  const { t } = useI18n();
   const enter = useEnter(300, Easing.out(Easing.back(1.6)));
   return (
     <Animated.View
@@ -496,6 +498,7 @@ export function TipCard({ text, onClose }: { text: string; onClose: () => void }
         accessibilityRole="button"
         accessibilityLiveRegion="polite"
         accessibilityLabel={text}
+        accessibilityHint={t("common.tapToClose")}
         onPress={onClose}
         style={[styles.tip, { backgroundColor: colors.surface, borderColor: "#F5B800" }]}
       >
@@ -503,6 +506,8 @@ export function TipCard({ text, onClose }: { text: string; onClose: () => void }
         <AppText variant="caption" style={styles.tipText}>
           {text}
         </AppText>
+        {/* Zeigt, dass man die Karte wegtippen kann */}
+        <Feather name="x" size={16} color={colors.textMuted} />
       </Pressable>
     </Animated.View>
   );
