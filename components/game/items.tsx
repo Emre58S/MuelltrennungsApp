@@ -324,12 +324,19 @@ export const AimGuide = memo(function AimGuide({
 }: {
   start: THREE.Vector3;
   openings: THREE.Vector3[];
-  /** Punktfarbe pro Tonne. */
+  /** Punktfarbe pro Tonne (Wurfspur „Standard“). */
   colors: string[];
   bus: BusRef;
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const phase = useRef(0);
+  const tint = useMemo(() => new THREE.Color(), []);
+  // Farbpuffer gleich anlegen (sonst Shader-Neuübersetzung beim ersten Zielen)
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    for (let i = 0; i < DOTS; i++) mesh.setColorAt(i, WHITE);
+  }, []);
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const m = useMemo(() => new THREE.Matrix4(), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
@@ -340,14 +347,16 @@ export const AimGuide = memo(function AimGuide({
   );
   useEffect(() => () => mat.dispose(), [mat]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const mesh = ref.current;
     if (!mesh) return;
     const aimIndex = bus.current.aim;
     const target = aimIndex !== null ? openings[aimIndex] : undefined;
     mesh.visible = !!target;
     if (!target || aimIndex === null) return;
-    mat.color.set(colors[aimIndex] ?? "#FFFFFF");
+    // Wurfspur „Standard“: Farbe der angepeilten Tonne – sonst die gewählte Spur
+    const trail = bus.current.trail;
+    mat.color.set(trail === "standard" ? (colors[aimIndex] ?? "#FFFFFF") : "#FFFFFF");
     phase.current = (phase.current + delta * 1.6) % 1;
     const arc = arcFor(start, target);
 
@@ -357,8 +366,10 @@ export const AimGuide = memo(function AimGuide({
       s.setScalar(0.075 - t * 0.035);
       m.compose(tmp, q, s);
       mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, trail === "standard" ? WHITE : trailColor(tint, trail, t, state.clock.elapsedTime, i));
     }
     mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   });
 
   return (
