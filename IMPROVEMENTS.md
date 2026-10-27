@@ -9,8 +9,6 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Kleinigkeiten Einstellungen/Belohnungen**: „Tippen zum Auswählen“ bei
-  freien Spuren, Vibration bei Sprachwahl, Schalter lesen Untertitel vor.
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste, Rundenende:
   erledigt)
@@ -29,6 +27,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Kleinigkeiten Einstellungen/Belohnungen (f250002)
 - [x] Material-Blase im Dunkelmodus (763a3a2)
 - [x] Rangliste: Namenseingabe verbessert (2df7f91)
 - [x] Trick-Runde: Rückmeldungen für VoiceOver (3a3d576)
