@@ -453,91 +453,9 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Unten im Daumenbereich: Hinweis, Weiter, Nebenaktionen */}
+      {/* Unten im Daumenbereich: Hinweis, Weiter, weitere Spielarten, Nebenseiten */}
       <View style={[styles.menu, { paddingBottom: insets.bottom + Spacing.sm }]} pointerEvents="box-none">
         {!compact && <ThrowHint text={t("home.throwHint")} calm={reduceMotion} />}
-
-        {/* Tagesaufgabe: jeden Tag 10 feste Gegenstände */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t("home.daily")}. ${
-            daily
-              ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
-              : t("home.dailyNew")
-          }`}
-          onPress={() => {
-            if (starting.current) return;
-            starting.current = true;
-            sfx("tap");
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-            startDaily();
-          }}
-          style={({ pressed }) => [styles.daily, pressed && styles.pressed]}
-        >
-          <View style={styles.dailyIcon}>
-            <Feather name={daily ? "check" : "calendar"} size={18} color="#3A2500" />
-          </View>
-          <View style={styles.flex}>
-            <AppText variant="label" color={ON_SCENE}>
-              {t("home.daily")}
-            </AppText>
-            <AppText variant="caption" color={ON_SCENE_SOFT} numberOfLines={1}>
-              {daily
-                ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
-                : t("home.dailyNew")}
-            </AppText>
-          </View>
-          <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
-        </Pressable>
-
-        {/* Trickwürfe: Level mit Reifen (ruhig, gleitend, drehend) */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t("home.tricks")}. ${t("home.tricksDesc")}`}
-          onPress={() => {
-            if (starting.current) return;
-            sfx("tap");
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-            router.push("/tricks");
-          }}
-          style={({ pressed }) => [styles.daily, pressed && styles.pressed]}
-        >
-          <View style={[styles.dailyIcon, { backgroundColor: "#7C5CD6" }]}>
-            <Feather name="award" size={18} color="#FFFFFF" />
-          </View>
-          <View style={styles.flex}>
-            <AppText variant="label" color={ON_SCENE}>
-              {t("home.tricks")}
-            </AppText>
-            <AppText variant="caption" color={ON_SCENE_SOFT} numberOfLines={1}>
-              {t("home.tricksDesc")}
-            </AppText>
-          </View>
-          <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
-        </Pressable>
-
-        {/* Zielwurf: eigener Modus ohne Menü-Tonne (dort stehen immer 3) */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t("mode.aim.title")}. ${t("mode.aim.desc")}`}
-          onPress={() => launch("aim")}
-          style={({ pressed }) => [styles.daily, pressed && styles.pressed]}
-        >
-          <View style={[styles.dailyIcon, { backgroundColor: MODE_COLOR.aim.fill }]}>
-            <Feather name="crosshair" size={18} color={MODE_COLOR.aim.on} />
-          </View>
-          <View style={styles.flex}>
-            <AppText variant="label" color={ON_SCENE}>
-              {t("mode.aim.title")}
-            </AppText>
-            <AppText variant="caption" color={ON_SCENE_SOFT} numberOfLines={1}>
-              {loaded && scores.aim > 0
-                ? `🏆 ${formatNumber(scores.aim)}`
-                : t("mode.aim.desc")}
-            </AppText>
-          </View>
-          <Feather name="chevron-right" size={20} color={ON_SCENE_SOFT} />
-        </Pressable>
 
         <Pressable
           accessibilityRole="button"
@@ -563,6 +481,53 @@ export default function HomeScreen() {
           </View>
           <Feather name="chevron-right" size={24} color={colors.onPrimary} />
         </Pressable>
+
+        {/* Weitere Spielarten als eine ruhige Reihe kleiner Kacheln */}
+        <View style={styles.tiles}>
+          <SideTile
+            icon={daily ? "check" : "calendar"}
+            fill="#FFD54A"
+            on="#3A2500"
+            dot={loaded && !daily}
+            title={t("home.daily")}
+            caption={daily ? t("home.dailyDoneShort", { correct: daily.correct, total: daily.total }) : t("home.dailyShort")}
+            a11y={`${t("home.daily")}. ${
+              daily
+                ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
+                : t("home.dailyNew")
+            }`}
+            onPress={() => {
+              if (starting.current) return;
+              starting.current = true;
+              sfx("tap");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+              startDaily();
+            }}
+          />
+          <SideTile
+            icon="award"
+            fill="#7C5CD6"
+            on="#FFFFFF"
+            title={t("home.tricks")}
+            caption={t("home.tricksShort")}
+            a11y={`${t("home.tricks")}. ${t("home.tricksDesc")}`}
+            onPress={() => {
+              if (starting.current) return;
+              sfx("tap");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+              router.push("/tricks");
+            }}
+          />
+          <SideTile
+            icon="crosshair"
+            fill={MODE_COLOR.aim.fill}
+            on={MODE_COLOR.aim.on}
+            title={t("mode.aim.title")}
+            caption={loaded && scores.aim > 0 ? `🏆 ${formatNumber(scores.aim)}` : t("home.aimShort")}
+            a11y={`${t("mode.aim.title")}. ${t("mode.aim.desc")}`}
+            onPress={() => launch("aim")}
+          />
+        </View>
 
         <View style={styles.footer}>
           <FooterLink icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
@@ -691,6 +656,47 @@ function ThrowHint({ text, calm }: { text: string; calm: boolean }) {
         {text}
       </AppText>
     </View>
+  );
+}
+
+/** Kleine Kachel für weitere Spielarten (Symbol, Name, kurze Zeile). */
+function SideTile({
+  icon,
+  fill,
+  on,
+  dot,
+  title,
+  caption,
+  a11y,
+  onPress,
+}: {
+  icon: IconName;
+  fill: string;
+  on: string;
+  dot?: boolean;
+  title: string;
+  caption: string;
+  a11y: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      onPress={onPress}
+      style={({ pressed }) => [styles.tile, dot && styles.tileNew, pressed && styles.tilePressed]}
+    >
+      <View style={[styles.tileIcon, { backgroundColor: fill }]}>
+        <Feather name={icon} size={18} color={on} />
+        {dot && <View style={styles.tileDot} />}
+      </View>
+      <AppText variant="label" color={ON_SCENE} center numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        {title}
+      </AppText>
+      <AppText variant="caption" color={ON_SCENE_SOFT} center numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        {caption}
+      </AppText>
+    </Pressable>
   );
 }
 
@@ -832,24 +838,40 @@ const styles = StyleSheet.create({
     bottom: 0,
     gap: Spacing.sm,
   },
-  daily: {
-    flexDirection: "row",
+  // Drei gleich breite Kacheln nebeneinander
+  tiles: { flexDirection: "row", gap: Spacing.sm },
+  tile: {
+    flex: 1,
     alignItems: "center",
-    gap: Spacing.sm,
-    minHeight: 52,
-    paddingHorizontal: Spacing.sm,
+    gap: 2,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: 4,
     borderRadius: Radius.lg,
     backgroundColor: "rgba(0,0,0,0.34)",
     borderWidth: 1,
-    borderColor: "rgba(255,213,74,0.55)",
+    borderColor: "rgba(255,255,255,0.22)",
   },
-  dailyIcon: {
+  // Tagesaufgabe noch offen: dezent goldener Rand
+  tileNew: { borderColor: "rgba(255,213,74,0.75)" },
+  tilePressed: { opacity: 0.8, transform: [{ scale: 0.96 }] },
+  tileIcon: {
     width: 34,
     height: 34,
     borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFD54A",
+    marginBottom: 2,
+  },
+  tileDot: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    backgroundColor: "#FF4D4D",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
   hint: {
     flexDirection: "row",
