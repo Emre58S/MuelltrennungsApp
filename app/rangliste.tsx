@@ -51,7 +51,7 @@ const MEDAL = ["🥇", "🥈", "🥉"];
 
 export default function LeaderboardScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useAppTheme();
+  const { colors, scheme } = useAppTheme();
   const { t, formatNumber } = useI18n();
   const [tab, setTab] = useState(TABS[0]);
   const [name, setName] = useState("");
@@ -159,6 +159,9 @@ export default function LeaderboardScreen() {
                 autoCorrect={false}
                 returnKeyType="done"
                 onSubmitEditing={saveName}
+                placeholder={t("rank.namePlaceholder")}
+                placeholderTextColor={colors.textMuted}
+                keyboardAppearance={scheme}
                 accessibilityLabel={t("rank.you")}
                 style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
               />
@@ -169,7 +172,14 @@ export default function LeaderboardScreen() {
               )}
               <View style={styles.row}>
                 <Button title={t("rank.save")} onPress={saveName} />
-                <Button title={t("common.cancel")} variant="ghost" onPress={() => setEditing(false)} />
+                <Button
+                  title={t("common.cancel")}
+                  variant="ghost"
+                  onPress={() => {
+                    setEditing(false);
+                    setInvalid(false);
+                  }}
+                />
               </View>
             </>
           ) : (
@@ -183,7 +193,6 @@ export default function LeaderboardScreen() {
               </View>
               <Button
                 title={t("rank.change")}
-               
                 variant="secondary"
                 onPress={() => {
                   setDraft(name);
