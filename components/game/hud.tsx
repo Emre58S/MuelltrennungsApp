@@ -13,7 +13,7 @@ import { type Item } from "@/constants/items";
 import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
 import { type ScreenRect } from "@/game/layout";
-import { type Mass } from "@/game/item-mass";
+import { itemMaterial, type Mass, type Material } from "@/game/item-mass";
 import { type TrickBonus } from "@/game/trick-levels";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
@@ -21,6 +21,17 @@ import { sfx } from "@/utils/sfx";
 /* ── Hilfen ────────────────────────────────────────────────── */
 
 /** Startet beim Mount (bzw. bei neuem key) eine Animation 0 → 1. */
+
+/** Blasen-Farbe je Material (Gegenstand-Karte). */
+const MATERIAL_TINT: Record<Material, string> = {
+  glas: "#D6F1FB",
+  papier: "#F4ECDC",
+  plastik: "#FFF1C2",
+  metall: "#E3E7EB",
+  bio: "#DDF0D2",
+  rest: "#E6E3DF",
+};
+
 function useEnter(duration = 320, easing = Easing.out(Easing.back(1.8)), delay = 0) {
   const { reduceMotion } = useAppSettings();
   const [v] = useState(() => new Animated.Value(reduceMotion ? 1 : 0));
@@ -270,6 +281,7 @@ export function ItemCard({
   mass?: Mass;
 }) {
   const { t, itemName } = useI18n();
+  const material = itemMaterial(item);
   const enter = useEnter(260, Easing.out(Easing.quad));
   const { reduceMotion } = useAppSettings();
   const [hand] = useState(() => new Animated.Value(0));
@@ -301,15 +313,20 @@ export function ItemCard({
       accessibilityLabel={`${t("game.whereTo")} ${itemName(item)}`}
     >
       <HudSurface style={styles.itemTag}>
-        <AppText variant="label" numberOfLines={1}>
-          {itemName(item)}
-        </AppText>
-        {/* Gewicht: schwer fliegt flach, leicht hoch und treibt im Wind */}
-        {mass && mass !== "normal" && (
-          <AppText variant="caption" tone="textSecondary" numberOfLines={1}>
-            {mass === "schwer" ? "🪨" : "🪶"} {t(`item.mass.${mass}`)}
+        {/* Symbol des Gegenstands in einer Blase in Materialfarbe */}
+        <View style={[styles.itemBubble, { backgroundColor: MATERIAL_TINT[material] }]}>
+          <AppText style={styles.itemEmoji}>{item.emoji}</AppText>
+        </View>
+        <View style={styles.itemText}>
+          <AppText variant="label" numberOfLines={1}>
+            {itemName(item)}
           </AppText>
-        )}
+          {/* Material – und Gewicht: schwer fliegt flach, leicht hoch und treibt im Wind */}
+          <AppText variant="caption" tone="textSecondary" numberOfLines={1}>
+            {t(`item.material.${material}`)}
+            {mass && mass !== "normal" ? ` · ${mass === "schwer" ? "🪨" : "🪶"} ${t(`item.mass.${mass}`)}` : ""}
+          </AppText>
+        </View>
       </HudSurface>
       {showHint && (
         <View style={styles.hint}>
@@ -691,7 +708,20 @@ const styles = StyleSheet.create({
   binTarget: { position: "absolute" },
 
   itemWrap: { alignItems: "center", gap: 6 },
-  itemTag: { paddingHorizontal: Spacing.md, paddingVertical: 5, maxWidth: "90%" },
+  // Plastischer: Blase links, dicker Rand unten wie ein Knopf
+  itemTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingLeft: 6,
+    paddingRight: Spacing.md,
+    paddingVertical: 5,
+    maxWidth: "92%",
+    borderBottomWidth: 3,
+  },
+  itemBubble: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
+  itemEmoji: { fontSize: 22, lineHeight: 28 },
+  itemText: { flexShrink: 1 },
 
   hint: { alignItems: "center" },
   hand: { fontSize: 24, marginBottom: -2 },
