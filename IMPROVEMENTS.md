@@ -9,6 +9,14 @@ zu ändern.
 
 ## Offen
 
+- [ ] **Trick-Runde VoiceOver**: Rückmeldungen (falsche Tonne, daneben,
+  sortiert) per announceForAccessibility vorlesen (trick-round.tsx float()).
+- [ ] **Namenseingabe Rangliste**: Platzhalter, dunkle Tastatur im
+  Dunkelmodus, „Abbrechen“ setzt Fehler-Rand zurück (rangliste.tsx).
+- [ ] **Material-Blase im Dunkelmodus**: gedämpfte Farbtöne statt heller
+  Pastell (hud.tsx MATERIAL_TINT).
+- [ ] **Kleinigkeiten Einstellungen/Belohnungen**: „Tippen zum Auswählen“ bei
+  freien Spuren, Vibration bei Sprachwahl, Schalter lesen Untertitel vor.
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
   vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste, Rundenende:
   erledigt)
@@ -27,6 +35,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Trick-Ergebnis scrollt, Knöpfe fest, Sterne-Label (a7b26b5); 2. Audit → Backlog
 - [x] Sammelbuch: VoiceOver mit Lernstand/Tonne (0ddd4a2)
 - [x] Ladeanzeige beim Rundenstart (e3dfa1c)
 - [x] Tipp-Karte mit ✕ und Hinweis (46dc42f)
