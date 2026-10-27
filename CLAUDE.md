@@ -59,5 +59,7 @@ Expo Go.
   dort wie echte Glas-/Papiertonnen. Für Text eigene `sign`-Farbe nutzen.
 - Verlassen einer Runde speichert alles (useCommitRound beim Unmount) –
   Texte dürfen nie „geht verloren“ behaupten.
+- Trick-Level: einzeln testen mit `npx jest game/__tests__/tricks.test.ts -t "Level N"`
+  (~20 s). Windstärke wirkt nicht gleichmäßig – nach 3–4 Versuchen verwerfen.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.

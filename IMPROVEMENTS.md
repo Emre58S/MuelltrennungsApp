@@ -27,6 +27,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Neues Trick-Level 14 (a15caca); Windrad+Gegenwind verworfen (nicht fair genug)
 - [x] Kleinigkeiten Einstellungen/Belohnungen (f250002)
 - [x] Material-Blase im Dunkelmodus (763a3a2)
 - [x] Rangliste: Namenseingabe verbessert (2df7f91)
