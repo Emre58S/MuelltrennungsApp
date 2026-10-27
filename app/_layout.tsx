@@ -27,7 +27,7 @@ silenceKnownWarnings();
 SplashScreen.preventAutoHideAsync();
 
 function RootStack({ fontsDone }: { fontsDone: boolean }) {
-  const { ready, colors, scheme } = useAppSettings();
+  const { ready, colors, scheme, reduceMotion } = useAppSettings();
   const done = fontsDone && ready;
 
   useEffect(() => {
@@ -42,9 +42,15 @@ function RootStack({ fontsDone }: { fontsDone: boolean }) {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.bg },
-          animation: "slide_from_right",
+          // „Weniger Bewegung“: Seiten blenden nur über statt zu gleiten
+          animation: reduceMotion ? "fade" : "slide_from_right",
+          animationDuration: reduceMotion ? 220 : undefined,
         }}
-      />
+      >
+        {/* Nach dem Wurf in die Menü-Tonne blendet die Runde weich ein statt
+            seitlich zu schieben (hier gesetzt, damit es schon beim ersten Mal gilt) */}
+        <Stack.Screen name="runde" options={{ animation: "fade", animationDuration: 280 }} />
+      </Stack>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
     </>
   );
