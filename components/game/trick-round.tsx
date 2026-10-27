@@ -174,6 +174,8 @@ export function TrickRound({
   const busy = useRef(false);
   /** Zuletzt geworfener Gegenstand (ein Wurf zur Zeit). */
   const thrownRef = useRef<Item | null>(null);
+  /** Angetippte Tonne beim Sortieren (Fremd-Gegenstand). */
+  const sortBin = useRef<number | null>(null);
   const done = useRef(false);
   const ids = useRef(0);
   /** Wurf-Eingabe: schnell wischen oder halten (Vorschau). */
@@ -323,6 +325,27 @@ export function TrickRound({
     );
   };
 
+  /** Fremd-Gegenstand per Tippen sortieren: er fliegt in die angetippte Tonne
+   *  (richtig → hinein, falsch → prallt ab). Werfen bleibt den Tricks vorbehalten. */
+  const sortTo = (bin: number) => {
+    const current = itemRef.current;
+    if (!current || busy.current || done.current || current.category === target.category) return;
+    busy.current = true;
+    thrownRef.current = current;
+    sortBin.current = bin;
+    queueThrow(bus.current, {
+      id: ++ids.current,
+      item: current,
+      binIndex: bin,
+      hit: bins[bin].category === current.category,
+      perfect: false,
+      glow: false,
+    });
+    setItem(null);
+    sfx("throw");
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+  };
+
   /** Gegenstand, der nicht in die Zieltonne gehört: richtig sortieren lernen. */
   const landDecoy = (thrown: Item, bin: number | null, x: number | undefined) => {
     const y = layout.binTops[0].y;
@@ -351,7 +374,8 @@ export function TrickRound({
     const bin = outcome?.bin ?? null;
     const thrown = thrownRef.current;
     if (thrown && thrown.category !== target.category) {
-      landDecoy(thrown, bin, outcome?.x);
+      landDecoy(thrown, sortBin.current ?? bin, outcome?.x);
+      sortBin.current = null;
       setAttempt(attemptsRef.current + 1);
       later(() => {
         if (!done.current) setItem(draw());
@@ -390,6 +414,7 @@ export function TrickRound({
     aim: (_dx: number, _dy: number, _vy: number) => {},
     release: (_dx: number, _dy: number, _vy: number) => {},
     cancel: () => {},
+    tap: (_x: number, _y: number) => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
   });
   // Wie im Zielwurf: schnell wischen = normaler Wurf, halten = Flugbahn.
@@ -433,6 +458,13 @@ export function TrickRound({
       cancel: () => {
         setShotGuide(bus.current, null);
       },
+      // Fremd-Gegenstand: Tippen auf eine Tonne sortiert ihn
+      tap: (x, y) => {
+        const i = layout.binRects.findIndex(
+          (r) => x >= r.x - 8 && x <= r.x + r.w + 8 && y >= r.y - 24 && y <= r.y + r.h + 64,
+        );
+        if (i !== -1) sortTo(i);
+      },
       land: handleLand,
     };
   });
@@ -452,20 +484,29 @@ export function TrickRound({
     [],
   );
   const onCancel = useCallback(() => handlers.current.cancel(), []);
+  const onTap = useCallback((x: number, y: number) => handlers.current.tap(x, y), []);
   const finished = result !== null;
   /* eslint-disable react-hooks/refs */
-  const gesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .enabled(!finished)
-        .runOnJS(true)
-        .minDistance(6)
-        .onBegin(onBegin)
-        .onUpdate((e) => onAim(e.translationX, e.translationY, e.velocityY))
-        .onEnd((e) => onRelease(e.translationX, e.translationY, e.velocityY))
-        .onFinalize(onCancel),
-    [onBegin, onAim, onRelease, onCancel, finished],
-  );
+  // Fremd-Gegenstand: nur Tippen (sortieren), sonst nur Werfen
+  const sorting = !!item && item.category !== target.category;
+  const gesture = useMemo(() => {
+    const pan = Gesture.Pan()
+      .enabled(!finished && !sorting)
+      .runOnJS(true)
+      .minDistance(6)
+      .onBegin(onBegin)
+      .onUpdate((e) => onAim(e.translationX, e.translationY, e.velocityY))
+      .onEnd((e) => onRelease(e.translationX, e.translationY, e.velocityY))
+      .onFinalize(onCancel);
+    const tap = Gesture.Tap()
+      .enabled(!finished && sorting)
+      .runOnJS(true)
+      .maxDistance(12)
+      .onEnd((e, ok) => {
+        if (ok) onTap(e.x, e.y);
+      });
+    return Gesture.Race(pan, tap);
+  }, [onBegin, onAim, onRelease, onCancel, onTap, finished, sorting]);
   /* eslint-enable react-hooks/refs */
   const onFloatDone = useCallback((id: number) => {
     setFloats((f) => f.filter((x) => x.id !== id));
@@ -510,7 +551,7 @@ export function TrickRound({
               <TrickHud
                 title={daily ? t("tricks.daily") : t("tricks.level", { n: level.id })}
                 attempt={attempt}
-                task={t(level.task)}
+                task={sorting ? t("trick.sortTask") : t(level.task)}
                 bonus={level.bonus}
               />
               <View style={styles.topSpacer} />

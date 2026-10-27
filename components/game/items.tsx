@@ -210,6 +210,14 @@ export const ShotGuideDots = memo(function ShotGuideDots({
   const s = useMemo(() => new THREE.Vector3(), []);
   // Bahn als Punkte (1/60 s), einmal angelegt und wiederverwendet
   const path = useMemo(() => Array.from({ length: TRACE_POINTS + 1 }, () => new THREE.Vector3()), []);
+  // Punkte in der gewählten Wurfspur-Farbe (Belohnungen): Farbpuffer gleich anlegen,
+  // sonst wird der Shader erst beim ersten Halten neu übersetzt (Ruckler)
+  const tint = useMemo(() => new THREE.Color(), []);
+  useLayoutEffect(() => {
+    const dot = dots.current;
+    if (!dot) return;
+    for (let i = 0; i < GUIDE_DOTS; i++) dot.setColorAt(i, WHITE);
+  }, []);
   const colliders = useMemo(() => binColliders(openings, binSlide), [openings, binSlide]);
   const moving = useMemo(
     () => !!binSlide || props.some((p) => p.kind === "windmill" || (p.kind === "ring" && !!p.motion)),
@@ -241,7 +249,7 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     [mat, haloMat],
   );
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const dot = dots.current;
     const halo = halos.current;
     if (!dot || !halo) return;
@@ -279,10 +287,12 @@ export const ShotGuideDots = memo(function ShotGuideDots({
       if (i === GUIDE_DOTS - 1) size *= 1 - phase.current;
       m.compose(tmp, q, s.setScalar(size));
       dot.setMatrixAt(i, m);
+      dot.setColorAt(i, trailColor(tint, bus.current.trail, k, state.clock.elapsedTime, i));
       m.compose(tmp, q, s.setScalar(size * GUIDE_HALO));
       halo.setMatrixAt(i, m);
     }
     dot.instanceMatrix.needsUpdate = true;
+    if (dot.instanceColor) dot.instanceColor.needsUpdate = true;
     halo.instanceMatrix.needsUpdate = true;
   });
 
