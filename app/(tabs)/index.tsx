@@ -564,6 +564,7 @@ export default function HomeScreen() {
         <View style={styles.footer}>
           <FooterLink icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
           <FooterLink icon="book-open" label={t("home.book")} onPress={() => router.push("/sammelbuch")} />
+          <FooterLink icon="award" label={t("home.rank")} onPress={() => router.push("/rangliste")} />
           <FooterLink icon="gift" label={t("home.rewards")} onPress={() => router.push("/belohnungen")} />
           <FooterLink icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
         </View>

@@ -30,6 +30,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx } from "@/utils/sfx";
 import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
+import { dailyBoard, submitScore, trickScore } from "@/utils/leaderboard";
 import {
   getRewardProgress,
   getTrail,
@@ -290,6 +291,8 @@ export function TrickRound({
     const bonus = bonusMet(level.bonus, { attempts, clean });
     const stars = starsFor(attempts, bonus);
     (daily ? saveTrickDaily(stars) : saveTrickStars(level.id, stars)).catch(() => undefined);
+    // Tages-Trick: Rangliste (mehr Sterne, dann weniger Versuche)
+    if (daily) submitScore(dailyBoard("tagestrick"), trickScore(stars, attempts)).catch(() => undefined);
     // Neue Wurfspur durch die Sterne? (Tages-Trick zählt nicht)
     const before = rewardProgress.current;
     const gained = daily ? 0 : Math.max(0, stars - levelStars.current);

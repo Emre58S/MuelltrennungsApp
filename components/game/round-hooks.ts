@@ -1,9 +1,11 @@
 // Datei: components/game/round-hooks.ts
 //
 // Hilfs-Hooks der Spielrunde: verzögerte Aufrufe, die beim Abbau der Runde
-// verworfen werden, und das einmalige Speichern der Runde.
+// verworfen werden, und das einmalige Speichern der Runde (inklusive
+// Rangliste, utils/leaderboard.ts).
 import { type GameMode } from "@/constants/modes";
 import { type Stats } from "@/game/logic";
+import { type Board, dailyBoard, submitScore } from "@/utils/leaderboard";
 import {
   flushThrowRecords,
   recordRound,
@@ -26,6 +28,9 @@ export const HIGHSCORE_MODE = {
   time: "zeit",
   aim: "zielwurf",
 } as const;
+
+/** Rangliste je Modus (Üben/Endlos hat keine). */
+const BOARD: Partial<Record<GameMode, Board>> = { aim: "zielwurf", time: "zeit", survival: "runden" };
 
 /** Wie setTimeout, aber alle offenen Aufrufe fallen beim Abbau weg. */
 export function useLater() {
@@ -70,6 +75,8 @@ export function useCommitRound(
         correct: s.correct,
         total: s.throws,
       }).catch(() => undefined);
+      // Tagesaufgabe: für alle gleich → eigene Tages-Rangliste
+      submitScore(dailyBoard("tagesaufgabe"), s.score).catch(() => undefined);
       flushThrowRecords().catch(() => undefined);
       return;
     }
@@ -80,6 +87,8 @@ export function useCommitRound(
     }).catch(() => undefined);
     if (s.score > 0)
       saveHighscore(HIGHSCORE_MODE[m], s.score).catch(() => undefined);
+    const board = BOARD[m];
+    if (board) submitScore(board, s.score).catch(() => undefined);
     flushThrowRecords().catch(() => undefined);
   }, [liveStats]);
   useEffect(() => commit, [commit]);
