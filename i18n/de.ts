@@ -5,6 +5,7 @@ export const de = {
   "common.back": "Zurück",
   "common.close": "Schließen",
   "common.cancel": "Abbrechen",
+  "common.retry": "Nochmal versuchen",
   "common.points": "Punkte",
   "common.level": "Level",
   "common.xp": "XP",

@@ -61,19 +61,24 @@ export default function LeaderboardScreen() {
   const [result, setResult] = useState<BoardResult | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
 
+  /** Gerade gewählte Liste – späte Antworten anderer Listen werden verworfen. */
+  const shown = useRef(tab);
+
   /** Liste laden (Ergebnis kommt asynchron; „lädt“ = noch kein Ergebnis). */
   const load = useCallback((which: Tab) => {
     if (!leaderboardReady) return;
     fetchBoard(which.board())
       .then((r) => {
+        if (shown.current !== which) return;
         setResult(r);
         setState("idle");
       })
-      .catch(() => setState("error"));
+      .catch(() => {
+        if (shown.current === which) setState("error");
+      });
   }, []);
 
   // Beim Öffnen: Spitzname und die gewählte Liste (neu) laden
-  const shown = useRef(tab);
   useFocusEffect(
     useCallback(() => {
       getPlayer()
@@ -221,9 +226,13 @@ export default function LeaderboardScreen() {
             {t("rank.offline")}
           </AppText>
         ) : state === "error" ? (
-          <AppText tone="textSecondary" style={styles.note}>
-            {t("rank.error")}
-          </AppText>
+          <View style={styles.errorBox}>
+            <AppText tone="textSecondary" center>
+              {t("rank.error")}
+            </AppText>
+            {/* Ziehen zum Aktualisieren kennt kaum jemand – daher ein Knopf */}
+            <Button title={t("common.retry")} icon="refresh-cw" variant="secondary" onPress={refresh} />
+          </View>
         ) : !result ? (
           <ActivityIndicator style={styles.note} color={colors.primary} />
         ) : result.rows.length === 0 ? (
@@ -290,6 +299,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   note: { textAlign: "center", marginTop: Spacing.md },
+  errorBox: { alignItems: "center", gap: Spacing.sm, marginTop: Spacing.md },
   list: { borderRadius: Radius.lg, borderWidth: 1, overflow: "hidden" },
   entry: {
     flexDirection: "row",

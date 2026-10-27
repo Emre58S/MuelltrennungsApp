@@ -6,6 +6,7 @@ export const en: Translations = {
   "common.back": "Back",
   "common.close": "Close",
   "common.cancel": "Cancel",
+  "common.retry": "Try again",
   "common.points": "Points",
   "common.level": "Level",
   "common.xp": "XP",
