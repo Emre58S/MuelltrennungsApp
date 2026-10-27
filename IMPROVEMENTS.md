@@ -9,8 +9,8 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Sanfte Übergänge**: Unterseiten gleiten weich herein; alle Knöpfe
-  reagieren einheitlich beim Drücken (kurz kleiner, leichtes Vibrieren).
+- [ ] **Einheitlicher Druck-Effekt**: alle Knöpfe reagieren gleich beim Drücken
+  (kurz kleiner, leichtes Vibrieren) – z. B. über components/ui/button.tsx.
 - [ ] **Logo-Schriftzug im Menü**: gestalteter Titel „Müll Sortieren“, leicht
   animiert hereinkommend.
 - [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
@@ -24,6 +24,7 @@ zu ändern.
 
 ## Erledigt
 
+- [x] Sanfte Übergänge: Runde blendet ein, „Weniger Bewegung“ blendet (aa0dc2f)
 - [x] Hauptmenü Teil 2: Fußzeile gruppiert, Punkte der Tagesaufgabe (26b2489)
 - [x] Hauptmenü Teil 1: Weiter zuerst, Tagesaufgabe/Trickwürfe/Zielwurf als
   Kachelreihe (ba07a0a)

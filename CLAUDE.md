@@ -44,5 +44,9 @@ Expo Go.
   Tab-Ansicht nutzte RNSScreenNavigationContainer (fehlt in Expo Go via EAS).
 - Menü-Kopf: Tonnen-Tippflächen liegen darüber und reichen auf kleinen Handys
   bis y≈84 – im Kopf nichts unterhalb des Level-Chips platzieren.
+- Stack-Optionen einer Seite im Layout setzen (<Stack.Screen name=…>), nicht
+  in der Seite – sonst gilt die Animation erst ab dem zweiten Öffnen.
+- Neue Agenten in .claude/agents/ sind erst in einer neuen Sitzung nutzbar;
+  bis dahin general-purpose mit Verweis auf die Datei.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.
