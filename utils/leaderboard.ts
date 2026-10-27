@@ -4,7 +4,7 @@
 //
 // Zugang über .env.local (wird nicht hochgeladen):
 //   EXPO_PUBLIC_SUPABASE_URL=https://xyz.supabase.co
-//   EXPO_PUBLIC_SUPABASE_ANON_KEY=…
+//   EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_… (oder alter „anon“-Schlüssel)
 // Fehlt er, läuft alles weiter: Ergebnisse werden gemerkt und später
 // nachgereicht, die Ranglisten-Seite zeigt einen Hinweis.
 
@@ -79,9 +79,11 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   try {
     const res = await fetch(`${URL}/rest/v1/rpc/${fn}`, {
       method: "POST",
+      // Neue Schlüssel (sb_publishable_…) nur im apikey-Kopf – als „Bearer“ würden
+      // sie als ungültiges JWT abgelehnt. Alte anon-Schlüssel (JWT) zusätzlich als Bearer.
       headers: {
         apikey: KEY,
-        Authorization: `Bearer ${KEY}`,
+        ...(KEY.startsWith("eyJ") ? { Authorization: `Bearer ${KEY}` } : {}),
         "Content-Type": "application/json",
       },
       body: JSON.stringify(args),
