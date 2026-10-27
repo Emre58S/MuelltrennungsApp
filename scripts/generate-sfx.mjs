@@ -152,74 +152,58 @@ SCALE.forEach((f, i) => {
 }
 
 /* ── Landen je Material (was man wirft, hört man) ─────────────── */
-// Jeder Klang: der Gegenstand selbst + leiser „Tonnen-Plumps“ (großer
-// Kunststoffkörper), damit man hört, dass er in/auf der Tonne landet.
 
-/** Hohler Körper der Mülltonne (Kunststoff, groß). */
-function binBody(b, { start = 0, vol = 0.25 } = {}) {
-  partial(b, { start, f: 118, vol, decay: 0.06, glide: 40, glideTime: 0.015 });
-  partial(b, { start, f: 236, vol: vol * 0.3, decay: 0.03 });
+// Glas: helles Klirren (unharmonisch, zwei leicht versetzte Anschläge)
+{
+  const b = buf(0.5);
+  bell(b, { f: 2350, vol: 0.32, decay: 0.16 });
+  bell(b, { start: 0.035, f: 3120, vol: 0.18, decay: 0.12 });
+  mallet(b, { vol: 0.3, dur: 0.006, bright: 0.85 });
+  partial(b, { f: 210, vol: 0.25, decay: 0.03 });
+  write("matGlass", b, { level: 0.7, room: 0.18 });
 }
 
-// Glas: deutliches Klirren – Hauptanschlag + zwei kleine Nachklirrer
+// Papier: kurzes Rascheln
 {
-  const b = buf(0.6);
-  bell(b, { f: 2489, vol: 0.42, decay: 0.2 });
-  bell(b, { start: 0.004, f: 3322, vol: 0.22, decay: 0.15 });
-  mallet(b, { vol: 0.4, dur: 0.005, bright: 0.95 });
-  bell(b, { start: 0.07, f: 2960, vol: 0.16, decay: 0.1 });
-  mallet(b, { start: 0.07, vol: 0.15, dur: 0.004, bright: 0.95 });
-  bell(b, { start: 0.13, f: 3729, vol: 0.09, decay: 0.08 });
-  binBody(b, { vol: 0.18 });
-  write("matGlass", b, { level: 0.85, room: 0.2 });
+  const b = buf(0.3);
+  air(b, { dur: 0.22, vol: 0.5, peak: 0.15, lp0: 0.25, lp1: 0.5 });
+  crackle(b, { dur: 0.2, count: 26, vol: 0.35, bright: 0.7 });
+  partial(b, { f: 160, vol: 0.2, decay: 0.03 });
+  write("matPaper", b, { level: 0.65, room: 0.08 });
 }
 
-// Papier: Rascheln + weicher Aufprall
+// Plastik: Knistern + hohles „Plopp“
 {
-  const b = buf(0.32);
-  air(b, { dur: 0.2, vol: 0.55, peak: 0.12, lp0: 0.3, lp1: 0.55 });
-  crackle(b, { dur: 0.22, count: 34, vol: 0.4, bright: 0.75 });
-  binBody(b, { vol: 0.2 });
-  write("matPaper", b, { level: 0.8, room: 0.08 });
+  const b = buf(0.3);
+  crackle(b, { dur: 0.12, count: 12, vol: 0.3, bright: 0.55 });
+  partial(b, { start: 0.01, f: 420, vol: 0.45, decay: 0.035, glide: 180, glideTime: 0.015 });
+  partial(b, { start: 0.01, f: 950, vol: 0.12, decay: 0.02 });
+  write("matPlastic", b, { level: 0.65, room: 0.1 });
 }
 
-// Plastik: hohles „Bonk“ + kurzes Knistern
+// Metall: kurzes Scheppern (Dose)
 {
-  const b = buf(0.32);
-  partial(b, { f: 520, vol: 0.5, decay: 0.045, glide: 220, glideTime: 0.012 });
-  partial(b, { f: 1180, vol: 0.18, decay: 0.025 });
-  crackle(b, { start: 0.01, dur: 0.1, count: 14, vol: 0.28, bright: 0.6 });
-  binBody(b, { vol: 0.22 });
-  write("matPlastic", b, { level: 0.8, room: 0.1 });
+  const b = buf(0.5);
+  [523, 1347, 2210, 3170].forEach((f, i) => partial(b, { f, vol: 0.32 / (1 + i * 0.7), decay: 0.12 / (1 + i * 0.5) }));
+  mallet(b, { vol: 0.35, dur: 0.01, bright: 0.7 });
+  partial(b, { f: 180, vol: 0.25, decay: 0.03 });
+  write("matMetal", b, { level: 0.7, room: 0.15 });
 }
 
-// Metall: Scheppern der Dose + Nachklappern
+// Bio: weicher, satter Plumps
 {
-  const b = buf(0.6);
-  [612, 1531, 2484, 3507].forEach((f, i) => partial(b, { f, vol: 0.36 / (1 + i * 0.6), decay: 0.16 / (1 + i * 0.5) }));
-  mallet(b, { vol: 0.4, dur: 0.008, bright: 0.8 });
-  [680, 1702].forEach((f, i) => partial(b, { start: 0.09, f, vol: 0.14 / (1 + i), decay: 0.07 }));
-  mallet(b, { start: 0.09, vol: 0.15, dur: 0.005, bright: 0.8 });
-  binBody(b, { vol: 0.2 });
-  write("matMetal", b, { level: 0.82, room: 0.16 });
-}
-
-// Bio: satter, weicher Plumps (etwas „matschig“)
-{
-  const b = buf(0.28);
-  partial(b, { f: 90, vol: 0.75, decay: 0.07, glide: 90, glideTime: 0.02 });
-  air(b, { dur: 0.1, vol: 0.3, peak: 0.08, lp0: 0.05, lp1: 0.08 });
-  binBody(b, { vol: 0.15 });
-  write("matBio", b, { level: 0.82, room: 0.08 });
+  const b = buf(0.25);
+  partial(b, { f: 95, vol: 0.7, decay: 0.06, glide: 70, glideTime: 0.02 });
+  air(b, { dur: 0.08, vol: 0.25, peak: 0.1, lp0: 0.06, lp1: 0.1 });
+  write("matBio", b, { level: 0.7, room: 0.08 });
 }
 
 // Restmüll: dumpfer Schlag
 {
-  const b = buf(0.24);
-  partial(b, { f: 140, vol: 0.7, decay: 0.055, glide: 70, glideTime: 0.015 });
-  mallet(b, { vol: 0.4, dur: 0.014, bright: 0.25 });
-  binBody(b, { vol: 0.2 });
-  write("matRest", b, { level: 0.82, room: 0.1 });
+  const b = buf(0.22);
+  partial(b, { f: 135, vol: 0.65, decay: 0.05, glide: 60, glideTime: 0.015 });
+  mallet(b, { vol: 0.35, dur: 0.014, bright: 0.25 });
+  write("matRest", b, { level: 0.7, room: 0.1 });
 }
 
 /* ── Belohnungen ───────────────────────────────────────────── */

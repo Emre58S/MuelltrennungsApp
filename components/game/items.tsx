@@ -700,17 +700,11 @@ export const ThrowLayer = memo(function ThrowLayer({
           // Klang je Bauteil, Tonhöhe und Lautstärke nach Wucht
           const loud = Math.min(e.speed / 6, 0.9);
           const pitch = 0.85 + Math.min(e.speed / 12, 0.35);
-          // Der Gegenstand klingt nach seinem Material (Glas klirrt, Dose
-          // scheppert …), die Tonne bzw. das Hindernis leiser darunter
-          const material = itemMaterial(spec.item);
-          if (e.part === "ground") sfxMaterial(material, { volume: loud * 0.6 });
-          else {
-            sfxMaterial(material, { volume: Math.max(loud, 0.45), rate: 0.9 + (pitch - 0.85) * 0.5 });
-            if (e.part === "lid") sfx("lid", { volume: loud * 0.45, rate: pitch });
-            else if (e.part === "ring") sfx("rim", { volume: loud * 0.45, rate: pitch * 1.25 });
-            else if (e.part === "blade") sfx("lid", { volume: loud * 0.45, rate: pitch * 0.7 });
-            else sfx("rim", { volume: loud * 0.45, rate: e.part === "wall" ? pitch * 0.8 : pitch });
-          }
+          if (e.part === "lid") sfx("lid", { volume: loud, rate: pitch });
+          else if (e.part === "ground") sfxMaterial(itemMaterial(spec.item), { volume: loud * 0.6 });
+          else if (e.part === "ring") sfx("rim", { volume: loud, rate: pitch * 1.25 });
+          else if (e.part === "blade") sfx("lid", { volume: loud, rate: pitch * 0.7 });
+          else sfx("rim", { volume: loud, rate: e.part === "wall" ? pitch * 0.8 : pitch });
         }
         if (e.prop !== undefined && e.speed > 1.5)
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);

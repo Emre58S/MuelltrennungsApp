@@ -566,11 +566,8 @@ export function GameRound({
       const streakNow = after.streak;
       // Landeklang je Material: Glas klirrt, Papier raschelt, Dose scheppert …
       sfxMaterial(itemMaterial(ts.item));
-      // Melodie einen Moment später: zuerst hört man, was gelandet ist
-      later(() => {
-        if (ts.perfect) sfx("perfect");
-        else sfxStreak(streakNow);
-      }, 90);
+      if (ts.perfect) sfx("perfect");
+      else sfxStreak(streakNow);
       if (ts.perfect && thrown.free) {
         // Swish: „Wumms“ – kurzer Stillstand, Netz-Klang, doppelte Vibration
         sfx("swish");
