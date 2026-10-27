@@ -5,6 +5,7 @@ import type { Translations } from "./de";
 export const en: Translations = {
   "common.back": "Back",
   "common.close": "Close",
+  "common.starsOf": "{n} of 3 stars",
   "common.tapToClose": "Tap to close",
   "common.cancel": "Cancel",
   "common.retry": "Try again",

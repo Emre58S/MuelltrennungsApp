@@ -6,7 +6,8 @@
 
 import { Feather } from "@expo/vector-icons";
 import { type ReactNode, useEffect, useState } from "react";
-import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
@@ -603,6 +604,7 @@ export function TrickResult({
   onLevels: () => void;
 }) {
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const enter = useEnter(300, Easing.out(Easing.quad));
   // Neue Wurfspur: kleine Fanfare, nachdem die Sterne aufgeploppt sind
@@ -612,38 +614,53 @@ export function TrickResult({
     return () => clearTimeout(timer);
   }, [unlocked]);
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, styles.resultWrap, { backgroundColor: colors.overlay, opacity: enter }]}>
+    <Animated.View
+      style={[
+        StyleSheet.absoluteFill,
+        styles.resultWrap,
+        {
+          backgroundColor: colors.overlay,
+          opacity: enter,
+          paddingTop: insets.top + Spacing.md,
+          paddingBottom: insets.bottom + Spacing.md,
+        },
+      ]}
+    >
       <View style={[styles.resultCard, { backgroundColor: colors.surface }]}>
-        <AppText variant="title" center accessibilityRole="header">
-          {title}
-        </AppText>
-        <View style={styles.stars} accessible accessibilityLabel={`${stars} / 3`}>
-          {[1, 2, 3].map((n) => (
-            <Star key={n} n={n as 1 | 2 | 3} filled={n <= stars} delay={250 + n * 180} />
-          ))}
-        </View>
-        <AppText tone="textSecondary" center>
-          {attempts <= 1 ? t("trick.attemptsOne") : t("trick.attempts", { n: attempts })}
-        </AppText>
-        <View style={styles.goals}>
-          <GoalRow done text={t("trick.goal.done")} />
-          <GoalRow done={attempts <= 3} text={t("trick.goal.tries")} />
-          <GoalRow done={bonusDone} text={bonusText(t, bonus)} />
-        </View>
-        {fact && (
-          <View style={[styles.fact, { backgroundColor: colors.surfaceAlt }]}>
-            <AppText variant="caption" tone="textSecondary">
-              💡 {t("trick.factTitle")} · {fact.name}
-            </AppText>
-            <AppText variant="caption">{fact.text}</AppText>
-          </View>
-        )}
-        {unlocked && (
-          <AppText variant="label" tone="gold" center>
-            🎁 {t("reward.new", { name: unlocked })}
+        {/* Kleine Handys / große Schrift: Inhalt scrollt, Knöpfe bleiben erreichbar */}
+        <ScrollView contentContainerStyle={styles.resultInner} bounces={false} showsVerticalScrollIndicator={false}>
+          <AppText variant="title" center accessibilityRole="header">
+            {title}
           </AppText>
-        )}
-        <View style={styles.resultButtons}>
+          <View style={styles.stars} accessible accessibilityLabel={t("common.starsOf", { n: stars })}>
+            {[1, 2, 3].map((n) => (
+              <Star key={n} n={n as 1 | 2 | 3} filled={n <= stars} delay={250 + n * 180} />
+            ))}
+          </View>
+          <AppText tone="textSecondary" center>
+            {attempts <= 1 ? t("trick.attemptsOne") : t("trick.attempts", { n: attempts })}
+          </AppText>
+          <View style={styles.goals}>
+            <GoalRow done text={t("trick.goal.done")} />
+            <GoalRow done={attempts <= 3} text={t("trick.goal.tries")} />
+            <GoalRow done={bonusDone} text={bonusText(t, bonus)} />
+          </View>
+          {fact && (
+            <View style={[styles.fact, { backgroundColor: colors.surfaceAlt }]}>
+              <AppText variant="caption" tone="textSecondary">
+                💡 {t("trick.factTitle")} · {fact.name}
+              </AppText>
+              <AppText variant="caption">{fact.text}</AppText>
+            </View>
+          )}
+          {unlocked && (
+            <AppText variant="label" tone="gold" center>
+              🎁 {t("reward.new", { name: unlocked })}
+            </AppText>
+          )}
+        </ScrollView>
+        {/* Knöpfe immer sichtbar unten in der Karte */}
+        <View style={[styles.resultButtons, styles.resultFooter]}>
           <Button title={isLast ? t("trick.levels") : t("trick.next")} icon="arrow-right" iconPosition="end" onPress={isLast ? onLevels : onNext} />
           <Button title={t("trick.retry")} variant="secondary" icon="rotate-ccw" onPress={onRetry} />
           {!isLast && <Button title={t("trick.levels")} variant="ghost" onPress={onLevels} />}
@@ -772,7 +789,9 @@ const styles = StyleSheet.create({
 
   trickHud: { paddingHorizontal: Spacing.md, paddingVertical: 6, borderRadius: Radius.lg, flexShrink: 1, maxWidth: 260 },
   resultWrap: { alignItems: "center", justifyContent: "center", padding: Spacing.lg },
-  resultCard: { width: "100%", maxWidth: 360, borderRadius: Radius.xl, padding: Spacing.lg, gap: Spacing.md },
+  resultCard: { width: "100%", maxWidth: 360, maxHeight: "100%", borderRadius: Radius.xl, overflow: "hidden" },
+  resultInner: { padding: Spacing.lg, paddingBottom: Spacing.sm, gap: Spacing.md },
+  resultFooter: { marginTop: 0, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg },
   stars: { flexDirection: "row", justifyContent: "center", gap: Spacing.sm },
   star: { fontSize: 48, lineHeight: 56, color: "#F5B800" },
   resultButtons: { gap: Spacing.sm, marginTop: Spacing.sm },

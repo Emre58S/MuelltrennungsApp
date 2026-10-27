@@ -4,6 +4,7 @@
 export const de = {
   "common.back": "Zurück",
   "common.close": "Schließen",
+  "common.starsOf": "{n} von 3 Sternen",
   "common.tapToClose": "Tippen zum Schließen",
   "common.cancel": "Abbrechen",
   "common.retry": "Nochmal versuchen",
