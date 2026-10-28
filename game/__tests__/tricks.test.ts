@@ -17,6 +17,7 @@ import {
   dailyTrick,
   hasWind,
   levelPeriod,
+  meetsRequirement,
   mirrorLevel,
   starsFor,
   TRICK_LEVELS,
@@ -118,6 +119,26 @@ describe("Trickwurf-Level", () => {
     };
     expect(straight("leicht")).toBeLessThanOrEqual(straight("schwer"));
   });
+
+  // Bonus „Swish“ muss erreichbar sein: mindestens ein Treffer ohne jede Berührung
+  test.each(cases.filter(([, l]) => l.bonus === "swish"))(
+    "%s: Swish-Bonus ist erreichbar",
+    (_name, level) => {
+      const times = sampleTimes(level, 12);
+      let clean = false;
+      for (let strength = 0.5; strength <= 1.0001 && !clean; strength += 0.01)
+        for (let angle = -28; angle <= 28 && !clean; angle += 1)
+          for (const time of times) {
+            const r = throwAt(level, angle, strength, time);
+            if (r && r.clean && r.bin === level.target && meetsRequirement(level, r.props)) {
+              clean = true;
+              break;
+            }
+          }
+      expect(clean).toBe(true);
+    },
+    240000,
+  );
 });
 
 describe("Tages-Trick", () => {
