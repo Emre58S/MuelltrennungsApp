@@ -292,7 +292,9 @@ export function GameRound({
   });
   const later = useLater();
   // Einführung: Gewicht, Combo und Halten je einmal erklären (siehe tips.ts)
-  const tips = useTips();
+  /** Lernkarte steht (nur „Üben“) – der Tipp an derselben Stelle wartet. */
+  const learnShown = mode === "endless" && !!learn;
+  const tips = useTips(learnShown);
   const showTip = tips.show;
   const heldEver = useRef(false);
   const flicksNoHold = useRef(0);
@@ -986,7 +988,9 @@ export function GameRound({
                 <Banner key={banner.id} text={banner.text} />
               </View>
             )}
-            {tips.tip && !showEnd && (
+            {/* Tipp und Lernkarte liegen an derselben Stelle – die Lernkarte (nach
+                einem Fehlwurf) hat Vorrang, der Tipp wartet so lange (Zeit läuft nicht) */}
+            {tips.tip && !showEnd && !learnShown && (
               <View pointerEvents="box-none" style={[styles.overlayRow, { top: learnTop }]}>
                 <TipCard text={t(tips.tip.key)} onClose={tips.dismiss} />
               </View>

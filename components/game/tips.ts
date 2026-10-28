@@ -29,7 +29,9 @@ export type TipId =
 /** So lange (ms) bleibt ein Tipp stehen (Tippen schließt ihn früher). */
 const TIP_MS = 4500;
 
-export function useTips() {
+/** `paused`: Tipp ist gerade verdeckt (z. B. von der Lernkarte) – die
+ *  Anzeigezeit beginnt erst danach neu. */
+export function useTips(paused = false) {
   /** Schon gesehene Tipps (null = wird noch geladen). */
   const seen = useRef<Set<string> | null>(null);
   /** Angefragte Tipps, die noch warten (Laden läuft oder ein Tipp ist offen). */
@@ -83,10 +85,10 @@ export function useTips() {
 
   // Nach einer Weile von selbst ausblenden
   useEffect(() => {
-    if (!tip) return;
+    if (!tip || paused) return;
     const timer = setTimeout(dismiss, TIP_MS);
     return () => clearTimeout(timer);
-  }, [tip, dismiss]);
+  }, [tip, paused, dismiss]);
 
   return { tip, show, dismiss };
 }

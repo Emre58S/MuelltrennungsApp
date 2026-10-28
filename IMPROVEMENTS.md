@@ -24,14 +24,13 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
   verworfen: von vorn nicht fair bespielbar, Deckel schwingt durch; Bauzaun 22 erledigt).
   Später: Swish-Test strenger (mehrere Zellen, Wind-Gewichte, kleines iPhone). Je Hindernis
   1–2 Level, sanft steigend. Pflicht: Fairness-Test grün; sonst verwerfen.
-- [ ] **Tipp- und Lernkarte überlappen**: TipCard und LearnCard liegen beide auf
-  learnTop – bei Fehlwurf während eines Tipps Lernkarte versetzen oder Tipp schließen.
 - [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit anhalten; Trick-Runde
   einheitlich; Android-Zurück-Taste. (Geringer Nutzen auf dem iPhone.)
 - [ ] **Eigenes App-Symbol und Startbildschirm** (erst mit eigenem Build sichtbar).
 
 ## Erledigt
 
+- [x] Tipp wartet hinter der Lernkarte (Zeit läuft nicht weiter)
 - [x] Fairness-Test: Swish-Bonus muss erreichbar sein (13 Level geprüft)
 - [x] Trick-Hindernis Bauzaun, Level 22 (weit genug vor den Tonnen, keine Rückwand-Treffer)
 - [x] Trick-Hindernis Laternenmast, Level 21 (Level 22 als bloße Kopie verworfen)
