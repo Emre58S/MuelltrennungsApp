@@ -48,8 +48,9 @@ export function renderRestmuellModel(key: string, name: string) {
       );
 
     case "dish":
+      // Zur Kamera gekippt, damit man die Scherben von oben sieht
       return (
-        <group rotation={[0.22, -0.25, 0.18]}>
+        <group rotation={[0.9, -0.25, 0.18]}>
           {(
             [
               { ts: 0, tl: 2.3, pos: [0.02, 0, 0.02], rot: [0.08, 0, 0.05] },
@@ -66,7 +67,7 @@ export function renderRestmuellModel(key: string, name: string) {
               <Part
                 geo={G.cyl(0.34, 0.3, 0.04, 18, false, shard.ts, shard.tl)}
                 double
-                color="#F8FAFC"
+                color="#EEF2F6"
                 roughness={0.45}
               />
               <Part
@@ -754,8 +755,23 @@ export function renderRestmuellModel(key: string, name: string) {
       );
 
     case "pizza":
+      // Zur Kamera gekippt, mit Pizzarest im Karton (sonst wie Papier-Karton)
       return (
-        <group rotation={[0.1, -0.22, 0.08]}>
+        <group rotation={[0.55, -0.22, 0.08]}>
+          {/* übrig gebliebenes Pizzastück: Teig, Rand, Salami */}
+          <group position={[0.06, 0.05, 0.08]} rotation={[-Math.PI / 2, 0, 0.5]} scale={[1.15, 1.15, 1]}>
+            <Part geo={G.poly(0.02, 0.004, [0, 0.16, -0.11, -0.12, 0.11, -0.12])} color="#F2C14E" roughness={0.9} />
+            <Part geo={G.box(0.24, 0.035, 0.035, 0.012)} pos={[0, -0.12, 0.01]} color="#C98A3E" roughness={0.9} />
+            {(
+              [
+                [0, 0.03],
+                [-0.04, -0.06],
+                [0.05, -0.05],
+              ] as [number, number][]
+            ).map(([x, y], i) => (
+              <Part key={i} geo={G.circle(0.03, 12)} pos={[x, y, 0.016]} basic color="#B91C1C" />
+            ))}
+          </group>
           <Part
             geo={G.box(0.66, 0.07, 0.66, 0.02)}
             color="#C99A5B"
@@ -807,8 +823,9 @@ export function renderRestmuellModel(key: string, name: string) {
       );
 
     case "cd":
+      // Zur Kamera gekippt – flach liegend sähe man nur einen Strich
       return (
-        <group rotation={[0.2, -0.15, 0.12]}>
+        <group rotation={[1.0, -0.15, 0.12]}>
           <Part
             geo={G.cyl(0.3, 0.3, 0.02, 36)}
             color="#D5DCE6"
