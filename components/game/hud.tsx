@@ -16,7 +16,7 @@ import { type Item } from "@/constants/items";
 import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
 import { type ScreenRect } from "@/game/layout";
-import { itemMaterial, type Mass, type Material } from "@/game/item-mass";
+import { type Mass } from "@/game/item-mass";
 import { type TrickBonus } from "@/game/trick-levels";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
@@ -24,25 +24,6 @@ import { sfx } from "@/utils/sfx";
 /* ── Hilfen ────────────────────────────────────────────────── */
 
 /** Startet beim Mount (bzw. bei neuem key) eine Animation 0 → 1. */
-
-/** Blasen-Farbe je Material (Gegenstand-Karte). */
-const MATERIAL_TINT: Record<Material, string> = {
-  glas: "#D6F1FB",
-  papier: "#F4ECDC",
-  plastik: "#FFF1C2",
-  metall: "#E3E7EB",
-  bio: "#DDF0D2",
-  rest: "#E6E3DF",
-};
-/** Dunkelmodus: gedämpfte Töne, damit die Blase nicht grell leuchtet. */
-const MATERIAL_TINT_DARK: Record<Material, string> = {
-  glas: "#1F4C5C",
-  papier: "#4D3A2E",
-  plastik: "#5A4B12",
-  metall: "#37424D",
-  bio: "#2C4D24",
-  rest: "#403D39",
-};
 
 function useEnter(duration = 320, easing = Easing.out(Easing.back(1.8)), delay = 0) {
   const { reduceMotion } = useAppSettings();
@@ -293,8 +274,7 @@ export function ItemCard({
   mass?: Mass;
 }) {
   const { t, itemName } = useI18n();
-  const { scheme } = useAppTheme();
-  const material = itemMaterial(item);
+  const { colors } = useAppTheme();
   const enter = useEnter(260, Easing.out(Easing.quad));
   const { reduceMotion } = useAppSettings();
   const [hand] = useState(() => new Animated.Value(0));
@@ -326,19 +306,21 @@ export function ItemCard({
       accessibilityLabel={`${t("game.whereTo")} ${itemName(item)}`}
     >
       <HudSurface style={styles.itemTag}>
-        {/* Symbol des Gegenstands in einer Blase in Materialfarbe */}
-        <View style={[styles.itemBubble, { backgroundColor: (scheme === "dark" ? MATERIAL_TINT_DARK : MATERIAL_TINT)[material] }]}>
+        {/* Symbol in neutraler Blase – Farbe oder Material würden die Tonne verraten */}
+        <View style={[styles.itemBubble, { backgroundColor: colors.surfaceAlt }]}>
           <AppText style={styles.itemEmoji}>{item.emoji}</AppText>
         </View>
         <View style={styles.itemText}>
           <AppText variant="label" numberOfLines={1}>
             {itemName(item)}
           </AppText>
-          {/* Material – und Gewicht: schwer fliegt flach, leicht hoch und treibt im Wind */}
-          <AppText variant="caption" tone="textSecondary" numberOfLines={1}>
-            {t(`item.material.${material}`)}
-            {mass && mass !== "normal" ? ` · ${mass === "schwer" ? "🪨" : "🪶"} ${t(`item.mass.${mass}`)}` : ""}
-          </AppText>
+          {/* Nur das Gewicht (Zielwurf/Trick): schwer fliegt flach, leicht hoch und
+              treibt im Wind. Kein Material – das würde die Tonne verraten. */}
+          {mass && mass !== "normal" && (
+            <AppText variant="caption" tone="textSecondary" numberOfLines={1}>
+              {mass === "schwer" ? "🪨" : "🪶"} {t(`item.mass.${mass}`)}
+            </AppText>
+          )}
         </View>
       </HudSurface>
       {showHint && (

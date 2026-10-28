@@ -9,9 +9,31 @@ zu ändern.
 
 ## Offen
 
-Backlog vom 2026-10-28 (vom Nutzer bestätigt). Neue Ziele/Hindernisse sind
-ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
+Backlog vom 2026-10-28 abends (vom Nutzer bestätigt): Gegenstände sollen
+allein am 3D-Modell erkennbar sein – ohne Text darunter. Grundlage: Audit des
+Testers (alle 66 Modelle). Pro Zyklus 2–4 Modelle, Glanz über Shine-Teile
+(basic + noDepthWrite), Physik/Wertung unverändert.
 
+- [ ] **Sachfehler**: Geschenkpapier mit Folie (silber, glänzend) ≠ ohne Folie
+  (matt, Schnur); Toilettenpapier-Rolle = leere Papprolle, Küchenrolle =
+  zerknülltes Tuch; Thermometer-Säule silbern (Quecksilber).
+- [ ] **Die vier schlechtesten neu**: Alufolie (Glanzflächen, abgerissenes
+  Stück), Styropor (Takeaway-Box mit Kügelchen), Unterwäsche (Slip-Form,
+  Beinausschnitte, kräftige Farbe), Butterverpackung (offenes Folienpapier mit
+  Butterrest, zur Kamera gekippt).
+- [ ] **Verwechslungen zwischen Tonnen**: Farbreste (Eimer, Henkel, Tropfen),
+  Nussschalen (Walnuss-Hälften), Spiegel (Rahmen, silberne Scherben),
+  Backpapier (zerknüllt, braune Ränder), Eierkarton (Mulden).
+- [ ] **Eigene Formen statt geteilter Modelle**: renderExtraModel(key, name);
+  Wein/Bier/Öl verschieden; Gläser Gurke/Honig/Senf; Briefumschlag,
+  Visitenkarte, Notizblock.
+- [ ] **Flaches zur Kamera kippen**: CD, Geschirr, Pizzakarton (+ Pizzarest).
+- [ ] **Mittelmäßige nachbessern**: Zwiebel-/Kartoffelschale, Eierschale,
+  Windel, Tapete, Staubsaugerbeutel, Obstnetz (Orangen), Druckerpatrone,
+  Energiesparlampe (Spirale), Eisverpackung, Aluschale, Metalldeckel.
+
+Ältere Reste (niedrige Priorität). Neue Ziele/Hindernisse sind weiter erlaubt;
+Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Tonnen-Design, Rest** (optional): weichere Schatten/Kanten.
 - [ ] **Gegenstände-Design**: einheitlichere Farben, weichere Formen, Material
   erkennbar (Glas glänzt, Papier matt). Je Zyklus eine Material-Gruppe.
@@ -29,6 +51,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Keine Hinweise unter dem Gegenstand (Material-Zeile weg, Blase neutral)
 - [x] PET-Flasche: Glanzstreifen
 - [x] Trinkglas oben offen (man sieht hinein)
 - [x] Tipp wartet hinter der Lernkarte (Zeit läuft nicht weiter)
