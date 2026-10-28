@@ -19,8 +19,10 @@ Expo Go.
 4. Tester-Agent `gameplay-tester` mit dem Commit-Bereich aufrufen (nicht mit
    meiner Begründung). Freigabe nur bei „FREIGABE: ja“ und Bewertung ≥ 7.
    Sonst nachbessern (einmal) oder die Änderung verwerfen (`git checkout -- .`).
-5. Commit auf `auto-improve`, `git push origin auto-improve`, dann
-   `npx --yes eas-cli@latest update --channel auto --environment preview --message "…" --non-interactive`.
+5. Commit auf `auto-improve` und pushen, dann `sdk-58` per Fast-Forward
+   nachziehen (`git fetch . auto-improve:sdk-58`) und ebenfalls pushen. Danach
+   EAS-Update auf **beide** Kanäle, `auto` und `preview`:
+   `npx --yes eas-cli@latest update --channel … --environment preview --message "…" --non-interactive`.
 6. Aufgabe in `IMPROVEMENTS.md` abhaken (mit Commit-Kürzel), Gelerntes unten
    unter „Gelernt“ notieren.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
@@ -33,8 +35,11 @@ Expo Go.
 - Lieber eine Änderung verwerfen als eine zweifelhafte durchwinken.
 
 ## Grenzen
-- Nur Branch `auto-improve`. Nie auf `main` oder `sdk-58` committen oder pushen.
-- EAS-Updates nur auf Kanal `auto` (nie `preview` – das ist die Spielversion).
+- Arbeiten auf `auto-improve`; `sdk-58` nur per Fast-Forward nachziehen.
+  `main` nie anfassen.
+- EAS-Updates auf `auto` UND `preview` (Nutzer, 2026-10-28: „alle Änderungen
+  immer auch in preview“). `preview` ist die Spielversion – nur Freigegebenes.
+- Expo-Projekt gehört der Organisation `philippemremullsortieren` (app.json owner).
 - Keine grundlegenden Mechaniken ändern (Werfen, Physik, Regeln, Wertung).
   Ausnahme (Nutzer, 2026-10-28): neue Ziele (Sondermüll-Box) und neue
   Trick-Hindernisse (Schild, Laterne, Markise, Zaun) sind erlaubt.
