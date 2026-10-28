@@ -7,6 +7,7 @@
 //  - Ventilator: Gerät am Rand des Windfelds, Windstreifen zeigen Richtung
 //    und Stärke
 //  - Laternenmast: grauer Mast mit Ausleger und warm leuchtender Lampe
+//  - Bauzaun: Gitterfelder mit Pfosten und Betonfüßen, durchsichtig
 //  - Straßenschild: blaues Einbahnstraßen-Schild auf einem Pfosten zwischen
 //    zwei Tonnen; der Pfeil zeigt, wohin der Abpraller geht
 // Bewegung folgt der Szenen-Uhr (bus.clock) – genau wie die Physik
@@ -333,6 +334,61 @@ const Lamp = memo(function Lamp({ lamp }: { lamp: LampCollider }) {
   );
 });
 
+/** Bauzaun: Rahmen + dünne Gitterstäbe (durchsichtig, die Tonnen bleiben
+ *  sichtbar), Pfosten mit Betonfüßen. Einmal gebaut und gebacken. */
+function fenceModel(f: SignCollider): THREE.Object3D {
+  const g = new THREE.Group();
+  const top = f.halfH * 2;
+  const metal = lowpoly("#9AA3AC");
+  const wire = lowpoly("#B8C0C8");
+  const panels = 4;
+  const pw = (f.halfW * 2) / panels;
+  for (let i = 0; i <= panels; i++) {
+    const x = -f.halfW + i * pw;
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, top, 0.05), metal);
+    post.position.set(x, top / 2, 0);
+    g.add(post);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.12, 0.36), lowpoly("#C9C2B5"));
+    foot.position.set(x, 0.06, 0);
+    g.add(foot);
+  }
+  for (const y of [0.15, top - 0.03]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(f.halfW * 2, 0.04, 0.04), metal);
+    rail.position.set(0, y, 0);
+    g.add(rail);
+  }
+  for (let x = -f.halfW + 0.15; x < f.halfW; x += 0.15) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.012, top - 0.2, 0.012), wire);
+    bar.position.set(x, top / 2 + 0.05, 0);
+    g.add(bar);
+  }
+  for (let y = 0.45; y < top - 0.1; y += 0.3) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(f.halfW * 2, 0.012, 0.012), wire);
+    bar.position.set(0, y, 0);
+    g.add(bar);
+  }
+  // Rot-weißes Warnband oben
+  for (let i = 0; i < 12; i++) {
+    const w = (f.halfW * 2) / 12;
+    const band = new THREE.Mesh(new THREE.BoxGeometry(w, 0.08, 0.02), lowpoly(i % 2 ? "#FFFFFF" : "#E2483A"));
+    band.position.set(-f.halfW + w * (i + 0.5), top - 0.12, 0.03);
+    g.add(band);
+  }
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
+const Fence = memo(function Fence({ fence }: { fence: SignCollider }) {
+  const model = useMemo(() => fenceModel(fence), [fence]);
+  useEffect(() => () => model.traverse((o) => (o as THREE.Mesh).geometry?.dispose()), [model]);
+  return (
+    <group position={[fence.x, 0, fence.z]}>
+      <primitive object={model} />
+    </group>
+  );
+});
+
 /** Alle Hindernisse eines Levels. */
 export const TrickProps = memo(function TrickProps({
   props,
@@ -350,6 +406,8 @@ export const TrickProps = memo(function TrickProps({
           <Ring key={prop.id} ring={prop} bus={bus} />
         ) : prop.kind === "windmill" ? (
           <Windmill key={prop.id} mill={prop} bus={bus} />
+        ) : prop.kind === "sign" && prop.look === "fence" ? (
+          <Fence key={prop.id} fence={prop} />
         ) : prop.kind === "sign" ? (
           <Sign key={prop.id} sign={prop} bus={bus} />
         ) : prop.kind === "lamp" ? (

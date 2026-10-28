@@ -40,6 +40,14 @@ export type TrickProp =
       period: number;
     }
   | {
+      /** Bauzaun quer vor den Tonnen (Gitter, steht auf dem Boden) – drüberwerfen. */
+      kind: "fence";
+      z: number;
+      /** Höhe der Oberkante. */
+      top: number;
+      halfW: number;
+    }
+  | {
       kind: "lamp";
       /** Fuß des Masts. */
       x: number;
@@ -126,6 +134,10 @@ const fan = (x: number, force: number): TrickProp => ({
   halfD: 1.4,
   force,
 });
+
+/** Bauzaun über die ganze Breite vor den Tonnen – weit genug weg, dass ein
+ *  Abpraller an der Rückseite nicht in die Tonne fällt (Treffer gehen drüber). */
+export const fence = (z = 1.5, top = 2.8): TrickProp => ({ kind: "fence", z, top, halfW: 2.4 });
 
 /** Laternenmast in der Wurfbahn, Ausleger zur Seite `side`. */
 export const lamp = (x: number, z: number, side: 1 | -1, height = 3.0, arm = 0.7): TrickProp => ({
@@ -285,6 +297,9 @@ export const TRICK_LEVELS: TrickLevel[] = [
   { id: 20, target: 1, props: [sign(0.75, 2.2, -0.2, -0.6)], requires: [0], bonus: "firstTry", task: "trick.task.sign" },
   // Laternenmast vor der mittleren Tonne (rechts, Beschriftung bleibt frei): links vorbei
   { id: 21, target: 1, props: [lamp(0.22, 1.4, 1)], requires: [], bonus: "swish", task: "trick.task.lamp" },
+  // Bauzaun quer vor den Tonnen: hoch drüberwerfen (Swish geht nicht – man
+  // streift immer den Rand –, daher Bonus „1. Versuch“)
+  { id: 22, target: 1, props: [fence()], requires: [], bonus: "firstTry", task: "trick.task.fence" },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -298,6 +313,8 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): strin
           ? "🪧"
           : p.kind === "lamp"
           ? "💡"
+          : p.kind === "fence"
+          ? "🚧"
           : p.kind === "windmill"
           ? "🌀"
           : p.motion?.kind === "spin"
@@ -356,6 +373,7 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
     if (p.kind === "windmill") return { ...p, x: -p.x, period: -p.period };
     if (p.kind === "sign") return { ...p, x: -p.x, yaw: -p.yaw };
     if (p.kind === "lamp") return { ...p, x: -p.x, side: (-p.side) as 1 | -1 };
+    if (p.kind === "fence") return p;
     const m = p.motion;
     const motion: RingMotion | undefined = !m
       ? undefined
@@ -384,7 +402,13 @@ export function dailyTrick(date: string): TrickLevel {
 
 /** Physik-Körper eines Levels (Hindernis-id = Index in `props`). */
 export function levelColliders(level: Pick<TrickLevel, "props">): PropCollider[] {
-  return level.props.map((p, id) => (p.kind === "ring" ? { ...p, id, tube: RING_TUBE } : { ...p, id }));
+  return level.props.map((p, id): PropCollider => {
+    if (p.kind === "ring") return { ...p, id, tube: RING_TUBE };
+    // Bauzaun rechnet wie eine aufrechte Tafel vom Boden bis zur Oberkante
+    if (p.kind === "fence")
+      return { kind: "sign", id, x: 0, y: p.top / 2, z: p.z, halfW: p.halfW, halfH: p.top / 2, tilt: 0, yaw: 0, look: "fence" };
+    return { ...p, id };
+  });
 }
 
 /** Nach dieser Zeit (s) wiederholt sich ein Hindernis (0 = ruht). Ein

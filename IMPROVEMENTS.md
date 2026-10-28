@@ -21,7 +21,8 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Mehr Gegenstände, Rest** (optional): Trinkglas oben offen zeichnen.
 - [ ] **Trickwürfe: echte Hindernisse**: (Straßenschild 19/20, Laterne 21 erledigt;
   Laterne an Außentonnen zu eng → verworfen; Idee: Laterne + Reifen; Markise
-  verworfen: von vorn nicht fair bespielbar, Deckel schwingt durch) Bauzaun/Mauer. Je Hindernis
+  verworfen: von vorn nicht fair bespielbar, Deckel schwingt durch; Bauzaun 22 erledigt).
+  Offen: Fairness-Test soll bei bonus "swish" einen sauberen Treffer verlangen. Je Hindernis
   1–2 Level, sanft steigend. Pflicht: Fairness-Test grün; sonst verwerfen.
 - [ ] **Tipp- und Lernkarte überlappen**: TipCard und LearnCard liegen beide auf
   learnTop – bei Fehlwurf während eines Tipps Lernkarte versetzen oder Tipp schließen.
@@ -31,6 +32,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Trick-Hindernis Bauzaun, Level 22 (weit genug vor den Tonnen, keine Rückwand-Treffer)
 - [x] Trick-Hindernis Laternenmast, Level 21 (Level 22 als bloße Kopie verworfen)
 - [x] Trick-Hindernis Straßenschild als Bande, Level 19/20, Tipp und Hinweis
 - [x] Sticker: eigene Freischalt-Meldung, Sticker auf Menü-Tonnen, Tests

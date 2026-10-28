@@ -138,6 +138,9 @@ export type SignCollider = {
   tilt: number;
   /** Drehung um die Hochachse (rad): + = Tafel schaut nach rechts. */
   yaw: number;
+  /** Aussehen: Straßenschild (Standard) oder Bauzaun – Physik gleich, nur
+   *  zählt ein Treffer am Zaun nicht als „geschafft“ (er ist nur im Weg). */
+  look?: "fence";
 };
 
 /** Laternenmast: senkrechter Mast (Fuß bei x/z) mit Ausleger oben, der zur
@@ -232,7 +235,7 @@ export type BallEvent =
       type: "bounce";
       bin: number | null;
       speed: number;
-      part: BinPart | "ring" | "blade" | "sign" | "lamp" | "ground";
+      part: BinPart | "ring" | "blade" | "sign" | "fence" | "lamp" | "ground";
       /** Reifen (Trickwürfe), falls einer berührt wurde. */
       prop?: number;
     }
@@ -497,8 +500,8 @@ function collideSign(ball: Ball, sign: SignCollider, events: BallEvent[]) {
   const speed = bounce(ball, n, BALL_R - d, SIGN_RESTITUTION);
   if (speed <= 0.4) return;
   ball.touched = true;
-  events.push({ type: "bounce", bin: null, speed, part: "sign", prop: sign.id });
-  events.push({ type: "pass", prop: sign.id });
+  events.push({ type: "bounce", bin: null, speed, part: sign.look ?? "sign", prop: sign.id });
+  if (!sign.look) events.push({ type: "pass", prop: sign.id });
 }
 
 /** Laternenmast: Mast (senkrechter Zylinder) und Ausleger (Kasten oben). */
