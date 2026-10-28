@@ -5,7 +5,6 @@ import {
   G,
   Part,
   STRIP_POINTS,
-  UNDERWEAR_POINTS,
   MIRROR_SHARDS,
 } from "./shared";
 import { type V3 } from "./shared";
@@ -386,94 +385,29 @@ export function renderRestmuellModel(key: string, name: string) {
       );
 
     case "underwear": {
-      // Beinausschnitt (linke Seite); rechts wird gespiegelt
-      const legPts = [
-        -0.3, 0.1, -0.26, -0.02, -0.19, -0.13, -0.12, -0.22, -0.09, -0.28,
+      // Slip: breiter Bund oben, tiefe Beinausschnitte, schmaler Steg unten –
+      // kräftiges Blau mit weißen Punkten, damit man es nicht für ein Schild hält
+      const slip = [
+        -0.3, 0.2, 0.3, 0.2, 0.31, 0.1, 0.22, 0.04, 0.14, -0.04, 0.09, -0.13, 0.075, -0.24, -0.075, -0.24, -0.09,
+        -0.13, -0.14, -0.04, -0.22, 0.04, -0.31, 0.1,
       ];
-      const leg = (sign: number) => {
-        const pts: number[] = [];
-        for (let i = 0; i < legPts.length; i += 2) {
-          pts.push(sign * legPts[i], legPts[i + 1], 0.036);
-        }
-        return pts;
-      };
-
       return (
-        <group rotation={[0.18, -0.22, 0.08]}>
-          <Part
-            geo={G.poly(0.045, 0.012, UNDERWEAR_POINTS)}
-            color="#6F7F96"
-            roughness={1}
-          />
-          {/* verwaschene Streifen */}
+        <group rotation={[0.2, -0.2, 0.08]}>
+          <Part geo={G.poly(0.05, 0.015, slip)} color="#3B82F6" roughness={1} />
           {(
             [
-              [0.12, 0.56],
-              [0.04, 0.5],
-              [-0.04, 0.4],
-              [-0.12, 0.28],
+              [-0.18, 0.1],
+              [0.0, 0.08],
+              [0.18, 0.1],
+              [-0.08, -0.02],
+              [0.08, -0.02],
+              [0.0, -0.13],
             ] as [number, number][]
-          ).map(([y, w]) => (
-            <Part
-              key={y}
-              geo={G.box(w, 0.016, 0.004, 0.001)}
-              pos={[0, y, 0.036]}
-              color="#8D9BB1"
-              roughness={1}
-            />
+          ).map(([x, y]) => (
+            <Part key={`${x}${y}`} geo={G.circle(0.022, 10)} pos={[x, y, 0.042]} basic color="#FFFFFF" />
           ))}
-          <Part
-            geo={G.box(0.008, 0.46, 0.004, 0.001)}
-            pos={[0, -0.03, 0.036]}
-            color="#566377"
-            roughness={1}
-          />
-          {/* Gummibund mit Muster */}
-          <Part
-            geo={G.box(0.62, 0.075, 0.062, 0.02)}
-            pos={[0, 0.225, 0]}
-            color="#E2E8F0"
-            roughness={1}
-          />
-          {[-0.27, -0.18, -0.09, 0, 0.09, 0.18, 0.27].map((x) => (
-            <Part
-              key={x}
-              geo={G.box(0.012, 0.07, 0.064, 0.003)}
-              pos={[x, 0.225, 0]}
-              color="#EF4444"
-              roughness={1}
-            />
-          ))}
-          {/* Beinbündchen */}
-          {[1, -1].map((sign) => (
-            <Part
-              key={sign}
-              geo={G.tube(0.012, leg(sign))}
-              color="#CBD5E1"
-              roughness={1}
-            />
-          ))}
-          {/* abgenutzte Stelle mit Loch und Fäden */}
-          <Part
-            geo={G.circle(0.045, 12)}
-            pos={[0.13, -0.06, 0.037]}
-            basic
-            color="#08111E"
-          />
-          <Part
-            geo={G.torus(0.047, 0.007, 5, 12)}
-            pos={[0.13, -0.06, 0.037]}
-            color="#94A3B8"
-            roughness={1}
-          />
-          <Part
-            geo={G.tube(
-              0.004,
-              [0.16, -0.1, 0.04, 0.2, -0.14, 0.06, 0.23, -0.12, 0.08],
-            )}
-            color="#94A3B8"
-            roughness={1}
-          />
+          {/* Gummibund */}
+          <Part geo={G.box(0.64, 0.075, 0.095, 0.02)} pos={[0, 0.215, 0]} color="#F1F5F9" roughness={1} />
         </group>
       );
     }

@@ -14,10 +14,6 @@ allein am 3D-Modell erkennbar sein – ohne Text darunter. Grundlage: Audit des
 Testers (alle 66 Modelle). Pro Zyklus 2–4 Modelle, Glanz über Shine-Teile
 (basic + noDepthWrite), Physik/Wertung unverändert.
 
-- [ ] **Die vier schlechtesten neu**: Alufolie (Glanzflächen, abgerissenes
-  Stück), Styropor (Takeaway-Box mit Kügelchen), Unterwäsche (Slip-Form,
-  Beinausschnitte, kräftige Farbe), Butterverpackung (offenes Folienpapier mit
-  Butterrest, zur Kamera gekippt).
 - [ ] **Verwechslungen zwischen Tonnen**: Farbreste (Eimer, Henkel, Tropfen),
   Nussschalen (Walnuss-Hälften), Spiegel (Rahmen, silberne Scherben),
   Backpapier (zerknüllt, braune Ränder), Eierkarton (Mulden).
@@ -48,6 +44,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Neu gebaut: Alufolie, Styropor-Box, Slip, Butterpapier
 - [x] Sachfehler Modelle: Geschenkpapier mit/ohne Folie, Papprolle vs. Küchentuch, Quecksilber silbern
 - [x] Keine Hinweise unter dem Gegenstand (Material-Zeile weg, Blase neutral)
 - [x] PET-Flasche: Glanzstreifen

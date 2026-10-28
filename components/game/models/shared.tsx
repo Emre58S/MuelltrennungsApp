@@ -330,11 +330,6 @@ export const STRIP_POINTS = (() => {
   return pts;
 })();
 
-export const UNDERWEAR_POINTS = [
-  -0.3, 0.25, 0.3, 0.25, 0.3, 0.1, 0.26, -0.02, 0.19, -0.13, 0.12, -0.22, 0.09,
-  -0.28, -0.09, -0.28, -0.12, -0.22, -0.19, -0.13, -0.26, -0.02, -0.3, 0.1,
-];
-
 export const MIRROR_SHARDS: { pts: number[]; pos: V3; rot: V3 }[] = [
   {
     pts: [-0.28, -0.12, -0.02, -0.2, 0.02, 0.1, -0.24, 0.2],

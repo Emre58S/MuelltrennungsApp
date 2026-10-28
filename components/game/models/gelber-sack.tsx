@@ -7,26 +7,61 @@ import { type V3 } from "./shared";
 export function renderGelberSackModel(key: string, name: string) {
   switch (key) {
     case "foil":
+      // Zerknüllte Alufolie: grauer Knäuel mit hellen Glanz-Facetten (Lambert
+      // kennt keine Spiegelung – die Facetten sind eigene helle Flächen) und
+      // ein glattes, abgerissenes Stück mit Zackenkante
       return (
-        <group rotation={[0.2, -0.28, 0.12]}>
+        <group rotation={[0.25, -0.28, 0.1]}>
           <Part
-            geo={G.crumple(0.22, 0.28, 11, 1)}
+            geo={G.crumple(0.22, 0.3, 11, 1)}
             pos={[-0.1, 0.05, 0]}
             flat
-            color="#D5DCE6"
+            color="#AEB8C5"
             roughness={0.3}
             metalness={0.5}
           />
-          <Part
-            geo={G.wave(0.42, 0.34, 0.035, 9, 2)}
-            pos={[0.2, -0.08, 0.1]}
-            rot={[-1.2, 0, 0.4]}
-            double
-            flat
-            color="#E2E8F0"
-            roughness={0.28}
-            metalness={0.5}
-          />
+          {(
+            [
+              // z = Knäuel-Oberfläche + 0,005 (nachgerechnet), sonst schweben sie
+              [-0.17, 0.13, 0.166, 0.4],
+              [-0.04, 0.16, 0.131, -0.6],
+              [-0.12, -0.03, 0.2, 1.2],
+              [0.0, 0.04, 0.177, 2.4],
+              [-0.24, 0.0, 0.141, -1.8],
+            ] as [number, number, number, number][]
+          ).map(([x, y, z, r], i) => (
+            <Part
+              key={i}
+              geo={G.poly(0.004, 0, [0, 0.06, -0.045, -0.03, 0.05, -0.035])}
+              pos={[x, y, z]}
+              rot={[0, 0, r]}
+              basic
+              noDepthWrite
+              color="#FFFFFF"
+              opacity={0.85}
+            />
+          ))}
+          {/* glattes Stück mit gezackter Abrisskante */}
+          <group position={[0.2, -0.1, 0.12]} rotation={[-1.0, 0, 0.35]}>
+            <Part
+              geo={G.poly(0.012, 0, [
+                -0.2, -0.16, 0.2, -0.16, 0.2, 0.12, 0.15, 0.16, 0.1, 0.12, 0.05, 0.16, 0, 0.12, -0.05, 0.16,
+                -0.1, 0.12, -0.15, 0.16, -0.2, 0.12,
+              ])}
+              double
+              color="#E8EEF6"
+              roughness={0.3}
+            />
+            <Part
+              geo={G.box(0.3, 0.02, 0.006, 0.002)}
+              pos={[-0.02, -0.02, 0.012]}
+              rot={[0, 0, 0.3]}
+              basic
+              noDepthWrite
+              color="#FFFFFF"
+              opacity={0.85}
+            />
+          </group>
         </group>
       );
 
@@ -451,32 +486,43 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "styro":
+      // Styropor-Box zum Mitnehmen: aufgeklappter Deckel, Kügelchen-Struktur
+      // vorn, zwei Verpackungs-Chips daneben
       return (
-        <group rotation={[0.25, 0.2, -0.1]}>
+        <group rotation={[0.35, 0.35, -0.08]}>
+          <Part geo={G.box(0.5, 0.15, 0.4, 0.04)} color="#F4F6F8" roughness={1} />
+          {/* Innenraum (dunkler) */}
           <Part
-            geo={G.box(0.66, 0.2, 0.46, 0.035)}
-            color="#F1F5F9"
+            geo={G.box(0.42, 0.01, 0.32, 0.004)}
+            pos={[0, 0.072, 0]}
+            color="#D5DCE4"
             roughness={1}
           />
-          <Part
-            geo={G.box(0.44, 0.004, 0.26, 0.001)}
-            pos={[0, 0.102, 0]}
-            color="#D3DBE4"
-            roughness={1}
-          />
+          {/* Deckel, hinten angeschlagen und hochgeklappt */}
+          <group position={[0, 0.075, -0.2]} rotation={[-1.75, 0, 0]}>
+            <Part geo={G.box(0.5, 0.12, 0.4, 0.04)} pos={[0, 0.06, 0.2]} color="#F4F6F8" roughness={1} />
+          </group>
+          {/* Kügelchen auf der Vorderseite */}
+          {[-0.16, -0.06, 0.04, 0.14, -0.11].map((x, i) => (
+            <Part
+              key={i}
+              geo={G.ball(0.03, 6, 4)}
+              pos={[x, i === 4 ? -0.035 : 0.02, 0.195]}
+              color="#D8DEE6"
+              roughness={1}
+            />
+          ))}
           {(
             [
-              [0.34, -0.06, 0.26],
-              [-0.3, -0.08, 0.27],
-              [0.25, -0.09, 0.3],
-              [-0.12, -0.09, 0.3],
+              [0.34, -0.05, 0.18],
+              [-0.33, -0.06, 0.2],
             ] as V3[]
           ).map((p, i) => (
             <Part
-              key={i}
-              geo={G.crumple(0.03, 0.3, i + 1, 0)}
+              key={`chip${i}`}
+              geo={G.torus(0.04, 0.018, 5, 8, Math.PI * 1.2)}
               pos={p}
-              flat
+              rot={[0.4, 0.6 * i, 0.5]}
               color="#FFFFFF"
               roughness={1}
             />
@@ -532,41 +578,45 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "butter":
+      // Aufgeklapptes Butterpapier (Goldfolie, Ränder hochgebogen) mit einem
+      // Butterrest – zur Kamera gekippt, damit man es sieht
       return (
-        <group rotation={[0.18, 0.22, -0.12]}>
+        <group rotation={[0.75, 0.25, -0.1]}>
           <Part
-            geo={G.box(0.5, 0.14, 0.28, 0.03)}
-            color="#E8C766"
-            roughness={0.45}
-            metalness={0.4}
+            geo={G.box(0.56, 0.012, 0.4, 0.004)}
+            color="#E3BE55"
+            roughness={0.35}
           />
+          {[-1, 1].map((sg) => (
+            <Part
+              key={sg}
+              geo={G.box(0.56, 0.012, 0.1, 0.004)}
+              pos={[0, 0.03, sg * 0.22]}
+              rot={[sg * -0.7, 0, 0]}
+              color="#D9AF45"
+              roughness={0.35}
+            />
+          ))}
+          {/* Aufdruck: blaues Feld mit weißem Streifen */}
+          <Part geo={G.box(0.2, 0.004, 0.14, 0.001)} pos={[-0.15, 0.008, 0.06]} color="#2563EB" roughness={0.5} />
+          <Part geo={G.box(0.2, 0.005, 0.03, 0.001)} pos={[-0.15, 0.009, 0.06]} color="#F8FAFC" roughness={0.5} />
+          {/* Butterrest */}
           <Part
-            geo={G.box(0.28, 0.01, 0.22, 0.004)}
-            pos={[-0.04, 0.071, 0]}
-            color="#2563EB"
-            roughness={0.5}
+            geo={G.box(0.2, 0.09, 0.15, 0.015)}
+            pos={[0.1, 0.05, -0.02]}
+            rot={[0, 0.2, 0]}
+            color="#FCE38A"
+            roughness={0.6}
           />
+          {/* Glanz auf der Folie */}
           <Part
-            geo={G.box(0.28, 0.011, 0.06, 0.004)}
-            pos={[-0.04, 0.072, 0]}
-            color="#F8FAFC"
-            roughness={0.5}
-          />
-          <Part
-            geo={G.box(0.18, 0.12, 0.24, 0.025)}
-            pos={[0.3, -0.01, 0]}
-            color="#FDE68A"
-            roughness={0.5}
-          />
-          <Part
-            geo={G.wave(0.3, 0.24, 0.025, 12, 1)}
-            pos={[-0.3, 0.04, 0.08]}
-            rot={[-1.1, 0.2, 0.5]}
-            double
-            flat
-            color="#E8C766"
-            roughness={0.45}
-            metalness={0.4}
+            geo={G.box(0.3, 0.004, 0.025, 0.001)}
+            pos={[-0.08, 0.012, -0.12]}
+            rot={[0, 0.3, 0]}
+            basic
+            noDepthWrite
+            color="#FFFFFF"
+            opacity={0.8}
           />
         </group>
       );
