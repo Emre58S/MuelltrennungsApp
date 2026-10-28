@@ -28,11 +28,15 @@ Expo Go.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
 
 ## Nachtbetrieb (ohne Aufsicht)
-- Reihenfolge: Backlog abarbeiten → ist er leer, einmal ein Audit mit dem
-  Tester → dessen Punkte abarbeiten → dann neue Trick-Level (siehe Backlog).
-- Wenn danach nichts Sinnvolles mehr bleibt: Loop beenden statt basteln und
-  eine Zusammenfassung aller Änderungen der Nacht schreiben.
-- Lieber eine Änderung verwerfen als eine zweifelhafte durchwinken.
+- Nacht 2026-10-29 (Nutzer): von 00:10 bis 08:15 durchgehend Zyklen, NICHT
+  vorzeitig aufhören. Backlog oben nach unten; ist er leer, ein neues Audit
+  machen und dessen Punkte abarbeiten. Ab 08:15 Loop beenden und eine
+  Zusammenfassung der Nacht schreiben.
+- Takt: nächster Zyklus kurz nach dem vorigen (Pause ~5 min).
+- Lieber eine Änderung verwerfen als eine zweifelhafte durchwinken – ein
+  verworfener Zyklus ist kein Grund aufzuhören, einfach den nächsten Punkt nehmen.
+- Bei Fehlern (Tests rot, EAS-Update schlägt fehl): Änderung zurücknehmen,
+  im Backlog notieren, weitermachen.
 
 ## Grenzen
 - Arbeiten auf `auto-improve`; `sdk-58` nur per Fast-Forward nachziehen.
@@ -81,6 +85,10 @@ Expo Go.
 - Schutz-Hook prüft den ganzen Befehlstext: Kanal immer ausgeschrieben
   (`--channel auto` / `--channel preview`, keine Variable); Edits, deren Text
   „main“ und „git push“ enthält, mit dem Edit-Tool statt Shell machen.
+- Modelle: nie durchsichtigen Inhalt in durchsichtigem Glas (Sortierung nach
+  Mittelpunkt → Inhalt verschwindet beim Drehen); Inhalt deckend oder Glas
+  tönen. Details (Glanz, Flecken, Etiketten) per Rechnung auf/vor die Fläche
+  setzen – der Tester rechnet nach, schwebende oder versteckte Teile fallen auf.
 - Lange Edit-Skripte mit Write in den Scratchpad schreiben (Heredoc bricht ab).
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.

@@ -9,18 +9,47 @@ zu ändern.
 
 ## Offen
 
-Backlog vom 2026-10-28 abends (vom Nutzer bestätigt): Gegenstände sollen
-allein am 3D-Modell erkennbar sein – ohne Text darunter. Grundlage: Audit des
-Testers (alle 66 Modelle). Pro Zyklus 2–4 Modelle, Glanz über Shine-Teile
-(basic + noDepthWrite), Physik/Wertung unverändert.
+NACHT 2026-10-29, 00:10–08:15 (vom Nutzer gewünscht, ohne Aufsicht, NICHT
+vorzeitig aufhören). Reihenfolge von oben nach unten. Ziel bleibt: jeder
+Gegenstand allein am 3D-Modell erkennbar. Pro Zyklus 2–4 Modelle bzw. eine
+kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
-- [ ] **Eigene Formen statt geteilter Modelle** (renderExtraModel(key, name),
-  Wein/Bier/Öl, Gläser erledigt): Briefumschlag,
-  Visitenkarte, Notizblock.
-- [ ] **Flaches zur Kamera kippen**: CD, Geschirr, Pizzakarton (+ Pizzarest).
-- [ ] **Mittelmäßige nachbessern**: Zwiebel-/Kartoffelschale, Eierschale,
-  Windel, Tapete, Staubsaugerbeutel, Obstnetz (Orangen), Druckerpatrone,
-  Energiesparlampe (Spirale), Eisverpackung, Aluschale, Metalldeckel.
+**A – Modelle aus dem Audit (Rest)**
+- [ ] A1 Briefumschlag (V-Klappe, Briefmarke), Visitenkarte (kleine Karten),
+  Notizblock (Stapel mit Spirale) – eigene Formen statt gleichem Blatt.
+- [ ] A2 Flaches zur Kamera kippen: CD (Kratzer), Geschirr, Pizzakarton (+ Pizzarest).
+- [ ] A3 Schalen: Zwiebelschale (kupfer, dünne Blättchen), Kartoffelschale
+  (beige/braun mit Augen), Eierschale (hellbraun, gezackter Rand).
+- [ ] A4 Windel (Sanduhr-Form, Klebelaschen), Tapete (abgerissene Fetzen statt
+  Rolle), Staubsaugerbeutel (prall, Pappplatte mit Loch).
+- [ ] A5 Obstnetz (Orangen im Netz), Druckerpatrone (Kontakte, Farbpunkte),
+  Energiesparlampe (Spirale / U-Bögen).
+- [ ] A6 Eisverpackung (eckige Schale, Eiskugel-Bild), Aluschale (Glanz,
+  Rippen), Metalldeckel (Riffelrand, Dichtring).
+- [ ] A7 Walnuss runzliger, Saftflasche ≠ PET (Metalldeckel), Kassenzettel
+  (eingerollt), Katzenstreu (mit Schaufel).
+- [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
+  Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz), Zeitung
+  (gefaltet) vs. Zeitschrift (dick, Cover) vs. Prospekt (Preisschild).
+- [ ] A9 Zweites Modell-Audit durch den Tester (alle Modelle, Note 1–5) →
+  daraus die nächsten Punkte hier eintragen und abarbeiten.
+
+**B – Hinweise und Emojis**
+- [ ] B1 Doppelte Emojis über verschiedene Tonnen auflösen (z. B. 🫙, 🧴, 🧾,
+  💡, 🎁) – jedes Emoji höchstens in einer Tonne.
+
+**C – Inhalt (wenn A/B durch sind)**
+- [ ] C1 6–8 neue Alltags-Gegenstände (typische Irrtümer) mit eigenem Modell,
+  Fakt DE/EN, Gewicht/Klang.
+- [ ] C2 1–2 neue Trick-Level als Kombination (z. B. Laterne + Reifen, Schild
+  + fahrende Tonne) – nur mit grünem Fairness-Test.
+- [ ] C3 Swish-Test strenger (mehrere Zellen, kleines iPhone).
+
+**D – Kleinkram**
+- [ ] D1 Rückfrage beim Beenden: Fever-Zeit anhalten.
+
+**Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
+ganze App) → Punkte eintragen → weiter. Nie leer laufen lassen.
 
 Ältere Reste (niedrige Priorität). Neue Ziele/Hindernisse sind weiter erlaubt;
 Werfen, Physik-Grundlagen und Wertung bleiben gleich.
