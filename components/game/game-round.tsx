@@ -32,6 +32,7 @@ import {
   setLandHandler,
   setPreview,
   setShotGuide,
+  setBinSkin,
   setTrail,
   type LandOutcome,
   type ThrowSpec,
@@ -86,6 +87,7 @@ import {
   queueThrowRecord,
   todayKey,
   getRewardProgress,
+  getBinSkin,
   getTrail,
 } from "@/utils/storage";
 import { Canvas } from "@react-three/fiber/native";
@@ -113,7 +115,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { boardFor, HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
 import { playMusic } from "@/utils/music";
-import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
+import { newlyUnlocked, type Progress, usableSkin, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
 import { itemMass, itemMaterial, type Material, MASS_FEEL } from "@/game/item-mass";
 import {
@@ -297,10 +299,11 @@ export function GameRound({
   // Belohnungen: gewählte Wurfspur laden, Fortschritt für „neu freigeschaltet“
   const rewardProgress = useRef<Progress>({ stars: 0, level: 0 });
   useEffect(() => {
-    Promise.all([getTrail(), getRewardProgress()])
-      .then(([id, progress]) => {
+    Promise.all([getTrail(), getRewardProgress(), getBinSkin()])
+      .then(([id, progress, skin]) => {
         rewardProgress.current = progress;
         setTrail(bus.current, usableTrail(id, progress));
+        setBinSkin(bus.current, usableSkin(skin, progress));
       })
       .catch(() => undefined);
   }, []);

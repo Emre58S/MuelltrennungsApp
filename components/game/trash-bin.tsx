@@ -55,6 +55,39 @@ const GEO = {
   label: new THREE.PlaneGeometry(0.6, 0.3),
 };
 
+/* ── Tonnen-Sticker (Belohnung, nur Optik) ─────────────────── */
+function starShape(r: number, inner: number) {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < 10; i++) {
+    const a = Math.PI / 2 + (i * Math.PI) / 5;
+    const rr = i % 2 === 0 ? r : inner;
+    if (i === 0) shape.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    else shape.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+  }
+  shape.closePath();
+  return shape;
+}
+function heartShape(r: number) {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, -r);
+  shape.bezierCurveTo(-r * 0.2, -r * 0.6, -r * 1.1, -r * 0.2, -r * 0.9, r * 0.35);
+  shape.bezierCurveTo(-r * 0.7, r * 0.9, -r * 0.1, r * 0.85, 0, r * 0.45);
+  shape.bezierCurveTo(r * 0.1, r * 0.85, r * 0.7, r * 0.9, r * 0.9, r * 0.35);
+  shape.bezierCurveTo(r * 1.1, -r * 0.2, r * 0.2, -r * 0.6, 0, -r);
+  return shape;
+}
+const STICKER = {
+  star: new THREE.ShapeGeometry(starShape(0.1, 0.045)),
+  heart: new THREE.ShapeGeometry(heartShape(0.09), 6),
+  dot: new THREE.CircleGeometry(0.035, 10),
+  /** Dunkler Ring hinter den Punkten: auch auf der gelben Tonne gut sichtbar. */
+  backDot: new THREE.CircleGeometry(0.046, 10),
+  /** Weißer Rand hinter Stern/Herz: wirkt wie ein aufgeklebter Sticker. */
+  backStar: new THREE.ShapeGeometry(starShape(0.125, 0.065)),
+  backHeart: new THREE.ShapeGeometry(heartShape(0.11), 6),
+};
+const STICKER_Y = 0.48;
+
 /** Höhe des Verstärkungsbands (knapp unter dem Rand). */
 const BAND_Y = 1.22;
 
@@ -65,6 +98,10 @@ const SHARED = {
   // Günstiger Boden-Schatten statt Echtzeit-Schatten (flüssiger auf Handys)
   blob: new THREE.MeshBasicMaterial({ color: "#000000", transparent: true, opacity: 0.22, depthWrite: false }),
   wheel: lowpoly("#2E3238"),
+  stickerBack: lowpoly("#FFFFFF"),
+  stickerRing: lowpoly("#2E3238"),
+  stickerStar: lowpoly("#FFC93C"),
+  stickerHeart: lowpoly("#FF5C8A"),
   hub: lowpoly("#A7ADB3"),
 };
 
@@ -97,6 +134,9 @@ export const TrashBin = memo(function TrashBin({
   const lidRef = useRef<THREE.Group>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const labelRef = useRef<THREE.Mesh>(null);
+  const starRef = useRef<THREE.Group>(null);
+  const heartRef = useRef<THREE.Group>(null);
+  const dotsRef = useRef<THREE.Group>(null);
   const anim = useRef({ hit: 0, reject: 0, lift: 0, peek: 0, shut: 0, bump: 0 });
 
   const mats = useMemo(
@@ -215,6 +255,11 @@ export const TrashBin = memo(function TrashBin({
       ringRef.current.scale.setScalar(0.92 + a.lift * 0.12);
       mats.ring.opacity = a.lift * 0.7;
     }
+    // Sticker: Auswahl kommt nach dem Laden über den Bus – nur Sichtbarkeit
+    const skin = bus.current.binSkin;
+    if (starRef.current) starRef.current.visible = skin === "stern";
+    if (heartRef.current) heartRef.current.visible = skin === "herz";
+    if (dotsRef.current) dotsRef.current.visible = skin === "punkte";
     // Erst zeigen, wenn das Bild geladen ist (sonst kurz ein dunkles Rechteck)
     if (labelRef.current) labelRef.current.visible = !!label?.image;
     mats.body.emissive.set(bin.color);
@@ -225,6 +270,7 @@ export const TrashBin = memo(function TrashBin({
   // Vor der Front-Platte: ihre Vorderseite liegt (mit Fase) ~0.018 vor zInset
   // und kippt mit der Neigung nach vorn – der Aufkleber sitzt knapp davor.
   const labelZ = zInset + 0.024 + (LABEL_Y - 0.68) * Math.tan(TAPER);
+  const stickerZ = zInset + 0.026 + (STICKER_Y - 0.68) * Math.tan(TAPER);
 
   return (
     <group position={[x, 0, z]}>
@@ -259,6 +305,30 @@ export const TrashBin = memo(function TrashBin({
         )}
 
         <mesh geometry={GEO.band} material={mats.band} position={[0, BAND_Y, 0]} />
+
+        {/* Sticker unten rechts auf der Front */}
+        <group position={[0.2, STICKER_Y, stickerZ]} rotation={[TAPER, 0, 0.2]}>
+          <group ref={starRef} visible={false}>
+            <mesh geometry={STICKER.backStar} material={SHARED.stickerBack} />
+            <mesh geometry={STICKER.star} material={SHARED.stickerStar} position={[0, 0, 0.004]} />
+          </group>
+          <group ref={heartRef} visible={false}>
+            <mesh geometry={STICKER.backHeart} material={SHARED.stickerBack} />
+            <mesh geometry={STICKER.heart} material={SHARED.stickerHeart} position={[0, 0, 0.004]} />
+          </group>
+          <group ref={dotsRef} visible={false}>
+            {[
+              [-0.06, 0.05],
+              [0.05, 0.02],
+              [-0.01, -0.06],
+            ].map(([dx, dy]) => (
+              <group key={dx} position={[dx, dy, 0]}>
+                <mesh geometry={STICKER.backDot} material={SHARED.stickerRing} />
+                <mesh geometry={STICKER.dot} material={SHARED.stickerBack} position={[0, 0, 0.004]} />
+              </group>
+            ))}
+          </group>
+        </group>
 
         {/* Innenraum + Rand (Rahmen mit Öffnung) */}
         <mesh geometry={GEO.liner} material={mats.liner} position={[0, BODY_Y + BODY_H - 1.2, 0]} />

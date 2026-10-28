@@ -29,10 +29,11 @@ import { Spacing } from "@/constants/theme";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
-import { newlyUnlocked, type Progress, usableTrail } from "@/game/rewards";
+import { newlyUnlocked, type Progress, usableSkin, usableTrail } from "@/game/rewards";
 import { dailyBoard, submitScore, trickScore } from "@/utils/leaderboard";
 import {
   getRewardProgress,
+  getBinSkin,
   getTrail,
   getTrickStars,
   saveTrickDaily,
@@ -80,6 +81,7 @@ import {
   setLandHandler,
   setPreview,
   setShotGuide,
+  setBinSkin,
   setTrail,
   type ThrowSpec,
 } from "./scene-bus";
@@ -201,11 +203,12 @@ export function TrickRound({
   const rewardProgress = useRef<Progress>({ stars: 0, level: 0 });
   const levelStars = useRef(0);
   useEffect(() => {
-    Promise.all([getTrail(), getRewardProgress(), getTrickStars()])
-      .then(([id, progress, stars]) => {
+    Promise.all([getTrail(), getRewardProgress(), getTrickStars(), getBinSkin()])
+      .then(([id, progress, stars, skin]) => {
         rewardProgress.current = progress;
         levelStars.current = stars[level.id] ?? 0;
         setTrail(bus.current, usableTrail(id, progress));
+        setBinSkin(bus.current, usableSkin(skin, progress));
       })
       .catch(() => undefined);
   }, [level.id]);

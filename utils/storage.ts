@@ -26,6 +26,7 @@ export const StorageKeys = {
   TRICK_DAILY: "muell_trick_daily",
   SEEN_TIPS: "muell_seen_tips",
   TRAIL: "muell_trail",
+  BIN_SKIN: "muell_bin_skin",
   PLAYER_ID: "muell_player_id",
   PLAYER_NAME: "muell_player_name",
   PENDING_SCORES: "muell_pending_scores",
@@ -490,6 +491,14 @@ export function getTrail(): Promise<string | null> {
 
 export function saveTrail(id: string): Promise<void> {
   return setItem(StorageKeys.TRAIL, id);
+}
+
+export function getBinSkin(): Promise<string | null> {
+  return getItem(StorageKeys.BIN_SKIN);
+}
+
+export function saveBinSkin(id: string): Promise<void> {
+  return setItem(StorageKeys.BIN_SKIN, id);
 }
 
 // ── Einführung: welche Tipps schon gezeigt wurden ───────────────────

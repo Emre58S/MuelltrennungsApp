@@ -1,6 +1,6 @@
 // Datei: game/rewards.ts
-// Belohnungen: Wurfspuren, die man mit Trick-Sternen oder dem XP-Level
-// freischaltet und dann für alle Würfe auswählt. Rein und ohne React –
+// Belohnungen: Wurfspuren und Tonnen-Sticker, die man mit Trick-Sternen oder
+// dem XP-Level freischaltet und dann auswählt (Sticker: components/game/trash-bin.tsx). Rein und ohne React –
 // Farben der Spuren macht components/game/items.tsx (trailColor).
 
 import { type TranslationKey } from "@/i18n";
@@ -42,7 +42,30 @@ export const TRAILS: TrailReward[] = [
 
 export type Progress = { stars: number; level: number };
 
-export function isUnlocked(reward: TrailReward, progress: Progress): boolean {
+export type BinSkinId = "keiner" | "stern" | "herz" | "punkte";
+
+export type BinSkinReward = {
+  id: BinSkinId;
+  name: TranslationKey;
+  stars?: number;
+  level?: number;
+};
+
+/** Tonnen-Sticker (nur Optik), Reihenfolge = Anzeige. */
+export const BIN_SKINS: BinSkinReward[] = [
+  { id: "keiner", name: "reward.skin.keiner" },
+  { id: "stern", name: "reward.skin.stern", stars: 8 },
+  { id: "herz", name: "reward.skin.herz", level: 5 },
+  { id: "punkte", name: "reward.skin.punkte", stars: 16 },
+];
+
+/** Gespeicherten Sticker prüfen: gesperrt oder unbekannt → keiner. */
+export function usableSkin(id: string | null, progress: Progress): BinSkinId {
+  const reward = BIN_SKINS.find((r) => r.id === id);
+  return reward && isUnlocked(reward, progress) ? reward.id : "keiner";
+}
+
+export function isUnlocked(reward: { stars?: number; level?: number }, progress: Progress): boolean {
   if (reward.stars !== undefined) return progress.stars >= reward.stars;
   if (reward.level !== undefined) return progress.level >= reward.level;
   return true;

@@ -12,7 +12,7 @@ import { useSyncExternalStore } from "react";
 import { type Item } from "@/constants/items";
 
 import { type Burst } from "./effects";
-import { type TrailId } from "@/game/rewards";
+import { type BinSkinId, type TrailId } from "@/game/rewards";
 
 export type BinEventType = "hit" | "perfect" | "reject" | "peek" | "bump";
 
@@ -87,6 +87,8 @@ export type SceneBus = {
   clock: number;
   /** Gewählte Wurfspur (Belohnungen, game/rewards.ts). */
   trail: TrailId;
+  /** Gewählter Tonnen-Sticker (Belohnungen). */
+  binSkin: BinSkinId;
   /** Wann (Szenen-Uhr) jeder Reifen zuletzt durchflogen wurde – er leuchtet kurz auf. */
   ringPass: number[];
   onLand: (id: number, outcome?: LandOutcome) => void;
@@ -107,6 +109,7 @@ export function createBus(): SceneBus {
     shotGuide: null,
     clock: 0,
     trail: "standard",
+    binSkin: "keiner",
     ringPass: [],
     onLand: () => undefined,
   };
@@ -179,6 +182,11 @@ export function setLandHandler(
 }
 
 /** Flugbahn-Vorschau setzen/ausblenden (ohne Neu-Rendern der Szene). */
+/** Tonnen-Sticker für diese Runde (Auswahl auf der Belohnungs-Seite). */
+export function setBinSkin(bus: SceneBus, skin: BinSkinId) {
+  bus.binSkin = skin;
+}
+
 /** Wurfspur für die nächsten Würfe (Auswahl auf der Belohnungs-Seite). */
 export function setTrail(bus: SceneBus, trail: TrailId) {
   bus.trail = trail;
