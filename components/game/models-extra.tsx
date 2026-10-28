@@ -15,7 +15,7 @@ export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   [/sauberer karton|eierkarton|schuhkarton/, "box"],
   [/briefumschlag|schreibpapier|notizblock|visitenkarte/, "paper"],
   [/buch/, "book"],
-  [/toilettenpapier/, "kitchenroll"],
+  [/toilettenpapier/, "papertube"],
   // Glas
   [/weinflasche|bierflasche|olivenoelflasche/, "glassbottle"],
   [/saftflasche/, "juicebottle"],
@@ -373,13 +373,32 @@ export function renderExtraModel(key: string): ReactElement | null {
       );
 
     case "thermo":
+      // Quecksilber ist silbern (rot wäre ein Alkohol-Thermometer, kein Sondermüll)
       return (
         <group rotation={[0.3, 0, Math.PI / 3]}>
           <Cyl r={0.04} h={0.6} color="#E0F2FE" roughness={0.1} opacity={0.75} />
-          <Cyl r={0.015} h={0.45} pos={[0, -0.02, 0]} color="#B91C1C" />
+          <Cyl r={0.015} h={0.45} pos={[0, -0.02, 0]} color="#8B95A5" />
           <mesh position={[0, -0.3, 0]} castShadow>
             <sphereGeometry args={[0.06, 12, 10]} />
-            <meshLambertMaterial color="#9CA3AF" flatShading />
+            <meshLambertMaterial color="#D1D5DB" flatShading />
+          </mesh>
+          {[-0.1, 0, 0.1, 0.2].map((y) => (
+            <Box key={y} size={[0.03, 0.006, 0.006]} pos={[0.035, y, 0.02]} color="#334155" />
+          ))}
+          <Shine size={[0.012, 0.4, 0.004]} pos={[-0.02, 0, 0.038]} />
+        </group>
+      );
+
+    case "papertube":
+      // Leere Papprolle (das ist das Altpapier an der Toilettenpapier-Rolle)
+      return (
+        <group rotation={[0.35, 0.5, Math.PI / 2.2]} scale={[1, 1, 0.82]}>
+          <Cyl r={0.12} h={0.42} color="#B08B5B" open />
+          <Cyl r={0.118} h={0.43} color="#8C6A43" open />
+          {/* Schräge Naht um die Rolle herum (typisch für Pappe) */}
+          <mesh rotation={[Math.PI / 2 + 0.4, 0, 0]}>
+            <torusGeometry args={[0.121, 0.004, 4, 20]} />
+            <meshLambertMaterial color="#8C6A43" flatShading />
           </mesh>
         </group>
       );

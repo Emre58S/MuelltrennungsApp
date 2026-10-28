@@ -443,51 +443,41 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "kitchenroll":
+      // Benutztes Küchentuch: zerknüllt, mit Fleck (die volle Rolle sähe nach
+      // Ware aus – und glich der Papprolle aus der Papier-Tonne)
       return (
-        <group rotation={[0.2, 0.3, -0.1]}>
+        <group rotation={[0.3, 0.4, 0]}>
+          {/* Warmes Weiß und eigene Knüllform – nicht wie die graue Alufolie */}
           <Part
-            geo={G.cyl(0.2, 0.2, 0.4, 24, true)}
-            double
-            color="#F8FAFC"
-            roughness={0.95}
-          />
-          <Part
-            geo={G.ring(0.062, 0.2, 24)}
-            pos={[0, 0.2, 0]}
-            rot={[-Math.PI / 2, 0, 0]}
-            color="#F1F5F9"
+            geo={G.crumple(0.2, 0.14, 3, 1)}
+            scale={[1.15, 0.75, 1]}
+            flat
+            color="#FFF8EC"
             roughness={1}
           />
           <Part
-            geo={G.ring(0.062, 0.2, 24)}
-            pos={[0, -0.2, 0]}
-            rot={[Math.PI / 2, 0, 0]}
-            color="#F1F5F9"
+            geo={G.crumple(0.12, 0.12, 17, 1)}
+            pos={[0.16, -0.06, 0.08]}
+            scale={[1, 0.7, 1]}
+            flat
+            color="#FBF1DF"
             roughness={1}
           />
+          {/* Großer Fleck, als flacher Klecks auf dem Tuch (schwebt nicht) */}
           <Part
-            geo={G.cyl(0.062, 0.062, 0.402, 16, true)}
-            double
-            color="#B08B5B"
+            geo={G.ball(0.08, 8, 6)}
+            pos={[-0.03, 0.03, 0.172]}
+            scale={[1, 0.8, 0.35]}
+            color="#C8A27A"
             roughness={1}
           />
-          {[-0.1, 0.1].map((y) => (
-            <Part
-              key={y}
-              geo={G.torus(0.2, 0.004, 4, 24)}
-              pos={[0, y, 0]}
-              rot={[Math.PI / 2, 0, 0]}
-              color="#CBD5E1"
-              roughness={1}
-            />
-          ))}
+          {/* Perforationslinie */}
           <Part
-            geo={G.wave(0.3, 0.34, 0.012, 10, 0)}
-            pos={[0.14, -0.23, 0.2]}
-            rot={[-1.2, 0, 0]}
-            double
-            color="#FFFFFF"
-            roughness={1}
+            geo={G.box(0.3, 0.008, 0.008, 0.002)}
+            pos={[0, 0.12, 0.12]}
+            rot={[0.6, 0, 0.2]}
+            basic
+            color="#D9CBB3"
           />
         </group>
       );

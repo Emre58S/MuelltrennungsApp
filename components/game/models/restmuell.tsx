@@ -641,7 +641,14 @@ export function renderRestmuellModel(key: string, name: string) {
         </group>
       );
 
-    case "wrap":
+    case "wrap": {
+      // Mit Folie (Restmüll): silbern glänzend wie Metallfolie. Ohne Folie
+      // (Papier): mattes rotes Papier, Schleife aus Papierband.
+      const foil = name.includes("mit folie");
+      const roll = foil ? "#C9D1DC" : "#C0392B";
+      const sheet = foil ? "#DCE3EB" : "#D9473A";
+      const ribbon = foil ? "#E5C9F5" : "#EADBC0";
+      const metal = foil ? 0.6 : 0;
       return (
         <group rotation={[0.25, -0.18, 0.1]}>
           {/* Papierrolle (Achse in x-Richtung) */}
@@ -649,9 +656,9 @@ export function renderRestmuellModel(key: string, name: string) {
             geo={G.cyl(0.13, 0.13, 0.62, 22)}
             pos={[0, 0.02, 0]}
             rot={[0, 0, Math.PI / 2]}
-            color="#DB2777"
-            roughness={0.3}
-            metalness={0.4}
+            color={roll}
+            roughness={foil ? 0.3 : 0.95}
+            metalness={metal}
           />
           <Part
             geo={G.cyl(0.045, 0.045, 0.66, 10, true)}
@@ -667,9 +674,9 @@ export function renderRestmuellModel(key: string, name: string) {
               geo={G.torus(0.132, 0.01, 5, 22)}
               pos={[x, 0.02, 0]}
               rot={[0, Math.PI / 2, 0]}
-              color="#F5C542"
-              roughness={0.3}
-              metalness={0.5}
+              color={ribbon}
+              roughness={0.6}
+              metalness={metal}
             />
           ))}
           {/* abgerollte Bahn mit Mustern */}
@@ -677,9 +684,9 @@ export function renderRestmuellModel(key: string, name: string) {
             <Part
               geo={G.wave(0.62, 0.42, 0.012, 9, 1)}
               double
-              color="#EC4899"
-              roughness={0.3}
-              metalness={0.4}
+              color={sheet}
+              roughness={foil ? 0.3 : 0.95}
+              metalness={metal}
             />
             {(
               [
@@ -695,7 +702,7 @@ export function renderRestmuellModel(key: string, name: string) {
                 geo={G.circle(0.025, 10)}
                 pos={[x, y, 0.03]}
                 basic
-                color="#F5C542"
+                color={foil ? ["#F472B6", "#60A5FA", "#34D399", "#FBBF24", "#A78BFA"][i % 5] : "#FFFFFF"}
               />
             ))}
           </group>
@@ -705,9 +712,9 @@ export function renderRestmuellModel(key: string, name: string) {
             pos={[0, 0.02, 0]}
             rot={[0, 0, Math.PI / 2]}
             double
-            color="#F5C542"
-            roughness={0.3}
-            metalness={0.5}
+            color={ribbon}
+            roughness={0.6}
+            metalness={metal}
           />
           <group position={[0, 0.17, 0.02]}>
             {[-1, 1].map((sg) => (
@@ -717,16 +724,16 @@ export function renderRestmuellModel(key: string, name: string) {
                 pos={[sg * 0.08, 0.03, 0]}
                 rot={[0, 0, sg * 0.5]}
                 scale={[1.4, 0.8, 0.5]}
-                color="#F5C542"
-                roughness={0.3}
-                metalness={0.5}
+                color={ribbon}
+                roughness={0.6}
+                metalness={metal}
               />
             ))}
             <Part
               geo={G.ball(0.035, 10, 8)}
-              color="#E8B22B"
-              roughness={0.3}
-              metalness={0.5}
+              color={ribbon}
+              roughness={0.6}
+              metalness={metal}
             />
             {[-1, 1].map((sg) => (
               <Part
@@ -734,14 +741,28 @@ export function renderRestmuellModel(key: string, name: string) {
                 geo={G.box(0.035, 0.17, 0.01, 0.004)}
                 pos={[sg * 0.04, -0.08, 0.02]}
                 rot={[0, 0, sg * 0.35]}
-                color="#F5C542"
-                roughness={0.3}
-                metalness={0.5}
+                color={ribbon}
+                roughness={0.6}
+                metalness={metal}
               />
             ))}
           </group>
+          {foil &&
+            [-0.12, 0.14].map((x) => (
+              <Part
+                key={`shine${x}`}
+                geo={G.box(0.07, 0.02, 0.008, 0.003)}
+                pos={[x, 0.12, 0.09]}
+                rot={[0.9, 0, 0]}
+                basic
+                noDepthWrite
+                color="#FFFFFF"
+                opacity={0.6}
+              />
+            ))}
         </group>
       );
+    }
 
     case "mirror":
       return (

@@ -14,9 +14,6 @@ allein am 3D-Modell erkennbar sein – ohne Text darunter. Grundlage: Audit des
 Testers (alle 66 Modelle). Pro Zyklus 2–4 Modelle, Glanz über Shine-Teile
 (basic + noDepthWrite), Physik/Wertung unverändert.
 
-- [ ] **Sachfehler**: Geschenkpapier mit Folie (silber, glänzend) ≠ ohne Folie
-  (matt, Schnur); Toilettenpapier-Rolle = leere Papprolle, Küchenrolle =
-  zerknülltes Tuch; Thermometer-Säule silbern (Quecksilber).
 - [ ] **Die vier schlechtesten neu**: Alufolie (Glanzflächen, abgerissenes
   Stück), Styropor (Takeaway-Box mit Kügelchen), Unterwäsche (Slip-Form,
   Beinausschnitte, kräftige Farbe), Butterverpackung (offenes Folienpapier mit
@@ -51,6 +48,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Sachfehler Modelle: Geschenkpapier mit/ohne Folie, Papprolle vs. Küchentuch, Quecksilber silbern
 - [x] Keine Hinweise unter dem Gegenstand (Material-Zeile weg, Blase neutral)
 - [x] PET-Flasche: Glanzstreifen
 - [x] Trinkglas oben offen (man sieht hinein)
