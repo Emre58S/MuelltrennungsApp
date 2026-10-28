@@ -68,6 +68,9 @@ Expo Go.
 - Trick-Hindernisse hinter der Tonne sind unerreichbar (Wurf dort schon tief,
   offener Deckel steht als Brett) – seitlich/schräg zwischen den Tonnen geht.
   Neue Pflicht-Hindernisse brauchen eigenen „noTrick“-Text und Tipp.
+- Trick-Level: Fairness-Test sucht nur Kraft 0,6–0,86 – Sonden genauso rechnen.
+  Schrägdach (Markise) ging nicht: Oberseite zeigt von der Kamera weg,
+  Erfolge nur über Deckel-Abpraller; offene Deckel schwingen bis z≈0,6.
 - Lange Edit-Skripte mit Write in den Scratchpad schreiben (Heredoc bricht ab).
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.

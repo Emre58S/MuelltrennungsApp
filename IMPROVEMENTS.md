@@ -20,7 +20,8 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
 - [ ] **Mehr Gegenstände, Rest** (optional): Trinkglas oben offen zeichnen.
 - [ ] **Trickwürfe: echte Hindernisse**: (Straßenschild 19/20, Laterne 21 erledigt;
-  Laterne an Außentonnen zu eng → verworfen; Idee: Laterne + Reifen) Markise/Vordach zum Reinrutschen, Bauzaun/Mauer. Je Hindernis
+  Laterne an Außentonnen zu eng → verworfen; Idee: Laterne + Reifen; Markise
+  verworfen: von vorn nicht fair bespielbar, Deckel schwingt durch) Bauzaun/Mauer. Je Hindernis
   1–2 Level, sanft steigend. Pflicht: Fairness-Test grün; sonst verwerfen.
 - [ ] **Tipp- und Lernkarte überlappen**: TipCard und LearnCard liegen beide auf
   learnTop – bei Fehlwurf während eines Tipps Lernkarte versetzen oder Tipp schließen.
