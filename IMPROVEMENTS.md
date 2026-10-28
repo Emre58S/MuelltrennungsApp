@@ -31,8 +31,8 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
   Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz), Zeitung
   (gefaltet) vs. Zeitschrift (dick, Cover) vs. Prospekt (Preisschild).
-- [ ] A9 Zweites Modell-Audit durch den Tester (alle Modelle, Note 1–5) →
-  daraus die nächsten Punkte hier eintragen und abarbeiten.
+- [ ] A9 Punkte aus dem zweiten Modell-Audit (läuft seit 00:10) hier eintragen
+  und abarbeiten.
 
 **B – Hinweise und Emojis**
 - [ ] B1 Doppelte Emojis über verschiedene Tonnen auflösen (z. B. 🫙, 🧴, 🧾,
@@ -47,6 +47,16 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **D – Kleinkram**
 - [ ] D1 Rückfrage beim Beenden: Fever-Zeit anhalten.
+
+**E – Lernen und Feinschliff (vom Nutzer bestätigt)**
+- [ ] E1 Gegenstand dreht sich vor dem Wurf langsam (besser erkennbar); bei
+  „Weniger Bewegung“ still.
+- [ ] E4 Lernkarte (nur „Üben“, nach Fehlwurf) bekommt eine kurze Begründung
+  (≤ 4 Wörter, alle Gegenstände DE+EN), Karte ~0,5 s länger, blockiert nichts.
+  **Schalter in den Einstellungen** („Begründung nach Fehlern“, an/aus, Standard an).
+- [ ] E2 Leistungs-Check nach den Modell-Umbauten (Zeichenaufrufe, Ruckler).
+- [ ] E3 Sammelbuch: 3D-Vorschau des Gegenstands beim Antippen (nur wenn Zeit).
+- [ ] E5 Szene: weicheres Licht, ruhigerer Hintergrund (ganz zum Schluss).
 
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
 ganze App) → Punkte eintragen → weiter. Nie leer laufen lassen.
