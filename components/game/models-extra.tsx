@@ -19,12 +19,13 @@ export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   // Glas
   [/weinflasche|bierflasche|olivenoelflasche/, "glassbottle"],
   [/marmeladenglas|gurkenglas|honigglas|senfglas/, "jar"],
-  [/parfuemflasche|nagellack/, "perfume"],
+  [/parfuemflasche/, "perfume"],
   // Sondermüll
   [/batterie/, "battery"],
   [/smartphone/, "phone"],
   [/laptop/, "laptop"],
   [/druckerpatronen/, "cartridge"],
+  [/nagellackentferner/, "remover"],
   [/medikamente/, "pills"],
   [/farbreste/, "paintcan"],
   [/ladekabel/, "cable"],
@@ -209,6 +210,19 @@ export function renderExtraModel(key: string): ReactElement | null {
             <Box size={[0.62, 0.03, 0.4]} pos={[0, 0, 0.2]} color="#9CA3AF" />
             <Box size={[0.54, 0.032, 0.32]} pos={[0, 0.001, 0.2]} color="#1E3A5F" />
           </group>
+        </group>
+      );
+
+    case "remover":
+      // Nagellackentferner: Kunststoffflasche mit orangem Warnetikett
+      return (
+        <group rotation={[0.1, 0.35, -0.1]}>
+          <Cyl r={0.14} h={0.4} color="#F1F5F9" />
+          <Cyl r={0.142} h={0.18} pos={[0, -0.02, 0]} color="#F97316" />
+          {/* Warnraute wie das echte Gefahrensymbol: rot umrandet, weiß gefüllt */}
+          <Box size={[0.12, 0.12, 0.02]} pos={[0, -0.02, 0.14]} rot={[0, 0, Math.PI / 4]} color="#DC2626" />
+          <Box size={[0.085, 0.085, 0.022]} pos={[0, -0.02, 0.142]} rot={[0, 0, Math.PI / 4]} color="#FFFFFF" />
+          <Cyl r={0.06} h={0.1} pos={[0, 0.25, 0]} color="#7C3AED" />
         </group>
       );
 

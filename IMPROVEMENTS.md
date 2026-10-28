@@ -18,9 +18,6 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
   (Glas + Dose erledigt; weiter: übriger Gelber Sack, Papier, Bio, Rest.)
 - [ ] **Szene aufwerten, nicht überladen**: (Pflasterfugen + Gully erledigt)
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
-- [ ] **Sondermüll, Rest**: Einmal-Tipp beim ersten Auftauchen der roten Tonne
-  („Batterien, Elektrogeräte, Gifte“, DE+EN); eigenes Modell für
-  Nagellackentferner (Flasche mit Warnetikett statt Parfüm-Flakon).
 - [ ] **Mehr Gegenstände**: 10–15 neue Alltagsdinge über alle Tonnen, bevorzugt
   typische Irrtümer (Pizzakarton, Teebeutel, Joghurtbecher, Marmeladenglas,
   Staubsaugerbeutel …).
@@ -29,12 +26,15 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Trickwürfe: echte Hindernisse**: Straßenschild zum Abprallen (zuerst),
   Laternenmast, Markise/Vordach zum Reinrutschen, Bauzaun/Mauer. Je Hindernis
   1–2 Level, sanft steigend. Pflicht: Fairness-Test grün; sonst verwerfen.
+- [ ] **Tipp- und Lernkarte überlappen**: TipCard und LearnCard liegen beide auf
+  learnTop – bei Fehlwurf während eines Tipps Lernkarte versetzen oder Tipp schließen.
 - [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit anhalten; Trick-Runde
   einheitlich; Android-Zurück-Taste. (Geringer Nutzen auf dem iPhone.)
 - [ ] **Eigenes App-Symbol und Startbildschirm** (erst mit eigenem Build sichtbar).
 
 ## Erledigt
 
+- [x] Sondermüll: Einmal-Tipp zur roten Tonne, Modell Nagellackentferner
 - [x] Sondermüll-Tonne ab Level 7 (Haus-Szene), Aufkleber, Modelle Laptop/Patrone/Energiesparlampe, Medikamenten-Text
 - [x] Szene: versetzte Pflasterfugen + Gully (Wand-Szenen)
 - [x] Getränkedose: Metall-Glanzstreifen

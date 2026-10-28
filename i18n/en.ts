@@ -183,6 +183,7 @@ export const en: Translations = {
   "trick.decoyWrong": "Wrong! Belongs in: {bin}",
   "trick.factTitle": "Did you know?",
   "tip.hold": "Tip: hold your finger briefly – you will see the path and throw precisely.",
+  "tip.sonder": "New: the red bin! Batteries, phones, cables and energy-saving bulbs go in here.",
   "tip.heavy": "Heavy things fly flatter – swipe a bit further.",
   "tip.light": "Light things fly higher.",
   "tip.combo": "Every hit in a row raises the combo – a miss resets it.",

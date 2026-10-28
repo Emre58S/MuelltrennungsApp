@@ -182,6 +182,7 @@ export const de = {
   "trick.decoyWrong": "Falsch! Gehört in: {bin}",
   "trick.factTitle": "Wusstest du?",
   "tip.hold": "Tipp: Finger kurz halten – dann siehst du die Flugbahn und wirfst genau.",
+  "tip.sonder": "Neu: die rote Tonne! Batterien, Handys, Kabel und Energiesparlampen gehören hier hinein.",
   "tip.heavy": "Schwere Sachen fliegen flacher – etwas weiter wischen.",
   "tip.light": "Leichte Sachen fliegen höher.",
   "tip.combo": "Jeder Treffer in Folge erhöht die Combo – ein Fehlwurf setzt sie zurück.",

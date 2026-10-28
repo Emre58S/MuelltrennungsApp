@@ -20,7 +20,8 @@ export type TipId =
   | "movingRing"
   | "spin"
   | "stars"
-  | "decoy";
+  | "decoy"
+  | "sonder";
 
 /** So lange (ms) bleibt ein Tipp stehen (Tippen schließt ihn früher). */
 const TIP_MS = 4500;

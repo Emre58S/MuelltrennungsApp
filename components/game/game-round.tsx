@@ -310,6 +310,10 @@ export function GameRound({
     const mass = itemMass(currentItem);
     if (mass !== "normal") showTip(mass === "schwer" ? "heavy" : "light");
   }, [mode, currentItem, showTip]);
+  // Rote Sondermüll-Tonne zum ersten Mal: kurz erklären, was hineingehört
+  useEffect(() => {
+    if (bins.some((b) => b.key === "sonder")) showTip("sonder");
+  }, [bins, showTip]);
   // Dezentes Sound-Feedback (siehe utils/sfx.ts)
   useEffect(() => {
     refreshSfxSetting();
