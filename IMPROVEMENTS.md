@@ -31,12 +31,23 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
   Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz), Zeitung
   (gefaltet) vs. Zeitschrift (dick, Cover) vs. Prospekt (Preisschild).
-- [ ] A9 Punkte aus dem zweiten Modell-Audit (läuft seit 00:10) hier eintragen
-  und abarbeiten.
+- [ ] A9 Aus Audit 2 (00:20): Altes Buch (Seitenblock steckt im Einband →
+  Deckel + Rücken, Seiten sichtbar); Geschenkpapier mit Folie bunt-metallisch
+  (Gold/Pink, Sterne) statt silbern (≈ Alufolie); Nagellackentferner (kleines
+  Nagellack-Fläschchen daneben, kleiner, Raute mittig) ≈ Shampoo; Schuhkarton ≠
+  sauberer Karton (flach, Stülpdeckel, bedruckt, Seidenpapier); Thermometer
+  dicker (r 0,06), Skala, mehr Kontrast; Kaffeesatz eigene Form (Espresso-Puck);
+  Backpapier (Ende eingerollt, Keks-Abdrücke) vs. Küchentuch (Prägemuster);
+  Senf hellgelb mit Körnern ≠ Honig.
+- [ ] A10 Fakt Druckerpatronen DE/EN: „Zurück in den Handel oder zum Hersteller
+  – sie werden wieder befüllt.“ (Namen nicht ändern: Name = ID für Statistik.)
 
 **B – Hinweise und Emojis**
-- [ ] B1 Doppelte Emojis über verschiedene Tonnen auflösen (z. B. 🫙, 🧴, 🧾,
-  💡, 🎁) – jedes Emoji höchstens in einer Tonne.
+- [ ] B1 Emojis (Audit 2): Alufolie 🫙→✨/🍫, Senfglas 🥃→🌭, Trinkglas 🍷→🥃,
+  Prospekt 🧾→📑, Nagellackentferner 🧴→💅, Parfüm 🧴→✨-Alternative,
+  Energiesparlampe 💡→🔆, Eierkarton 🥚→🐣, Aluschale 🧽, Wattestäbchen 🧷,
+  Chipstüte 🍬, Toilettenpapier 📜→🧻 (Küchenrolle dann anders). Jedes Emoji
+  höchstens in einer Tonne; 🎁 (Geschenkpapier) bleibt.
 
 **C – Inhalt (wenn A/B durch sind)**
 - [ ] C1 6–8 neue Alltags-Gegenstände (typische Irrtümer) mit eigenem Modell,
