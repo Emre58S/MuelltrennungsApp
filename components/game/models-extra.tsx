@@ -4,6 +4,7 @@
 // übrigen Modelle. Regeln laufen VOR den Basis-Regeln in models.tsx.
 
 import { type ReactElement } from "react";
+import * as THREE from "three";
 
 type V3 = [number, number, number];
 
@@ -85,6 +86,18 @@ function Cyl({
   );
 }
 
+/** Ein Material für alle Glanzstreifen – beim Backen wird daraus ein Zeichenaufruf. */
+const SHINE_MAT = new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.55, depthWrite: false });
+
+/** Glanzstreifen: lässt Glas glänzen (Lambert kennt keine Spiegelung). */
+function Shine({ size, pos, rot }: { size: V3; pos: V3; rot?: V3 }) {
+  return (
+    <mesh position={pos} rotation={rot} material={SHINE_MAT}>
+      <boxGeometry args={size} />
+    </mesh>
+  );
+}
+
 /** Liefert null für Schlüssel, die das Basis-Modul selbst kennt. */
 export function renderExtraModel(key: string): ReactElement | null {
   switch (key) {
@@ -141,6 +154,8 @@ export function renderExtraModel(key: string): ReactElement | null {
           <Cyl r={0.055} h={0.16} pos={[0, 0.43, 0]} color="#2E7D4F" roughness={0.15} opacity={0.85} />
           <Cyl r={0.06} h={0.04} pos={[0, 0.52, 0]} color="#D4AF37" metalness={0.6} roughness={0.3} />
           <Cyl r={0.153} h={0.16} pos={[0, -0.02, 0]} color="#F5E9C8" roughness={0.9} />
+          <Shine size={[0.03, 0.16, 0.01]} pos={[-0.075, 0.15, 0.13]} rot={[0, -0.5, 0]} />
+          <Shine size={[0.02, 0.1, 0.01]} pos={[-0.03, 0.42, 0.05]} rot={[0, -0.5, 0]} />
         </group>
       );
 
@@ -151,6 +166,7 @@ export function renderExtraModel(key: string): ReactElement | null {
           <Cyl r={0.16} h={0.26} pos={[0, -0.04, 0]} color="#C0392B" roughness={0.7} />
           <Cyl r={0.205} h={0.07} pos={[0, 0.215, 0]} color="#E2B33C" metalness={0.5} roughness={0.35} />
           <Cyl r={0.203} h={0.12} pos={[0, 0.02, 0]} color="#FFFFFF" roughness={0.9} />
+          <Shine size={[0.035, 0.26, 0.01]} pos={[-0.11, 0, 0.17]} rot={[0, -0.55, 0]} />
         </group>
       );
 
@@ -158,6 +174,7 @@ export function renderExtraModel(key: string): ReactElement | null {
       return (
         <group rotation={[0.1, 0.4, 0]}>
           <Box size={[0.34, 0.34, 0.16]} color="#F8C8DC" roughness={0.1} />
+          <Shine size={[0.035, 0.26, 0.005]} pos={[-0.1, 0, 0.083]} />
           <Cyl r={0.05} h={0.08} pos={[0, 0.21, 0]} color="#D4AF37" metalness={0.7} roughness={0.25} />
           <Box size={[0.14, 0.12, 0.12]} pos={[0, 0.31, 0]} color="#2B2B2B" roughness={0.4} />
         </group>

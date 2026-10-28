@@ -15,6 +15,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Tonnen-Design, Rest** (optional): weichere Schatten/Kanten.
 - [ ] **Gegenstände-Design**: einheitlichere Farben, weichere Formen, Material
   erkennbar (Glas glänzt, Papier matt). Je Zyklus eine Material-Gruppe.
+  (Glas erledigt; weiter: Gelber Sack, Papier, Bio, Rest.)
 - [ ] **Szene aufwerten, nicht überladen**: wenige Boden-Details (Fugen, Gully),
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
 - [ ] **Sondermüll/Elektroschrott spielbar**: rote Sondermüll-Box als 6. Ziel,
@@ -34,6 +35,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Glas-Gegenstände: Glanzstreifen
 - [x] Tonnen-Aufkleber: Bild-Symbol statt Farbpunkt (Blatt, Flasche, Papier, ♻, Tonne)
 - [x] Tonnen: Verstärkungsband + Deckel-Vorderkante (s. Commit „Tonnen: Band“)
 - [x] Menü: kleinere Modus-Schilder, unteres Menü tiefer (329b48c)
