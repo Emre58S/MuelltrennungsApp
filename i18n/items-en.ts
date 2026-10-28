@@ -152,7 +152,10 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
   },
   Nagellackentferner: { name: "Nail polish remover" },
   // Neu: typische Irrtümer
-  Kartoffelschalen: { name: "Potato peels" },
+  Kartoffelschalen: {
+    name: "Potato peels",
+    fact: "Peels and vegetable scraps go in the organic bin – they turn into compost.",
+  },
   Kronkorken: {
     name: "Bottle cap",
     fact: "Bottle caps are metal – into the yellow bag, not the glass bin!",
@@ -166,5 +169,18 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
   Trinkglas: {
     name: "Drinking glass",
     fact: "Drinking glasses melt differently from bottles – general waste, not the glass bin!",
+  },
+  Kaffeefilter: {
+    name: "Coffee filter",
+    fact: "Paper filters with coffee grounds can go in the organic bin together.",
+  },
+  Zeitschrift: { name: "Magazine", fact: "Glossy magazines go in paper recycling too." },
+  "Obstnetz (Plastik)": {
+    name: "Fruit net (plastic)",
+    fact: "Nets from oranges or onions are plastic packaging – yellow bag.",
+  },
+  Kerzenreste: {
+    name: "Candle stubs",
+    fact: "Candle wax goes in general waste – not in the organic bin.",
   },
 };

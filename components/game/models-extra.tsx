@@ -11,7 +11,7 @@ type V3 = [number, number, number];
 /** Spezifische Muster – nichts, was Restmüll/Gelber Sack „stehlen“ würde. */
 export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   // Papier
-  [/zeitung|prospekt/, "newspaper"],
+  [/zeitung|prospekt|zeitschrift/, "newspaper"],
   [/sauberer karton|eierkarton|schuhkarton/, "box"],
   [/briefumschlag|schreibpapier|notizblock|visitenkarte/, "paper"],
   [/buch/, "book"],
@@ -22,6 +22,9 @@ export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   // Restmüll-Irrtümer mit eigenem Modell (laufen vor den Basis-Regeln)
   [/trinkglas/, "tumbler"],
   [/backpapier/, "bakingpaper"],
+  [/kerzenreste/, "candle"],
+  [/obstnetz/, "fruitnet"],
+  [/kronkorken/, "bottlecap"],
   [/marmeladenglas|gurkenglas|honigglas|senfglas/, "jar"],
   [/parfuemflasche/, "perfume"],
   // Sondermüll
@@ -194,6 +197,49 @@ export function renderExtraModel(key: string): ReactElement | null {
         <group rotation={[0.8, 0.3, 0.2]}>
           <Box size={[0.52, 0.015, 0.4]} color="#EFE3C8" />
           <Box size={[0.52, 0.015, 0.16]} pos={[0, 0.05, -0.24]} rot={[0.5, 0, 0]} color="#E8DAB9" />
+        </group>
+      );
+
+    case "candle":
+      return (
+        <group rotation={[0.2, 0.3, -0.2]}>
+          {/* Stummel mit gelblicher Oberseite, Docht und Wachstropfen */}
+          <Cyl r={0.13} rTop={0.12} h={0.15} color="#FFF4D6" />
+          <Cyl r={0.12} h={0.02} pos={[0, 0.08, 0]} color="#F6E3A1" />
+          <Cyl r={0.012} h={0.07} pos={[0, 0.12, 0]} color="#1F2937" />
+          <Cyl r={0.04} rTop={0.025} h={0.08} pos={[0.1, 0.01, 0.07]} color="#FFF4D6" />
+          <Cyl r={0.03} rTop={0.02} h={0.06} pos={[-0.11, 0.02, 0.05]} color="#FFF4D6" />
+        </group>
+      );
+
+    case "fruitnet":
+      // Orangenes Netz: bauchiger, durchscheinender Sack, oben zugeknotet
+      return (
+        <group rotation={[0.2, 0.4, 0.15]}>
+          <Cyl r={0.17} rTop={0.23} h={0.16} pos={[0, -0.08, 0]} color="#F97316" opacity={0.55} />
+          <Cyl r={0.23} rTop={0.06} h={0.2} pos={[0, 0.1, 0]} color="#F97316" opacity={0.55} />
+          <Cyl r={0.045} h={0.07} pos={[0, 0.23, 0]} color="#EA580C" />
+        </group>
+      );
+
+    case "bottlecap":
+      // Kronkorken: flache Metallkappe mit gezacktem Rand
+      return (
+        <group rotation={[0.9, 0.2, 0.1]}>
+          <Cyl r={0.18} h={0.05} color="#D4AF37" />
+          {Array.from({ length: 14 }, (_, i) => {
+            const a = (i / 14) * Math.PI * 2;
+            return (
+              <Box
+                key={i}
+                size={[0.06, 0.06, 0.035]}
+                pos={[Math.cos(a) * 0.19, -0.015, Math.sin(a) * 0.19]}
+                rot={[0, -a, 0]}
+                color="#B8932B"
+              />
+            );
+          })}
+          <Cyl r={0.12} h={0.052} pos={[0, 0.002, 0]} color="#DC2626" />
         </group>
       );
 

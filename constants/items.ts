@@ -519,6 +519,7 @@ export const ITEMS: Item[] = [
     name: "Kartoffelschalen",
     category: "Biomüll",
     difficulty: "leicht",
+    fact: "Schalen und Gemüsereste: ab in die Biotonne – daraus wird Kompost.",
   },
   {
     emoji: "🪙",
@@ -553,5 +554,33 @@ export const ITEMS: Item[] = [
     category: "Restmüll",
     difficulty: "schwer",
     fact: "Trinkgläser schmelzen anders als Flaschen – darum Restmüll, nicht Altglas!",
+  },
+  {
+    emoji: "☕",
+    name: "Kaffeefilter",
+    category: "Biomüll",
+    difficulty: "mittel",
+    fact: "Papierfilter mit Kaffeesatz dürfen zusammen in die Biotonne.",
+  },
+  {
+    emoji: "📰",
+    name: "Zeitschrift",
+    category: "Papier",
+    difficulty: "leicht",
+    fact: "Auch glänzende Zeitschriften gehören ins Altpapier.",
+  },
+  {
+    emoji: "🥅",
+    name: "Obstnetz (Plastik)",
+    category: "Gelber Sack",
+    difficulty: "mittel",
+    fact: "Netze von Orangen oder Zwiebeln sind Plastikverpackung – Gelber Sack.",
+  },
+  {
+    emoji: "🕯️",
+    name: "Kerzenreste",
+    category: "Restmüll",
+    difficulty: "mittel",
+    fact: "Kerzenwachs gehört in den Restmüll – nicht in die Biotonne.",
   },
 ];

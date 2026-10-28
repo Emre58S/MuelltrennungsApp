@@ -52,6 +52,8 @@ const LIGHT = new Set([
   "Wattestäbchen",
   "Pflaster",
   "Backpapier",
+  "Zeitschrift",
+  "Obstnetz (Plastik)",
 ]);
 
 /** Woraus ein Gegenstand ist – bestimmt seinen Landeklang (utils/sfx). */
