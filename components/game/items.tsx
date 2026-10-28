@@ -288,7 +288,8 @@ export const ShotGuideDots = memo(function ShotGuideDots({
       if (i === GUIDE_DOTS - 1) size *= 1 - phase.current;
       m.compose(tmp, q, s.setScalar(size));
       dot.setMatrixAt(i, m);
-      dot.setColorAt(i, trailColor(tint, bus.current.trail, k, state.clock.elapsedTime, i));
+      // Weniger Bewegung: Spurfarben stehen still (kein Flackern/Wandern)
+      dot.setColorAt(i, trailColor(tint, bus.current.trail, k, calm ? 0 : state.clock.elapsedTime, i));
       m.compose(tmp, q, s.setScalar(size * GUIDE_HALO));
       halo.setMatrixAt(i, m);
     }
@@ -396,6 +397,8 @@ const TRAIL_GEO = new THREE.SphereGeometry(1, 8, 6);
 const WHITE = new THREE.Color("#FFFFFF");
 const KONFETTI = ["#FF5A5F", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"].map((c) => new THREE.Color(c));
 const KOMET_TAIL = new THREE.Color("#5AA9FF");
+const LAUB = ["#E8772E", "#C94A2A", "#F2B134", "#9C5B2E"].map((c) => new THREE.Color(c));
+const STERNENSTAUB = new THREE.Color("#5B4BC4");
 
 /** Farbe eines Spur-Punkts: `k` = 0 (Ende) … 1 (Kopf), `t` = Zeit (s),
  *  `i` = Nummer des Punkts. */
@@ -414,6 +417,17 @@ function trailColor(out: THREE.Color, style: TrailId | "fire" | "glow", k: numbe
       return out.copy(KONFETTI[(i + Math.floor(t * 6)) % KONFETTI.length]);
     case "polarlicht":
       return out.setHSL(0.42 + 0.33 * k + 0.04 * Math.sin(t * 3 + k * 6), 0.85, 0.6);
+    case "herbstlaub":
+      return out.copy(LAUB[i % LAUB.length]);
+    case "seifenblasen":
+      // Schillernd hell: Farbton wandert sanft zwischen Türkis und Rosa
+      return out.setHSL(0.47 + 0.45 * (0.5 + 0.5 * Math.sin(t * 2 + i * 0.9)), 0.75, 0.72);
+    case "funken":
+      // Flackern zwischen Weiß und Gelb-Orange
+      return out.setHSL(0.1 + 0.04 * k, 1, 0.55 + 0.35 * (0.5 + 0.5 * Math.sin(t * 8 + i * 2.3)));
+    case "sternenstaub":
+      // Dunkles Violett, jeder dritte Punkt funkelt weiß
+      return i % 3 === 0 ? out.copy(WHITE) : out.copy(STERNENSTAUB).lerp(WHITE, k * 0.4);
     default:
       return out.copy(WHITE);
   }
@@ -900,7 +914,7 @@ export const ThrowLayer = memo(function ThrowLayer({
         sv.setScalar(0.03 + (k / TRAIL) * (big ? 0.09 : 0.06));
         m.compose(s.trail[idx], q, sv);
         mesh.setMatrixAt(k, m);
-        mesh.setColorAt(k, trailColor(tint, s.style, k / TRAIL, now, k));
+        mesh.setColorAt(k, trailColor(tint, s.style, k / TRAIL, fx.current.calm ? 0 : now, k));
       }
       mesh.instanceMatrix.needsUpdate = true;
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;

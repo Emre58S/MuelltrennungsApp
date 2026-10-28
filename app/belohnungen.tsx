@@ -28,6 +28,10 @@ const SWATCH: Record<TrailId, string[]> = {
   regenbogen: ["#FF5A5F", "#FFB347", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"],
   konfetti: ["#FF5A5F", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"],
   polarlicht: ["#3DDC97", "#38BDF8", "#8B5CF6"],
+  herbstlaub: ["#9C5B2E", "#C94A2A", "#E8772E", "#F2B134"],
+  seifenblasen: ["#B9F3F0", "#D9CCFF", "#FFD1EC"],
+  funken: ["#FF9F1C", "#FFD54A", "#FFFFFF"],
+  sternenstaub: ["#5B4BC4", "#FFFFFF", "#7A6AE0", "#FFFFFF"],
 };
 
 export default function RewardsScreen() {

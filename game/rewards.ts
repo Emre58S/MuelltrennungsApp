@@ -5,7 +5,17 @@
 
 import { type TranslationKey } from "@/i18n";
 
-export type TrailId = "standard" | "gold" | "komet" | "regenbogen" | "konfetti" | "polarlicht";
+export type TrailId =
+  | "standard"
+  | "gold"
+  | "komet"
+  | "herbstlaub"
+  | "regenbogen"
+  | "konfetti"
+  | "polarlicht"
+  | "seifenblasen"
+  | "funken"
+  | "sternenstaub";
 
 export type TrailReward = {
   id: TrailId;
@@ -21,9 +31,13 @@ export const TRAILS: TrailReward[] = [
   { id: "standard", name: "reward.trail.standard" },
   { id: "gold", name: "reward.trail.gold", stars: 5 },
   { id: "komet", name: "reward.trail.komet", level: 4 },
+  { id: "herbstlaub", name: "reward.trail.herbstlaub", level: 6 },
   { id: "regenbogen", name: "reward.trail.regenbogen", stars: 12 },
   { id: "konfetti", name: "reward.trail.konfetti", stars: 20 },
   { id: "polarlicht", name: "reward.trail.polarlicht", level: 8 },
+  { id: "seifenblasen", name: "reward.trail.seifenblasen", stars: 28 },
+  { id: "funken", name: "reward.trail.funken", level: 12 },
+  { id: "sternenstaub", name: "reward.trail.sternenstaub", stars: 40 },
 ];
 
 export type Progress = { stars: number; level: number };
