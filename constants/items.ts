@@ -466,7 +466,7 @@ export const ITEMS: Item[] = [
     name: "Abgelaufene Medikamente",
     category: "Sondermüll",
     difficulty: "mittel",
-    fact: "Medikamente gehören NICHT in die Toilette! Apotheke oder Restmüll.",
+    fact: "Am besten zurück in die Apotheke oder zur Sammelstelle – nie in die Toilette!",
   },
   {
     emoji: "🎨",

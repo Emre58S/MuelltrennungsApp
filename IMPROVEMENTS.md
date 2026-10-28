@@ -18,9 +18,9 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
   (Glas + Dose erledigt; weiter: übriger Gelber Sack, Papier, Bio, Rest.)
 - [ ] **Szene aufwerten, nicht überladen**: (Pflasterfugen + Gully erledigt)
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
-- [ ] **Sondermüll/Elektroschrott spielbar**: rote Sondermüll-Box als 6. Ziel,
-  nur zeitweise (höhere Stufen/Sonderrunde); 3D-Modelle für die 10
-  Sondermüll-Gegenstände; Texte DE+EN; Lernkarte.
+- [ ] **Sondermüll, Rest**: Einmal-Tipp beim ersten Auftauchen der roten Tonne
+  („Batterien, Elektrogeräte, Gifte“, DE+EN); eigenes Modell für
+  Nagellackentferner (Flasche mit Warnetikett statt Parfüm-Flakon).
 - [ ] **Mehr Gegenstände**: 10–15 neue Alltagsdinge über alle Tonnen, bevorzugt
   typische Irrtümer (Pizzakarton, Teebeutel, Joghurtbecher, Marmeladenglas,
   Staubsaugerbeutel …).
@@ -35,6 +35,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Sondermüll-Tonne ab Level 7 (Haus-Szene), Aufkleber, Modelle Laptop/Patrone/Energiesparlampe, Medikamenten-Text
 - [x] Szene: versetzte Pflasterfugen + Gully (Wand-Szenen)
 - [x] Getränkedose: Metall-Glanzstreifen
 - [x] Glas-Gegenstände: Glanzstreifen

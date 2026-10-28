@@ -14,6 +14,7 @@ const SOURCES: Record<Language, Partial<Record<BinKey, number>>> = {
     rest: require("../../assets/labels/rest-de.png"),
     papier: require("../../assets/labels/papier-de.png"),
     glas: require("../../assets/labels/glas-de.png"),
+    sonder: require("../../assets/labels/sonder-de.png"),
   },
   en: {
     bio: require("../../assets/labels/bio-en.png"),
@@ -21,6 +22,7 @@ const SOURCES: Record<Language, Partial<Record<BinKey, number>>> = {
     rest: require("../../assets/labels/rest-en.png"),
     papier: require("../../assets/labels/papier-en.png"),
     glas: require("../../assets/labels/glas-en.png"),
+    sonder: require("../../assets/labels/sonder-en.png"),
   },
 };
 

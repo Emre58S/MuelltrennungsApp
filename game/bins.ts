@@ -1,7 +1,8 @@
 // Datei: game/bins.ts
 // Welche Tonnen es gibt und welche 3 in welcher Szene stehen. Es sind immer
 // genau 3: Standard ist Bio · Gelber Sack · Restmüll; ab Level 3 bzw. 5
-// zeigen manche Szenen stattdessen Papier bzw. Glas.
+// zeigen manche Szenen stattdessen Papier bzw. Glas, ab Level 7 die Haus-Szene
+// die rote Sondermüll-Tonne (Batterien, Handys, Kabel …).
 
 import { type Category, type Item, ITEMS } from "@/constants/items";
 import { type SceneKind } from "@/components/game/stage";
@@ -55,6 +56,7 @@ export const ALL_BINS: BinDef[] = [
   def("gelb", "Gelber Sack", "bin.gelb", 1),
   def("rest", "Restmüll", "bin.rest", 1),
   def("glas", "Glas", "bin.glas", 5),
+  def("sonder", "Sondermüll", "bin.sonder", 7),
 ];
 
 function byKey(key: BinKey): BinDef {
@@ -73,9 +75,16 @@ const SCENE_BINS: Record<SceneKind, BinKey[]> = {
   garten: ["bio", "glas", "rest"],
 };
 
+/** Ab Level 7: Haus-Szene mit Sondermüll statt Bio (Bio bleibt im Garten). */
+const SCENE_BINS_LATE: Partial<Record<SceneKind, BinKey[]>> = {
+  haus: ["sonder", "gelb", "rest"],
+};
+
 /** Tonnen einer Runde: die der Szene – solange eine davon noch nicht
  *  freigeschaltet ist, die Standard-Tonnen. */
 export function getBinsForScene(scene: SceneKind, level: number): BinDef[] {
+  const late = SCENE_BINS_LATE[scene];
+  if (late && late.every((k) => level >= byKey(k).unlockLevel)) return late.map(byKey);
   const bins = SCENE_BINS[scene].map(byKey);
   return bins.every((b) => level >= b.unlockLevel) ? bins : STANDARD_BINS;
 }

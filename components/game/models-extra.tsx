@@ -12,7 +12,7 @@ type V3 = [number, number, number];
 export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   // Papier
   [/zeitung|prospekt/, "newspaper"],
-  [/sauberer karton|eierkarton|druckerpatronen/, "box"],
+  [/sauberer karton|eierkarton/, "box"],
   [/briefumschlag|schreibpapier|notizblock|visitenkarte/, "paper"],
   [/buch/, "book"],
   [/toilettenpapier/, "kitchenroll"],
@@ -22,12 +22,14 @@ export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   [/parfuemflasche|nagellack/, "perfume"],
   // Sondermüll
   [/batterie/, "battery"],
-  [/smartphone|laptop/, "phone"],
+  [/smartphone/, "phone"],
+  [/laptop/, "laptop"],
+  [/druckerpatronen/, "cartridge"],
   [/medikamente/, "pills"],
   [/farbreste/, "paintcan"],
   [/ladekabel/, "cable"],
   [/thermometer/, "thermo"],
-  [/energiesparlampe/, "bulb"],
+  [/energiesparlampe/, "ecobulb"],
 ];
 
 function Box({
@@ -194,6 +196,42 @@ export function renderExtraModel(key: string): ReactElement | null {
         <group rotation={[0.6, 0.2, 0.1]}>
           <Box size={[0.32, 0.04, 0.6]} color="#1F2937" roughness={0.3} metalness={0.4} />
           <Box size={[0.28, 0.042, 0.52]} pos={[0, 0.001, 0]} color="#3B82F6" roughness={0.15} />
+        </group>
+      );
+
+    case "laptop":
+      return (
+        <group rotation={[0.45, 0.5, 0]}>
+          <Box size={[0.62, 0.035, 0.42]} color="#9CA3AF" />
+          <Box size={[0.5, 0.037, 0.2]} pos={[0, 0.001, 0.06]} color="#4B5563" />
+          {/* Aufgeklappter Bildschirm */}
+          <group position={[0, 0.02, -0.2]} rotation={[-1.9, 0, 0]}>
+            <Box size={[0.62, 0.03, 0.4]} pos={[0, 0, 0.2]} color="#9CA3AF" />
+            <Box size={[0.54, 0.032, 0.32]} pos={[0, 0.001, 0.2]} color="#1E3A5F" />
+          </group>
+        </group>
+      );
+
+    case "cartridge":
+      return (
+        <group rotation={[0.35, 0.6, 0.1]}>
+          <Box size={[0.3, 0.42, 0.2]} color="#1F2937" />
+          <Box size={[0.302, 0.16, 0.202]} pos={[0, 0.06, 0]} color="#06B6D4" />
+          <Box size={[0.16, 0.06, 0.12]} pos={[0, -0.24, 0]} color="#F59E0B" />
+        </group>
+      );
+
+    case "ecobulb":
+      // Energiesparlampe: gewundene Röhre auf weißem Sockel, Schraubgewinde
+      return (
+        <group rotation={[0.15, 0.3, -0.25]}>
+          {[-0.09, 0.09].map((x) => (
+            <Cyl key={x} r={0.05} h={0.36} pos={[x, 0.2, 0]} color="#EFE9D8" />
+          ))}
+          <Cyl r={0.05} h={0.36} pos={[0, 0.2, 0.09]} color="#E8E1CC" />
+          <Cyl r={0.12} rTop={0.15} h={0.14} pos={[0, -0.03, 0]} color="#FFFFFF" />
+          <Cyl r={0.08} h={0.12} pos={[0, -0.16, 0]} color="#C0C8D4" />
+          <Cyl r={0.04} h={0.04} pos={[0, -0.24, 0]} color="#4B5563" />
         </group>
       );
 

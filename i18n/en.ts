@@ -283,6 +283,7 @@ export const en: Translations = {
   "tutorial.play": "Play now",
   "bin.papier.examples": "Newspaper, cardboard, envelopes",
   "bin.glas.examples": "Bottles and jars without lids",
+  "bin.sonder.examples": "Batteries, phones, cables – to a collection point",
 
   "auth.email": "Email",
   "auth.emailPlaceholder": "you@example.com",

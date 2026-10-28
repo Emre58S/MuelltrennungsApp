@@ -136,7 +136,7 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
   },
   "Abgelaufene Medikamente": {
     name: "Expired medicine",
-    fact: "Medicine does NOT go down the toilet! Pharmacy or general waste.",
+    fact: "Best taken back to a pharmacy or collection point – never down the toilet!",
   },
   Farbreste: { name: "Leftover paint" },
   Druckerpatronen: { name: "Printer cartridges" },

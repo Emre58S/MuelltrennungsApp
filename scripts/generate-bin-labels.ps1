@@ -27,7 +27,8 @@ $bins = @(
   @{ key = "gelb";   dot = "#E8B500"; ink = "#4A3A00"; de = "Gelber Sack";             en = "Yellow bag" },
   @{ key = "rest";   dot = "#4A5560"; ink = "#262D34"; de = "Restm$([char]0x00FC)ll"; en = "General" },
   @{ key = "papier"; dot = "#245E9E"; ink = "#163E6A"; de = "Papier";                  en = "Paper" },
-  @{ key = "glas";   dot = "#2E7D4F"; ink = "#1B4D30"; de = "Glas";                    en = "Glass" }
+  @{ key = "glas";   dot = "#2E7D4F"; ink = "#1B4D30"; de = "Glas";                    en = "Glass" },
+  @{ key = "sonder"; dot = "#B3261E"; ink = "#6E1712"; de = "Sonderm$([char]0x00FC)ll"; en = "Hazardous" }
 )
 
 $W = 512; $H = 256
@@ -83,6 +84,15 @@ function Draw-Glyph($g, [string]$key, [float]$cx, [float]$cy, [float]$d) {
       # Dunkel statt weiß: Weiß auf Gelb hat zu wenig Kontrast
       $dark = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml("#4A3A00"))
       $g.DrawString([string][char]0x267B, $sym, $dark, (New-Object System.Drawing.RectangleF([float]($cx - $d / 2), [float]($cy - $d / 2 + 2 * $u), [float]$d, [float]$d)), $sf)
+    }
+    "sonder" {
+      # Batterie: Körper + Pluspol + Plus-Zeichen
+      $g.FillRectangle($white, [float]($cx - 9 * $u), [float]($cy - 14 * $u), [float](18 * $u), [float](32 * $u))
+      $g.FillRectangle($white, [float]($cx - 4 * $u), [float]($cy - 19 * $u), [float](8 * $u), [float](5 * $u))
+      $red = New-Object System.Drawing.Pen([System.Drawing.ColorTranslator]::FromHtml("#B3261E"), [float](3 * $u))
+      $g.DrawLine($red, [float]($cx - 5 * $u), [float]($cy - 3 * $u), [float]($cx + 5 * $u), [float]($cy - 3 * $u))
+      $g.DrawLine($red, [float]$cx, [float]($cy - 8 * $u), [float]$cx, [float]($cy + 2 * $u))
+      $g.DrawLine($red, [float]($cx - 5 * $u), [float]($cy + 10 * $u), [float]($cx + 5 * $u), [float]($cy + 10 * $u))
     }
     "rest" {
       # Kleine Tonne: Deckel + sich verjüngender Körper

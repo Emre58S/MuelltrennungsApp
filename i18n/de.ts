@@ -282,6 +282,7 @@ export const de = {
   "tutorial.play": "Jetzt spielen",
   "bin.papier.examples": "Zeitung, Karton, Briefumschläge",
   "bin.glas.examples": "Flaschen und Gläser ohne Deckel",
+  "bin.sonder.examples": "Batterien, Handys, Kabel – zur Sammelstelle",
 
   "auth.email": "E-Mail",
   "auth.emailPlaceholder": "deine@email.de",
