@@ -16,7 +16,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Gegenstände-Design**: einheitlichere Farben, weichere Formen, Material
   erkennbar (Glas glänzt, Papier matt). Je Zyklus eine Material-Gruppe.
   (Glas + Dose erledigt; weiter: übriger Gelber Sack, Papier, Bio, Rest.)
-- [ ] **Szene aufwerten, nicht überladen**: wenige Boden-Details (Fugen, Gully),
+- [ ] **Szene aufwerten, nicht überladen**: (Pflasterfugen + Gully erledigt)
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
 - [ ] **Sondermüll/Elektroschrott spielbar**: rote Sondermüll-Box als 6. Ziel,
   nur zeitweise (höhere Stufen/Sonderrunde); 3D-Modelle für die 10
@@ -35,6 +35,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Szene: versetzte Pflasterfugen + Gully (Wand-Szenen)
 - [x] Getränkedose: Metall-Glanzstreifen
 - [x] Glas-Gegenstände: Glanzstreifen
 - [x] Tonnen-Aufkleber: Bild-Symbol statt Farbpunkt (Blatt, Flasche, Papier, ♻, Tonne)

@@ -255,6 +255,51 @@ function Window({ x, y, p }: { x: number; y: number; p: Palette }) {
   );
 }
 
+const GRATE = "#7E868E";
+const GRATE_SLOT = "#4F565D";
+
+/** Längsfugen der Gehweg-Platten (versetzt je Reihe) – ruhiges Pflaster-Muster. */
+function PavingJoints({ p }: { p: Palette }) {
+  // Reihen zwischen den Querfugen (z −1.2 / 0.9 / 3) – vor der Wand bis nach vorn
+  const rows: [number, number][] = [
+    [WALL_Z + 0.3, -1.2],
+    [-1.2, 0.9],
+    [0.9, 3],
+    [3, 6],
+  ];
+  return (
+    <>
+      {rows.flatMap(([z0, z1], row) =>
+        Array.from({ length: 11 }, (_, i) => {
+          // Versatz 0.375: keine Fuge auf x = 0 (sähe aus wie eine Ziellinie)
+          const x = (i - 5) * 1.5 + 0.375 + (row % 2) * 0.75;
+          return (
+            <mesh key={`${row}-${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.014, (z0 + z1) / 2]} material={lowpoly(p.groundLine)}>
+              <planeGeometry args={[0.04, z1 - z0]} />
+            </mesh>
+          );
+        }),
+      )}
+    </>
+  );
+}
+
+/** Gully-Rost seitlich vor den Tonnen, neben der Wurfbahn. */
+function Gully() {
+  return (
+    <group position={[1.5, 0, 1.45]} rotation={[0, 0.06, 0]}>
+      <mesh position={[0, 0.02, 0]} material={lowpoly(GRATE)}>
+        <boxGeometry args={[0.46, 0.016, 0.32]} />
+      </mesh>
+      {[-0.135, -0.045, 0.045, 0.135].map((gx) => (
+        <mesh key={gx} position={[gx, 0.03, 0]} material={lowpoly(GRATE_SLOT)}>
+          <boxGeometry args={[0.045, 0.008, 0.24]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function Drainpipe({ x, p }: { x: number; p: Palette }) {
   return (
     <group position={[x, 0, WALL_Z + 0.22]}>
@@ -489,6 +534,8 @@ export const Stage = memo(function Stage({
 
       {/* Kulisse gebacken: wenige Zeichenaufrufe statt Dutzender */}
       <Baked>
+        {!garden && <PavingJoints p={p} />}
+        {!garden && <Gully />}
         {scene === "haus" && <HouseScene p={p} />}
         {scene === "ziegel" && <BrickScene p={p} />}
         {garden && <GardenScene p={p} />}
