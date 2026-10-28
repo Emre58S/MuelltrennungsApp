@@ -216,6 +216,24 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "firstTry",
     task: "trick.task.doubleTiming",
   },
+  // Wie Level 12, gespiegelt: Windrad und Reifen vor der rechten Tonne
+  {
+    id: 17,
+    target: 2,
+    props: [windmill(0.25, 2.8, 1.5, -4), ring(0.7, 3.35, 3.3, 0.55)],
+    requires: [1],
+    bonus: "firstTry",
+    task: "trick.task.windmillRing",
+  },
+  // Wie Level 13, gespiegelt: Wind von links, Reifen an der rechten Tonne
+  {
+    id: 18,
+    target: 2,
+    props: [fan(0.6, 5.5), ring(1.0, 2.8, 1.5, 0.65)],
+    requires: [1],
+    bonus: "swish",
+    task: "trick.task.windRing",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
