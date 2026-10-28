@@ -116,7 +116,8 @@ function Shine({ size, pos, rot }: { size: V3; pos: V3; rot?: V3 }) {
 }
 
 /** Liefert null für Schlüssel, die das Basis-Modul selbst kennt. */
-export function renderExtraModel(key: string): ReactElement | null {
+/** `name` = normalisierter Gegenstandsname – für Varianten (z. B. Bier- vs. Weinflasche). */
+export function renderExtraModel(key: string, name = ""): ReactElement | null {
   switch (key) {
     case "newspaper":
       return (
@@ -207,12 +208,42 @@ export function renderExtraModel(key: string): ReactElement | null {
       );
 
     case "glassbottle":
+      // Drei Flaschen, drei Formen (vorher alle gleich grün):
+      if (name.includes("bier")) {
+        // Bierflasche: braun, kurz und bauchig, Kronkorken
+        return (
+          <group rotation={[0.1, 0, -0.15]}>
+            <Cyl r={0.17} h={0.36} pos={[0, -0.05, 0]} color="#7A4A1E" />
+            <Cyl r={0.17} rTop={0.065} h={0.14} pos={[0, 0.2, 0]} color="#7A4A1E" />
+            <Cyl r={0.06} h={0.12} pos={[0, 0.33, 0]} color="#7A4A1E" />
+            <Cyl r={0.068} h={0.03} pos={[0, 0.4, 0]} color="#C9A227" />
+            <Cyl r={0.173} h={0.14} pos={[0, -0.06, 0]} color="#F2E3B3" />
+            <Cyl r={0.174} h={0.03} pos={[0, -0.06, 0]} color="#C0392B" />
+            <Shine size={[0.03, 0.14, 0.01]} pos={[-0.085, 0.08, 0.145]} rot={[0, -0.5, 0]} />
+          </group>
+        );
+      }
+      if (name.includes("olivenoel")) {
+        // Olivenölflasche: schlank und hoch, gelbgrünes Öl, silberner Ausgießer
+        return (
+          <group rotation={[0.1, 0, 0.15]}>
+            <Cyl r={0.11} h={0.5} pos={[0, -0.05, 0]} color="#D9EDE0" opacity={0.5} />
+            <Cyl r={0.1} h={0.36} pos={[0, -0.11, 0]} color="#B5A12A" />
+            <Cyl r={0.11} rTop={0.045} h={0.1} pos={[0, 0.25, 0]} color="#D9EDE0" opacity={0.5} />
+            <Cyl r={0.04} h={0.1} pos={[0, 0.34, 0]} color="#D9EDE0" opacity={0.5} />
+            <Cyl r={0.045} rTop={0.02} h={0.08} pos={[0, 0.42, 0]} color="#C0C8D4" />
+            <Cyl r={0.113} h={0.14} pos={[0, -0.08, 0]} color="#3F6B3A" />
+            <Shine size={[0.025, 0.3, 0.01]} pos={[-0.06, 0.02, 0.095]} rot={[0, -0.6, 0]} />
+          </group>
+        );
+      }
+      // Weinflasche: hoch, dunkelgrün, langer Hals, goldene Kapsel, Etikett
       return (
         <group rotation={[0.1, 0, -0.15]}>
-          <Cyl r={0.15} h={0.46} color="#2E7D4F" roughness={0.15} opacity={0.85} />
-          <Cyl r={0.15} rTop={0.06} h={0.12} pos={[0, 0.29, 0]} color="#2E7D4F" roughness={0.15} opacity={0.85} />
-          <Cyl r={0.055} h={0.16} pos={[0, 0.43, 0]} color="#2E7D4F" roughness={0.15} opacity={0.85} />
-          <Cyl r={0.06} h={0.04} pos={[0, 0.52, 0]} color="#D4AF37" metalness={0.6} roughness={0.3} />
+          <Cyl r={0.15} h={0.46} color="#1F5C3A" roughness={0.15} opacity={0.88} />
+          <Cyl r={0.15} rTop={0.06} h={0.12} pos={[0, 0.29, 0]} color="#1F5C3A" roughness={0.15} opacity={0.88} />
+          <Cyl r={0.055} h={0.2} pos={[0, 0.45, 0]} color="#1F5C3A" roughness={0.15} opacity={0.88} />
+          <Cyl r={0.06} h={0.1} pos={[0, 0.52, 0]} color="#D4AF37" metalness={0.6} roughness={0.3} />
           <Cyl r={0.153} h={0.16} pos={[0, -0.02, 0]} color="#F5E9C8" roughness={0.9} />
           <Shine size={[0.03, 0.16, 0.01]} pos={[-0.075, 0.15, 0.13]} rot={[0, -0.5, 0]} />
           <Shine size={[0.02, 0.1, 0.01]} pos={[-0.03, 0.42, 0.05]} rot={[0, -0.5, 0]} />

@@ -14,8 +14,8 @@ allein am 3D-Modell erkennbar sein – ohne Text darunter. Grundlage: Audit des
 Testers (alle 66 Modelle). Pro Zyklus 2–4 Modelle, Glanz über Shine-Teile
 (basic + noDepthWrite), Physik/Wertung unverändert.
 
-- [ ] **Eigene Formen statt geteilter Modelle**: renderExtraModel(key, name);
-  Wein/Bier/Öl verschieden; Gläser Gurke/Honig/Senf; Briefumschlag,
+- [ ] **Eigene Formen statt geteilter Modelle** (renderExtraModel(key, name) und
+  Wein/Bier/Öl erledigt): Gläser Gurke/Honig/Senf; Briefumschlag,
   Visitenkarte, Notizblock.
 - [ ] **Flaches zur Kamera kippen**: CD, Geschirr, Pizzakarton (+ Pizzarest).
 - [ ] **Mittelmäßige nachbessern**: Zwiebel-/Kartoffelschale, Eierschale,
@@ -41,6 +41,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Flaschen: Wein, Bier, Olivenöl eigene Formen (Modelle bekommen den Namen)
 - [x] Neu: Backpapier (gebacken, Fettflecken), Eierkarton (Mulden, Ei)
 - [x] Neu: Farbeimer, Walnuss-Hälften, Spiegel mit Rahmen
 - [x] Neu gebaut: Alufolie, Styropor-Box, Slip, Butterpapier

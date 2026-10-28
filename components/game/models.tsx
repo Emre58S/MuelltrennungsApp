@@ -24,7 +24,7 @@ export const TrashObject3D = memo(function TrashObject3D({
   }, [item.name]);
 
   return (
-    renderExtraModel(key) ??
+    renderExtraModel(key, name) ??
     renderBioModel(key, name) ??
     renderGelberSackModel(key, name) ??
     renderRestmuellModel(key, name)
