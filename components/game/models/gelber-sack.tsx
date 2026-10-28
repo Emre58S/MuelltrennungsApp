@@ -150,6 +150,16 @@ export function renderGelberSackModel(key: string, name: string) {
             roughness={0.3}
             metalness={0.6}
           />
+          {/* Glanzstreifen: Blech glänzt (Lambert kennt keine Spiegelung) */}
+          <Part
+            geo={G.box(0.035, 0.42, 0.008, 0.003)}
+            pos={[-0.117, 0, 0.212]}
+            rot={[0, -0.5, 0]}
+            basic
+            noDepthWrite
+            color="#FFFFFF"
+            opacity={0.6}
+          />
         </group>
       );
 
