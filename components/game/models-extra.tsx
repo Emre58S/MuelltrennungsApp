@@ -189,6 +189,63 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "paper":
+      // Vier Papier-Dinge, vier Formen (vorher alle dasselbe linierte Blatt):
+      if (name.includes("briefumschlag")) {
+        // Briefumschlag: Klappe als V, Briefmarke, Adresszeilen
+        return (
+          <group rotation={[0.9, 0.2, 0.15]}>
+            <Box size={[0.52, 0.02, 0.34]} color="#FAF6EC" />
+            {[-1, 1].map((sg) => (
+              <Box
+                key={sg}
+                size={[0.32, 0.022, 0.018]}
+                pos={[sg * 0.13, 0.002, -0.08]}
+                rot={[0, sg * 0.6, 0]}
+                color="#C9B994"
+              />
+            ))}
+            <Box size={[0.08, 0.024, 0.1]} pos={[0.19, 0.003, 0.09]} color="#C0392B" />
+            {[0.06, 0.1].map((z) => (
+              <Box key={z} size={[0.18, 0.023, 0.014]} pos={[-0.08, 0.002, z]} color="#8A94A3" />
+            ))}
+          </group>
+        );
+      }
+      if (name.includes("visitenkarte")) {
+        // Visitenkarten: drei kleine, dicke Karten aufgefächert, Logo-Punkt
+        return (
+          <group rotation={[0.9, 0.3, 0.1]}>
+            {[-0.06, 0, 0.06].map((dx, i) => (
+              <group key={dx} position={[dx, i * 0.014, dx * 0.6]} rotation={[0, (i - 1) * 0.35, 0]}>
+                <Box size={[0.3, 0.014, 0.18]} color="#FFFFFF" />
+                <Cyl r={0.025} h={0.016} pos={[-0.1, 0.002, -0.04]} color="#2563EB" />
+                {[-0.03, 0.02].map((z) => (
+                  <Box key={z} size={[0.12, 0.016, 0.012]} pos={[0.04, 0.002, z]} color="#475569" />
+                ))}
+              </group>
+            ))}
+          </group>
+        );
+      }
+      if (name.includes("notizblock")) {
+        // Notizblock: dicker Stapel, gelbes Deckblatt, Spirale oben
+        return (
+          <group rotation={[0.8, 0.25, 0.1]}>
+            <Box size={[0.34, 0.08, 0.44]} color="#F5F5F0" />
+            <Box size={[0.34, 0.01, 0.44]} pos={[0, 0.045, 0]} color="#FDE68A" />
+            {[-0.12, -0.06, 0, 0.06, 0.12].map((x) => (
+              <mesh key={x} position={[x, 0.03, -0.22]} rotation={[0, Math.PI / 2, 0]} castShadow>
+                <torusGeometry args={[0.035, 0.007, 4, 10]} />
+                <meshLambertMaterial color="#9CA3AF" flatShading />
+              </mesh>
+            ))}
+            {[-0.08, -0.02, 0.04, 0.1].map((z) => (
+              <Box key={z} size={[0.26, 0.012, 0.01]} pos={[0, 0.047, z]} color="#C9A227" />
+            ))}
+          </group>
+        );
+      }
+      // Schreibpapier: liniertes Blatt
       return (
         <group rotation={[0.9, 0.2, 0.15]}>
           <Box size={[0.42, 0.02, 0.56]} color="#FFFFFF" roughness={0.9} />
@@ -199,11 +256,15 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "book":
+      // Altes Buch: zwei Deckel + Rücken, cremefarbene Seiten an drei Seiten
+      // sichtbar, Lesebändchen (vorher steckten die Seiten unsichtbar im Klotz)
       return (
         <group rotation={[0.4, 0.5, 0.1]}>
-          <Box size={[0.42, 0.1, 0.56]} color="#7B2D26" roughness={0.8} />
-          <Box size={[0.39, 0.085, 0.54]} pos={[0.016, 0, 0]} color="#F3EBD8" roughness={0.95} />
-          <Box size={[0.03, 0.1, 0.56]} pos={[-0.2, 0, 0]} color="#5C1F1A" />
+          <Box size={[0.42, 0.016, 0.56]} pos={[0, 0.048, 0]} color="#7B2D26" />
+          <Box size={[0.42, 0.016, 0.56]} pos={[0, -0.048, 0]} color="#7B2D26" />
+          <Box size={[0.03, 0.112, 0.56]} pos={[-0.2, 0, 0]} color="#5C1F1A" />
+          <Box size={[0.39, 0.08, 0.53]} pos={[0.005, 0, 0]} color="#F3EBD8" />
+          <Box size={[0.025, 0.004, 0.1]} pos={[0.08, 0, 0.3]} color="#C0392B" />
         </group>
       );
 

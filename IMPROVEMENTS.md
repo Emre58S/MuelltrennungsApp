@@ -15,8 +15,6 @@ Gegenstand allein am 3D-Modell erkennbar. Pro Zyklus 2–4 Modelle bzw. eine
 kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
-- [ ] A1 Briefumschlag (V-Klappe, Briefmarke), Visitenkarte (kleine Karten),
-  Notizblock (Stapel mit Spirale) – eigene Formen statt gleichem Blatt.
 - [ ] A2 Flaches zur Kamera kippen: CD (Kratzer), Geschirr, Pizzakarton (+ Pizzarest).
 - [ ] A3 Schalen: Zwiebelschale (kupfer, dünne Blättchen), Kartoffelschale
   (beige/braun mit Augen), Eierschale (hellbraun, gezackter Rand).
@@ -31,8 +29,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
   Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz), Zeitung
   (gefaltet) vs. Zeitschrift (dick, Cover) vs. Prospekt (Preisschild).
-- [ ] A9 Aus Audit 2 (00:20): Altes Buch (Seitenblock steckt im Einband →
-  Deckel + Rücken, Seiten sichtbar); Geschenkpapier mit Folie bunt-metallisch
+- [ ] A9 Aus Audit 2 (00:20): Geschenkpapier mit Folie bunt-metallisch
   (Gold/Pink, Sterne) statt silbern (≈ Alufolie); Nagellackentferner (kleines
   Nagellack-Fläschchen daneben, kleiner, Raute mittig) ≈ Shampoo; Schuhkarton ≠
   sauberer Karton (flach, Stülpdeckel, bedruckt, Seidenpapier); Thermometer
@@ -91,6 +88,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Nacht 30: Briefumschlag, Visitenkarten, Notizblock eigene Formen; Altes Buch mit sichtbaren Seiten
 - [x] Gläser: Gurke, Honig, Senf, Marmelade mit eigenem Inhalt/Deckel
 - [x] Flaschen: Wein, Bier, Olivenöl eigene Formen (Modelle bekommen den Namen)
 - [x] Neu: Backpapier (gebacken, Fettflecken), Eierkarton (Mulden, Ei)
