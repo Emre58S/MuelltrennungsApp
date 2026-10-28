@@ -277,30 +277,35 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "nut":
+      // Zwei offene Walnuss-Halbschalen (außen braun und runzlig, innen hell)
+      // – nicht mehr nur braune Knubbel wie die Katzenstreu
       return (
-        <group rotation={[0.2, 0.25, -0.12]}>
-          <Part
-            geo={G.crumple(0.16, 0.16, 5, 1)}
-            pos={[-0.13, 0, 0]}
-            scale={[1.05, 0.8, 0.9]}
-            flat
-            color="#8B5A2B"
-            roughness={1}
-          />
-          <Part
-            geo={G.crumple(0.14, 0.16, 7, 1)}
-            pos={[0.14, 0.03, 0.05]}
-            rot={[0.4, 0.5, 0.2]}
-            scale={[1, 0.8, 0.9]}
-            flat
-            color="#A66A39"
-            roughness={1}
-          />
+        <group rotation={[0.55, 0.25, -0.12]}>
+          {(
+            [
+              [-0.16, 0, 0, 0.3],
+              [0.17, 0.02, 0.04, -0.4],
+            ] as [number, number, number, number][]
+          ).map(([x, y, z, tilt], i) => (
+            <group key={i} position={[x, y, z]} rotation={[Math.PI + tilt, i * 0.8, 0]}>
+              {/* Schale (Halbkugel, Öffnung nach oben) */}
+              <Part geo={G.ball(0.15, 8, 5, 0, Math.PI / 2)} double flat color="#8B5A2B" roughness={1} />
+              {/* helle Innenseite */}
+              <Part geo={G.ball(0.12, 8, 5, 0, Math.PI / 2)} double flat color="#D9B98C" roughness={1} />
+              {/* Naht am Rand */}
+              <Part
+                geo={G.torus(0.145, 0.014, 4, 14)}
+                rot={[Math.PI / 2, 0, 0]}
+                color="#6B4423"
+                roughness={1}
+              />
+            </group>
+          ))}
           <Part
             geo={G.crumple(0.05, 0.3, 9, 0)}
-            pos={[0, -0.1, 0.18]}
+            pos={[0, -0.12, 0.16]}
             flat
-            color="#6B4423"
+            color="#C9A26B"
             roughness={1}
           />
         </group>

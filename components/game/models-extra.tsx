@@ -353,11 +353,28 @@ export function renderExtraModel(key: string): ReactElement | null {
       );
 
     case "paintcan":
+      // Farbeimer (nicht Konservendose): breiter als hoch, Drahtbügel, Farbe
+      // oben sichtbar und über den Rand gelaufen, Deckel lehnt daneben
       return (
-        <group rotation={[0.2, 0.3, 0]}>
-          <Cyl r={0.22} h={0.4} color="#C0C8D4" metalness={0.6} roughness={0.35} />
-          <Cyl r={0.223} h={0.2} pos={[0, -0.02, 0]} color="#8B5CF6" roughness={0.7} />
-          <Cyl r={0.18} h={0.03} pos={[0, 0.215, 0]} color="#8B5CF6" roughness={0.5} />
+        <group rotation={[0.45, 0.3, 0]}>
+          <Cyl r={0.24} rTop={0.25} h={0.3} color="#C0C8D4" />
+          <Cyl r={0.22} h={0.02} pos={[0, 0.15, 0]} color="#8B5CF6" />
+          {(
+            [
+              [0.0, 0.08],
+              [-0.12, 0.11],
+              [0.11, 0.06],
+            ] as [number, number][]
+          ).map(([x, h]) => (
+            <Box key={x} size={[0.05, h, 0.02]} pos={[x, 0.15 - h / 2, Math.sqrt(0.0625 - x * x)]} color="#8B5CF6" />
+          ))}
+          {/* Drahtbügel */}
+          <mesh position={[0, 0.15, 0]} castShadow>
+            <torusGeometry args={[0.24, 0.012, 5, 18, Math.PI]} />
+            <meshLambertMaterial color="#6B7280" flatShading />
+          </mesh>
+          {/* Deckel schräg an den Eimer gelehnt */}
+          <Cyl r={0.23} h={0.025} pos={[0.3, 0.04, -0.04]} rot={[0, 0, -1.25]} color="#9CA3AF" />
         </group>
       );
 

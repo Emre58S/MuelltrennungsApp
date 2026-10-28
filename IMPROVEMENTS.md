@@ -14,8 +14,7 @@ allein am 3D-Modell erkennbar sein – ohne Text darunter. Grundlage: Audit des
 Testers (alle 66 Modelle). Pro Zyklus 2–4 Modelle, Glanz über Shine-Teile
 (basic + noDepthWrite), Physik/Wertung unverändert.
 
-- [ ] **Verwechslungen zwischen Tonnen**: Farbreste (Eimer, Henkel, Tropfen),
-  Nussschalen (Walnuss-Hälften), Spiegel (Rahmen, silberne Scherben),
+- [ ] **Verwechslungen zwischen Tonnen** (Farbreste, Nüsse, Spiegel erledigt):
   Backpapier (zerknüllt, braune Ränder), Eierkarton (Mulden).
 - [ ] **Eigene Formen statt geteilter Modelle**: renderExtraModel(key, name);
   Wein/Bier/Öl verschieden; Gläser Gurke/Honig/Senf; Briefumschlag,
@@ -44,6 +43,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Neu: Farbeimer, Walnuss-Hälften, Spiegel mit Rahmen
 - [x] Neu gebaut: Alufolie, Styropor-Box, Slip, Butterpapier
 - [x] Sachfehler Modelle: Geschenkpapier mit/ohne Folie, Papprolle vs. Küchentuch, Quecksilber silbern
 - [x] Keine Hinweise unter dem Gegenstand (Material-Zeile weg, Blase neutral)

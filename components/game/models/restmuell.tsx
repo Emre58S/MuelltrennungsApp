@@ -699,24 +699,56 @@ export function renderRestmuellModel(key: string, name: string) {
     }
 
     case "mirror":
+      // Zerbrochener Spiegel: Goldrahmen mit silbernen Scherben, dunkle
+      // Sprünge, eine Scherbe fällt heraus – silbern, nicht glasblau
       return (
-        <group rotation={[0.2, -0.2, 0.12]}>
-          {MIRROR_SHARDS.map((shard, i) => (
-            <group key={i} position={shard.pos} rotation={shard.rot}>
-              <Part
-                geo={G.poly(0.015, 0.003, shard.pts)}
-                color="#BFE3FF"
-                roughness={0.08}
-                metalness={0.6}
-              />
+        <group rotation={[0.25, -0.2, 0.1]}>
+          {/* Rahmen */}
+          {(
+            [
+              [0, 0.27, 0.74, 0.06],
+              [0, -0.27, 0.74, 0.06],
+              [-0.34, 0, 0.06, 0.6],
+              [0.34, 0, 0.06, 0.6],
+            ] as [number, number, number, number][]
+          ).map(([x, y, w, h], i) => (
+            <Part key={i} geo={G.box(w, h, 0.05, 0.015)} pos={[x, y, 0]} color="#B8862B" roughness={0.6} />
+          ))}
+          {MIRROR_SHARDS.slice(0, -1).map((shard, i) => (
+            // Gespreizt und größer, damit die Scherben die Rahmenöffnung füllen
+            <group
+              key={i}
+              position={[shard.pos[0] * 1.6, shard.pos[1] * 1.6, -0.005]}
+              rotation={[0, 0, shard.rot[2]]}
+              scale={1.3}
+            >
+              <Part geo={G.poly(0.012, 0, shard.pts)} color="#D7DEE6" roughness={0.1} metalness={0.6} />
             </group>
           ))}
+          {/* herausgefallene Scherbe vorn */}
+          {MIRROR_SHARDS.slice(-1).map((shard, i) => (
+            <group key={`out${i}`} position={[0.16, -0.33, 0.08]} rotation={[0.6, 0.3, 0.4]} scale={0.9}>
+              <Part geo={G.poly(0.012, 0, shard.pts)} color="#D7DEE6" roughness={0.1} metalness={0.6} />
+            </group>
+          ))}
+          {/* Sprünge und Glanz */}
+          {(
+            [
+              [-0.05, 0.05, 0.35, 0.7],
+              [0.08, -0.04, 0.3, -0.5],
+              [-0.12, -0.08, 0.22, 0.2],
+            ] as [number, number, number, number][]
+          ).map(([x, y, l, r], i) => (
+            <Part key={`c${i}`} geo={G.box(l, 0.008, 0.004, 0.001)} pos={[x, y, 0.012]} rot={[0, 0, r]} basic color="#475569" />
+          ))}
           <Part
-            geo={G.box(0.3, 0.04, 0.035, 0.012)}
-            pos={[-0.2, -0.28, 0]}
-            rot={[0, 0, 0.5]}
-            color="#7C4A25"
-            roughness={0.8}
+            geo={G.box(0.04, 0.24, 0.004, 0.001)}
+            pos={[-0.15, 0.04, 0.014]}
+            rot={[0, 0, -0.5]}
+            basic
+            noDepthWrite
+            color="#FFFFFF"
+            opacity={0.7}
           />
         </group>
       );
