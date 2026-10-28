@@ -6,13 +6,16 @@
 import { type ReactElement } from "react";
 import * as THREE from "three";
 
+import { G, Part } from "./models/shared";
+
 type V3 = [number, number, number];
 
 /** Spezifische Muster – nichts, was Restmüll/Gelber Sack „stehlen“ würde. */
 export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   // Papier
   [/zeitung|prospekt|zeitschrift/, "newspaper"],
-  [/sauberer karton|eierkarton|schuhkarton/, "box"],
+  [/sauberer karton|schuhkarton/, "box"],
+  [/eierkarton/, "eggbox"],
   [/briefumschlag|schreibpapier|notizblock|visitenkarte/, "paper"],
   [/buch/, "book"],
   [/toilettenpapier/, "papertube"],
@@ -141,6 +144,49 @@ export function renderExtraModel(key: string): ReactElement | null {
         </group>
       );
 
+    case "eggbox":
+      // Eierkarton aus grauem Pappguss: dünner Boden + Wände (keine volle
+      // Kiste), 2×3 offene Mulden, ein Ei liegt noch drin, Deckel hochgeklappt
+      return (
+        <group rotation={[0.75, 0.3, 0]}>
+          <Box size={[0.5, 0.02, 0.34]} pos={[0, -0.07, 0]} color="#B8B2A6" />
+          {(
+            [
+              [0, -0.17, 0.5, 0.02],
+              [0, 0.17, 0.5, 0.02],
+            ] as [number, number, number, number][]
+          ).map(([x, z, w, d]) => (
+            <Box key={z} size={[w, 0.12, d]} pos={[x, -0.01, z]} color="#B8B2A6" />
+          ))}
+          {[-0.25, 0.25].map((x) => (
+            <Box key={x} size={[0.02, 0.12, 0.34]} pos={[x, -0.01, 0]} color="#B8B2A6" />
+          ))}
+          {[-0.15, 0, 0.15].map((x) =>
+            [-0.08, 0.08].map((z) => (
+              <mesh key={`${x}${z}`} position={[x, 0.05, z]} rotation={[Math.PI, 0, 0]} castShadow>
+                <sphereGeometry args={[0.07, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                <meshLambertMaterial color="#A39D91" flatShading side={THREE.DoubleSide} />
+              </mesh>
+            )),
+          )}
+          {/* Ein Ei in der Mulde */}
+          <mesh position={[0.15, 0.06, 0.08]} scale={[1, 1.25, 1]} castShadow>
+            <sphereGeometry args={[0.055, 10, 8]} />
+            <meshLambertMaterial color="#FAF7F0" flatShading />
+          </mesh>
+          {[-0.075, 0.075].map((x) => (
+            <mesh key={x} position={[x, 0.07, 0]} castShadow>
+              <coneGeometry args={[0.025, 0.06, 5]} />
+              <meshLambertMaterial color="#B8B2A6" flatShading />
+            </mesh>
+          ))}
+          {/* Deckel hinten hochgeklappt */}
+          <group position={[0, 0.05, -0.17]} rotation={[-1.9, 0, 0]}>
+            <Box size={[0.5, 0.04, 0.34]} pos={[0, 0, 0.17]} color="#C2BCB0" />
+          </group>
+        </group>
+      );
+
     case "paper":
       return (
         <group rotation={[0.9, 0.2, 0.15]}>
@@ -199,11 +245,35 @@ export function renderExtraModel(key: string): ReactElement | null {
       );
 
     case "bakingpaper":
-      // Backpapier: leicht gewelltes, beigefarbenes Blatt ohne Aufdruck
+      // Benutztes Backpapier: flaches, leicht gewelltes Blatt mit Beschichtungs-
+      // Glanz, braun gebackenen Rändern und Fettflecken (kein Knäuel – das
+      // wäre das Küchentuch aus dem Bio)
       return (
-        <group rotation={[0.8, 0.3, 0.2]}>
-          <Box size={[0.52, 0.015, 0.4]} color="#EFE3C8" />
-          <Box size={[0.52, 0.015, 0.16]} pos={[0, 0.05, -0.24]} rot={[0.5, 0, 0]} color="#E8DAB9" />
+        <group rotation={[-0.35, 0.35, 0.12]}>
+          {/* Nur leicht gewellt (±0,016), damit Ränder, Flecken und Glanz darauf liegen */}
+          <Part geo={G.wave(0.5, 0.4, 0.008, 9, 1)} double color="#F0E4C8" roughness={0.4} />
+          {/* braune Ränder oben und rechts */}
+          <Part geo={G.box(0.5, 0.05, 0.008, 0.002)} pos={[0, 0.18, 0.02]} color="#A8743A" roughness={1} />
+          <Part geo={G.box(0.05, 0.4, 0.008, 0.002)} pos={[0.23, 0, 0.02]} color="#B9864A" roughness={1} />
+          {(
+            [
+              [-0.12, 0.03, 0.05],
+              [0.06, -0.08, 0.04],
+              [-0.02, 0.1, 0.03],
+            ] as [number, number, number][]
+          ).map(([x, y, r], i) => (
+            <Part key={i} geo={G.circle(r, 10)} pos={[x, y, 0.02]} basic double color="#C9A16A" />
+          ))}
+          {/* Glanz der Beschichtung */}
+          <Part
+            geo={G.box(0.03, 0.3, 0.004, 0.001)}
+            pos={[-0.17, -0.02, 0.017]}
+            rot={[0, 0, -0.3]}
+            basic
+            noDepthWrite
+            color="#FFFFFF"
+            opacity={0.55}
+          />
         </group>
       );
 
