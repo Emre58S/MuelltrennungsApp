@@ -107,39 +107,94 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "eggshell":
+      // Eierschalen: außen hellbraun, innen weiß, gezackter Bruchrand
       return (
-        <group rotation={[0.2, -0.25, 0.12]}>
-          <Part
-            geo={G.ball(0.22, 9, 6, 0, Math.PI * 0.56)}
-            pos={[-0.14, 0, 0]}
-            rot={[0.2, 0.1, -0.25]}
-            double
-            flat
-            color="#F4E8CC"
-            roughness={0.9}
-          />
-          <Part
-            geo={G.ball(0.18, 8, 5, 0, Math.PI * 0.58)}
-            pos={[0.16, -0.03, 0.06]}
-            rot={[0.15, -0.2, 0.28]}
-            double
-            flat
-            color="#FFF7E8"
-            roughness={0.9}
-          />
-          <Part
-            geo={G.ball(0.1, 6, 4, 0, Math.PI * 0.5)}
-            pos={[0.02, 0.05, 0.2]}
-            rot={[1.2, 0.4, 0.2]}
-            double
-            flat
-            color="#EFE2C4"
-            roughness={0.9}
-          />
+        <group rotation={[0.5, -0.25, 0.12]}>
+          {(
+            [
+              [-0.13, 0, 0, 0.2, 0.2],
+              [0.15, -0.03, 0.06, -0.3, 0.17],
+            ] as [number, number, number, number, number][]
+          ).map(([x, y, z, rz, r], i) => (
+            <group key={i} position={[x, y, z]} rotation={[Math.PI, 0, rz]}>
+              <Part geo={G.ball(r, 9, 5, 0, Math.PI * 0.5)} double flat color="#E3B98A" roughness={0.9} />
+              <Part geo={G.ball(r * 0.93, 9, 5, 0, Math.PI * 0.5)} double flat color="#FFF8EE" roughness={0.9} />
+              {/* Bruchrand: 6 unregelmäßige Zacken, innerhalb der Schale */}
+              {[0, 1.1, 2.0, 3.3, 4.2, 5.4].map((a, k) => {
+                const h = 0.04 + (k % 3) * 0.01;
+                return (
+                  <Part
+                    key={k}
+                    geo={G.cone(0.022, h, 4)}
+                    pos={[Math.cos(a) * r * 0.93, -h / 2 + 0.005, Math.sin(a) * r * 0.93]}
+                    rot={[Math.PI, 0, 0]}
+                    color="#E3B98A"
+                    roughness={0.9}
+                  />
+                );
+              })}
+            </group>
+          ))}
         </group>
       );
 
     case "peel": {
+      if (name.includes("kartoffel")) {
+        // Geschälte Kartoffel mit braunen Schalenstreifen und dunklen Augen
+        return (
+          <group rotation={[0.35, 0.3, -0.2]}>
+            <Part geo={G.ball(0.15, 10, 8)} scale={[1.25, 0.9, 1]} pos={[-0.06, 0.02, 0]} color="#EBD58C" roughness={0.9} />
+            {(
+              [
+                [0.09, -0.08, 0.03, 0.4],
+                [0.19, 0.06, -0.02, -0.6],
+                [-0.24, -0.12, 0.12, 1.2],
+              ] as [number, number, number, number][]
+            ).map(([x, y, z, r], i) => (
+              <group key={i} position={[x, y, z]} rotation={[0.6, r, 0.3]}>
+                <Part geo={G.wave(0.26, 0.08, 0.02, 9, i)} double color="#9C6B3F" roughness={1} />
+                <Part geo={G.ball(0.02, 5, 4)} pos={[0.04, 0, i === 2 ? 0.02 : 0.04]} color="#4A3020" roughness={1} />
+              </group>
+            ))}
+            {/* Augen auf der Knolle (auf der Oberfläche) */}
+            {(
+              [
+                [-0.06, 0.05, 0.145],
+                [0.03, -0.03, 0.13],
+              ] as V3[]
+            ).map((p, i) => (
+              <Part key={i} geo={G.ball(0.02, 5, 4)} pos={p} color="#8A6A2E" roughness={1} />
+            ))}
+          </group>
+        );
+      }
+      if (name.includes("zwiebel")) {
+        // Zwiebelschale: dünne, gebogene Schalenblättchen in Kupfer/Braun
+        return (
+          <group rotation={[0.4, 0.2, -0.1]}>
+            {(
+              [
+                [-0.1, 0.02, 0, 0.2, 0, 0.18, "#B5651D"],
+                [0.1, 0.04, 0.03, -0.5, 0.8, 0.15, "#C98A4B"],
+                [0.0, -0.06, 0.04, 0.9, -0.4, 0.13, "#9A4E1F"],
+                [0.12, -0.04, -0.02, 1.6, 0.3, 0.1, "#D9A066"],
+              ] as [number, number, number, number, number, number, string][]
+            ).map(([x, y, z, rx, ry, r, col], i) => (
+              <Part
+                key={i}
+                geo={G.ball(r, 8, 4, 0, 1.0)}
+                pos={[x, y, z]}
+                rot={[rx, ry, 0]}
+                scale={[1, 0.6, 1.4]}
+                double
+                flat
+                color={col}
+                roughness={1}
+              />
+            ))}
+          </group>
+        );
+      }
       const isCarrot = name.includes("karotte");
       const c1 = isCarrot ? "#F97316" : "#C2860A";
       const c2 = isCarrot ? "#FB923C" : "#A16207";

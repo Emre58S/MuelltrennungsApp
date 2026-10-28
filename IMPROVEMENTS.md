@@ -15,8 +15,6 @@ Gegenstand allein am 3D-Modell erkennbar. Pro Zyklus 2–4 Modelle bzw. eine
 kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
-- [ ] A3 Schalen: Zwiebelschale (kupfer, dünne Blättchen), Kartoffelschale
-  (beige/braun mit Augen), Eierschale (hellbraun, gezackter Rand).
 - [ ] A4 Windel (Sanduhr-Form, Klebelaschen), Tapete (abgerissene Fetzen statt
   Rolle), Staubsaugerbeutel (prall, Pappplatte mit Loch).
 - [ ] A5 Obstnetz (Orangen im Netz), Druckerpatrone (Kontakte, Farbpunkte),
@@ -87,6 +85,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Nacht 32: Kartoffelschale (Knolle, Augen), Zwiebelschale (Kupfer-Blättchen), Eierschale (braun, Bruchrand)
 - [x] Nacht 31: CD, Geschirr, Pizzakarton zur Kamera gekippt, Pizzarest im Karton
 - [x] Nacht 30: Briefumschlag, Visitenkarten, Notizblock eigene Formen; Altes Buch mit sichtbaren Seiten
 - [x] Gläser: Gurke, Honig, Senf, Marmelade mit eigenem Inhalt/Deckel
