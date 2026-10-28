@@ -42,6 +42,9 @@ const GEO = {
   // Innenwände + Boden (von innen gesehen), oben etwas breiter als das Loch
   liner: roundedFrustum({ w: 0.84, d: 0.76 }, { w: 0.94, d: 0.86 }, 1.2, 0.1, 1),
   lid: roundedSlab(1.16, 1.1, 0.06, 0.13, 1),
+  // Verstärkungsband unter dem Rand (wie bei echten Tonnen) + Deckel-Vorderkante
+  band: roundedFrame(1.07, 1.01, 0.99, 0.93, 0.04, 0.12, 1),
+  lip: roundedSlab(0.96, 0.04, 0.05, 0.02, 1),
   grip: new THREE.BoxGeometry(0.5, 0.05, 0.06),
   wheel: new THREE.CylinderGeometry(0.17, 0.17, 0.11, 8),
   hub: new THREE.CylinderGeometry(0.07, 0.07, 0.12, 6),
@@ -51,6 +54,9 @@ const GEO = {
   ring: new THREE.RingGeometry(0.72, 0.86, 8),
   label: new THREE.PlaneGeometry(0.6, 0.3),
 };
+
+/** Höhe des Verstärkungsbands (knapp unter dem Rand). */
+const BAND_Y = 1.22;
 
 /** Beschriftung: oberer Teil der eingelassenen Front, folgt deren Neigung. */
 const LABEL_Y = 0.93;
@@ -99,6 +105,7 @@ export const TrashBin = memo(function TrashBin({
       inset: lowpoly(shade(bin.color, -0.06)),
       lid: lowpoly(shade(bin.color, 0.06)),
       rim: lowpoly(shade(bin.color, -0.03)),
+      band: lowpoly(shade(bin.color, -0.07)),
       // Innen dunkler (Schatten im Inneren), von innen sichtbar
       liner: new THREE.MeshLambertMaterial({
         color: shade(bin.color, -0.32),
@@ -251,6 +258,8 @@ export const TrashBin = memo(function TrashBin({
           />
         )}
 
+        <mesh geometry={GEO.band} material={mats.band} position={[0, BAND_Y, 0]} />
+
         {/* Innenraum + Rand (Rahmen mit Öffnung) */}
         <mesh geometry={GEO.liner} material={mats.liner} position={[0, BODY_Y + BODY_H - 1.2, 0]} />
         <group position={[0, BODY_Y + BODY_H - 0.02, 0]}>
@@ -262,6 +271,7 @@ export const TrashBin = memo(function TrashBin({
           <group position={[0, 0, 0.55]}>
             <mesh geometry={GEO.lid} material={mats.lid} castShadow />
             <mesh geometry={GEO.grip} material={mats.rim} position={[0, 0.03, 0.57]} />
+            <mesh geometry={GEO.lip} material={mats.band} position={[0, -0.03, 0.545]} />
           </group>
         </group>
 

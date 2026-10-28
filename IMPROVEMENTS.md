@@ -12,8 +12,7 @@ zu ändern.
 Backlog vom 2026-10-28 (vom Nutzer bestätigt). Neue Ziele/Hindernisse sind
 ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
-- [ ] **Tonnen-Design**: Griffe, Deckelkante, angedeutete Räder, sauberer
-  Aufkleber; weichere Kanten/Schatten. Gleicher Stil, keine Ruckler.
+- [ ] **Tonnen-Design**: (Band + Deckelkante erledigt) Aufkleber/Symbol sauberer; weichere Kanten/Schatten. Gleicher Stil, keine Ruckler.
 - [ ] **Gegenstände-Design**: einheitlichere Farben, weichere Formen, Material
   erkennbar (Glas glänzt, Papier matt). Je Zyklus eine Material-Gruppe.
 - [ ] **Szene aufwerten, nicht überladen**: wenige Boden-Details (Fugen, Gully),
@@ -35,6 +34,8 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Tonnen: Verstärkungsband + Deckel-Vorderkante (s. Commit „Tonnen: Band“)
+- [x] Menü: kleinere Modus-Schilder, unteres Menü tiefer (329b48c)
 - [x] Menü: Gegenstand über dem unteren Menü, nicht hinter „Weiter“ (1444aa6)
 - [x] Trick-Level 17/18 (gespiegelt, Bonus getauscht) (c3f97cb)
 - [x] Neues Trick-Level 16, ↕️-Symbol (d0d6c74)
