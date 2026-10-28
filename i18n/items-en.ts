@@ -151,4 +151,20 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
     fact: "Energy-saving bulbs contain mercury and are hazardous waste!",
   },
   Nagellackentferner: { name: "Nail polish remover" },
+  // Neu: typische Irrtümer
+  Kartoffelschalen: { name: "Potato peels" },
+  Kronkorken: {
+    name: "Bottle cap",
+    fact: "Bottle caps are metal – into the yellow bag, not the glass bin!",
+  },
+  Schuhkarton: { name: "Shoe box", fact: "Fold boxes flat first – then more fits in the bin." },
+  "Saftflasche (Glas)": { name: "Juice bottle (glass)" },
+  Backpapier: {
+    name: "Baking paper",
+    fact: "Baking paper is coated – it goes in general waste, not paper!",
+  },
+  Trinkglas: {
+    name: "Drinking glass",
+    fact: "Drinking glasses melt differently from bottles – general waste, not the glass bin!",
+  },
 };

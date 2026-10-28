@@ -35,7 +35,7 @@ const MODEL_RULES: [RegExp, string][] = [
   [/getraenkekarton|milchkarton/, "carton"],
   [/plastiktuete|plastiktute/, "bag"],
   [/plastikflasche/, "pet"],
-  [/metalldeckel|deckel/, "lid"],
+  [/metalldeckel|deckel|kronkorken/, "lid"],
   [/chipstuete|chipstute/, "chips"],
   [/styropor/, "styro"],
   [/zahnpasta|tube/, "tube"],

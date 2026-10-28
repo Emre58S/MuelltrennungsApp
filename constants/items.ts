@@ -512,4 +512,46 @@ export const ITEMS: Item[] = [
     category: "Sondermüll",
     difficulty: "schwer",
   },
+
+  // ── Neu: typische Irrtümer ────────────────────────────────────────
+  {
+    emoji: "🥔",
+    name: "Kartoffelschalen",
+    category: "Biomüll",
+    difficulty: "leicht",
+  },
+  {
+    emoji: "🪙",
+    name: "Kronkorken",
+    category: "Gelber Sack",
+    difficulty: "mittel",
+    fact: "Kronkorken sind aus Metall – ab in den Gelben Sack, nicht ins Altglas!",
+  },
+  {
+    emoji: "👟",
+    name: "Schuhkarton",
+    category: "Papier",
+    difficulty: "leicht",
+    fact: "Kartons vorher flach falten – dann passt mehr in die Tonne.",
+  },
+  {
+    emoji: "🍹",
+    name: "Saftflasche (Glas)",
+    category: "Glas",
+    difficulty: "leicht",
+  },
+  {
+    emoji: "🥐",
+    name: "Backpapier",
+    category: "Restmüll",
+    difficulty: "schwer",
+    fact: "Backpapier ist beschichtet – es gehört in den Restmüll, nicht ins Altpapier!",
+  },
+  {
+    emoji: "🍷",
+    name: "Trinkglas",
+    category: "Restmüll",
+    difficulty: "schwer",
+    fact: "Trinkgläser schmelzen anders als Flaschen – darum Restmüll, nicht Altglas!",
+  },
 ];

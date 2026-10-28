@@ -26,6 +26,7 @@ const HEAVY = new Set([
   "Alter Laptop",
   "Batterie",
   "Farbreste",
+  "Trinkglas",
 ]);
 
 const LIGHT = new Set([
@@ -50,6 +51,7 @@ const LIGHT = new Set([
   "Zigarettenkippe",
   "Wattestäbchen",
   "Pflaster",
+  "Backpapier",
 ]);
 
 /** Woraus ein Gegenstand ist – bestimmt seinen Landeklang (utils/sfx). */
@@ -60,6 +62,7 @@ const METAL = new Set([
   "Alufolie",
   "Einweg-Aluschale",
   "Deckel (Metall)",
+  "Kronkorken",
   "Batterie",
   "Altes Smartphone",
   "Alter Laptop",
@@ -67,10 +70,11 @@ const METAL = new Set([
   "Fieberthermometer (Quecksilber)",
 ]);
 /** Zerbrechliches, das klirrt wie Glas. */
-const BRITTLE = new Set(["Kaputtes Geschirr", "Zerbrochener Spiegel", "Kaputte Glühbirne", "Energiesparlampe"]);
+const BRITTLE = new Set(["Trinkglas", "Kaputtes Geschirr", "Zerbrochener Spiegel", "Kaputte Glühbirne", "Energiesparlampe"]);
 /** Papierartiges außerhalb der Papier-Tonne. */
 const PAPERY = new Set([
   "Kassenzettel",
+  "Backpapier",
   "Geschenkpapier (mit Folie)",
   "Tapeten",
   "Pizzakarton (fettig)",

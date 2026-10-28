@@ -18,9 +18,8 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
   (Glas + Dose erledigt; weiter: übriger Gelber Sack, Papier, Bio, Rest.)
 - [ ] **Szene aufwerten, nicht überladen**: (Pflasterfugen + Gully erledigt)
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
-- [ ] **Mehr Gegenstände**: 10–15 neue Alltagsdinge über alle Tonnen, bevorzugt
-  typische Irrtümer (Pizzakarton, Teebeutel, Joghurtbecher, Marmeladenglas,
-  Staubsaugerbeutel …).
+- [ ] **Mehr Gegenstände**: (6 erledigt) noch 4–9 weitere typische Irrtümer;
+  Kronkorken eigenes Modell (gezackt), Trinkglas oben offen.
 - [ ] **Mehr Belohnungen**: 4–5 neue Wurfspuren (Seifenblasen, Herbstlaub,
   Funken, Sternenstaub); neu: Tonnen-Designs (Sticker/Muster, nur Optik).
 - [ ] **Trickwürfe: echte Hindernisse**: Straßenschild zum Abprallen (zuerst),
@@ -34,6 +33,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] 6 neue Gegenstände: Kartoffelschalen, Kronkorken, Schuhkarton, Saftflasche, Backpapier, Trinkglas
 - [x] Sondermüll: Einmal-Tipp zur roten Tonne, Modell Nagellackentferner
 - [x] Sondermüll-Tonne ab Level 7 (Haus-Szene), Aufkleber, Modelle Laptop/Patrone/Energiesparlampe, Medikamenten-Text
 - [x] Szene: versetzte Pflasterfugen + Gully (Wand-Szenen)

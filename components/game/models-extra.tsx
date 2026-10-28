@@ -12,12 +12,16 @@ type V3 = [number, number, number];
 export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   // Papier
   [/zeitung|prospekt/, "newspaper"],
-  [/sauberer karton|eierkarton/, "box"],
+  [/sauberer karton|eierkarton|schuhkarton/, "box"],
   [/briefumschlag|schreibpapier|notizblock|visitenkarte/, "paper"],
   [/buch/, "book"],
   [/toilettenpapier/, "kitchenroll"],
   // Glas
   [/weinflasche|bierflasche|olivenoelflasche/, "glassbottle"],
+  [/saftflasche/, "juicebottle"],
+  // Restmüll-Irrtümer mit eigenem Modell (laufen vor den Basis-Regeln)
+  [/trinkglas/, "tumbler"],
+  [/backpapier/, "bakingpaper"],
   [/marmeladenglas|gurkenglas|honigglas|senfglas/, "jar"],
   [/parfuemflasche/, "perfume"],
   // Sondermüll
@@ -159,6 +163,37 @@ export function renderExtraModel(key: string): ReactElement | null {
           <Cyl r={0.153} h={0.16} pos={[0, -0.02, 0]} color="#F5E9C8" roughness={0.9} />
           <Shine size={[0.03, 0.16, 0.01]} pos={[-0.075, 0.15, 0.13]} rot={[0, -0.5, 0]} />
           <Shine size={[0.02, 0.1, 0.01]} pos={[-0.03, 0.42, 0.05]} rot={[0, -0.5, 0]} />
+        </group>
+      );
+
+    case "juicebottle":
+      // Klare Glasflasche mit orangem Saft – anders als die grüne Weinflasche
+      return (
+        <group rotation={[0.1, 0, 0.15]}>
+          <Cyl r={0.13} h={0.4} color="#E6F4F1" opacity={0.55} />
+          <Cyl r={0.12} h={0.3} pos={[0, -0.04, 0]} color="#F59E0B" />
+          <Cyl r={0.13} rTop={0.06} h={0.1} pos={[0, 0.25, 0]} color="#E6F4F1" opacity={0.55} />
+          <Cyl r={0.065} h={0.06} pos={[0, 0.33, 0]} color="#EF4444" />
+          <Shine size={[0.03, 0.22, 0.01]} pos={[-0.065, 0.02, 0.115]} rot={[0, -0.5, 0]} />
+        </group>
+      );
+
+    case "tumbler":
+      // Trinkglas: oben offen, durchsichtig, dicker Boden
+      return (
+        <group rotation={[0.25, 0.3, -0.1]}>
+          <Cyl r={0.17} rTop={0.2} h={0.4} color="#DCEFF5" opacity={0.5} />
+          <Cyl r={0.17} h={0.06} pos={[0, -0.17, 0]} color="#C4E3EC" opacity={0.8} />
+          <Shine size={[0.03, 0.3, 0.01]} pos={[-0.09, 0.02, 0.16]} rot={[0, -0.5, 0]} />
+        </group>
+      );
+
+    case "bakingpaper":
+      // Backpapier: leicht gewelltes, beigefarbenes Blatt ohne Aufdruck
+      return (
+        <group rotation={[0.8, 0.3, 0.2]}>
+          <Box size={[0.52, 0.015, 0.4]} color="#EFE3C8" />
+          <Box size={[0.52, 0.015, 0.16]} pos={[0, 0.05, -0.24]} rot={[0.5, 0, 0]} color="#E8DAB9" />
         </group>
       );
 
