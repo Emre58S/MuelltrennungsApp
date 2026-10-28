@@ -42,6 +42,7 @@ import {
   queueThrow,
   resetBus,
   setAim,
+  setBinSkin,
   setLandHandler,
   setPreview,
   useAim,
@@ -73,10 +74,13 @@ import {
   getBoolean,
   getHighscoreKey,
   getLevelProgress,
+  getBinSkin,
   getNumber,
+  getRewardProgress,
   getTodayDaily,
   StorageKeys,
 } from "@/utils/storage";
+import { usableSkin } from "@/game/rewards";
 
 type IconName = ComponentProps<typeof Feather>["name"];
 type Scores = Record<GameMode, number>;
@@ -265,6 +269,12 @@ export default function HomeScreen() {
       resetBus(bus.current);
       setLandHandler(bus.current, (id) => onLand.current(id));
       refreshSfxSetting();
+      // Gewählter Tonnen-Sticker auch auf den Menü-Tonnen (sofort sichtbar nach der Auswahl)
+      Promise.all([getBinSkin(), getRewardProgress()])
+        .then(([skin, progress]) => {
+          if (active) setBinSkin(bus.current, usableSkin(skin, progress));
+        })
+        .catch(() => undefined);
       // Ruhige Menü-Musik (blendet sanft von der Runde herüber)
       refreshMusicSetting().then(() => playMusic("menu"));
 

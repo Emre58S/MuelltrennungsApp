@@ -170,6 +170,7 @@ export const en: Translations = {
   "reward.selected": "Selected",
   "reward.tapToSelect": "Tap to select",
   "reward.new": "New throw trail: {name}!",
+  "reward.newSticker": "New bin sticker: {name}!",
   "reward.skinsTitle": "Bin stickers",
   "reward.skin.keiner": "No sticker",
   "reward.skin.stern": "Star",

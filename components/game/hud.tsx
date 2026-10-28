@@ -604,7 +604,7 @@ export function TrickResult({
   attempts: number;
   bonus: TrickBonus;
   bonusDone: boolean;
-  /** Name einer neu freigeschalteten Wurfspur. */
+  /** Fertige Meldung zu einer neu freigeschalteten Belohnung (Spur/Sticker). */
   unlocked?: string;
   /** „Wusstest du?“ zum geworfenen Gegenstand. */
   fact?: { name: string; text: string };
@@ -665,7 +665,7 @@ export function TrickResult({
           )}
           {unlocked && (
             <AppText variant="label" tone="gold" center>
-              🎁 {t("reward.new", { name: unlocked })}
+              🎁 {unlocked}
             </AppText>
           )}
         </ScrollView>

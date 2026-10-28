@@ -2,7 +2,16 @@
 
 import { describe, expect, test } from "@jest/globals";
 
-import { isUnlocked, newlyUnlocked, totalStars, TRAILS, usableTrail } from "../rewards";
+import {
+  BIN_SKINS,
+  isUnlocked,
+  newlyUnlocked,
+  totalStars,
+  TRAILS,
+  unlockMessageKey,
+  usableSkin,
+  usableTrail,
+} from "../rewards";
 import { TRICK_LEVELS } from "../trick-levels";
 
 const trail = (id: string) => TRAILS.find((r) => r.id === id)!;
@@ -33,5 +42,27 @@ describe("Wurfspuren", () => {
     const max = TRICK_LEVELS.length * 3;
     for (const r of TRAILS) if (r.stars !== undefined) expect(r.stars).toBeLessThanOrEqual(max);
     expect(totalStars({ 1: 3, 2: 2 })).toBe(5);
+  });
+});
+
+describe("Tonnen-Sticker", () => {
+  test("gesperrt oder unbekannt → ohne Sticker", () => {
+    expect(usableSkin("stern", { stars: 2, level: 0 })).toBe("keiner");
+    expect(usableSkin("quatsch", { stars: 99, level: 99 })).toBe("keiner");
+    expect(usableSkin(null, { stars: 99, level: 99 })).toBe("keiner");
+    expect(usableSkin("herz", { stars: 0, level: 5 })).toBe("herz");
+  });
+
+  test("Freischalten meldet auch Sticker – mit eigenem Text", () => {
+    const got = newlyUnlocked({ stars: 7, level: 1 }, { stars: 8, level: 1 });
+    expect(got.map((r) => r.id)).toEqual(["stern"]);
+    expect(unlockMessageKey(got[0])).toBe("reward.newSticker");
+    expect(newlyUnlocked({ stars: 0, level: 4 }, { stars: 0, level: 5 }).map((r) => r.id)).toEqual(["herz"]);
+    expect(unlockMessageKey(TRAILS[1])).toBe("reward.new");
+  });
+
+  test("alle Sticker sind erreichbar", () => {
+    const max = TRICK_LEVELS.length * 3;
+    for (const r of BIN_SKINS) if (r.stars !== undefined) expect(r.stars).toBeLessThanOrEqual(max);
   });
 });

@@ -71,9 +71,14 @@ export function isUnlocked(reward: { stars?: number; level?: number }, progress:
   return true;
 }
 
-/** Spuren, die zwischen zwei Ständen neu frei geworden sind. */
-export function newlyUnlocked(before: Progress, after: Progress): TrailReward[] {
-  return TRAILS.filter((r) => !isUnlocked(r, before) && isUnlocked(r, after));
+/** Text der Freischalt-Meldung je Art – „Stern“ allein läse sich wie ein Wertungsstern. */
+export function unlockMessageKey(reward: TrailReward | BinSkinReward): TranslationKey {
+  return (BIN_SKINS as (TrailReward | BinSkinReward)[]).includes(reward) ? "reward.newSticker" : "reward.new";
+}
+
+/** Spuren/Sticker, die zwischen zwei Ständen neu frei geworden sind. */
+export function newlyUnlocked(before: Progress, after: Progress): (TrailReward | BinSkinReward)[] {
+  return [...TRAILS, ...BIN_SKINS].filter((r) => !isUnlocked(r, before) && isUnlocked(r, after));
 }
 
 /** Gespeicherte Auswahl prüfen: gesperrt oder unbekannt → Standard. */

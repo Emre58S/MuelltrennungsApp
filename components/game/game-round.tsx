@@ -115,7 +115,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { boardFor, HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
 import { playMusic } from "@/utils/music";
-import { newlyUnlocked, type Progress, usableSkin, usableTrail } from "@/game/rewards";
+import { newlyUnlocked, type Progress, unlockMessageKey, usableSkin, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
 import { itemMass, itemMaterial, type Material, MASS_FEEL } from "@/game/item-mass";
 import {
@@ -729,15 +729,15 @@ export function GameRound({
     xpTotal.current += xp;
     const newLevel = getLevelFromXP(xpTotal.current);
     if (newLevel > levelNow.current) {
-      // Neue Wurfspur durch das Level? (Belohnungen)
+      // Neue Belohnung (Spur/Sticker) durch das Level?
       const before = { ...rewardProgress.current, level: levelNow.current };
       const after = { ...before, level: newLevel };
-      const trails = newlyUnlocked(before, after);
+      const rewards = newlyUnlocked(before, after);
       rewardProgress.current = after;
-      if (trails.length)
+      if (rewards.length)
         later(() => {
           sfx("unlock");
-          showBanner(`🎁 ${t("reward.new", { name: t(trails[0].name) })}`, 3000);
+          showBanner(`🎁 ${t(unlockMessageKey(rewards[0]), { name: t(rewards[0].name) })}`, 3000);
         }, 3400);
       levelNow.current = newLevel;
       sfx("levelup");

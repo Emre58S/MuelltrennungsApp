@@ -169,6 +169,7 @@ export const de = {
   "reward.selected": "Ausgewählt",
   "reward.tapToSelect": "Tippen zum Auswählen",
   "reward.new": "Neue Wurfspur: {name}!",
+  "reward.newSticker": "Neuer Tonnen-Sticker: {name}!",
   "reward.skinsTitle": "Tonnen-Sticker",
   "reward.skin.keiner": "Ohne Sticker",
   "reward.skin.stern": "Stern",

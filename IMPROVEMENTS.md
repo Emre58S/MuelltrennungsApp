@@ -19,8 +19,6 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Szene aufwerten, nicht überladen**: (Pflasterfugen + Gully erledigt)
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
 - [ ] **Mehr Gegenstände, Rest** (optional): Trinkglas oben offen zeichnen.
-- [ ] **Sticker, Rest**: Freischalt-Meldung auch für Sticker (neutraler Text
-  „Neue Belohnung“); gewählten Sticker auch auf den Menü-Tonnen zeigen; Test für usableSkin.
 - [ ] **Trickwürfe: echte Hindernisse**: Straßenschild zum Abprallen (zuerst),
   Laternenmast, Markise/Vordach zum Reinrutschen, Bauzaun/Mauer. Je Hindernis
   1–2 Level, sanft steigend. Pflicht: Fairness-Test grün; sonst verwerfen.
@@ -32,6 +30,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Sticker: eigene Freischalt-Meldung, Sticker auf Menü-Tonnen, Tests
 - [x] Tonnen-Sticker als Belohnung (Stern, Herz, Punkte)
 - [x] 4 neue Wurfspuren: Herbstlaub, Seifenblasen, Funken, Sternenstaub (ruhig bei „Weniger Bewegung“)
 - [x] 4 weitere Gegenstände (Kaffeefilter, Zeitschrift, Obstnetz, Kerzenreste), Kronkorken-Modell

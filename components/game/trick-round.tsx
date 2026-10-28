@@ -29,7 +29,7 @@ import { Spacing } from "@/constants/theme";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
-import { newlyUnlocked, type Progress, usableSkin, usableTrail } from "@/game/rewards";
+import { newlyUnlocked, type Progress, unlockMessageKey, usableSkin, usableTrail } from "@/game/rewards";
 import { dailyBoard, submitScore, trickScore } from "@/utils/leaderboard";
 import {
   getRewardProgress,
@@ -299,7 +299,7 @@ export function TrickRound({
     (daily ? saveTrickDaily(stars) : saveTrickStars(level.id, stars)).catch(() => undefined);
     // Tages-Trick: Rangliste (mehr Sterne, dann weniger Versuche)
     if (daily) submitScore(dailyBoard("tagestrick"), trickScore(stars, attempts)).catch(() => undefined);
-    // Neue Wurfspur durch die Sterne? (Tages-Trick zählt nicht)
+    // Neue Belohnung (Spur/Sticker) durch die Sterne? (Tages-Trick zählt nicht)
     const before = rewardProgress.current;
     const gained = daily ? 0 : Math.max(0, stars - levelStars.current);
     const unlocked = newlyUnlocked(before, { ...before, stars: before.stars + gained })[0];
@@ -329,7 +329,7 @@ export function TrickRound({
     const fact = thrown ? itemFact(thrown) : undefined;
     const tip = thrown && fact ? { name: itemName(thrown), text: fact } : undefined;
     later(
-      () => setResult({ stars, attempts, bonus, unlocked: unlocked && t(unlocked.name), fact: tip }),
+      () => setResult({ stars, attempts, bonus, unlocked: unlocked && t(unlockMessageKey(unlocked), { name: t(unlocked.name) }), fact: tip }),
       1000,
     );
   };
