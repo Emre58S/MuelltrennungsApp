@@ -140,7 +140,26 @@ export type SignCollider = {
   yaw: number;
 };
 
-export type PropCollider = RingCollider | WindmillCollider | FanCollider | SignCollider;
+/** Laternenmast: senkrechter Mast (Fuß bei x/z) mit Ausleger oben, der zur
+ *  Seite `side` (±1) zeigt – steht im Weg, man wirft daran vorbei. */
+export type LampCollider = {
+  kind: "lamp";
+  id: number;
+  x: number;
+  z: number;
+  /** Höhe des Masts. */
+  height: number;
+  /** Länge des Auslegers (zur Seite). */
+  arm: number;
+  side: 1 | -1;
+};
+
+export type PropCollider = RingCollider | WindmillCollider | FanCollider | SignCollider | LampCollider;
+
+/** Radius des Laternenmasts. */
+export const LAMP_R = 0.07;
+/** Halbe Dicke des Auslegers samt Leuchte. */
+export const LAMP_ARM_HALF = 0.07;
 
 /** Halbe Dicke der Schild-Tafel. */
 export const SIGN_THICK = 0.03;
@@ -213,7 +232,7 @@ export type BallEvent =
       type: "bounce";
       bin: number | null;
       speed: number;
-      part: BinPart | "ring" | "blade" | "sign" | "ground";
+      part: BinPart | "ring" | "blade" | "sign" | "lamp" | "ground";
       /** Reifen (Trickwürfe), falls einer berührt wurde. */
       prop?: number;
     }
@@ -482,6 +501,44 @@ function collideSign(ball: Ball, sign: SignCollider, events: BallEvent[]) {
   events.push({ type: "pass", prop: sign.id });
 }
 
+/** Laternenmast: Mast (senkrechter Zylinder) und Ausleger (Kasten oben). */
+function collideLamp(ball: Ball, lamp: LampCollider, events: BallEvent[]) {
+  const p = ball.p;
+  let depth = 0;
+  // Mast
+  if (p.y < lamp.height + BALL_R) {
+    const dx = p.x - lamp.x;
+    const dz = p.z - lamp.z;
+    const d = Math.hypot(dx, dz);
+    if (d < LAMP_R + BALL_R) {
+      if (d < 1e-6) n.set(0, 0, 1);
+      else n.set(dx / d, 0, dz / d);
+      depth = LAMP_R + BALL_R - d;
+    }
+  }
+  // Ausleger: Kasten von der Mastspitze zur Seite
+  if (!depth) {
+    const x0 = Math.min(lamp.x, lamp.x + lamp.side * lamp.arm);
+    const x1 = Math.max(lamp.x, lamp.x + lamp.side * lamp.arm);
+    const cx = THREE.MathUtils.clamp(p.x, x0, x1);
+    const cy = THREE.MathUtils.clamp(p.y, lamp.height - LAMP_ARM_HALF, lamp.height + LAMP_ARM_HALF);
+    const cz = THREE.MathUtils.clamp(p.z, lamp.z - LAMP_ARM_HALF, lamp.z + LAMP_ARM_HALF);
+    const lx = p.x - cx;
+    const ly = p.y - cy;
+    const lz = p.z - cz;
+    const d = Math.hypot(lx, ly, lz);
+    if (d >= BALL_R) return;
+    if (d < 1e-6) n.set(0, 1, 0);
+    else n.set(lx / d, ly / d, lz / d);
+    depth = BALL_R - d;
+  }
+  if (!depth) return;
+  const speed = bounce(ball, n, depth, 0.45);
+  if (speed <= 0.4) return;
+  ball.touched = true;
+  events.push({ type: "bounce", bin: null, speed, part: "lamp", prop: lamp.id });
+}
+
 /** Ventilator: im Windfeld seitlich beschleunigen (je nach Gewicht). */
 function blowFan(ball: Ball, fan: FanCollider, h: number) {
   const p = ball.p;
@@ -521,6 +578,7 @@ export function stepBall(
       if (prop.kind === "ring") collideRing(ball, prop, prevP, events);
       else if (prop.kind === "windmill") collideWindmill(ball, prop, events);
       else if (prop.kind === "sign") collideSign(ball, prop, events);
+      else if (prop.kind === "lamp") collideLamp(ball, prop, events);
       else blowFan(ball, prop, h);
     }
 

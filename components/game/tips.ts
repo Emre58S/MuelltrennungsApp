@@ -22,7 +22,8 @@ export type TipId =
   | "stars"
   | "decoy"
   | "sonder"
-  | "sign";
+  | "sign"
+  | "lamp";
 
 /** So lange (ms) bleibt ein Tipp stehen (Tippen schließt ihn früher). */
 const TIP_MS = 4500;

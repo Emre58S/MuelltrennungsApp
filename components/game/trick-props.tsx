@@ -6,6 +6,7 @@
 //  - Windrad: Mast + Nabe, die Flügel drehen sich
 //  - Ventilator: Gerät am Rand des Windfelds, Windstreifen zeigen Richtung
 //    und Stärke
+//  - Laternenmast: grauer Mast mit Ausleger und warm leuchtender Lampe
 //  - Straßenschild: blaues Einbahnstraßen-Schild auf einem Pfosten zwischen
 //    zwei Tonnen; der Pfeil zeigt, wohin der Abpraller geht
 // Bewegung folgt der Szenen-Uhr (bus.clock) – genau wie die Physik
@@ -18,6 +19,9 @@ import * as THREE from "three";
 import {
   BLADE_THICK,
   type FanCollider,
+  LAMP_ARM_HALF,
+  LAMP_R,
+  type LampCollider,
   type PropCollider,
   type RingCollider,
   ringPose,
@@ -293,6 +297,42 @@ const Sign = memo(function Sign({ sign, bus }: { sign: SignCollider; bus: BusRef
   );
 });
 
+/** Laternenmast, einmal gebaut und gebacken (steht still). */
+function lampModel(l: LampCollider): THREE.Object3D {
+  const g = new THREE.Group();
+  const metal = lowpoly("#4B5563");
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(LAMP_R * 0.85, LAMP_R * 1.2, l.height, 10), metal);
+  pole.position.y = l.height / 2;
+  g.add(pole);
+  // Fuß nur knapp breiter als der Mast (Physik rechnet mit LAMP_R)
+  const foot = new THREE.Mesh(new THREE.CylinderGeometry(LAMP_R * 1.15, LAMP_R * 1.3, 0.14, 10), metal);
+  foot.position.y = 0.07;
+  g.add(foot);
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(l.arm, LAMP_ARM_HALF * 1.6, LAMP_ARM_HALF * 1.6), metal);
+  arm.position.set((l.side * l.arm) / 2, l.height, 0);
+  g.add(arm);
+  // Leuchte am Ende – liegt ganz im Kollisionskasten des Auslegers
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, LAMP_ARM_HALF * 2, LAMP_ARM_HALF * 2), lowpoly("#374151"));
+  head.position.set(l.side * (l.arm - 0.15), l.height, 0);
+  g.add(head);
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.02, LAMP_ARM_HALF * 1.6), lowpoly("#FFE7A0", { emissive: "#FFD36B" }));
+  glass.position.set(l.side * (l.arm - 0.15), l.height - LAMP_ARM_HALF + 0.005, 0);
+  g.add(glass);
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
+const Lamp = memo(function Lamp({ lamp }: { lamp: LampCollider }) {
+  const model = useMemo(() => lampModel(lamp), [lamp]);
+  useEffect(() => () => model.traverse((o) => (o as THREE.Mesh).geometry?.dispose()), [model]);
+  return (
+    <group position={[lamp.x, 0, lamp.z]}>
+      <primitive object={model} />
+    </group>
+  );
+});
+
 /** Alle Hindernisse eines Levels. */
 export const TrickProps = memo(function TrickProps({
   props,
@@ -312,6 +352,8 @@ export const TrickProps = memo(function TrickProps({
           <Windmill key={prop.id} mill={prop} bus={bus} />
         ) : prop.kind === "sign" ? (
           <Sign key={prop.id} sign={prop} bus={bus} />
+        ) : prop.kind === "lamp" ? (
+          <Lamp key={prop.id} lamp={prop} />
         ) : (
           <Fan key={prop.id} fan={prop} calm={calm} />
         ),

@@ -19,8 +19,8 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Szene aufwerten, nicht überladen**: (Pflasterfugen + Gully erledigt)
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
 - [ ] **Mehr Gegenstände, Rest** (optional): Trinkglas oben offen zeichnen.
-- [ ] **Trickwürfe: echte Hindernisse**: (Straßenschild erledigt: Level 19/20)
-  Laternenmast, Markise/Vordach zum Reinrutschen, Bauzaun/Mauer. Je Hindernis
+- [ ] **Trickwürfe: echte Hindernisse**: (Straßenschild 19/20, Laterne 21 erledigt;
+  Laterne an Außentonnen zu eng → verworfen; Idee: Laterne + Reifen) Markise/Vordach zum Reinrutschen, Bauzaun/Mauer. Je Hindernis
   1–2 Level, sanft steigend. Pflicht: Fairness-Test grün; sonst verwerfen.
 - [ ] **Tipp- und Lernkarte überlappen**: TipCard und LearnCard liegen beide auf
   learnTop – bei Fehlwurf während eines Tipps Lernkarte versetzen oder Tipp schließen.
@@ -30,6 +30,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Trick-Hindernis Laternenmast, Level 21 (Level 22 als bloße Kopie verworfen)
 - [x] Trick-Hindernis Straßenschild als Bande, Level 19/20, Tipp und Hinweis
 - [x] Sticker: eigene Freischalt-Meldung, Sticker auf Menü-Tonnen, Tests
 - [x] Tonnen-Sticker als Belohnung (Stern, Herz, Punkte)

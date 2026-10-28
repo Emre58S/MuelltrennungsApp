@@ -228,6 +228,8 @@ export function TrickRound({
         ? "movingBin"
         : has("sign")
           ? "sign"
+          : has("lamp")
+          ? "lamp"
           : has("windmill")
           ? "windmill"
           : motion?.kind === "spin"

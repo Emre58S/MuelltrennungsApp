@@ -40,6 +40,16 @@ export type TrickProp =
       period: number;
     }
   | {
+      kind: "lamp";
+      /** Fuß des Masts. */
+      x: number;
+      z: number;
+      height: number;
+      /** Länge des Auslegers. */
+      arm: number;
+      side: 1 | -1;
+    }
+  | {
       kind: "sign";
       /** Mitte der Tafel. */
       x: number;
@@ -115,6 +125,16 @@ const fan = (x: number, force: number): TrickProp => ({
   halfH: 1.3,
   halfD: 1.4,
   force,
+});
+
+/** Laternenmast in der Wurfbahn, Ausleger zur Seite `side`. */
+export const lamp = (x: number, z: number, side: 1 | -1, height = 3.0, arm = 0.7): TrickProp => ({
+  kind: "lamp",
+  x,
+  z,
+  height,
+  arm,
+  side,
 });
 
 /** Straßenschild neben einer Tonne, schräg gedreht – als Bande. */
@@ -263,6 +283,8 @@ export const TRICK_LEVELS: TrickLevel[] = [
   { id: 19, target: 1, props: [sign(-0.75, 2.2, -0.2, 0.6)], requires: [0], bonus: "firstTry", task: "trick.task.sign" },
   // Gespiegelt: das Schild steht rechts
   { id: 20, target: 1, props: [sign(0.75, 2.2, -0.2, -0.6)], requires: [0], bonus: "firstTry", task: "trick.task.sign" },
+  // Laternenmast vor der mittleren Tonne (rechts, Beschriftung bleibt frei): links vorbei
+  { id: 21, target: 1, props: [lamp(0.22, 1.4, 1)], requires: [], bonus: "swish", task: "trick.task.lamp" },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -274,6 +296,8 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): strin
         ? "💨"
         : p.kind === "sign"
           ? "🪧"
+          : p.kind === "lamp"
+          ? "💡"
           : p.kind === "windmill"
           ? "🌀"
           : p.motion?.kind === "spin"
@@ -331,6 +355,7 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
     if (p.kind === "fan") return { ...p, x: -p.x, force: -p.force };
     if (p.kind === "windmill") return { ...p, x: -p.x, period: -p.period };
     if (p.kind === "sign") return { ...p, x: -p.x, yaw: -p.yaw };
+    if (p.kind === "lamp") return { ...p, x: -p.x, side: (-p.side) as 1 | -1 };
     const m = p.motion;
     const motion: RingMotion | undefined = !m
       ? undefined
