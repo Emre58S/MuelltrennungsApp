@@ -359,6 +359,17 @@ export function renderGelberSackModel(key: string, name: string) {
             color="#2563EB"
             roughness={0.45}
           />
+          {/* Glanzstreifen auf dem geraden Stück über dem Etikett: Plastik glänzt
+              (unten glänzen schon die Rillen) */}
+          <Part
+            geo={G.box(0.03, 0.05, 0.008, 0.003)}
+            pos={[-0.098, 0.075, 0.175]}
+            rot={[0, -0.5, 0]}
+            basic
+            noDepthWrite
+            color="#FFFFFF"
+            opacity={0.6}
+          />
         </group>
       );
 

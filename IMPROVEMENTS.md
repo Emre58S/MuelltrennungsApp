@@ -15,7 +15,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 - [ ] **Tonnen-Design, Rest** (optional): weichere Schatten/Kanten.
 - [ ] **Gegenstände-Design**: einheitlichere Farben, weichere Formen, Material
   erkennbar (Glas glänzt, Papier matt). Je Zyklus eine Material-Gruppe.
-  (Glas + Dose erledigt; weiter: übriger Gelber Sack, Papier, Bio, Rest.)
+  (Glas, Dose, PET erledigt; weiter optional: Papier, Bio, Rest.)
 - [ ] **Szene aufwerten, nicht überladen**: (Pflasterfugen + Gully erledigt)
   dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
 - [ ] **Trickwürfe: echte Hindernisse**: (Straßenschild 19/20, Laterne 21 erledigt;
@@ -29,6 +29,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] PET-Flasche: Glanzstreifen
 - [x] Trinkglas oben offen (man sieht hinein)
 - [x] Tipp wartet hinter der Lernkarte (Zeit läuft nicht weiter)
 - [x] Fairness-Test: Swish-Bonus muss erreichbar sein (13 Level geprüft)

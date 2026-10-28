@@ -78,6 +78,9 @@ Expo Go.
   Erfolge nur über Deckel-Abpraller; offene Deckel schwingen bis z≈0,6.
 - Hindernisse direkt vor den Tonnen wirken wie Rückwand (Abpraller fallen rein)
   – in Sonden zählen, ob Treffer auch ohne Hindernis treffen; Swish prüfen.
+- Schutz-Hook prüft den ganzen Befehlstext: Kanal immer ausgeschrieben
+  (`--channel auto` / `--channel preview`, keine Variable); Edits, deren Text
+  „main“ und „git push“ enthält, mit dem Edit-Tool statt Shell machen.
 - Lange Edit-Skripte mit Write in den Scratchpad schreiben (Heredoc bricht ab).
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.
