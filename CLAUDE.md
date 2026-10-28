@@ -65,5 +65,9 @@ Expo Go.
   (~20 s). Windstärke wirkt nicht gleichmäßig – nach 3–4 Versuchen verwerfen.
 - Spielszene ist components/game/stage.tsx (Szenen haus/ziegel/garten);
   components/game/environment.tsx ist ungenutzt – dort nichts ändern.
+- Trick-Hindernisse hinter der Tonne sind unerreichbar (Wurf dort schon tief,
+  offener Deckel steht als Brett) – seitlich/schräg zwischen den Tonnen geht.
+  Neue Pflicht-Hindernisse brauchen eigenen „noTrick“-Text und Tipp.
+- Lange Edit-Skripte mit Write in den Scratchpad schreiben (Heredoc bricht ab).
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.

@@ -226,7 +226,9 @@ export function TrickRound({
       ? "wind"
       : level.binSlide
         ? "movingBin"
-        : has("windmill")
+        : has("sign")
+          ? "sign"
+          : has("windmill")
           ? "windmill"
           : motion?.kind === "spin"
             ? "spin"
@@ -398,7 +400,8 @@ export function TrickRound({
     }
     if (bin === level.target) {
       // In der richtigen Tonne – aber ohne den verlangten Trick
-      float(t("trick.noTrick"), screenX(binXs[bin]), y);
+      const needsSign = level.requires.some((i) => level.props[i]?.kind === "sign");
+      float(t(needsSign ? "trick.noSign" : "trick.noTrick"), screenX(binXs[bin]), y);
       sfx("plop");
     } else if (bin !== null) {
       queueBinEvent(bus.current, bin, "reject");

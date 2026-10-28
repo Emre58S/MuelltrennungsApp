@@ -40,6 +40,19 @@ export type TrickProp =
       period: number;
     }
   | {
+      kind: "sign";
+      /** Mitte der Tafel. */
+      x: number;
+      y: number;
+      z: number;
+      halfW: number;
+      halfH: number;
+      /** Neigung (rad), oben zum Spieler hin. */
+      tilt: number;
+      /** Drehung um die Hochachse (rad), + = schaut nach rechts. */
+      yaw: number;
+    }
+  | {
       kind: "fan";
       /** Mitte des Windfelds. */
       x: number;
@@ -102,6 +115,18 @@ const fan = (x: number, force: number): TrickProp => ({
   halfH: 1.3,
   halfD: 1.4,
   force,
+});
+
+/** Straßenschild neben einer Tonne, schräg gedreht – als Bande. */
+export const sign = (x: number, y: number, z: number, yaw: number, tilt = 0): TrickProp => ({
+  kind: "sign",
+  x,
+  y,
+  z,
+  halfW: 0.42,
+  halfH: 0.32,
+  tilt,
+  yaw,
 });
 
 /** Tonne fährt auf dich zu und zurück (0 … 1,7 vor der Reihe). */
@@ -234,6 +259,10 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "swish",
     task: "trick.task.windRing",
   },
+  // Straßenschild als Bande: links an der mittleren Tonne vorbei, abprallen, rein
+  { id: 19, target: 1, props: [sign(-0.75, 2.2, -0.2, 0.6)], requires: [0], bonus: "firstTry", task: "trick.task.sign" },
+  // Gespiegelt: das Schild steht rechts
+  { id: 20, target: 1, props: [sign(0.75, 2.2, -0.2, -0.6)], requires: [0], bonus: "firstTry", task: "trick.task.sign" },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -243,7 +272,9 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): strin
     const icon =
       p.kind === "fan"
         ? "💨"
-        : p.kind === "windmill"
+        : p.kind === "sign"
+          ? "🪧"
+          : p.kind === "windmill"
           ? "🌀"
           : p.motion?.kind === "spin"
             ? "🔄"
@@ -299,6 +330,7 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
   const props = level.props.map((p): TrickProp => {
     if (p.kind === "fan") return { ...p, x: -p.x, force: -p.force };
     if (p.kind === "windmill") return { ...p, x: -p.x, period: -p.period };
+    if (p.kind === "sign") return { ...p, x: -p.x, yaw: -p.yaw };
     const m = p.motion;
     const motion: RingMotion | undefined = !m
       ? undefined
@@ -317,7 +349,7 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
  *  Tages-Vorlagen gewählt, manchmal gespiegelt. */
 export function dailyTrick(date: string): TrickLevel {
   const rand = seededRandom(hashString(`trick:${date}`));
-  const pool: Omit<TrickLevel, "id">[] = [...TRICK_LEVELS.filter((l) => l.id >= 5), ...DAILY_TEMPLATES];
+  const pool: Omit<TrickLevel, "id">[] = [...TRICK_LEVELS.filter((l) => l.id >= 5 && l.id !== 20), ...DAILY_TEMPLATES];
   const pick = pool[Math.floor(rand() * pool.length)];
   const level = rand() < 0.5 ? mirrorLevel(pick) : pick;
   return { ...level, id: 0 };

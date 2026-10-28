@@ -6,6 +6,8 @@
 //  - Windrad: Mast + Nabe, die Flügel drehen sich
 //  - Ventilator: Gerät am Rand des Windfelds, Windstreifen zeigen Richtung
 //    und Stärke
+//  - Straßenschild: blaues Einbahnstraßen-Schild auf einem Pfosten zwischen
+//    zwei Tonnen; der Pfeil zeigt, wohin der Abpraller geht
 // Bewegung folgt der Szenen-Uhr (bus.clock) – genau wie die Physik
 // (game/physics.ts → ringPose, windmillAngle).
 
@@ -19,6 +21,8 @@ import {
   type PropCollider,
   type RingCollider,
   ringPose,
+  SIGN_THICK,
+  type SignCollider,
   type WindmillCollider,
   windmillAngle,
 } from "@/game/physics";
@@ -228,6 +232,67 @@ const Fan = memo(function Fan({ fan, calm }: { fan: FanCollider; calm: boolean }
   );
 });
 
+/** Tafel (blau, weißer Rand, weißer Pfeil) – in Tafel-Koordinaten gebaut. */
+function signBoard(sg: SignCollider, arrowDir: number): THREE.Object3D {
+  const g = new THREE.Group();
+  const w = sg.halfW * 2;
+  const h = sg.halfH * 2;
+  const d = SIGN_THICK * 2;
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), lowpoly("#FFFFFF")));
+  const face = new THREE.Mesh(new THREE.BoxGeometry(w - 0.06, h - 0.06, 0.004), lowpoly("#1E5AA8"));
+  face.position.z = SIGN_THICK + 0.002;
+  g.add(face);
+  // Pfeil: Schaft + Spitze (zeigt zur Tonne, in die der Abpraller fällt)
+  const shaft = new THREE.Mesh(new THREE.BoxGeometry(w * 0.45, h * 0.18, 0.004), lowpoly("#FFFFFF"));
+  shaft.position.set(-arrowDir * w * 0.08, 0, SIGN_THICK + 0.005);
+  g.add(shaft);
+  const tip = new THREE.Shape();
+  tip.moveTo(0, h * 0.24);
+  tip.lineTo(arrowDir * w * 0.22, 0);
+  tip.lineTo(0, -h * 0.24);
+  tip.closePath();
+  const head = new THREE.Mesh(new THREE.ShapeGeometry(tip), lowpoly("#FFFFFF"));
+  head.position.set(arrowDir * w * 0.14, 0, SIGN_THICK + 0.005);
+  g.add(head);
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
+/** Straßenschild: Pfosten in der Lücke zwischen den Tonnen, Tafel schräg
+ *  gedreht (yaw) und geneigt (tilt) – genau wie die Physik. Getroffen pulsiert es. */
+const Sign = memo(function Sign({ sign, bus }: { sign: SignCollider; bus: BusRef }) {
+  const board = useRef<THREE.Group>(null);
+  // Pfeil zeigt zur Mitte (Schild links → nach rechts)
+  const arrowDir = sign.x < 0 ? 1 : -1;
+  const model = useMemo(() => signBoard(sign, arrowDir), [sign, arrowDir]);
+  const bottom = sign.y - sign.halfH * Math.cos(sign.tilt);
+  // Pfosten in der Lücke zur Mitte hin (nicht durch eine Tonne)
+  const poleX = sign.x + arrowDir * 0.11;
+  useEffect(() => () => model.traverse((o) => (o as THREE.Mesh).geometry?.dispose()), [model]);
+  useFrame(() => {
+    const b = board.current;
+    if (!b) return;
+    const since = bus.current.clock - (bus.current.ringPass[sign.id] ?? -99);
+    const k = since >= 0 && since < FLASH ? 1 - since / FLASH : 0;
+    b.scale.setScalar(1 + k * 0.08);
+  });
+  return (
+    <>
+      <mesh position={[poleX, bottom / 2, sign.z - 0.04]} material={lowpoly("#9AA3AC")} castShadow>
+        <cylinderGeometry args={[0.035, 0.035, bottom, 8]} />
+      </mesh>
+      <group position={[sign.x, sign.y, sign.z]} rotation={[0, sign.yaw, 0]}>
+        <group rotation={[sign.tilt, 0, 0]}>
+          <group ref={board}>
+            <primitive object={model} />
+          </group>
+        </group>
+      </group>
+    </>
+  );
+});
+
 /** Alle Hindernisse eines Levels. */
 export const TrickProps = memo(function TrickProps({
   props,
@@ -245,6 +310,8 @@ export const TrickProps = memo(function TrickProps({
           <Ring key={prop.id} ring={prop} bus={bus} />
         ) : prop.kind === "windmill" ? (
           <Windmill key={prop.id} mill={prop} bus={bus} />
+        ) : prop.kind === "sign" ? (
+          <Sign key={prop.id} sign={prop} bus={bus} />
         ) : (
           <Fan key={prop.id} fan={prop} calm={calm} />
         ),

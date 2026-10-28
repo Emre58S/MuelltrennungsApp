@@ -124,7 +124,28 @@ export type FanCollider = {
   force: number;
 };
 
-export type PropCollider = RingCollider | WindmillCollider | FanCollider;
+/** Straßenschild als Bande: flache Tafel (zur Kamera, oben um `tilt` nach
+ *  vorn geneigt) – man wirft dagegen, der Gegenstand prallt in die Tonne. */
+export type SignCollider = {
+  kind: "sign";
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  halfW: number;
+  halfH: number;
+  /** Neigung (rad): oben zum Spieler hin. */
+  tilt: number;
+  /** Drehung um die Hochachse (rad): + = Tafel schaut nach rechts. */
+  yaw: number;
+};
+
+export type PropCollider = RingCollider | WindmillCollider | FanCollider | SignCollider;
+
+/** Halbe Dicke der Schild-Tafel. */
+export const SIGN_THICK = 0.03;
+/** Wie stark das Schild zurückfedert. */
+const SIGN_RESTITUTION = 0.55;
 
 /** Halbe Dicke eines Windrad-Flügels (Richtung Kamera). */
 export const BLADE_THICK = 0.04;
@@ -192,7 +213,7 @@ export type BallEvent =
       type: "bounce";
       bin: number | null;
       speed: number;
-      part: BinPart | "ring" | "blade" | "ground";
+      part: BinPart | "ring" | "blade" | "sign" | "ground";
       /** Reifen (Trickwürfe), falls einer berührt wurde. */
       prop?: number;
     }
@@ -427,6 +448,40 @@ function collideWindmill(ball: Ball, w: WindmillCollider, events: BallEvent[]) {
   }
 }
 
+/** Straßenschild: Abprall an der Tafel. Ein Treffer zählt wie ein
+ *  durchflogener Reifen ("pass") – so lässt sich „über die Bande“ verlangen. */
+function collideSign(ball: Ball, sign: SignCollider, events: BallEvent[]) {
+  const wx = ball.p.x - sign.x;
+  const dy = ball.p.y - sign.y;
+  const wz = ball.p.z - sign.z;
+  const reach = Math.max(sign.halfW, sign.halfH) + BALL_R + 0.1;
+  if (Math.abs(wx) > reach || Math.abs(dy) > reach || Math.abs(wz) > reach) return;
+  // Erst die Drehung um die Hochachse herausrechnen, dann die Neigung
+  const cy = Math.cos(sign.yaw);
+  const sy = Math.sin(sign.yaw);
+  const dx = wx * cy - wz * sy;
+  const dz = wx * sy + wz * cy;
+  const cos = Math.cos(sign.tilt);
+  const sin = Math.sin(sign.tilt);
+  // Tafel-Koordinaten: quer (x), hoch (entlang der Neigung), Tiefe (Normale)
+  const up = dy * cos + dz * sin;
+  const depth = -dy * sin + dz * cos;
+  const lx = dx - THREE.MathUtils.clamp(dx, -sign.halfW, sign.halfW);
+  const lu = up - THREE.MathUtils.clamp(up, -sign.halfH, sign.halfH);
+  const ld = depth - THREE.MathUtils.clamp(depth, -SIGN_THICK, SIGN_THICK);
+  const d = Math.hypot(lx, lu, ld);
+  if (d >= BALL_R) return;
+  if (d < 1e-6) n.set(0, -sin, cos).multiplyScalar(Math.sign(depth) || 1);
+  else n.set(lx / d, (lu * cos - ld * sin) / d, (lu * sin + ld * cos) / d);
+  // Zurück in Welt-Richtung (Drehung um die Hochachse)
+  n.set(n.x * cy + n.z * sy, n.y, -n.x * sy + n.z * cy);
+  const speed = bounce(ball, n, BALL_R - d, SIGN_RESTITUTION);
+  if (speed <= 0.4) return;
+  ball.touched = true;
+  events.push({ type: "bounce", bin: null, speed, part: "sign", prop: sign.id });
+  events.push({ type: "pass", prop: sign.id });
+}
+
 /** Ventilator: im Windfeld seitlich beschleunigen (je nach Gewicht). */
 function blowFan(ball: Ball, fan: FanCollider, h: number) {
   const p = ball.p;
@@ -465,6 +520,7 @@ export function stepBall(
       const prop = props[i];
       if (prop.kind === "ring") collideRing(ball, prop, prevP, events);
       else if (prop.kind === "windmill") collideWindmill(ball, prop, events);
+      else if (prop.kind === "sign") collideSign(ball, prop, events);
       else blowFan(ball, prop, h);
     }
 
