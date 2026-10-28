@@ -352,11 +352,76 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "jar":
+      // Vier Gläser, vier Inhalte (vorher alle rot gefüllt):
+      if (name.includes("gurken")) {
+        // Gurkenglas: hoch, grünliche Brühe mit Gurken, grüner Deckel
+        return (
+          <group rotation={[0.15, 0.3, 0.05]}>
+            {/* Grünlich getöntes Glas statt eigener Brühe-Schicht: so bleiben die
+                Gurken sichtbar (zwei durchsichtige Schichten sortiert three.js nicht sicher) */}
+            <Cyl r={0.19} h={0.44} color="#C9DDA0" opacity={0.55} />
+            {(
+              [
+                [-0.07, 0.05],
+                [0.07, 0.06],
+                [0, -0.08],
+              ] as [number, number][]
+            ).map(([x, z]) => (
+              <Cyl key={`${x}${z}`} r={0.045} h={0.32} pos={[x, -0.04, z]} rot={[0, 0, x * 0.8]} color="#5E8F2F" />
+            ))}
+            <Cyl r={0.195} h={0.06} pos={[0, 0.25, 0]} color="#2E7D32" />
+            <Shine size={[0.035, 0.32, 0.01]} pos={[-0.105, 0, 0.16]} rot={[0, -0.55, 0]} />
+          </group>
+        );
+      }
+      if (name.includes("honig")) {
+        // Honigglas: breit, bernsteinfarbener Honig, Waben-Zeichen, Golddeckel
+        return (
+          <group rotation={[0.15, 0.3, 0.05]}>
+            <Cyl r={0.21} h={0.3} color="#F7E7C0" opacity={0.5} />
+            <Cyl r={0.19} h={0.24} pos={[0, -0.02, 0]} color="#D99A1E" />
+            <Cyl r={0.215} h={0.06} pos={[0, 0.18, 0]} color="#E2B33C" />
+            {[-0.06, 0, 0.06].map((x, i) => (
+              <mesh key={x} position={[x, i === 1 ? 0.04 : -0.01, 0.22]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.035, 0.035, 0.01, 6]} />
+                <meshLambertMaterial color="#F5C542" flatShading />
+              </mesh>
+            ))}
+            <Shine size={[0.035, 0.22, 0.01]} pos={[-0.115, 0, 0.175]} rot={[0, -0.55, 0]} />
+          </group>
+        );
+      }
+      if (name.includes("senf")) {
+        // Senfglas: klein und schmal, knallgelber Senf, dunkelblauer Deckel
+        return (
+          <group rotation={[0.15, 0.3, 0.05]} scale={0.85}>
+            <Cyl r={0.15} rTop={0.16} h={0.36} color="#F1F5E8" opacity={0.5} />
+            <Cyl r={0.135} h={0.28} pos={[0, -0.03, 0]} color="#E2B400" />
+            <Cyl r={0.165} h={0.06} pos={[0, 0.21, 0]} color="#1E3A8A" />
+            <Cyl r={0.162} h={0.1} pos={[0, 0.02, 0]} color="#FFFFFF" />
+            <Shine size={[0.03, 0.26, 0.01]} pos={[-0.09, 0, 0.14]} rot={[0, -0.55, 0]} />
+          </group>
+        );
+      }
+      // Marmeladenglas: rote Marmelade, karierter Stoffdeckel mit Rüsche
       return (
         <group rotation={[0.15, 0.3, 0.05]}>
           <Cyl r={0.2} h={0.36} color="#D9F0F5" roughness={0.1} opacity={0.6} />
           <Cyl r={0.16} h={0.26} pos={[0, -0.04, 0]} color="#C0392B" roughness={0.7} />
-          <Cyl r={0.205} h={0.07} pos={[0, 0.215, 0]} color="#E2B33C" metalness={0.5} roughness={0.35} />
+          <Cyl r={0.23} h={0.05} pos={[0, 0.21, 0]} color="#D94B4B" />
+          <Cyl r={0.24} rTop={0.2} h={0.04} pos={[0, 0.165, 0]} color="#F5F5F5" />
+          {/* weiße Karos flach auf dem Stoffdeckel */}
+          {(
+            [
+              [-0.1, -0.1],
+              [0.1, -0.1],
+              [0, 0],
+              [-0.1, 0.1],
+              [0.1, 0.1],
+            ] as [number, number][]
+          ).map(([x, z]) => (
+            <Box key={`${x}${z}`} size={[0.08, 0.01, 0.08]} pos={[x, 0.24, z]} color="#FFFFFF" />
+          ))}
           <Cyl r={0.203} h={0.12} pos={[0, 0.02, 0]} color="#FFFFFF" roughness={0.9} />
           <Shine size={[0.035, 0.26, 0.01]} pos={[-0.11, 0, 0.17]} rot={[0, -0.55, 0]} />
         </group>
