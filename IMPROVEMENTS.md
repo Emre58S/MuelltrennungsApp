@@ -9,21 +9,31 @@ zu ändern.
 
 ## Offen
 
-- [ ] **Design verfeinern**: Abstände, Typografie, Farben und Karten
-  vereinheitlichen; kleine Unsauberkeiten beheben. (Kontraste, Rundenende:
-  erledigt)
-- [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit während der Rückfrage
-  anhalten; Trick-Runde einheitlich; Android-Zurück-Taste. (Geringer Nutzen auf dem iPhone.)
-- [ ] **Neue Trick-Level (Inhalt, vom Nutzer gewünscht)**: erst wenn sonst
-  nichts Sinnvolles mehr offen ist. Je Zyklus 1–2 neue Level aus den
-  vorhandenen Hindernissen (Reifen, Windrad, Wind, gleitende Tonne) –
-  keine neue Mechanik. Pflicht: Fairness-Test
-  `npx jest game/__tests__/tricks.test.ts` (~4 min) grün, Texte DE+EN,
-  Schwierigkeit steigt sanft an.
-- [ ] **Eigenes App-Symbol und Startbildschirm**: Tonne mit Gegenstand im
-  Wurfbogen, in den Spielfarben (statt Expo-Platzhalter).
-  Hinweis: In Expo Go nicht sichtbar (Symbol gehört zur installierten App) –
-  erst mit eigenem Build. Daher zuletzt.
+Backlog vom 2026-10-28 (vom Nutzer bestätigt). Neue Ziele/Hindernisse sind
+ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
+
+- [ ] **Gegenstand näher an die Tonnen**: Startposition des Wurf-Gegenstands
+  so, dass er nicht vom „Weiter“-Knopf/HUD überdeckt wird (auch kleines iPhone).
+- [ ] **Tonnen-Design**: Griffe, Deckelkante, angedeutete Räder, sauberer
+  Aufkleber; weichere Kanten/Schatten. Gleicher Stil, keine Ruckler.
+- [ ] **Gegenstände-Design**: einheitlichere Farben, weichere Formen, Material
+  erkennbar (Glas glänzt, Papier matt). Je Zyklus eine Material-Gruppe.
+- [ ] **Szene aufwerten, nicht überladen**: wenige Boden-Details (Fugen, Gully),
+  dezenter Hintergrund, weiches Licht. Nichts lenkt vom Wurf ab.
+- [ ] **Sondermüll/Elektroschrott spielbar**: rote Sondermüll-Box als 6. Ziel,
+  nur zeitweise (höhere Stufen/Sonderrunde); 3D-Modelle für die 10
+  Sondermüll-Gegenstände; Texte DE+EN; Lernkarte.
+- [ ] **Mehr Gegenstände**: 10–15 neue Alltagsdinge über alle Tonnen, bevorzugt
+  typische Irrtümer (Pizzakarton, Teebeutel, Joghurtbecher, Marmeladenglas,
+  Staubsaugerbeutel …).
+- [ ] **Mehr Belohnungen**: 4–5 neue Wurfspuren (Seifenblasen, Herbstlaub,
+  Funken, Sternenstaub); neu: Tonnen-Designs (Sticker/Muster, nur Optik).
+- [ ] **Trickwürfe: echte Hindernisse**: Straßenschild zum Abprallen (zuerst),
+  Laternenmast, Markise/Vordach zum Reinrutschen, Bauzaun/Mauer. Je Hindernis
+  1–2 Level, sanft steigend. Pflicht: Fairness-Test grün; sonst verwerfen.
+- [ ] **Rückfrage beim Beenden, Rest**: Fever-Zeit anhalten; Trick-Runde
+  einheitlich; Android-Zurück-Taste. (Geringer Nutzen auf dem iPhone.)
+- [ ] **Eigenes App-Symbol und Startbildschirm** (erst mit eigenem Build sichtbar).
 
 ## Erledigt
 

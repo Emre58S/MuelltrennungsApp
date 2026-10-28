@@ -36,6 +36,8 @@ Expo Go.
 - Nur Branch `auto-improve`. Nie auf `main` oder `sdk-58` committen oder pushen.
 - EAS-Updates nur auf Kanal `auto` (nie `preview` – das ist die Spielversion).
 - Keine grundlegenden Mechaniken ändern (Werfen, Physik, Regeln, Wertung).
+  Ausnahme (Nutzer, 2026-10-28): neue Ziele (Sondermüll-Box) und neue
+  Trick-Hindernisse (Schild, Laterne, Markise, Zaun) sind erlaubt.
 - Keine neuen Abhängigkeiten ohne klaren Grund; nichts löschen, was genutzt wird.
 - Texte immer Deutsch UND Englisch (i18n/de.ts, i18n/en.ts).
 - Töne: nur minimal verfeinern. Die Material-Klänge (Glas klirrt, Dose
