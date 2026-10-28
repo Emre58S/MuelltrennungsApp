@@ -116,6 +116,9 @@ const MENU_BINS: BinDef[] = MENU_MODES.map((m, i) => {
 
 const MENU_POOL: Item[] = getItemsForBins(STANDARD_BINS);
 
+/** Breite des schwebenden Gegenstands im Menü (Anteil der Bildschirmbreite). */
+const MENU_ITEM_WIDTH = 0.22;
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
@@ -141,15 +144,18 @@ export default function HomeScreen() {
 
   // Kleine Handys (z. B. iPhone SE): alles etwas enger
   const compact = height < 740;
-  const layout = useMemo(
-    () =>
-      computeLayout(width, height, MENU_BINS.length, {
-        binsNdcY: compact ? 0.46 : 0.4,
-        itemNdcY: compact ? -0.14 : -0.28,
-        itemWidth: 0.22,
-      }),
-    [width, height, compact],
-  );
+  /** Oberkante des unteren Menüs (gemessen) – der Gegenstand schwebt darüber. */
+  const [menuTop, setMenuTop] = useState(0);
+  const layout = useMemo(() => {
+    const options = { binsNdcY: compact ? 0.46 : 0.4, itemNdcY: compact ? -0.14 : -0.28, itemWidth: MENU_ITEM_WIDTH };
+    const base = computeLayout(width, height, MENU_BINS.length, options);
+    if (menuTop <= 0) return base;
+    // Zwischen Schildern und Menü: knapp über dem Menü, aber nie in die Schilder
+    const half = (width * MENU_ITEM_WIDTH) / 2;
+    const signBottom = Math.max(...base.binRects.map((r) => r.y + r.h)) + 4 + (compact ? 85 : 106) + 6;
+    const y = Math.max(signBottom + half, menuTop - half - 10);
+    return computeLayout(width, height, MENU_BINS.length, { ...options, itemNdcY: 1 - (2 * y) / height });
+  }, [width, height, compact, menuTop]);
 
   /* ── Schwebender Gegenstand (die Szene liest ihn aus dem Bus) ── */
   const [bag] = useState(() => ({ current: [] as Item[] }));
@@ -449,7 +455,11 @@ export default function HomeScreen() {
       </View>
 
       {/* Unten im Daumenbereich: Hinweis, Weiter, weitere Spielarten, Nebenseiten */}
-      <View style={[styles.menu, { paddingBottom: insets.bottom + Spacing.sm }]} pointerEvents="box-none">
+      <View
+        style={[styles.menu, { paddingBottom: insets.bottom + Spacing.sm }]}
+        pointerEvents="box-none"
+        onLayout={(e) => setMenuTop(Math.round(e.nativeEvent.layout.y))}
+      >
         {!compact && <ThrowHint text={t("home.throwHint")} calm={reduceMotion} />}
 
         <Pressable
