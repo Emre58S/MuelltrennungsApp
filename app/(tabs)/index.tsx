@@ -121,7 +121,7 @@ const MENU_ITEM_WIDTH = 0.22;
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  const { width, height, fontScale } = useWindowDimensions();
   const { colors, scheme } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const { t, formatNumber } = useI18n();
@@ -152,10 +152,12 @@ export default function HomeScreen() {
     if (menuTop <= 0) return base;
     // Zwischen Schildern und Menü: knapp über dem Menü, aber nie in die Schilder
     const half = (width * MENU_ITEM_WIDTH) / 2;
-    const signBottom = Math.max(...base.binRects.map((r) => r.y + r.h)) + 4 + (compact ? 85 : 106) + 6;
+    const signBottom = Math.max(...base.binRects.map((r) => r.y + r.h)) + 4 + (compact ? 56 : 72) + 6 +
+      // Große Systemschrift: Titel (und Rekord) werden höher
+      (Math.min(fontScale, 1.6) - 1) * (compact ? 17 : 31);
     const y = Math.max(signBottom + half, menuTop - half - 10);
     return computeLayout(width, height, MENU_BINS.length, { ...options, itemNdcY: 1 - (2 * y) / height });
-  }, [width, height, compact, menuTop]);
+  }, [width, height, fontScale, compact, menuTop]);
 
   /* ── Schwebender Gegenstand (die Szene liest ihn aus dem Bus) ── */
   const [bag] = useState(() => ({ current: [] as Item[] }));
@@ -456,7 +458,7 @@ export default function HomeScreen() {
 
       {/* Unten im Daumenbereich: Hinweis, Weiter, weitere Spielarten, Nebenseiten */}
       <View
-        style={[styles.menu, { paddingBottom: insets.bottom + Spacing.sm }]}
+        style={[styles.menu, { paddingBottom: Math.max(insets.bottom - 8, Spacing.sm) }]}
         pointerEvents="box-none"
         onLayout={(e) => setMenuTop(Math.round(e.nativeEvent.layout.y))}
       >
@@ -623,14 +625,15 @@ function ModeBin({
           </View>
         )}
         <View style={styles.modeIcon}>
-          <Feather name={icon} size={16} color={color.sign} />
+          <Feather name={icon} size={13} color={color.sign} />
         </View>
         <AppText
           variant="label"
           color={color.on}
           center
-          numberOfLines={2}
+          numberOfLines={1}
           adjustsFontSizeToFit
+          minimumFontScale={0.75}
           style={styles.modeTitle}
         >
           {title}
@@ -953,10 +956,10 @@ const styles = StyleSheet.create({
   modeSign: {
     position: "absolute",
     alignItems: "center",
-    gap: 3,
-    paddingTop: 7,
-    paddingBottom: 7,
-    paddingHorizontal: 6,
+    gap: 2,
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingHorizontal: 5,
     borderRadius: Radius.lg,
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.75)",
@@ -971,15 +974,15 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   modeIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#FFFFFF",
   },
-  modeTitle: { lineHeight: 17 },
-  modeRecord: { opacity: 0.92 },
+  modeTitle: { fontSize: 14, lineHeight: 17 },
+  modeRecord: { fontSize: 11, lineHeight: 14, opacity: 0.92 },
   lastBadge: {
     position: "absolute",
     top: -7,

@@ -12,8 +12,6 @@ zu ändern.
 Backlog vom 2026-10-28 (vom Nutzer bestätigt). Neue Ziele/Hindernisse sind
 ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
-- [ ] **Gegenstand näher an die Tonnen**: Startposition des Wurf-Gegenstands
-  so, dass er nicht vom „Weiter“-Knopf/HUD überdeckt wird (auch kleines iPhone).
 - [ ] **Tonnen-Design**: Griffe, Deckelkante, angedeutete Räder, sauberer
   Aufkleber; weichere Kanten/Schatten. Gleicher Stil, keine Ruckler.
 - [ ] **Gegenstände-Design**: einheitlichere Farben, weichere Formen, Material
@@ -37,6 +35,7 @@ ausdrücklich erlaubt; Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Menü: Gegenstand über dem unteren Menü, nicht hinter „Weiter“ (1444aa6)
 - [x] Trick-Level 17/18 (gespiegelt, Bonus getauscht) (c3f97cb)
 - [x] Neues Trick-Level 16, ↕️-Symbol (d0d6c74)
 - [x] Neues Trick-Level 15: zwei Reifen, unten drehend (323ff56)
