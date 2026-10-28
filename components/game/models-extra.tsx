@@ -72,9 +72,12 @@ function Cyl({
   rot,
   color,
   opacity = 1,
+  open = false,
 }: {
   r: number;
   rTop?: number;
+  /** Ohne Deckel/Boden (z. B. Trinkglas) – innen sichtbar. */
+  open?: boolean;
   h: number;
   pos?: V3;
   rot?: V3;
@@ -85,12 +88,13 @@ function Cyl({
 }) {
   return (
     <mesh position={pos} rotation={rot} castShadow>
-      <cylinderGeometry args={[rTop ?? r, r, h, 20]} />
+      <cylinderGeometry args={[rTop ?? r, r, h, 20, 1, open]} />
       <meshLambertMaterial
         color={color}
         flatShading
         transparent={opacity < 1}
         opacity={opacity}
+        side={open ? THREE.DoubleSide : THREE.FrontSide}
       />
     </mesh>
   );
@@ -182,11 +186,14 @@ export function renderExtraModel(key: string): ReactElement | null {
       );
 
     case "tumbler":
-      // Trinkglas: oben offen, durchsichtig, dicker Boden
+      // Trinkglas: oben offen (man sieht hinein), dünne Wand, dicker Boden,
+      // heller Rand oben
       return (
-        <group rotation={[0.25, 0.3, -0.1]}>
-          <Cyl r={0.17} rTop={0.2} h={0.4} color="#DCEFF5" opacity={0.5} />
-          <Cyl r={0.17} h={0.06} pos={[0, -0.17, 0]} color="#C4E3EC" opacity={0.8} />
+        <group rotation={[0.45, 0.3, -0.1]}>
+          {/* Boden zuerst: so bleibt er auch durch die Glaswand sichtbar */}
+          <Cyl r={0.17} h={0.06} pos={[0, -0.17, 0]} color="#C4E3EC" opacity={0.85} />
+          <Cyl r={0.17} rTop={0.2} h={0.4} color="#DCEFF5" opacity={0.45} open />
+          <Cyl r={0.204} h={0.022} pos={[0, 0.2, 0]} color="#F5FBFD" opacity={0.9} open />
           <Shine size={[0.03, 0.3, 0.01]} pos={[-0.09, 0.02, 0.16]} rot={[0, -0.5, 0]} />
         </group>
       );
