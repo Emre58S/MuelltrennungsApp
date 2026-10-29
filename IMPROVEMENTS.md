@@ -53,7 +53,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
   Formen low-poly (Icosaeder detail ≤1, Wellen 10×8, Zylinder ≤24 Segmente),
   Geometrien per memoGeo geteilt. Neue Effekte der Nacht (Fever-Pause) laufen
   nicht pro Frame. Kein Handlungsbedarf; echte Messung nur am iPhone möglich.
-- [ ] E3 Sammelbuch: 3D-Vorschau des Gegenstands beim Antippen (nur wenn Zeit).
+- [x] (9ebe8f5) E3 Sammelbuch: 3D-Vorschau des Gegenstands beim Antippen (nur wenn Zeit).
 - [ ] E5 Szene: weicheres Licht, ruhigerer Hintergrund (ganz zum Schluss).
 
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
