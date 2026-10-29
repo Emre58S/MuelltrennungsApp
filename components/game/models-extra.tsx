@@ -430,13 +430,31 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
 
     case "candle":
       return (
-        <group rotation={[0.2, 0.3, -0.2]}>
-          {/* Stummel mit gelblicher Oberseite, Docht und Wachstropfen */}
+        <group rotation={[0.35, 0.3, -0.2]}>
+          {/* Stummel mit gelblicher Oberseite, Brandmulde, verkohltem Docht
+              und Wachsnasen an der Seite (vorher ein glatter Zylinder) */}
           <Cyl r={0.13} rTop={0.12} h={0.15} color="#FFF4D6" />
           <Cyl r={0.12} h={0.02} pos={[0, 0.08, 0]} color="#F6E3A1" />
+          <Cyl r={0.07} h={0.006} pos={[0, 0.092, 0]} color="#E2C46A" />
           <Cyl r={0.012} h={0.07} pos={[0, 0.12, 0]} color="#1F2937" />
-          <Cyl r={0.04} rTop={0.025} h={0.08} pos={[0.1, 0.01, 0.07]} color="#FFF4D6" />
-          <Cyl r={0.03} rTop={0.02} h={0.06} pos={[-0.11, 0.02, 0.05]} color="#FFF4D6" />
+          <Cyl r={0.014} h={0.02} pos={[0, 0.16, 0]} color="#000000" />
+          {(
+            [
+              [0, 0.055, 0.06],
+              [0.6, 0.055, 0.09],
+              [-0.7, 0.055, 0.05],
+            ] as V3[]
+          ).map(([a, y, len]) => (
+            <Box
+              key={a}
+              size={[0.035, len, 0.02]}
+              pos={[Math.sin(a) * 0.127, y - len / 2 + 0.03, Math.cos(a) * 0.127]}
+              rot={[0, a, 0]}
+              color="#FBEFC8"
+            />
+          ))}
+          <Cyl r={0.04} rTop={0.032} h={0.08} pos={[-0.17, -0.035, 0.08]} color="#FFF4D6" />
+          <Cyl r={0.008} h={0.03} pos={[-0.17, 0.018, 0.08]} color="#1F2937" />
         </group>
       );
 
@@ -709,13 +727,36 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "cable":
+      // Aufgewickeltes Ladekabel: drei Windungen zur Kamera hin; die Stecker
+      // hängen radial am Ring (Tülle zeigt zur Mitte): USB-Stecker
+      // mit Metallkopf an einem Ende, kleiner Handystecker am anderen
       return (
-        <group rotation={[0.8, 0, 0]}>
-          <mesh castShadow>
-            <torusGeometry args={[0.18, 0.025, 8, 28]} />
-            <meshLambertMaterial color="#F3F4F6" flatShading />
-          </mesh>
-          <Box size={[0.12, 0.08, 0.16]} pos={[0.24, 0, 0]} color="#E5E7EB" />
+        <group rotation={[0.3, 0.2, 0]}>
+          {(
+            [
+              [0, 0, 0.17],
+              [-0.03, 0.25, 0.16],
+              [0.03, -0.25, 0.18],
+            ] as V3[]
+          ).map(([z, ry, rr]) => (
+            <mesh key={ry} position={[0, 0, z]} rotation={[0, ry, 0]} castShadow>
+              <torusGeometry args={[rr, 0.022, 6, 28]} />
+              <meshLambertMaterial color="#F3F4F6" flatShading />
+            </mesh>
+          ))}
+          <group position={[0.193, -0.23, 0]} rotation={[0, 0, 0.698]}>
+            <Cyl r={0.022} h={0.08} pos={[0, 0.1, 0]} color="#E5E7EB" />
+            <Box size={[0.09, 0.15, 0.07]} color="#E5E7EB" />
+            <Box size={[0.07, 0.08, 0.03]} pos={[0, -0.11, 0]} color="#D6DCE4" />
+            {[-0.015, 0.015].map((x) => (
+              <Box key={x} size={[0.018, 0.02, 0.034]} pos={[x, -0.125, 0]} color="#1F2937" />
+            ))}
+          </group>
+          <group position={[-0.177, -0.211, 0]} rotation={[0, 0, -0.698]}>
+            <Cyl r={0.02} h={0.06} pos={[0, 0.07, 0]} color="#E5E7EB" />
+            <Box size={[0.06, 0.1, 0.045]} color="#E5E7EB" />
+            <Box size={[0.045, 0.05, 0.018]} pos={[0, -0.075, 0]} color="#D6DCE4" />
+          </group>
         </group>
       );
 
