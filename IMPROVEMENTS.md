@@ -15,9 +15,12 @@ Leitsatz: Erkennbarkeit vor Details – lieber eine klare Form als viele kleine 
 *Phase 1 – Modelle klar erkennbar*
 - [x] M1 Apfelrest als runder Apfel (mit Biss), Alufolie = einfacher grauer
   Knäuel, Eierschale vereinfachen (zwei Halbschalen, keine Zacken).
-- [ ] M2 Audit „überladen/schwer erkennbar“ über alle Modelle → Liste.
-- [ ] M3–M4 Audit-Punkte abarbeiten (vereinfachen statt ausschmücken),
-  Spülmittel schlanker.
+- [x] M2 Audit „überladen/schwer erkennbar“ über alle Modelle → Liste.
+- [x] M3 Kleinteile weg: Thermometer, Teelicht, Saftflasche, Medikamente, Senf, Kaffeefilter.
+- [ ] M4 Smartphone (2×3 große Kacheln, keine Sprünge), Laptop ohne Einzeltasten,
+  Zeitung/Prospekt weniger Streifen, Rasierer schlichter, Geschenkpapier ohne Kleinteile.
+- [ ] M5 Grundform: Walnuss ganz + oval (≠ Eierschale), Obstnetz als Netzbeutel,
+  Maiskolben durchgehend gelb mit Lieschblättern; Katzenstreu 3–4 Klumpen; Spülmittel schlanker.
 
 *Phase 2 – Szenen (Gesamteindruck)*
 - [ ] S1 Audit der drei Szenen (haus/ziegel/garten): was wirkt leer, unruhig,

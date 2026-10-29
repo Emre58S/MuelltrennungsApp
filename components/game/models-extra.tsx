@@ -412,12 +412,6 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
           <Cyl r={0.13} rTop={0.06} h={0.1} pos={[0, 0.25, 0]} color="#E6F4F1" opacity={0.55} />
           {/* Metall-Schraubdeckel (PET-Flaschen haben Plastikdeckel) und dicker Glasboden */}
           <Cyl r={0.068} h={0.06} pos={[0, 0.33, 0]} color="#C0C8D4" />
-          {[0.315, 0.335, 0.355].map((y) => (
-            <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[0.069, 0.004, 4, 16]} />
-              <meshLambertMaterial color="#9CA3AF" flatShading />
-            </mesh>
-          ))}
           <Cyl r={0.132} h={0.04} pos={[0, -0.19, 0]} color="#CDE6E0" />
           <Shine size={[0.03, 0.22, 0.01]} pos={[-0.065, 0.02, 0.115]} rot={[0, -0.5, 0]} />
         </group>
@@ -603,31 +597,12 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         );
       }
       if (name.includes("senf")) {
-        // Senfglas: klein und schmal, hellgelber Senf mit dunklen Körnern
+        // Senfglas: klein und schmal, hellgelber Senf
         // (Honig ist bernstein und glatt), dunkelblauer Deckel
         return (
           <group rotation={[0.15, 0.3, 0.05]} scale={0.85}>
             <Cyl r={0.15} rTop={0.16} h={0.36} color="#F1F5E8" opacity={0.5} />
             <Cyl r={0.135} h={0.28} pos={[0, -0.03, 0]} color="#EED04A" />
-            {(
-              [
-                [-0.5, -0.07],
-                [-0.15, -0.11],
-                [0.2, -0.06],
-                [0.5, -0.12],
-                [0.05, -0.15],
-                [-0.3, 0.09],
-                [0.3, 0.09],
-              ] as [number, number][]
-            ).map(([a, y]) => (
-              <Box
-                key={`${a}${y}`}
-                size={[0.018, 0.018, 0.006]}
-                pos={[Math.sin(a) * 0.136, y, Math.cos(a) * 0.136]}
-                rot={[0, a, 0.6]}
-                color="#5C4310"
-              />
-            ))}
             <Cyl r={0.165} h={0.06} pos={[0, 0.21, 0]} color="#1E3A8A" />
             <Cyl r={0.162} h={0.1} pos={[0, 0.02, 0]} color="#FFFFFF" />
             <Shine size={[0.03, 0.26, 0.01]} pos={[-0.09, 0, 0.14]} rot={[0, -0.55, 0]} />
@@ -821,48 +796,17 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "pills":
-      // Abgelaufene Medikamente: braune Tablettendose mit weißem Kindersicherungs-
-      // Deckel und Etikett mit rotem Kreuz, davor zwei rot-weiße Kapseln
+      // Abgelaufene Medikamente: braune Tablettendose mit weißem Deckel und
+      // Etikett mit großem rotem Kreuz
       // (vorher ein Blister mit Tabletten – sah aus wie der leere Blister,
       // der aber in den Gelben Sack gehört)
       return (
         <group rotation={[0.3, 0.3, 0]}>
           <Cyl r={0.11} h={0.26} pos={[-0.08, 0, 0]} color="#B45309" />
           <Cyl r={0.12} h={0.07} pos={[-0.08, 0.165, 0]} color="#F8FAFC" />
-          {Array.from({ length: 12 }, (_, i) => {
-            const a = (i / 12) * Math.PI * 2;
-            return (
-              <Box
-                key={i}
-                size={[0.012, 0.06, 0.008]}
-                pos={[-0.08 + Math.sin(a) * 0.121, 0.165, Math.cos(a) * 0.121]}
-                rot={[0, a, 0]}
-                color="#E2E8F0"
-              />
-            );
-          })}
           <Cyl r={0.113} h={0.1} pos={[-0.08, -0.01, 0]} color="#FFFFFF" />
           <Box size={[0.06, 0.018, 0.006]} pos={[-0.08, -0.01, 0.113]} color="#DC2626" />
           <Box size={[0.018, 0.06, 0.006]} pos={[-0.08, -0.01, 0.113]} color="#DC2626" />
-          {(
-            [
-              [0.13, 0.12, 0.4],
-              [0.2, -0.02, -0.3],
-            ] as V3[]
-          ).map(([x, z, r]) => (
-            <group key={x} position={[x, -0.105, z]} rotation={[0, r, Math.PI / 2]}>
-              <Cyl r={0.025} h={0.03} pos={[0, 0.015, 0]} color="#DC2626" />
-              <Cyl r={0.025} h={0.03} pos={[0, -0.015, 0]} color="#F8FAFC" />
-              <mesh position={[0, 0.03, 0]}>
-                <sphereGeometry args={[0.025, 20, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshLambertMaterial color="#DC2626" flatShading />
-              </mesh>
-              <mesh position={[0, -0.03, 0]} rotation={[Math.PI, 0, 0]}>
-                <sphereGeometry args={[0.025, 20, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshLambertMaterial color="#F8FAFC" flatShading />
-              </mesh>
-            </group>
-          ))}
         </group>
       );
 
@@ -951,28 +895,14 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "tealight":
-      // Leere Teelicht-Hülle: flaches, offenes Alu-Schälchen mit Riffelwand,
-      // innen das Dochtplättchen mit verkohltem Dochtrest
+      // Leere Teelicht-Hülle: flaches, offenes Alu-Schälchen, innen ein
+      // dunkles Dochtplättchen mit dickem Dochtrest (eine klare Form statt Kleinteilen)
       return (
         <group rotation={[0.75, 0.3, 0]}>
           <Part geo={G.cyl(0.155, 0.155, 0.07, 24, true)} double color="#D1D5DB" metalness={0.6} />
           <Part geo={G.circle(0.155, 24)} pos={[0, -0.035, 0]} rot={[-Math.PI / 2, 0, 0]} double color="#C0C8D4" metalness={0.6} />
-          {Array.from({ length: 16 }, (_, i) => {
-            const a = (i / 16) * Math.PI * 2;
-            return (
-              <Part
-                key={i}
-                geo={G.box(0.012, 0.06, 0.008, 0.002)}
-                pos={[Math.sin(a) * 0.157, 0, Math.cos(a) * 0.157]}
-                rot={[0, a, 0]}
-                color="#9CA3AF"
-              />
-            );
-          })}
-          <Part geo={G.cyl(0.035, 0.035, 0.006, 12)} pos={[0, -0.031, 0]} color="#E5E7EB" metalness={0.6} />
-          <Part geo={G.cyl(0.008, 0.008, 0.04, 6)} pos={[0, -0.008, 0]} color="#111827" />
-          {/* ein Wachsrest am Rand */}
-          <Part geo={G.ball(0.03, 8, 6)} pos={[0.08, -0.03, -0.05]} scale={[1, 0.4, 1]} color="#FFF4D6" />
+          <Part geo={G.cyl(0.04, 0.04, 0.006, 12)} pos={[0, -0.031, 0]} color="#6B7280" />
+          <Part geo={G.cyl(0.015, 0.015, 0.05, 8)} pos={[0, -0.003, 0]} color="#111827" />
         </group>
       );
 
@@ -1058,20 +988,12 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
 
     case "thermo":
       // Quecksilber-Fieberthermometer: dickes Glasrohr, darin weißer
-      // Skalenstreifen mit schwarzen Strichen und davor die dunkle
+      // Skalenstreifen und davor die dunkle
       // Quecksilbersäule (deckend – nie Durchsichtiges im Glas), Kugel unten
       return (
         <group rotation={[0.3, 0, Math.PI / 3]}>
           <Cyl r={0.06} h={0.6} color="#E0F2FE" roughness={0.1} opacity={0.6} />
           <Box size={[0.08, 0.5, 0.004]} pos={[0, 0.02, -0.03]} color="#FFFFFF" />
-          {Array.from({ length: 11 }, (_, i) => (
-            <Box
-              key={i}
-              size={[i % 2 ? 0.014 : 0.024, 0.006, 0.003]}
-              pos={[i % 2 ? 0.031 : 0.026, -0.18 + i * 0.04, -0.0265]}
-              color="#111827"
-            />
-          ))}
           <Cyl r={0.016} h={0.45} pos={[0, -0.02, 0]} color="#6B7280" />
           <mesh position={[0, -0.32, 0]} castShadow>
             <sphereGeometry args={[0.075, 12, 10]} />
