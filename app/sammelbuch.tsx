@@ -17,7 +17,8 @@ import { press, tapHaptic } from "@/components/ui/press";
 import { type Category, type Item, ITEMS } from "@/constants/items";
 import { BinColors, type BinKey, Radius, Spacing } from "@/constants/theme";
 import { type TranslationKey } from "@/i18n";
-import { useAppTheme, useI18n } from "@/providers/app-settings";
+import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { ItemPreview3D } from "@/components/game/item-preview";
 import { EMPTY_ITEM_STAT, getItemStats, type ItemStat, type ItemStats } from "@/utils/storage";
 
 const CATEGORY_BIN: Record<Category, BinKey> = {
@@ -187,6 +188,8 @@ function DetailSheet({
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { t, itemName, itemFact } = useI18n();
+  const { reduceMotion } = useAppSettings();
+  const { height } = useWindowDimensions();
   const known = !!item && (stat?.correct ?? 0) > 0;
   const binKey = item ? CATEGORY_BIN[item.category] : "rest";
   const bin = BinColors[binKey];
@@ -202,7 +205,18 @@ function DetailSheet({
         >
           {item && (
             <>
-              <AppText style={styles.sheetEmoji}>{known ? item.emoji : "❔"}</AppText>
+              {/* Bekannte Gegenstände: dasselbe 3D-Modell wie im Spiel */}
+              {known ? (
+                <ItemPreview3D
+                  item={item}
+                  size={height < 700 ? 116 : 150}
+                  background={colors.surfaceAlt}
+                  calm={reduceMotion}
+                  label={itemName(item)}
+                />
+              ) : (
+                <AppText style={styles.sheetEmoji}>❔</AppText>
+              )}
               <AppText variant="title" center accessibilityRole="header">
                 {known ? itemName(item) : t("book.locked")}
               </AppText>
