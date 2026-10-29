@@ -671,17 +671,25 @@ export function renderRestmuellModel(key: string, name: string) {
               roughness={0.6}
               metalness={metal}
             />
+            {/* Bänder nach vorn über die Rolle gelegt (steckten vorher in ihr);
+                beim Papier hängt an einem ein Anhänger */}
             {[-1, 1].map((sg) => (
               <Part
                 key={`t${sg}`}
-                geo={G.box(0.035, 0.17, 0.01, 0.004)}
-                pos={[sg * 0.04, -0.08, 0.02]}
-                rot={[0, 0, sg * 0.35]}
+                geo={G.box(0.035, 0.11, 0.01, 0.004)}
+                pos={[sg * 0.04, -0.05, 0.078]}
+                rot={[-0.6, 0, sg * 0.35]}
                 color={ribbon}
                 roughness={0.6}
                 metalness={metal}
               />
             ))}
+            {!foil && (
+              <group position={[0.07, -0.125, 0.12]} rotation={[0, 0, 0.35]}>
+                <Part geo={G.box(0.07, 0.05, 0.006, 0.002)} color="#FFFFFF" roughness={0.9} />
+                <Part geo={G.circle(0.007, 10)} pos={[0, 0.015, 0.0045]} basic color="#6B4F2E" />
+              </group>
+            )}
           </group>
           {foil &&
             [-0.12, 0.14].map((x) => (

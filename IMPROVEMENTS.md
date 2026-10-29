@@ -71,7 +71,9 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 **G – Audit 4 Modelle (06:55)**
 - [x] G1 Medikamente ≠ Blister: Tablettendose (braun, weißer Deckel, Kreuz-Etikett) + Kapseln.
 - [x] G2 Altes Smartphone: dunkles Display mit App-Kacheln, Hörer, Home-Taste, Sprünge.
-- [ ] G3 Geschenkpapier mit/ohne Folie auch in der Form unterscheiden (Ringelband vs. Paketschnur).
+- [~] G3 Geschenkpapier: Bänder sichtbar vor die Rolle + Anhänger am Papier (erledigt).
+  Kräuselband-Locken 2× vom Tester abgelehnt (schwebten, wirkten wie Ringstapel)
+  → verworfen; Idee für später: eine durchgehende Spirale (G.tube) statt Ringe.
 - [ ] G4 Kaffeefilter als flache Filtertüte mit Prägenaht.
 - [x] G5 Sauberer Karton: Klebeband verdeckt (gleiche Höhe) → höher + vorn + Versandetikett.
 - [ ] G6 Getränkekarton (Strohhalm, Orange) ≠ Milchkarton (Kuhflecken).
