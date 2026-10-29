@@ -323,41 +323,34 @@ export function renderGelberSackModel(key: string, name: string) {
     }
 
     case "bag":
+      // Hemdchen-Tragetasche: deckend weiß (vorher halb durchsichtig wie
+      // Folie), zwei flache Henkel aus demselben Material, Seitenfalten,
+      // roter Logo-Kreis vorn, Knitterfalte
       return (
-        <group rotation={[0.15, -0.2, -0.1]}>
-          <Part
-            geo={G.box(0.44, 0.5, 0.07, 0.03)}
-            double
-            color="#DBEAFE"
-            roughness={0.35}
-            opacity={0.6}
-          />
-          {[0.08, -0.1].map((y, i) => (
-            <Part
-              key={y}
-              geo={G.box(0.3, 0.012, 0.075, 0.004)}
-              pos={[0, y, 0]}
-              rot={[0, 0, i ? -0.2 : 0.25]}
-              color="#FFFFFF"
-              opacity={0.7}
-            />
-          ))}
-          {[-0.13, 0.13].map((x) => (
+        <group rotation={[0.15, -0.2, -0.08]}>
+          <Part geo={G.box(0.44, 0.42, 0.07, 0.03)} pos={[0, -0.03, 0]} color="#F4F7FB" roughness={0.35} />
+          {[-0.11, 0.11].map((x) => (
             <Part
               key={x}
-              geo={G.torus(0.1, 0.02, 6, 14, Math.PI)}
-              pos={[x, 0.25, 0]}
-              color="#BFDBFE"
-              opacity={0.8}
-              roughness={0.4}
+              geo={G.torus(0.075, 0.03, 6, 14, Math.PI)}
+              pos={[x, 0.15, 0]}
+              scale={[1, 1, 0.45]}
+              color="#F4F7FB"
+              roughness={0.35}
             />
           ))}
+          {/* Seitenfalten und Bodenfalz */}
+          {[-0.17, 0.17].map((x) => (
+            <Part key={`f${x}`} geo={G.box(0.008, 0.36, 0.002, 0.0005)} pos={[x, -0.03, 0.037]} basic color="#CBD5E1" />
+          ))}
+          <Part geo={G.box(0.38, 0.008, 0.002, 0.0005)} pos={[0, -0.2, 0.037]} basic color="#CBD5E1" />
+          <Part geo={G.ring(0.04, 0.075, 20)} pos={[0, -0.03, 0.037]} basic color="#DC2626" />
           <Part
-            geo={G.circle(0.07, 18)}
-            pos={[0, -0.03, 0.037]}
+            geo={G.box(0.006, 0.22, 0.002, 0.0005)}
+            pos={[-0.11, -0.02, 0.037]}
+            rot={[0, 0, 0.15]}
             basic
-            color="#EF4444"
-            opacity={0.8}
+            color="#DCE3EC"
           />
         </group>
       );
