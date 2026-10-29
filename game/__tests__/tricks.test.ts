@@ -120,22 +120,31 @@ describe("Trickwurf-Level", () => {
     expect(straight("leicht")).toBeLessThanOrEqual(straight("schwer"));
   });
 
-  // Bonus „Swish“ muss erreichbar sein: mindestens ein Treffer ohne jede Berührung
-  test.each(cases.filter(([, l]) => l.bonus === "swish"))(
-    "%s: Swish-Bonus ist erreichbar",
-    (_name, level) => {
+  // Bonus „Swish“ muss mit normalen Würfen erreichbar sein – nicht nur mit
+  // einem Glückswurf: im Spieler-Raster (Kraft 0,6–0,86, Richtung in 2°)
+  // mindestens drei verschiedene saubere Würfe (also mindestens 4° breit) –
+  // auf dem großen UND dem kleinen iPhone
+  const swishCases = cases
+    .filter(([, l]) => l.bonus === "swish")
+    .flatMap(([name, l]): [string, string, Level, typeof small][] => [
+      [name, "groß", l, { layout, throwAt, success }],
+      [name, "klein", l, small],
+    ]);
+  test.each(swishCases)(
+    "%s (%s): Swish-Bonus ist mit mehreren normalen Würfen erreichbar",
+    (_name, _device, level, solver) => {
       const times = sampleTimes(level, 12);
-      let clean = false;
-      for (let strength = 0.5; strength <= 1.0001 && !clean; strength += 0.01)
-        for (let angle = -28; angle <= 28 && !clean; angle += 1)
+      const cells: { angle: number; strength: number }[] = [];
+      for (let strength = 0.6; strength <= 0.8601; strength += 0.02)
+        for (let angle = -28; angle <= 28; angle += 2)
           for (const time of times) {
-            const r = throwAt(level, angle, strength, time);
+            const r = solver.throwAt(level, angle, strength, time);
             if (r && r.clean && r.bin === level.target && meetsRequirement(level, r.props)) {
-              clean = true;
+              cells.push({ angle, strength });
               break;
             }
           }
-      expect(clean).toBe(true);
+      expect(cells.length).toBeGreaterThanOrEqual(3);
     },
     240000,
   );

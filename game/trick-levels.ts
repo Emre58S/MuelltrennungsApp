@@ -363,12 +363,13 @@ export const DAILY_TEMPLATES: Omit<TrickLevel, "id">[] = [
   },
   // Windrad vor der rechten Tonne
   { target: 2, props: [windmill(0.35, 2.8, 1.5, -4.2)], requires: [], bonus: "firstTry", task: "trick.task.windmill" },
-  // Drehender Reifen mit Rückenwind
+  // Drehender Reifen mit Rückenwind (Swish gelingt auf kleinen Handys nur
+  // mit Glück – daher Bonus „1. Versuch“)
   {
     target: 0,
     props: [fan(-0.6, 7), ring(-1.0, 2.8, 1.5, 0.58, { kind: "spin", period: 3.4 })],
     requires: [1],
-    bonus: "swish",
+    bonus: "firstTry",
     task: "trick.task.spin",
   },
 ];
