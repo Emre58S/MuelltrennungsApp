@@ -9,6 +9,13 @@ import {
 } from "./shared";
 import { type V3 } from "./shared";
 
+// Fünfzackiger Stern (Umriss für G.poly), einmal berechnet
+const STAR = Array.from({ length: 10 }, (_, i) => {
+  const a = (i / 10) * Math.PI * 2 + Math.PI / 2;
+  const r = i % 2 ? 0.014 : 0.034;
+  return [Math.cos(a) * r, Math.sin(a) * r];
+}).flat();
+
 export function renderRestmuellModel(key: string, name: string) {
   switch (key) {
     case "cigarette":
@@ -559,12 +566,13 @@ export function renderRestmuellModel(key: string, name: string) {
       );
 
     case "wrap": {
-      // Mit Folie (Restmüll): silbern glänzend wie Metallfolie. Ohne Folie
-      // (Papier): mattes rotes Papier, Schleife aus Papierband.
+      // Mit Folie (Restmüll): pink-metallische Folie mit goldenen Sternen und
+      // Glanz (silbern sah aus wie Alufolie). Ohne Folie (Papier): mattes
+      // rotes Papier, Schleife aus Papierband.
       const foil = name.includes("mit folie");
-      const roll = foil ? "#C9D1DC" : "#C0392B";
-      const sheet = foil ? "#DCE3EB" : "#D9473A";
-      const ribbon = foil ? "#E5C9F5" : "#EADBC0";
+      const roll = foil ? "#E879B9" : "#C0392B";
+      const sheet = foil ? "#F09ACB" : "#D9473A";
+      const ribbon = foil ? "#F5C542" : "#EADBC0";
       const metal = foil ? 0.6 : 0;
       return (
         <group rotation={[0.25, -0.18, 0.1]}>
@@ -596,6 +604,17 @@ export function renderRestmuellModel(key: string, name: string) {
               metalness={metal}
             />
           ))}
+          {foil && (
+            <Part
+              geo={G.box(0.5, 0.02, 0.004, 0.001)}
+              pos={[0, 0.1, 0.104]}
+              rot={[-0.66, 0, 0]}
+              basic
+              noDepthWrite
+              color="#FFFFFF"
+              opacity={0.75}
+            />
+          )}
           {/* abgerollte Bahn mit Mustern */}
           <group position={[0, -0.105, 0.21]} rotation={[-1.45, 0, 0]}>
             <Part
@@ -616,10 +635,10 @@ export function renderRestmuellModel(key: string, name: string) {
             ).map(([x, y], i) => (
               <Part
                 key={i}
-                geo={G.circle(0.025, 10)}
+                geo={foil ? G.poly(0.002, 0, STAR) : G.circle(0.025, 10)}
                 pos={[x, y, 0.03]}
                 basic
-                color={foil ? ["#F472B6", "#60A5FA", "#34D399", "#FBBF24", "#A78BFA"][i % 5] : "#FFFFFF"}
+                color={foil ? "#F59E0B" : "#FFFFFF"}
               />
             ))}
           </group>

@@ -761,19 +761,27 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "thermo":
-      // Quecksilber ist silbern (rot wäre ein Alkohol-Thermometer, kein Sondermüll)
+      // Quecksilber-Fieberthermometer: dickes Glasrohr, darin weißer
+      // Skalenstreifen mit schwarzen Strichen und davor die dunkle
+      // Quecksilbersäule (deckend – nie Durchsichtiges im Glas), Kugel unten
       return (
         <group rotation={[0.3, 0, Math.PI / 3]}>
-          <Cyl r={0.04} h={0.6} color="#E0F2FE" roughness={0.1} opacity={0.75} />
-          <Cyl r={0.015} h={0.45} pos={[0, -0.02, 0]} color="#8B95A5" />
-          <mesh position={[0, -0.3, 0]} castShadow>
-            <sphereGeometry args={[0.06, 12, 10]} />
-            <meshLambertMaterial color="#D1D5DB" flatShading />
-          </mesh>
-          {[-0.1, 0, 0.1, 0.2].map((y) => (
-            <Box key={y} size={[0.03, 0.006, 0.006]} pos={[0.035, y, 0.02]} color="#334155" />
+          <Cyl r={0.06} h={0.6} color="#E0F2FE" roughness={0.1} opacity={0.6} />
+          <Box size={[0.08, 0.5, 0.004]} pos={[0, 0.02, -0.03]} color="#FFFFFF" />
+          {Array.from({ length: 11 }, (_, i) => (
+            <Box
+              key={i}
+              size={[i % 2 ? 0.014 : 0.024, 0.006, 0.003]}
+              pos={[i % 2 ? 0.031 : 0.026, -0.18 + i * 0.04, -0.0265]}
+              color="#111827"
+            />
           ))}
-          <Shine size={[0.012, 0.4, 0.004]} pos={[-0.02, 0, 0.038]} />
+          <Cyl r={0.016} h={0.45} pos={[0, -0.02, 0]} color="#6B7280" />
+          <mesh position={[0, -0.32, 0]} castShadow>
+            <sphereGeometry args={[0.075, 12, 10]} />
+            <meshLambertMaterial color="#7B8494" flatShading />
+          </mesh>
+          <Shine size={[0.014, 0.42, 0.004]} pos={[-0.028, 0, 0.054]} rot={[0, -0.47, 0]} />
         </group>
       );
 
