@@ -4,6 +4,9 @@
 import { G, Part, LEAF_POINTS } from "./shared";
 import { type V3 } from "./shared";
 
+/** Umriss einer Kaffeefiltertüte (unten schmal, oben breit). */
+const FILTER = [-0.08, -0.21, 0.08, -0.21, 0.22, 0.21, -0.22, 0.21];
+
 export function renderBioModel(key: string, name: string) {
   switch (key) {
     case "banana":
@@ -109,27 +112,43 @@ export function renderBioModel(key: string, name: string) {
           </group>
         );
       }
+      // Kaffeefilter: flache Filtertüte (Trapez) aus zwei Lagen, oben offen
+      // gespreizt, Prägenaht an Seiten und Boden, Kaffeesatz quillt oben
+      // heraus, nasser Fleck vorn (vorher ein runder Trichter wie eine Eistüte)
       return (
-        <group rotation={[0.15, 0.35, -0.1]}>
-          {/* Kaffeefilter */}
+        <group rotation={[0.2, -0.3, 0.05]}>
+          {[-1, 1].map((side) => (
+            <group key={side} position={[0, 0, side * 0.03]} rotation={[side * 0.12, 0, 0]}>
+              <Part geo={G.poly(0.006, 0, FILTER)} color="#E7D8B8" roughness={1} />
+              {side === 1 && (
+                <>
+                  {/* Prägenaht: kleine Zacken an beiden Schrägseiten und unten */}
+                  {Array.from({ length: 8 }, (_, i) => {
+                    const t = (i + 0.5) / 8;
+                    return [-1, 1].map((sg) => (
+                      <Part
+                        key={`${i}${sg}`}
+                        geo={G.box(0.018, 0.03, 0.004, 0.001)}
+                        pos={[sg * (0.08 + 0.14 * t - 0.014), -0.21 + 0.42 * t, 0.004]}
+                        rot={[0, 0, sg * -0.32 + (i % 2 ? 0.25 : -0.25)]}
+                        color="#CDBB94"
+                      />
+                    ));
+                  })}
+                  {[-0.035, 0, 0.035].map((x) => (
+                    <Part key={`b${x}`} geo={G.box(0.03, 0.018, 0.004, 0.001)} pos={[x, -0.196, 0.004]} color="#CDBB94" />
+                  ))}
+                  {/* nasser Kaffee-Fleck */}
+                  <Part geo={G.circle(0.06, 14)} pos={[0, -0.06, 0.0045]} color="#C9A878" roughness={1} />
+                </>
+              )}
+            </group>
+          ))}
+          {/* Kaffeesatz quillt oben heraus */}
           <Part
-            geo={G.lathe(20, [0.02, -0.22, 0.2, 0.12, 0.26, 0.2])}
-            double
-            color="#E7D8B8"
-            roughness={1}
-          />
-          <Part
-            geo={G.torus(0.26, 0.012, 6, 20)}
+            geo={G.crumple(0.1, 0.2, 3, 1)}
             pos={[0, 0.2, 0]}
-            rot={[Math.PI / 2, 0, 0]}
-            color="#D6C7A4"
-            roughness={1}
-          />
-          {/* Kaffeesatz */}
-          <Part
-            geo={G.crumple(0.16, 0.18, 3, 1)}
-            pos={[0, 0.1, 0]}
-            scale={[1, 0.55, 1]}
+            scale={[1.8, 0.5, 0.35]}
             flat
             color="#3B2418"
             roughness={1}

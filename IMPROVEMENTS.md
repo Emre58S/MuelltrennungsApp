@@ -74,7 +74,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [~] G3 Geschenkpapier: Bänder sichtbar vor die Rolle + Anhänger am Papier (erledigt).
   Kräuselband-Locken 2× vom Tester abgelehnt (schwebten, wirkten wie Ringstapel)
   → verworfen; Idee für später: eine durchgehende Spirale (G.tube) statt Ringe.
-- [ ] G4 Kaffeefilter als flache Filtertüte mit Prägenaht.
+- [x] G4 Kaffeefilter als flache Filtertüte mit Prägenaht.
 - [x] G5 Sauberer Karton: Klebeband verdeckt (gleiche Höhe) → höher + vorn + Versandetikett.
 - [x] G6 Getränkekarton (Strohhalm, Orange) ≠ Milchkarton (Kuhflecken).
 - [ ] G7 (kleiner) Parfüm als Flakon, Laptop mit Tastatur, Spülmittel schlanker.
