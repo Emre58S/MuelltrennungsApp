@@ -534,7 +534,7 @@ export function TipCard({ text, onClose }: { text: string; onClose: () => void }
 
 /** Bonus-Ziel (dritter Stern) als Text. */
 function bonusText(t: ReturnType<typeof useI18n>["t"], bonus: TrickBonus) {
-  return bonus === "swish" ? t("trick.goal.swish") : t("trick.goal.firstTry");
+  return bonus === "swish" ? t("trick.goal.swish") : bonus === "bank" ? t("trick.goal.bank") : t("trick.goal.firstTry");
 }
 
 /** Kopfzeile einer Trick-Runde: Level, Versuch, Aufgabe und die Sterne-Ziele. */

@@ -16,6 +16,7 @@ import {
 } from "@/game/logic";
 import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
 import {
+  bankedOff,
   bonusMet,
   hasWind,
   levelColliders,
@@ -274,11 +275,11 @@ export function TrickRound({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
   };
 
-  /** Geschafft; `clean` = ohne jede Berührung hinein (Swish). */
-  const succeed = (clean: boolean) => {
+  /** Geschafft; `clean` = ohne jede Berührung hinein (Swish), `banked` = übers Schild. */
+  const succeed = (clean: boolean, banked: boolean) => {
     done.current = true;
     const attempts = attemptsRef.current;
-    const bonus = bonusMet(level.bonus, { attempts, clean });
+    const bonus = bonusMet(level.bonus, { attempts, clean, banked });
     const stars = starsFor(attempts, bonus);
     (daily ? saveTrickDaily(stars) : saveTrickStars(level.id, stars)).catch(() => undefined);
     // Tages-Trick: Rangliste (mehr Sterne, dann weniger Versuche)
@@ -308,6 +309,7 @@ export function TrickRound({
     float("★".repeat(stars), top.x, top.y, "#FFD54A");
     // Swish: ohne Berührung (Reifen durchfliegen zählt nicht als Berührung)
     if (clean) later(() => float(t("trick.swish"), top.x, top.y + 40, "#FFFFFF"), 250);
+    else if (banked) later(() => float(t("trick.bank"), top.x, top.y + 40, "#FFFFFF"), 250);
     // „Wusstest du?“ zum geworfenen Gegenstand
     const thrown = thrownRef.current;
     const fact = thrown ? itemFact(thrown) : undefined;
@@ -328,7 +330,7 @@ export function TrickRound({
     const bin = outcome?.bin ?? null;
     const y = layout.binTops[0].y;
     if (bin === level.target && meetsRequirement(level, outcome?.props ?? [])) {
-      succeed(!!outcome?.clean);
+      succeed(!!outcome?.clean, bankedOff(level, outcome?.props ?? []));
       return;
     }
     if (bin === level.target) {

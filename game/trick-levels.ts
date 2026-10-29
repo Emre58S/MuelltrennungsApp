@@ -8,7 +8,7 @@
 // sich ein Trick wie ein guter Wurf anfühlt.
 //
 // Sterne: ★ geschafft · ★ in höchstens 3 Versuchen · ★ Bonus-Ziel des Levels
-// (Swish ohne Berührung oder gleich im 1. Versuch).
+// (Swish ohne Berührung, gleich im 1. Versuch oder Bandenwurf übers Schild).
 // Dazu ein Tages-Trick: für alle gleich, aus Datum gewählt (dailyTrick).
 //
 // Jedes Level und jede Tages-Vorlage wird in __tests__/tricks.test.ts
@@ -83,8 +83,8 @@ export type TrickProp =
       force: number;
     };
 
-/** Bonus-Ziel für den dritten Stern. */
-export type TrickBonus = "swish" | "firstTry";
+/** Bonus-Ziel für den dritten Stern (bank = Bandenwurf: übers Schild hinein). */
+export type TrickBonus = "swish" | "firstTry" | "bank";
 
 export type TrickLevel = {
   /** 1… für die Level-Liste, 0 = Tages-Trick. */
@@ -309,6 +309,10 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "swish",
     task: "trick.task.lampRing",
   },
+  // Prall-Level: Schild hinter der Lücke zwischen Mitte und rechts. Direkt
+  // werfen geht; wer in die Lücke zielt, prallt je nach Treffpunkt in die
+  // rechte Tonne (Bonus „Bandenwurf“) oder in die mittlere.
+  { id: 24, target: 2, props: [sign(0.75, 2.2, -0.4, 0.4)], requires: [], bonus: "bank", task: "trick.task.bank" },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -444,9 +448,19 @@ export function meetsRequirement(level: Pick<TrickLevel, "requires">, passed: nu
   return level.requires.every((id) => passed.includes(id));
 }
 
-/** Bonus-Ziel erreicht? Swish = ohne jede Berührung, firstTry = 1. Versuch. */
-export function bonusMet(bonus: TrickBonus, result: { attempts: number; clean: boolean }): boolean {
+/** Bonus-Ziel erreicht? Swish = ohne jede Berührung, firstTry = 1. Versuch,
+ *  bank = vorher ein Schild berührt. */
+export function bonusMet(
+  bonus: TrickBonus,
+  result: { attempts: number; clean: boolean; banked?: boolean },
+): boolean {
+  if (bonus === "bank") return !!result.banked;
   return bonus === "swish" ? result.clean : result.attempts <= 1;
+}
+
+/** Hat der Wurf ein Schild berührt (Bandenwurf)? `touched` = Hindernis-ids. */
+export function bankedOff(level: Pick<TrickLevel, "props">, touched: number[]): boolean {
+  return touched.some((id) => level.props[id]?.kind === "sign");
 }
 
 /** Sterne: ★ geschafft · ★ höchstens 3 Versuche · ★ Bonus-Ziel. */

@@ -12,6 +12,7 @@ import { BIN_OPENING_Y, shotLanding } from "../layout";
 import { FULL_SWIPE_SHARE, swipeShot } from "../logic";
 import { lobVelocity, simulateShot } from "../physics";
 import {
+  bankedOff,
   bonusMet,
   DAILY_TEMPLATES,
   dailyTrick,
@@ -148,6 +149,27 @@ describe("Trickwurf-Level", () => {
     },
     240000,
   );
+
+  // Bonus „Bandenwurf“: mehrere normale Würfe prallen vom Schild in die Zieltonne
+  const bankCases = cases
+    .filter(([, l]) => l.bonus === "bank")
+    .flatMap(([name, l]): [string, string, Level, typeof small][] => [
+      [name, "groß", l, { layout, throwAt, success }],
+      [name, "klein", l, small],
+    ]);
+  test.each(bankCases)(
+    "%s (%s): Bandenwurf-Bonus ist mit mehreren normalen Würfen erreichbar",
+    (_name, _device, level, solver) => {
+      let cells = 0;
+      for (let strength = 0.6; strength <= 0.8601; strength += 0.02)
+        for (let angle = -28; angle <= 28; angle += 2) {
+          const r = solver.throwAt(level, angle, strength, 0);
+          if (r && r.bin === level.target && bankedOff(level, r.props)) cells += 1;
+        }
+      expect(cells).toBeGreaterThanOrEqual(3);
+    },
+    240000,
+  );
 });
 
 describe("Tages-Trick", () => {
@@ -211,10 +233,12 @@ describe("Sterne", () => {
     expect(starsFor(6, true)).toBe(2);
   });
 
-  test("Bonus-Ziele: Swish = ohne Berührung, firstTry = 1. Versuch", () => {
+  test("Bonus-Ziele: Swish = ohne Berührung, firstTry = 1. Versuch, bank = übers Schild", () => {
     expect(bonusMet("swish", { attempts: 4, clean: true })).toBe(true);
     expect(bonusMet("swish", { attempts: 1, clean: false })).toBe(false);
     expect(bonusMet("firstTry", { attempts: 1, clean: false })).toBe(true);
     expect(bonusMet("firstTry", { attempts: 2, clean: true })).toBe(false);
+    expect(bonusMet("bank", { attempts: 1, clean: true })).toBe(false);
+    expect(bonusMet("bank", { attempts: 5, clean: false, banked: true })).toBe(true);
   });
 });
