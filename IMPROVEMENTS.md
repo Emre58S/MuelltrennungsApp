@@ -23,7 +23,7 @@ zu ändern.
 - Tagesaufgabe: Endbildschirm nach 900 ms überdeckt im letzten Wurf die Fehlerrückmeldung.
 - „Ohne Fehler“: Lernkarte nur ~1,8 s (2,3 s mit Begründung) sichtbar.
 - Walnuss-Runzeln noch etwas groß (Länge scale x ~1,0 wäre feiner).
-- M5 Rest: Obstnetz, Katzenstreu, Spülmittel, Küchentuch.
+- M5 Rest: Obstnetz, Spülmittel, Küchentuch.
 
 ## Nächste Aufgaben (von oben nach unten; Erledigtes steht in IMPROVEMENTS-ARCHIV.md)
 

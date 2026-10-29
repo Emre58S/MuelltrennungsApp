@@ -378,14 +378,13 @@ export function renderRestmuellModel(key: string, name: string) {
     case "litter":
       return (
         <group rotation={[0.2, 0.25, -0.12]}>
+          {/* Haufen aus vier großen Klumpen (statt vieler Krümel): drei unten, einer oben */}
           {(
             [
-              [-0.18, -0.05, 0.04, 0.11],
-              [0.02, -0.06, 0.1, 0.13],
-              [0.2, -0.04, -0.02, 0.1],
-              [-0.04, 0.07, 0, 0.11],
-              [0.1, 0.06, 0.08, 0.09],
-              [-0.12, 0.05, 0.12, 0.08],
+              [-0.17, -0.05, 0.03, 0.13],
+              [0.1, -0.06, 0.06, 0.14],
+              [-0.02, -0.05, -0.1, 0.12],
+              [-0.03, 0.1, 0.01, 0.12],
             ] as number[][]
           ).map(([x, y, z, r], i) => (
             <Part
@@ -393,32 +392,7 @@ export function renderRestmuellModel(key: string, name: string) {
               geo={G.crumple(r, 0.25, i + 1, 1)}
               pos={[x, y, z]}
               flat
-              color={["#A8A29E", "#8D857C", "#78716C"][i % 3]}
-              roughness={1}
-            />
-          ))}
-          {/* verklumpte Streu */}
-          <Part
-            geo={G.crumple(0.11, 0.3, 8, 1)}
-            pos={[0.02, 0.17, 0.04]}
-            flat
-            color="#6B5B4B"
-            roughness={1}
-          />
-          {(
-            [
-              [-0.26, -0.1, 0.12],
-              [0.3, -0.08, 0.1],
-              [0.12, -0.1, 0.2],
-              [-0.08, -0.1, 0.22],
-            ] as V3[]
-          ).map((p, i) => (
-            <Part
-              key={i}
-              geo={G.crumple(0.03, 0.3, i + 20, 0)}
-              pos={p}
-              flat
-              color="#A8A29E"
+              color={["#A8A29E", "#8D857C", "#78716C", "#6B5B4B"][i]}
               roughness={1}
             />
           ))}
