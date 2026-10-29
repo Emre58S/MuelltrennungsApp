@@ -16,8 +16,9 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
 - [x] A8 Rest der „3er“ (Zeitungen 6773e72, Kabel/Kerze 42b5268, Kippe/Rasierer eb0188f, Plastiktüte 36d7306)
-- [ ] A9 Aus Audit 2 (00:20): (Geschenkfolie+Thermometer: 5031ae2, Nagellack+Senf: a396b53,
-  Schuhkarton+Kaffeesatz: 6bc9564) Backpapier (Ende eingerollt, Keks-Abdrücke) vs. Küchentuch (Prägemuster).
+- [x] A9 Aus Audit 2 (Geschenkfolie+Thermometer 5031ae2, Nagellack+Senf a396b53,
+  Schuhkarton+Kaffeesatz 6bc9564, Backpapier 03b40d8). Küchentuch-Prägemuster
+  weggelassen: auf der Knüllform nicht sauber platzierbar, Unterschied reicht.
 - [ ] A10 Fakt Druckerpatronen DE/EN: „Zurück in den Handel oder zum Hersteller
   – sie werden wieder befüllt.“ (Namen nicht ändern: Name = ID für Statistik.)
 
