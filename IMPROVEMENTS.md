@@ -16,11 +16,9 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
 - [x] A8 Rest der „3er“ (Zeitungen 6773e72, Kabel/Kerze 42b5268, Kippe/Rasierer eb0188f, Plastiktüte 36d7306)
-- [ ] A9 Aus Audit 2 (00:20): Geschenkpapier mit Folie bunt-metallisch
-  (Gold/Pink, Sterne) statt silbern (≈ Alufolie); Nagellackentferner (kleines
+- [ ] A9 Aus Audit 2 (00:20): (Geschenkfolie+Thermometer: 5031ae2) Nagellackentferner (kleines
   Nagellack-Fläschchen daneben, kleiner, Raute mittig) ≈ Shampoo; Schuhkarton ≠
-  sauberer Karton (flach, Stülpdeckel, bedruckt, Seidenpapier); Thermometer
-  dicker (r 0,06), Skala, mehr Kontrast; Kaffeesatz eigene Form (Espresso-Puck);
+  sauberer Karton (flach, Stülpdeckel, bedruckt, Seidenpapier); Kaffeesatz eigene Form (Espresso-Puck);
   Backpapier (Ende eingerollt, Keks-Abdrücke) vs. Küchentuch (Prägemuster);
   Senf hellgelb mit Körnern ≠ Honig.
 - [ ] A10 Fakt Druckerpatronen DE/EN: „Zurück in den Handel oder zum Hersteller
