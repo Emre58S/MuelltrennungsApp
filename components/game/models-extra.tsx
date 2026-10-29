@@ -417,7 +417,7 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
 
     case "bakingpaper":
       // Benutztes Backpapier: flaches, leicht gewelltes Blatt mit Beschichtungs-
-      // Glanz, braun gebackenen Rändern und Fettflecken (kein Knäuel – das
+      // Glanz, braun gebackenen Rändern, Keks-Abdrücken und eingerolltem Ende (kein Knäuel – das
       // wäre das Küchentuch aus dem Bio)
       return (
         <group rotation={[-0.35, 0.35, 0.12]}>
@@ -426,15 +426,28 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
           {/* braune Ränder oben und rechts */}
           <Part geo={G.box(0.5, 0.05, 0.008, 0.002)} pos={[0, 0.18, 0.02]} color="#A8743A" roughness={1} />
           <Part geo={G.box(0.05, 0.4, 0.008, 0.002)} pos={[0.23, 0, 0.02]} color="#B9864A" roughness={1} />
+          {/* Abdrücke von vier Keksen: Fettkreis mit dunklerem Rand */}
           {(
             [
-              [-0.12, 0.03, 0.05],
-              [0.06, -0.08, 0.04],
-              [-0.02, 0.1, 0.03],
-            ] as [number, number, number][]
-          ).map(([x, y, r], i) => (
-            <Part key={i} geo={G.circle(r, 10)} pos={[x, y, 0.02]} basic double color="#C9A16A" />
+              [-0.1, 0.06, 0.016],
+              [0.06, 0.06, 0.02],
+              [-0.1, -0.1, 0.006],
+              [0.06, -0.1, 0.012],
+            ] as V3[]
+          ).map(([x, y, z]) => (
+            <group key={`${x}${y}`}>
+              <Part geo={G.circle(0.05, 16)} pos={[x, y, z]} basic double color="#D9BE88" />
+              <Part geo={G.ring(0.042, 0.055, 16)} pos={[x, y, z + 0.001]} basic double color="#B8884E" />
+            </group>
           ))}
+          {/* linkes Ende eingerollt (Backpapier kommt von der Rolle) */}
+          <Part
+            geo={G.cyl(0.035, 0.035, 0.4, 14, true)}
+            pos={[-0.25, 0, 0.027]}
+            double
+            color="#F0E4C8"
+            roughness={0.4}
+          />
           {/* Glanz der Beschichtung */}
           <Part
             geo={G.box(0.03, 0.3, 0.004, 0.001)}
