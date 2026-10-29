@@ -605,4 +605,25 @@ export const ITEMS: Item[] = [
     difficulty: "mittel",
     fact: "Nur ganz leere Spraydosen dürfen in den Gelben Sack – volle sind Sondermüll.",
   },
+  {
+    emoji: "🔅",
+    name: "Teelicht-Hülle (Alu)",
+    category: "Gelber Sack",
+    difficulty: "mittel",
+    fact: "Die leere Alu-Hülle vom Teelicht gehört in den Gelben Sack, Wachsreste in den Restmüll.",
+  },
+  {
+    emoji: "📄",
+    name: "Brötchentüte (Papier)",
+    category: "Papier",
+    difficulty: "leicht",
+    fact: "Saubere Bäckertüten aus Papier gehören ins Altpapier – Krümel vorher ausschütteln.",
+  },
+  {
+    emoji: "🔳",
+    name: "Tablettenblister (leer)",
+    category: "Gelber Sack",
+    difficulty: "schwer",
+    fact: "Leere Blister sind Verpackung – Gelber Sack. Übrige Tabletten: Restmüll oder zurück in die Apotheke.",
+  },
 ];

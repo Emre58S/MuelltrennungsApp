@@ -198,4 +198,16 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
     name: "Spray can (empty)",
     fact: "Only completely empty spray cans go in the yellow bag – full ones are hazardous waste.",
   },
+  "Teelicht-Hülle (Alu)": {
+    name: "Tealight cup (aluminium)",
+    fact: "The empty aluminium cup goes in the yellow bag, leftover wax in general waste.",
+  },
+  "Brötchentüte (Papier)": {
+    name: "Bakery bag (paper)",
+    fact: "Clean paper bakery bags go in paper recycling – shake out the crumbs first.",
+  },
+  "Tablettenblister (leer)": {
+    name: "Pill blister (empty)",
+    fact: "Empty blisters are packaging – yellow bag. Leftover pills: general waste or back to the pharmacy.",
+  },
 };

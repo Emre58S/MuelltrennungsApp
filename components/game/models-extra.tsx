@@ -33,6 +33,9 @@ export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   [/kaugummi/, "gum"],
   [/kaffeekapsel/, "capsule"],
   [/spraydose/, "spraycan"],
+  [/teelicht/, "tealight"],
+  [/broetchentuete/, "breadbag"],
+  [/blister/, "blister"],
   // Sondermüll
   [/batterie/, "battery"],
   [/smartphone/, "phone"],
@@ -848,6 +851,76 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
           <Cyl r={0.04} h={0.06} pos={[0, 0.29, 0]} color="#F8FAFC" />
           <Cyl r={0.01} h={0.012} pos={[0, 0.3, 0.04]} rot={[Math.PI / 2, 0, 0]} color="#111827" />
           <Shine size={[0.02, 0.36, 0.004]} pos={[-0.05, 0, 0.088]} rot={[0, -0.5, 0]} />
+        </group>
+      );
+
+    case "tealight":
+      // Leere Teelicht-Hülle: flaches, offenes Alu-Schälchen mit Riffelwand,
+      // innen das Dochtplättchen mit verkohltem Dochtrest
+      return (
+        <group rotation={[0.75, 0.3, 0]}>
+          <Part geo={G.cyl(0.155, 0.155, 0.07, 24, true)} double color="#D1D5DB" metalness={0.6} />
+          <Part geo={G.circle(0.155, 24)} pos={[0, -0.035, 0]} rot={[-Math.PI / 2, 0, 0]} double color="#C0C8D4" metalness={0.6} />
+          {Array.from({ length: 16 }, (_, i) => {
+            const a = (i / 16) * Math.PI * 2;
+            return (
+              <Part
+                key={i}
+                geo={G.box(0.012, 0.06, 0.008, 0.002)}
+                pos={[Math.sin(a) * 0.157, 0, Math.cos(a) * 0.157]}
+                rot={[0, a, 0]}
+                color="#9CA3AF"
+              />
+            );
+          })}
+          <Part geo={G.cyl(0.035, 0.035, 0.006, 12)} pos={[0, -0.031, 0]} color="#E5E7EB" metalness={0.6} />
+          <Part geo={G.cyl(0.008, 0.008, 0.04, 6)} pos={[0, -0.008, 0]} color="#111827" />
+          {/* ein Wachsrest am Rand */}
+          <Part geo={G.ball(0.03, 8, 6)} pos={[0.08, -0.03, -0.05]} scale={[1, 0.4, 1]} color="#FFF4D6" />
+        </group>
+      );
+
+    case "breadbag":
+      // Brötchentüte: helle Papiertüte mit gezacktem Rand oben, rotbraunem
+      // Bäcker-Aufdruck (Brezel-Ring) und Faltkante unten
+      return (
+        <group rotation={[0.15, 0.3, -0.06]}>
+          <Box size={[0.34, 0.46, 0.08]} color="#F2E6CC" />
+          {[-0.136, -0.068, 0, 0.068, 0.136].map((x) => (
+            <Part
+              key={x}
+              geo={G.poly(0.078, 0, [-0.034, 0, 0.034, 0, 0, 0.03])}
+              pos={[x, 0.245, 0]}
+              color="#F2E6CC"
+            />
+          ))}
+          <Part geo={G.ring(0.05, 0.075, 18)} pos={[0, 0.03, 0.042]} basic color="#A0522D" />
+          <Part geo={G.box(0.2, 0.025, 0.002, 0.0005)} pos={[0, -0.09, 0.042]} basic color="#A0522D" />
+          <Part geo={G.box(0.14, 0.015, 0.002, 0.0005)} pos={[0, -0.13, 0.042]} basic color="#C08A5A" />
+          <Part geo={G.box(0.34, 0.012, 0.002, 0.0005)} pos={[0, -0.19, 0.042]} basic color="#D6C3A0" />
+        </group>
+      );
+
+    case "blister":
+      // Leerer Tablettenblister: silberne Folie, darauf 2×4 klare Näpfchen,
+      // alle eingedrückt und leer (silberne Folie scheint durch)
+      return (
+        <group rotation={[0.55, 0.3, 0.08]}>
+          <Box size={[0.44, 0.26, 0.012]} color="#D1D5DB" />
+          {[-0.15, -0.05, 0.05, 0.15].map((x) =>
+            [-0.06, 0.06].map((y) => (
+              <group key={`${x}${y}`} position={[x, y, 0.006]}>
+                {/* eingedrückter, zerknitterter Napf – man sieht die leere Folie */}
+                <Part
+                  geo={G.crumple(0.036, 0.3, Math.round((x + y) * 100) + 50, 0)}
+                  scale={[1, 1, 0.3]}
+                  flat
+                  color="#E2E8F0"
+                  opacity={0.55}
+                />
+              </group>
+            )),
+          )}
         </group>
       );
 
