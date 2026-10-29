@@ -120,19 +120,70 @@ function Shine({ size, pos, rot }: { size: V3; pos: V3; rot?: V3 }) {
 export function renderExtraModel(key: string, name = ""): ReactElement | null {
   switch (key) {
     case "newspaper":
+      // Drei Papier-Drucksachen, drei Formen (vorher alle gleich):
+      if (name.includes("zeitschrift")) {
+        // Zeitschrift: dick, Hochformat, buntes Hochglanz-Cover mit Titel und
+        // Foto, weiße Seitenkanten
+        return (
+          <group rotation={[0.75, 0.25, 0.1]}>
+            <Box size={[0.42, 0.08, 0.56]} color="#F8FAFC" />
+            <Box size={[0.43, 0.012, 0.57]} pos={[0, 0.042, 0]} color="#DB2777" />
+            <Box size={[0.36, 0.014, 0.09]} pos={[0, 0.043, -0.21]} color="#FFFFFF" />
+            <Cyl r={0.1} h={0.014} pos={[0.04, 0.044, 0.04]} color="#F5C9A0" />
+            <Box size={[0.2, 0.018, 0.07]} pos={[0.04, 0.046, -0.08]} color="#7C2D12" />
+            {[0.16, 0.2].map((z) => (
+              <Box key={z} size={[0.14, 0.014, 0.02]} pos={[-0.11, 0.044, z]} color="#FDE047" />
+            ))}
+            <Shine size={[0.03, 0.004, 0.26]} pos={[0.13, 0.05, 0.1]} rot={[0, 0.3, 0]} />
+          </group>
+        );
+      }
+      if (name.includes("prospekt")) {
+        // Werbeprospekt: dünn, knallgelb, Produktbilder mit roten Preisschildern
+        return (
+          <group rotation={[0.85, -0.2, 0.08]}>
+            <Box size={[0.5, 0.012, 0.6]} color="#FDE047" />
+            <Box size={[0.49, 0.014, 0.098]} pos={[0, 0.002, -0.25]} color="#DC2626" />
+            {(
+              [
+                [-0.12, -0.08, "#16A34A"],
+                [0.12, -0.08, "#F97316"],
+                [-0.12, 0.15, "#2563EB"],
+                [0.12, 0.15, "#A16207"],
+              ] as [number, number, string][]
+            ).map(([x, z, col]) => (
+              <group key={`${x}${z}`}>
+                <Box size={[0.17, 0.014, 0.15]} pos={[x, 0.002, z]} color={col} />
+                {/* Preisschild als roter Punkt mit weißem Strich */}
+                <Cyl r={0.045} h={0.016} pos={[x + 0.06, 0.006, z + 0.06]} color="#DC2626" />
+                <Box size={[0.05, 0.018, 0.014]} pos={[x + 0.06, 0.007, z + 0.06]} color="#FFFFFF" />
+              </group>
+            ))}
+          </group>
+        );
+      }
+      // Tageszeitung: einmal gefaltet (runde Knickkante), schwarzer Titelkopf,
+      // Foto und viele graue Textspalten
       return (
-        <group rotation={[0.5, 0.3, 0.1]}>
+        <group rotation={[0.75, 0.3, 0.1]}>
           <Box size={[0.62, 0.05, 0.46]} color="#F1EEE6" roughness={0.95} />
-          <Box size={[0.26, 0.052, 0.12]} pos={[-0.14, 0.002, -0.14]} color="#3F4650" />
-          {[-0.02, 0.06, 0.14].map((z) => (
-            <Box
-              key={z}
-              size={[0.5, 0.052, 0.025]}
-              pos={[0.02, 0.002, z]}
-              color="#9AA1AB"
-            />
+          <Cyl r={0.03} h={0.63} pos={[0, 0, 0.23]} rot={[0, 0, Math.PI / 2]} color="#E7E3D8" />
+          <Box size={[0.56, 0.052, 0.07]} pos={[0, 0.002, -0.17]} color="#1F2937" />
+          <Box size={[0.1, 0.054, 0.05]} pos={[0.2, 0.003, -0.17]} color="#C0392B" />
+          <Box size={[0.22, 0.054, 0.16]} pos={[-0.16, 0.003, -0.02]} color="#6B7280" />
+          {[0.06, 0.1, 0.14, 0.18].map((z) =>
+            [-0.16, 0.04, 0.2].map((x) => (
+              <Box
+                key={`${x}${z}`}
+                size={[0.14, 0.052, 0.014]}
+                pos={[x, 0.002, z]}
+                color="#9AA1AB"
+              />
+            )),
+          )}
+          {[-0.08, -0.04, 0.0].map((z) => (
+            <Box key={`r${z}`} size={[0.24, 0.052, 0.014]} pos={[0.13, 0.002, z]} color="#9AA1AB" />
           ))}
-          <Box size={[0.2, 0.052, 0.12]} pos={[0.17, 0.002, -0.14]} color="#C0392B" />
         </group>
       );
 
