@@ -46,7 +46,13 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] (365a010) E4 Lernkarte (nur „Üben“, nach Fehlwurf) bekommt eine kurze Begründung
   (≤ 4 Wörter, alle Gegenstände DE+EN), Karte ~0,5 s länger, blockiert nichts.
   **Schalter in den Einstellungen** („Begründung nach Fehlern“, an/aus, Standard an).
-- [ ] E2 Leistungs-Check nach den Modell-Umbauten (Zeichenaufrufe, Ruckler).
+- [x] E2 Leistungs-Check nach den Modell-Umbauten (Zeichenaufrufe, Ruckler).
+  Ergebnis (statisch, 05:45): Modelle werden je Name einmal gebacken (bake: alle
+  Lambert-Teile → 1 Mesh, Sonder-Teile je Material zusammengefasst → meist 2–4
+  Zeichenaufrufe), Vorlagen werden per ModelWarmup (2/Frame) vorab gebaut, alle
+  Formen low-poly (Icosaeder detail ≤1, Wellen 10×8, Zylinder ≤24 Segmente),
+  Geometrien per memoGeo geteilt. Neue Effekte der Nacht (Fever-Pause) laufen
+  nicht pro Frame. Kein Handlungsbedarf; echte Messung nur am iPhone möglich.
 - [ ] E3 Sammelbuch: 3D-Vorschau des Gegenstands beim Antippen (nur wenn Zeit).
 - [ ] E5 Szene: weicheres Licht, ruhigerer Hintergrund (ganz zum Schluss).
 
