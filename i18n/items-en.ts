@@ -139,7 +139,10 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
     fact: "Best taken back to a pharmacy or collection point – never down the toilet!",
   },
   Farbreste: { name: "Leftover paint" },
-  Druckerpatronen: { name: "Printer cartridges" },
+  Druckerpatronen: {
+    name: "Printer cartridges",
+    fact: "Many shops and manufacturers take them back – they get refilled or recycled.",
+  },
   "Alter Laptop": { name: "Old laptop" },
   Ladekabel: {
     name: "Charging cable",

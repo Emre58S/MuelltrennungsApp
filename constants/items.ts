@@ -93,7 +93,7 @@ export const ITEMS: Item[] = [
     difficulty: "leicht",
   },
   {
-    emoji: "🧻",
+    emoji: "🧽",
     name: "Küchenrolle (unbeschichtet)",
     category: "Biomüll",
     difficulty: "schwer",
@@ -157,19 +157,19 @@ export const ITEMS: Item[] = [
     difficulty: "leicht",
   },
   {
-    emoji: "🥚",
+    emoji: "🐣",
     name: "Eierkarton",
     category: "Papier",
     difficulty: "mittel",
   },
   {
-    emoji: "🧾",
+    emoji: "📑",
     name: "Prospekt",
     category: "Papier",
     difficulty: "leicht",
   },
   {
-    emoji: "📜",
+    emoji: "🧻",
     name: "Toilettenpapier-Rolle",
     category: "Papier",
     difficulty: "mittel",
@@ -210,7 +210,7 @@ export const ITEMS: Item[] = [
     difficulty: "leicht",
   },
   {
-    emoji: "🫙",
+    emoji: "🪩",
     name: "Alufolie",
     category: "Gelber Sack",
     difficulty: "mittel",
@@ -265,13 +265,13 @@ export const ITEMS: Item[] = [
     difficulty: "leicht",
   },
   {
-    emoji: "🧽",
+    emoji: "🥘",
     name: "Einweg-Aluschale",
     category: "Gelber Sack",
     difficulty: "mittel",
   },
   {
-    emoji: "🫙",
+    emoji: "🔘",
     name: "Deckel (Metall)",
     category: "Gelber Sack",
     difficulty: "schwer",
@@ -298,7 +298,7 @@ export const ITEMS: Item[] = [
     difficulty: "leicht",
   },
   {
-    emoji: "🧴",
+    emoji: "💎",
     name: "Parfümflasche",
     category: "Glas",
     difficulty: "mittel",
@@ -322,7 +322,7 @@ export const ITEMS: Item[] = [
     difficulty: "mittel",
   },
   {
-    emoji: "🥃",
+    emoji: "🫙",
     name: "Senfglas",
     category: "Glas",
     difficulty: "leicht",
@@ -381,7 +381,7 @@ export const ITEMS: Item[] = [
     difficulty: "mittel",
   },
   {
-    emoji: "🧷",
+    emoji: "👂",
     name: "Wattestäbchen",
     category: "Restmüll",
     difficulty: "mittel",
@@ -412,7 +412,7 @@ export const ITEMS: Item[] = [
     difficulty: "mittel",
   },
   {
-    emoji: "🎁",
+    emoji: "🎀",
     name: "Geschenkpapier (mit Folie)",
     category: "Restmüll",
     difficulty: "schwer",
@@ -479,6 +479,7 @@ export const ITEMS: Item[] = [
     name: "Druckerpatronen",
     category: "Sondermüll",
     difficulty: "mittel",
+    fact: "Viele Händler und Hersteller nehmen sie zurück – sie werden wieder befüllt oder recycelt.",
   },
   {
     emoji: "💻",
@@ -500,14 +501,14 @@ export const ITEMS: Item[] = [
     difficulty: "schwer",
   },
   {
-    emoji: "💡",
+    emoji: "🔆",
     name: "Energiesparlampe",
     category: "Sondermüll",
     difficulty: "schwer",
     fact: "Energiesparlampen enthalten Quecksilber und sind Sondermüll!",
   },
   {
-    emoji: "🧴",
+    emoji: "💅",
     name: "Nagellackentferner",
     category: "Sondermüll",
     difficulty: "schwer",
@@ -549,7 +550,7 @@ export const ITEMS: Item[] = [
     fact: "Backpapier ist beschichtet – es gehört in den Restmüll, nicht ins Altpapier!",
   },
   {
-    emoji: "🍷",
+    emoji: "🥃",
     name: "Trinkglas",
     category: "Restmüll",
     difficulty: "schwer",
