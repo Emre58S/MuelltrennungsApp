@@ -283,7 +283,7 @@ export const de = {
   "tutorial.subtitle": "Sortiere jeden Gegenstand in die richtige Tonne.",
   "tutorial.throw": "Werfen",
   "tutorial.bins": "Die Tonnen",
-  "tutorial.binsHint": "In jeder Runde stehen 3 Tonnen. Mit höherem Level tauchen in manchen Szenen Papier und Glas auf.",
+  "tutorial.binsHint": "In jeder Runde stehen 3 Tonnen. Mit höherem Level tauchen in manchen Szenen Papier, Glas und Sondermüll auf.",
   "tutorial.fromLevel": "ab Level {level}",
   "tutorial.points": "Punkte",
   "tutorial.streak.title": "Serie",

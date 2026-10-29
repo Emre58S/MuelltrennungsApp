@@ -198,7 +198,7 @@ export function EndScreen({
           </AppText>
 
           {rating > 0 && (
-            <View style={styles.starRow} accessible accessibilityLabel={`${rating} / 3`}>
+            <View style={styles.starRow} accessible accessibilityLabel={t("common.starsOf", { n: rating })}>
               {([1, 2, 3] as const).map((n) => (
                 <Star key={n} n={n} filled={n <= rating} delay={300 + n * 180} />
               ))}

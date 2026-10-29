@@ -99,6 +99,9 @@ export default function TutorialScreen() {
               {MODES.map((m) => (
                 <Row key={m.mode} icon={m.icon} title={t(m.titleKey)} text={t(m.descKey)} />
               ))}
+              {/* Tagesaufgabe und Trickwürfe starten im Menü über eigene Knöpfe */}
+              <Row icon="calendar" title={t("home.daily")} text={t("home.dailyNew")} />
+              <Row icon="award" title={t("home.tricks")} text={t("home.tricksDesc")} />
             </Card>
           </Section>
         </FadeIn>

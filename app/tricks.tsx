@@ -112,7 +112,7 @@ export default function TricksScreen() {
         <FadeIn delay={70}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`${t("tricks.daily")}, ${daily} / 3 ★`}
+            accessibilityLabel={`${t("tricks.daily")}, ${t("common.starsOf", { n: daily })}`}
             onPress={openDaily}
             style={({ pressed }) => [
               styles.daily,
@@ -159,7 +159,7 @@ export default function TricksScreen() {
                           accessibilityState={{ disabled: !unlocked }}
                           accessibilityLabel={
                             unlocked
-                              ? `${t("tricks.level", { n: level.id })}, ${got} / 3 ★`
+                              ? `${t("tricks.level", { n: level.id })}, ${t(level.task)}, ${t("common.starsOf", { n: got })}`
                               : `${t("tricks.level", { n: level.id })}, ${t("tricks.locked")}`
                           }
                           onPress={() =>

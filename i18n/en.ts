@@ -284,7 +284,7 @@ export const en: Translations = {
   "tutorial.subtitle": "Sort every item into the right bin.",
   "tutorial.throw": "Throwing",
   "tutorial.bins": "The bins",
-  "tutorial.binsHint": "Every round has 3 bins. At higher levels, paper and glass appear in some scenes.",
+  "tutorial.binsHint": "Every round has 3 bins. At higher levels, paper, glass and hazardous waste appear in some scenes.",
   "tutorial.fromLevel": "from level {level}",
   "tutorial.points": "Points",
   "tutorial.streak.title": "Streak",
