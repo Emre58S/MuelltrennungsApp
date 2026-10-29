@@ -405,22 +405,32 @@ export function GameRound({
       sfx("fever");
     }
   }, [mode, timerStarted, timeLeft, showBanner, t]);
+  // Fever-Restzeit (ms) je Fever – läuft nur, solange keine Rückfrage offen ist
+  const feverLeft = useRef({ id: 0, ms: 0 });
+  useEffect(() => {
+    if (feverId === null || asking) return;
+    const started = Date.now();
+    const timer = setTimeout(() => {
+      // Nur das eigene Fever beenden (ein neues kann schon gestartet sein)
+      if (feverLeft.current.id === feverId) feverRef.current = false;
+      setFeverId((f) => (f === feverId ? null : f));
+    }, feverLeft.current.ms);
+    return () => {
+      clearTimeout(timer);
+      const left = feverLeft.current;
+      if (left.id === feverId) left.ms = Math.max(0, left.ms - (Date.now() - started));
+    };
+  }, [feverId, asking]);
   const startFever = useCallback(() => {
     const id = ++lock.current.id;
     feverRef.current = true;
+    feverLeft.current = { id, ms: FEVER_SECONDS * 1000 };
     setFeverId(id);
     sfx("fever");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => undefined,
     );
-    later(() => {
-      setFeverId((f) => {
-        if (f !== id) return f;
-        feverRef.current = false;
-        return null;
-      });
-    }, FEVER_SECONDS * 1000);
-  }, [later]);
+  }, []);
   /** Wurf in eine Tonne – oder im Zielwurf frei (`shot`, auch daneben). */
   const throwTo = (
     binIndex: number,
@@ -978,7 +988,7 @@ export function GameRound({
               {isTimed(mode) && (
                 <TimerBar timeLeft={timeLeft} total={ROUND_SECONDS} />
               )}
-              {fever && <FeverBanner key={feverId} seconds={FEVER_SECONDS} />}
+              {fever && <FeverBanner key={feverId} seconds={FEVER_SECONDS} paused={asking} />}
             </View>
             {banner && (
               <View

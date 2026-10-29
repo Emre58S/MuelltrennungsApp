@@ -160,20 +160,36 @@ export function ScoreBadge({
 
 /* ── Fieber ────────────────────────────────────────────────── */
 
-export function FeverBanner({ seconds }: { seconds: number }) {
+export function FeverBanner({ seconds, paused = false }: { seconds: number; paused?: boolean }) {
   const { t } = useI18n();
   const enter = useEnter();
   const [bar] = useState(() => new Animated.Value(1));
   useEffect(() => {
+    // Rückfrage „Beenden?“ offen: Balken steht still (die Fever-Zeit auch)
+    if (paused) return;
     // Nativ animiert (scaleX statt width): belastet nicht den JS-Thread,
-    // auf dem auch die 3D-Szene gezeichnet wird
-    Animated.timing(bar, {
-      toValue: 0,
-      duration: seconds * 1000,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }).start();
-  }, [bar, seconds]);
+    // auf dem auch die 3D-Szene gezeichnet wird. Nach einer Pause läuft er
+    // vom aktuellen Stand mit der Restzeit weiter.
+    let anim: Animated.CompositeAnimation | null = null;
+    // Der Callback von stopAnimation kommt bei nativen Werten asynchron –
+    // nach dem Aufräumen nichts mehr starten
+    let live = true;
+    bar.stopAnimation((value) => {
+      if (!live) return;
+      anim = Animated.timing(bar, {
+        toValue: 0,
+        duration: value * seconds * 1000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      });
+      anim.start();
+    });
+    return () => {
+      live = false;
+      anim?.stop();
+      bar.stopAnimation();
+    };
+  }, [bar, seconds, paused]);
 
   return (
     <Animated.View style={[styles.fever, { transform: [{ scale: enter }] }]}>
