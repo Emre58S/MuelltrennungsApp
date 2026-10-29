@@ -24,7 +24,7 @@ zu ändern.
 - „Ohne Fehler“: Lernkarte nur ~1,8 s (2,3 s mit Begründung) sichtbar.
 - Walnuss-Runzeln noch etwas groß (Länge scale x ~1,0 wäre feiner).
 - Ruckeln (Nutzer 29.10., Preview, dauernd im Spiel): im ausgelieferten Code keine Ursache gefunden (Modelle gecacht, nichts pro Frame neu). Erst Gerät prüfen (Expo Go neu, Stromsparmodus); ggf. lokale Commits ausliefern (Normalmodus nötig).
-- M5 Rest: Spülmittel, Küchentuch.
+- M5 Rest: Küchentuch (optional).
 
 ## Nächste Aufgaben (von oben nach unten; Erledigtes steht in IMPROVEMENTS-ARCHIV.md)
 
@@ -44,7 +44,7 @@ Leitsatz Texte/UI: für Menschen mit wenig Deutsch verständlich, nie strafend.
    verworfen-sparlauf).
 3. **M5 Modelle Grundform:** (Walnuss erledigt) Obstnetz als
    Netzbeutel, Maiskolben (erledigt, Tester 8/10), Katzenstreu 3–4
-   Klumpen, Spülmittel schlanker, Küchentuch-Prägemuster (optional).
+   Klumpen, Spülmittel (erledigt, schlank, Tester 8/10), Küchentuch-Prägemuster (optional).
 4. **Phase 2 Szenen** (haus/ziegel/garten; Spielszene = stage.tsx):
    S1 Audit (leer/unruhig/unstimmig) → S2 aufwerten (je ein Blickfang, ruhiger
    Hintergrund) → S3 neue Szene „Park“ → S4 „Wertstoffhof“ → S5 Wechsel, Leistung, Menü.

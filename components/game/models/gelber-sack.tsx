@@ -174,6 +174,47 @@ export function renderGelberSackModel(key: string, name: string) {
       const body = shampoo ? "#2563EB" : "#22C55E";
       const accent = shampoo ? "#F8FAFC" : "#FDE047";
 
+      if (!shampoo) {
+        // Spülmittel: schlanke, hohe Flasche (Radius 0,155 statt 0,225) mit
+        // Push-Pull-Verschluss oben mittig – so nicht wie die Shampooflasche
+        return (
+          <group rotation={[0.08, -0.25, 0.08]}>
+            <Part
+              geo={G.lathe(
+                24,
+                [
+                  0, -0.36, 0.12, -0.36, 0.15, -0.33, 0.155, -0.2, 0.155, 0.12,
+                  0.13, 0.2, 0.06, 0.27, 0.055, 0.3,
+                ],
+              )}
+              color={body}
+              roughness={0.4}
+            />
+            {/* Etikett-Band (y −0,18 … 0,04) im geraden Teil (y −0,2 … 0,12) */}
+            <Part
+              geo={G.cyl(0.158, 0.158, 0.22, 24, true)}
+              pos={[0, -0.07, 0]}
+              double
+              color={accent}
+              roughness={0.6}
+            />
+            <Part geo={G.circle(0.05, 18)} pos={[0, -0.07, 0.159]} basic color={body} />
+            <Part
+              geo={G.cyl(0.06, 0.065, 0.1, 16)}
+              pos={[0, 0.35, 0]}
+              color="#0F172A"
+              roughness={0.45}
+            />
+            <Part
+              geo={G.cyl(0.025, 0.03, 0.05, 10)}
+              pos={[0, 0.425, 0]}
+              color="#1E293B"
+              roughness={0.45}
+            />
+          </group>
+        );
+      }
+
       return (
         <group rotation={[0.08, -0.25, 0.08]}>
           <Part
