@@ -54,7 +54,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
   Geometrien per memoGeo geteilt. Neue Effekte der Nacht (Fever-Pause) laufen
   nicht pro Frame. Kein Handlungsbedarf; echte Messung nur am iPhone möglich.
 - [x] (9ebe8f5) E3 Sammelbuch: 3D-Vorschau des Gegenstands beim Antippen (nur wenn Zeit).
-- [ ] E5 Szene: weicheres Licht, ruhigerer Hintergrund (ganz zum Schluss).
+- [x] (209ca3b, behutsam: Sonne 1,5, Himmelslicht 1,3, Himmel ruhiger) E5 Szene: weicheres Licht, ruhigerer Hintergrund (ganz zum Schluss).
 
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
 ganze App) → Punkte eintragen → weiter. Nie leer laufen lassen.
