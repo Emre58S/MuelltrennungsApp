@@ -23,7 +23,7 @@ zu ändern.
 - Tagesaufgabe: Endbildschirm nach 900 ms überdeckt im letzten Wurf die Fehlerrückmeldung.
 - „Ohne Fehler“: Lernkarte nur ~1,8 s (2,3 s mit Begründung) sichtbar.
 - Walnuss-Runzeln noch etwas groß (Länge scale x ~1,0 wäre feiner).
-- M5 Rest: Obstnetz, Maiskolben, Katzenstreu, Spülmittel, Küchentuch.
+- M5 Rest: Obstnetz, Katzenstreu, Spülmittel, Küchentuch.
 
 ## Nächste Aufgaben (von oben nach unten; Erledigtes steht in IMPROVEMENTS-ARCHIV.md)
 
@@ -42,7 +42,7 @@ Leitsatz Texte/UI: für Menschen mit wenig Deutsch verständlich, nie strafend.
    „Runde verlassen?“; Hinweis (richtige Tonne hüpft) in allen Modi (Zweig
    verworfen-sparlauf).
 3. **M5 Modelle Grundform:** (Walnuss erledigt) Obstnetz als
-   Netzbeutel, Maiskolben durchgehend gelb mit Lieschblättern, Katzenstreu 3–4
+   Netzbeutel, Maiskolben (erledigt, Tester 8/10), Katzenstreu 3–4
    Klumpen, Spülmittel schlanker, Küchentuch-Prägemuster (optional).
 4. **Phase 2 Szenen** (haus/ziegel/garten; Spielszene = stage.tsx):
    S1 Audit (leer/unruhig/unstimmig) → S2 aufwerten (je ein Blickfang, ruhiger

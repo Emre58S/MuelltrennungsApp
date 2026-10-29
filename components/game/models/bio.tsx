@@ -388,54 +388,62 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "corn":
+      // Maiskolben: durchgehend gelb (Körnerreihen), unten Stiel, seitlich
+      // zwei grüne Lieschblätter – Radius: oben 0,10, unten 0,13 (Mitte y=0,02)
       return (
         <group rotation={[0.1, 0.25, -0.35]}>
-          {/* Körner (unten) */}
           <Part
-            geo={G.cyl(0.13, 0.14, 0.3, 14)}
-            pos={[0, -0.13, 0]}
+            geo={G.cyl(0.1, 0.13, 0.5, 14)}
+            pos={[0, 0.02, 0]}
             flat
             color="#F5CB3D"
             roughness={0.75}
           />
-          {[-0.22, -0.14, -0.06].map((y) => (
+          {/* Spitze */}
+          <Part
+            geo={G.ball(0.1, 10, 8)}
+            pos={[0, 0.27, 0]}
+            scale={[1, 0.6, 1]}
+            color="#F2C230"
+            roughness={0.75}
+          />
+          {/* Körnerreihen: Ringe knapp außerhalb der Fläche */}
+          {(
+            [
+              [0.15, 0.111],
+              [0.02, 0.119],
+              [-0.11, 0.127],
+            ] as [number, number][]
+          ).map(([y, r]) => (
             <Part
               key={y}
-              geo={G.torus(0.136, 0.011, 5, 14)}
+              geo={G.torus(r, 0.008, 5, 14)}
               pos={[0, y, 0]}
               rot={[Math.PI / 2, 0, 0]}
               color="#C99A12"
               roughness={0.9}
             />
           ))}
-          {/* abgenagter Kolben (oben) */}
-          <Part
-            geo={G.cyl(0.11, 0.13, 0.28, 12)}
-            pos={[0, 0.16, 0]}
-            flat
-            color="#EBD9A0"
-            roughness={0.9}
-          />
-          {/* Lieschblätter */}
+          {/* Lieschblätter seitlich am Kolben */}
           <Part
             geo={G.ball(0.1, 10, 8)}
-            pos={[0.1, -0.3, 0.02]}
-            rot={[0, 0, -0.3]}
+            pos={[-0.1, -0.12, 0.06]}
+            rot={[0, 0.5, 0.15]}
             scale={[0.6, 2.2, 0.25]}
             color="#65A30D"
             roughness={0.9}
           />
           <Part
             geo={G.ball(0.1, 10, 8)}
-            pos={[-0.09, -0.3, -0.03]}
-            rot={[0, 0, 0.35]}
+            pos={[0.1, -0.14, 0.05]}
+            rot={[0, -0.5, -0.15]}
             scale={[0.6, 2.0, 0.25]}
             color="#84CC16"
             roughness={0.9}
           />
           <Part
             geo={G.cyl(0.03, 0.04, 0.08, 8)}
-            pos={[0, -0.34, 0]}
+            pos={[0, -0.27, 0]}
             color="#7C5A2E"
             roughness={1}
           />
