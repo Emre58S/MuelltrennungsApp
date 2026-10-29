@@ -30,20 +30,24 @@ export function renderRestmuellModel(key: string, name: string) {
               roughness={1}
             />
           ))}
-          <Part
-            geo={G.cyl(0.048, 0.046, 0.18, 12)}
-            pos={[0, 0.14, 0]}
-            color="#F1EBDD"
-            roughness={0.95}
-          />
-          <Part
-            geo={G.crumple(0.05, 0.3, 4, 1)}
-            pos={[0, 0.25, 0]}
-            scale={[1, 0.6, 1]}
-            flat
-            color="#3F3F46"
-            roughness={1}
-          />
+          {/* ausgedrückt: Papierteil am Filter geknickt und plattgedrückt */}
+          <group position={[0, 0.05, 0]} rotation={[0, 0, 0.5]}>
+            <Part
+              geo={G.cyl(0.048, 0.046, 0.18, 12)}
+              pos={[0, 0.06, 0]}
+              scale={[1.15, 1, 0.85]}
+              color="#F1EBDD"
+              roughness={0.95}
+            />
+            <Part
+              geo={G.crumple(0.05, 0.3, 4, 1)}
+              pos={[0, 0.16, 0]}
+              scale={[1, 0.6, 0.8]}
+              flat
+              color="#3F3F46"
+              roughness={1}
+            />
+          </group>
         </group>
       );
 
@@ -336,6 +340,24 @@ export function renderRestmuellModel(key: string, name: string) {
             color="#E2E8F0"
             roughness={0.25}
             metalness={0.6}
+          />
+          {/* zwei Klingen vorn auf dem schwarzen Band, mit Glanz */}
+          {[0.319, 0.328].map((y) => (
+            <Part
+              key={y}
+              geo={G.box(0.24, 0.007, 0.004, 0.001)}
+              pos={[0, y, 0.043]}
+              color="#E5E7EB"
+              metalness={0.7}
+            />
+          ))}
+          <Part
+            geo={G.box(0.07, 0.004, 0.002, 0.0005)}
+            pos={[0.05, 0.328, 0.0465]}
+            basic
+            noDepthWrite
+            color="#FFFFFF"
+            opacity={0.8}
           />
         </group>
       );
