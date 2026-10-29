@@ -495,16 +495,18 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "fruitnet":
-      // Leeres Plastiknetz (ohne Orangen – die wären Essen und lenkten zum
-      // Biomüll): sich kreuzende Netzschnüre, leicht zusammengefallen,
-      // oben Clip mit Etikett
+      // Leerer Netzbeutel (ohne Orangen – die wären Essen und lenkten zum
+      // Biomüll): unten bauchig, oben zusammengerafft mit Clip und Etikett.
+      // Längsschnüre: Ellipse 0,19 breit / 0,23 hoch; Querringe liegen darauf
+      // (Radius = 0,19 · √(1 − (y/0,23)²))
       return (
-        <group rotation={[0.25, 0.4, 0.1]} scale={[1, 0.8, 1]}>
+        <group rotation={[0.25, 0.4, 0.1]} position={[0, -0.03, 0]}>
           {(
             [
-              [-0.08, 0.185],
-              [0.02, 0.2],
-              [0.1, 0.175],
+              [-0.15, 0.144],
+              [-0.03, 0.188],
+              [0.09, 0.175],
+              [0.19, 0.107],
             ] as [number, number][]
           ).map(([y, rad]) => (
             <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
@@ -513,13 +515,19 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
             </mesh>
           ))}
           {[0, Math.PI / 3, (2 * Math.PI) / 3].map((ang) => (
-            <mesh key={ang} rotation={[0, ang, 0]} scale={[1, 1.15, 1]}>
+            <mesh key={ang} rotation={[0, ang, 0]} scale={[0.95, 1.15, 0.95]}>
               <torusGeometry args={[0.2, 0.014, 4, 18]} />
               <meshLambertMaterial color="#EA580C" flatShading />
             </mesh>
           ))}
           <Box size={[0.08, 0.05, 0.05]} pos={[0, 0.25, 0]} color="#F8FAFC" />
-          <Box size={[0.12, 0.08, 0.008]} pos={[0.08, 0.2, 0.03]} rot={[0, 0, -0.3]} color="#FDE68A" />
+          {/* zusammengeraffter Netzzipfel über dem Clip */}
+          <mesh position={[0, 0.31, 0]}>
+            <cylinderGeometry args={[0.015, 0.03, 0.08, 8]} />
+            <meshLambertMaterial color="#EA580C" flatShading />
+          </mesh>
+          {/* Etikett vorn am Clip festgeklebt (Clip-Vorderseite z=0,025) */}
+          <Box size={[0.1, 0.07, 0.008]} pos={[0.05, 0.22, 0.029]} color="#FDE68A" />
         </group>
       );
 
