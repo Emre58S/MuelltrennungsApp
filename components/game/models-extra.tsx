@@ -30,6 +30,9 @@ export const EXTRA_MODEL_RULES: [RegExp, string][] = [
   [/kronkorken/, "bottlecap"],
   [/marmeladenglas|gurkenglas|honigglas|senfglas/, "jar"],
   [/parfuemflasche/, "perfume"],
+  [/kaugummi/, "gum"],
+  [/kaffeekapsel/, "capsule"],
+  [/spraydose/, "spraycan"],
   // Sondermüll
   [/batterie/, "battery"],
   [/smartphone/, "phone"],
@@ -787,6 +790,64 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
           </mesh>
           {/* Deckel schräg an den Eimer gelehnt */}
           <Cyl r={0.23} h={0.025} pos={[0.3, 0.04, -0.04]} rot={[0, 0, -1.25]} color="#9CA3AF" />
+        </group>
+      );
+
+    case "gum":
+      // Kaugummi: zerkauter rosa Klumpen, daneben ein
+      // frischer Streifen halb aus dem grünen Papier
+      return (
+        <group rotation={[0.35, 0.3, 0]}>
+          <Part geo={G.crumple(0.13, 0.22, 11, 1)} pos={[-0.08, 0, 0]} scale={[1.2, 0.8, 0.9]} flat color="#F9A8D4" roughness={0.8} />
+          <group position={[0.17, -0.06, 0.06]} rotation={[0, 0, 0.35]}>
+            <Box size={[0.06, 0.24, 0.02]} pos={[0, 0.03, 0]} color="#F1F5F9" />
+            <Box size={[0.066, 0.16, 0.026]} pos={[0, -0.03, 0]} color="#16A34A" />
+            <Box size={[0.072, 0.025, 0.03]} pos={[0, -0.02, 0]} color="#FFFFFF" />
+          </group>
+        </group>
+      );
+
+    case "capsule":
+      // Alu-Kaffeekapsel: lila Kegel mit breitem Rand, oben silberner
+      // Folienboden mit Einstichlöchern, Glanz auf der Wand
+      return (
+        <group rotation={[0.85, 0.3, 0]}>
+          <Cyl r={0.1} rTop={0.15} h={0.16} color="#7C3AED" metalness={0.5} />
+          {/* gewölbte schmale Spitze unten (typisch Kapsel, kein Becher) */}
+          <mesh position={[0, -0.08, 0]} scale={[1, 0.35, 1]} castShadow>
+            <sphereGeometry args={[0.1, 16, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
+            <meshLambertMaterial color="#6D28D9" flatShading />
+          </mesh>
+          <Cyl r={0.19} h={0.016} pos={[0, 0.088, 0]} color="#8B5CF6" metalness={0.5} />
+          <Cyl r={0.15} h={0.006} pos={[0, 0.099, 0]} color="#D1D5DB" metalness={0.6} />
+          {(
+            [
+              [-0.05, 0.02],
+              [0.04, -0.04],
+              [0.03, 0.05],
+            ] as [number, number][]
+          ).map(([x, z]) => (
+            <Cyl key={`${x}${z}`} r={0.012} h={0.004} pos={[x, 0.103, z]} color="#374151" />
+          ))}
+          <Shine size={[0.02, 0.12, 0.004]} pos={[-0.058, 0, 0.111]} rot={[0.28, -0.5, 0]} />
+        </group>
+      );
+
+    case "spraycan":
+      // Leere Spraydose: hohe Metalldose mit buntem Aufdruck, gewölbter
+      // Schulter und Sprühkopf mit Düse
+      return (
+        <group rotation={[0.15, 0.3, -0.12]}>
+          <Cyl r={0.1} h={0.44} color="#CBD5E1" metalness={0.5} />
+          <Cyl r={0.102} h={0.24} pos={[0, -0.04, 0]} color="#2563EB" />
+          <Cyl r={0.106} h={0.03} pos={[0, 0.03, 0]} color="#F8FAFC" />
+          <mesh position={[0, 0.22, 0]} scale={[1, 0.45, 1]} castShadow>
+            <sphereGeometry args={[0.1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshLambertMaterial color="#CBD5E1" flatShading />
+          </mesh>
+          <Cyl r={0.04} h={0.06} pos={[0, 0.29, 0]} color="#F8FAFC" />
+          <Cyl r={0.01} h={0.012} pos={[0, 0.3, 0.04]} rot={[Math.PI / 2, 0, 0]} color="#111827" />
+          <Shine size={[0.02, 0.36, 0.004]} pos={[-0.05, 0, 0.088]} rot={[0, -0.5, 0]} />
         </group>
       );
 

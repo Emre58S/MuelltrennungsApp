@@ -584,4 +584,25 @@ export const ITEMS: Item[] = [
     difficulty: "mittel",
     fact: "Kerzenwachs gehört in den Restmüll – nicht in die Biotonne.",
   },
+  {
+    emoji: "👄",
+    name: "Kaugummi",
+    category: "Restmüll",
+    difficulty: "mittel",
+    fact: "Kaugummi ist aus Kunststoff – Restmüll, nicht Biotonne (und nie auf die Straße).",
+  },
+  {
+    emoji: "🟣",
+    name: "Kaffeekapsel (Alu)",
+    category: "Gelber Sack",
+    difficulty: "schwer",
+    fact: "Benutzte Alu-Kapseln sind Verpackung – Gelber Sack (der Kaffeesatz darf drinbleiben).",
+  },
+  {
+    emoji: "💨",
+    name: "Spraydose (leer)",
+    category: "Gelber Sack",
+    difficulty: "mittel",
+    fact: "Nur ganz leere Spraydosen dürfen in den Gelben Sack – volle sind Sondermüll.",
+  },
 ];

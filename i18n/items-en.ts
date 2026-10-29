@@ -186,4 +186,16 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
     name: "Candle stubs",
     fact: "Candle wax goes in general waste – not in the organic bin.",
   },
+  Kaugummi: {
+    name: "Chewing gum",
+    fact: "Chewing gum is made of plastic – general waste, not organic (and never on the street).",
+  },
+  "Kaffeekapsel (Alu)": {
+    name: "Coffee capsule (aluminium)",
+    fact: "Used aluminium capsules are packaging – yellow bag (the coffee can stay inside).",
+  },
+  "Spraydose (leer)": {
+    name: "Spray can (empty)",
+    fact: "Only completely empty spray cans go in the yellow bag – full ones are hazardous waste.",
+  },
 };

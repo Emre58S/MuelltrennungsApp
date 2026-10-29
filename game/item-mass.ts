@@ -30,6 +30,7 @@ const HEAVY = new Set([
 ]);
 
 const LIGHT = new Set([
+  "Kaffeekapsel (Alu)",
   "Laub",
   "Zwiebelschale",
   "Teebeutel",
@@ -65,6 +66,8 @@ const METAL = new Set([
   "Einweg-Aluschale",
   "Deckel (Metall)",
   "Kronkorken",
+  "Kaffeekapsel (Alu)",
+  "Spraydose (leer)",
   "Batterie",
   "Altes Smartphone",
   "Alter Laptop",
