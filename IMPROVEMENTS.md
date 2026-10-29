@@ -7,9 +7,9 @@ ergänzen oder umsortieren – ich lese die Datei zu Beginn jedes Zyklus neu.
 Leitlinie: Das Spielgefühl soll sehr gut sein – ohne grundlegende Mechaniken
 zu ändern.
 
-## Letzter Lauf (Sparlauf 29.10., Modell Sonnet, nichts gepusht)
+## Letzter Lauf (29.10., Sonnet/Opus) – alles bis 561d760 gepusht, EAS auto + preview
 
-**Umgesetzt (lokal auf auto-improve, nicht gepusht/ausgeliefert):**
+**Umgesetzt und ausgeliefert (auch Modelle Mais, Katzenstreu, Obstnetz, Spülmittel, Garten-Hecke):**
 - 5796c58 Serien-Anzeige: Fieber-Faktor in der Meldung, Dezimalkomma, „Serie“
   statt „Combo“, „Heiß!“ ab Serie 4, Lob „n in Folge“, Tutorial mit Stufen,
   VoiceOver-Label (Tester 8/10).
