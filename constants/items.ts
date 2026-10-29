@@ -322,7 +322,7 @@ export const ITEMS: Item[] = [
     difficulty: "mittel",
   },
   {
-    emoji: "🫙",
+    emoji: "🟨",
     name: "Senfglas",
     category: "Glas",
     difficulty: "leicht",
@@ -557,14 +557,14 @@ export const ITEMS: Item[] = [
     fact: "Trinkgläser schmelzen anders als Flaschen – darum Restmüll, nicht Altglas!",
   },
   {
-    emoji: "☕",
+    emoji: "🔻",
     name: "Kaffeefilter",
     category: "Biomüll",
     difficulty: "mittel",
     fact: "Papierfilter mit Kaffeesatz dürfen zusammen in die Biotonne.",
   },
   {
-    emoji: "📰",
+    emoji: "📖",
     name: "Zeitschrift",
     category: "Papier",
     difficulty: "leicht",
@@ -624,6 +624,6 @@ export const ITEMS: Item[] = [
     name: "Tablettenblister (leer)",
     category: "Gelber Sack",
     difficulty: "schwer",
-    fact: "Leere Blister sind Verpackung – Gelber Sack. Übrige Tabletten: Restmüll oder zurück in die Apotheke.",
+    fact: "Leere Blister sind Verpackung – Gelber Sack. Übrige Tabletten: zurück in die Apotheke oder zur Sammelstelle.",
   },
 ];

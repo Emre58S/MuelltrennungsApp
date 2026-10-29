@@ -350,7 +350,7 @@ export function difficultyOf(level: TrickLevel): TrickDifficulty {
 /** Zusätzliche Vorlagen nur für den Tages-Trick (geprüft wie die Level). */
 export const DAILY_TEMPLATES: Omit<TrickLevel, "id">[] = [
   // Oben durch den Reifen, die Tonne fährt
-  { target: 1, props: [ring(0, 3.35, 3.3, 0.6)], requires: [0], binSlide: ROLL, bonus: "swish", task: "trick.task.ring" },
+  { target: 1, props: [ring(0, 3.35, 3.3, 0.6)], requires: [0], binSlide: ROLL, bonus: "swish", task: "trick.task.ringMovingBin" },
   // Oben ein Reifen, Wind von rechts
   { target: 2, props: [fan(0.6, -6), ring(0.75, 3.35, 3.3, 0.6)], requires: [1], bonus: "firstTry", task: "trick.task.windRing" },
   // Auf und ab gleitender Reifen vor der Mitte, oben ein ruhiger

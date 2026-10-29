@@ -208,6 +208,6 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
   },
   "Tablettenblister (leer)": {
     name: "Pill blister (empty)",
-    fact: "Empty blisters are packaging – yellow bag. Leftover pills: general waste or back to the pharmacy.",
+    fact: "Empty blisters are packaging – yellow bag. Leftover pills: back to the pharmacy or a collection point.",
   },
 };

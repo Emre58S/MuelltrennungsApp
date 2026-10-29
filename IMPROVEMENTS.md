@@ -56,6 +56,18 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] (9ebe8f5) E3 Sammelbuch: 3D-Vorschau des Gegenstands beim Antippen (nur wenn Zeit).
 - [x] (209ca3b, behutsam: Sonne 1,5, Himmelslicht 1,3, Himmel ruhiger) E5 Szene: weicheres Licht, ruhigerer Hintergrund (ganz zum Schluss).
 
+**F – Audit 3 (06:05)**
+- [x] F1 Blister-Fakt widerspricht Medikamente=Sondermüll → „zurück in die Apotheke oder zur Sammelstelle“ (DE/EN).
+- [ ] F2 Ergebnis-Liste + Sammelbuch: ohne Fakt die Begründung (ITEM_REASONS) zeigen.
+- [x] F3 Emojis überall eindeutig: Kaffeefilter 🔻, Zeitschrift 📖, Senfglas 🟨 (+ Test).
+- [ ] F4 Tutorial: Sondermüll im Tonnen-Hinweis, Tagesaufgabe + Trickwürfe in der Modus-Liste.
+- [x] F5 Tages-Vorlage 1 (fahrende Tonne) Aufgabentext trick.task.ringMovingBin.
+- [ ] F6 Trickwürfe-Beschreibung: nicht nur Reifen (DE/EN).
+- [ ] F7 „Alles zurücksetzen“-Text ehrlich; learnReason.desc auch Tagesaufgabe.
+- [ ] F8 VoiceOver: Sterne als „n von 3 Sternen“, Level-Aufgabe im Label.
+- [ ] F9 Blister-Modell kontrastreicher (deckende Näpfe, Ränder, Aufdruck).
+- [ ] F10 (klein) Teelicht-Begründung „Alu, wird recycelt“; noTrick bei zwei Reifen.
+
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
 ganze App) → Punkte eintragen → weiter. Nie leer laufen lassen.
 

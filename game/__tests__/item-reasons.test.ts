@@ -20,6 +20,16 @@ describe("Begründungen auf der Lernkarte", () => {
     expect(Object.keys(ITEM_REASONS).filter((name) => !names.has(name))).toEqual([]);
   });
 
+  test("jedes Emoji gibt es nur einmal (Sammelbuch, Lernkarte)", () => {
+    const seen = new Map<string, string>();
+    const twice = ITEMS.filter((item) => {
+      const before = seen.get(item.emoji);
+      seen.set(item.emoji, item.name);
+      return before !== undefined;
+    });
+    expect(twice.map((i) => `${i.emoji} ${i.name}`)).toEqual([]);
+  });
+
   test("höchstens vier Wörter", () => {
     const long = Object.entries(ITEM_REASONS).filter(([, r]) => words(r.de) > 4 || words(r.en) > 4);
     expect(long.map(([name]) => name)).toEqual([]);
