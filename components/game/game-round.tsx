@@ -296,7 +296,7 @@ export function GameRound({
   const later = useLater();
   // Einführung: Gewicht, Combo und Halten je einmal erklären (siehe tips.ts)
   /** Lernkarte steht (nur „Üben“) – der Tipp an derselben Stelle wartet. */
-  const learnShown = mode === "endless" && !!learn;
+  const learnShown = (mode === "endless" || mode === "survival") && !!learn;
   const tips = useTips(learnShown);
   const showTip = tips.show;
   const heldEver = useRef(false);
@@ -366,7 +366,7 @@ export function GameRound({
   // Tipp soll eine laufende Runde nicht vorzeitig beenden (gespeichert wird sie
   // beim Verlassen trotzdem – siehe useCommitRound).
   const askExit = () => {
-    if (finished || stats.throws === 0) {
+    if (finished || lock.current.over || stats.throws === 0) {
       onExit();
       return;
     }
@@ -720,11 +720,13 @@ export function GameRound({
       );
       shake(fx.current, 0.022, "x");
       const correctBin = getBinByCategory(ts.item.category) ?? bin;
-      if (mode === "endless") {
-        // Dezenter Hinweis: die richtige Tonne hüpft kurz
-        const correctIndex = bins.findIndex((b) => b.key === correctBin.key);
-        if (correctIndex !== -1)
-          later(() => queueBinEvent(bus.current, correctIndex, "peek"), 250);
+      // Dezenter Hinweis in jedem Modus: die richtige Tonne hüpft kurz (nimmt
+      // keine Zeit und blockiert nichts) – so lernt man auch unter Zeitdruck
+      const correctIndex = bins.findIndex((b) => b.key === correctBin.key);
+      if (correctIndex !== -1)
+        later(() => queueBinEvent(bus.current, correctIndex, "peek"), 250);
+      // Lernkarte: beim Üben und bei „Ohne Fehler“ (die Runde endet danach ohnehin)
+      if (mode === "endless" || mode === "survival") {
         setLearn({ id, item: ts.item, bin: correctBin });
         // Mit Begründung bleibt die Karte etwas länger stehen (zum Lesen)
         later(() => {
@@ -738,7 +740,7 @@ export function GameRound({
         setAim(bus.current, null);
         later(() => {
           setFinished(true);
-        }, 1900);
+        }, learnReason ? 2600 : 1900);
       }
     }
     // XP + Level-Aufstieg lokal berechnen; gespeichert wird gebündelt.
@@ -1012,7 +1014,7 @@ export function GameRound({
                 <TipCard text={t(tips.tip.key)} onClose={tips.dismiss} />
               </View>
             )}
-            {mode === "endless" && learn && (
+            {(mode === "endless" || mode === "survival") && learn && (
               <View
                 pointerEvents="none"
                 style={[styles.overlayRow, { top: learnTop }]}

@@ -64,7 +64,7 @@ Leitsatz Texte/UI: für Menschen mit wenig Deutsch verständlich, nie strafend.
    (feverRef.current ODER Serie % FEVER_EVERY === 0), Lob-Text ohne „×“ für die
    Serienzahl, Tutorial-Stufen (3 → ×1,5 · 5 → ×2 · 10 → ×3), Chip-Label für
    VoiceOver, „Knapp daneben!“.
-2. **Lernkarte-Timing:** Tagesaufgabe – Endbildschirm nach 900 ms überdeckt die
+2. [x] **Lernkarte-Timing – erledigt (lokal, Tester 7/10); offen bleibt nur: Tagesaufgabe-Endbildschirm im letzten Wurf.** Ursprünglich: Tagesaufgabe – Endbildschirm nach 900 ms überdeckt die
    Lernkarte im letzten Wurf; „Ohne Fehler“ – X-Taste nach Verlust fragt noch
    „Runde verlassen?“; Hinweis (richtige Tonne hüpft) in allen Modi (Zweig
    verworfen-sparlauf).
