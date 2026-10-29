@@ -300,6 +300,15 @@ export const TRICK_LEVELS: TrickLevel[] = [
   // Bauzaun quer vor den Tonnen: hoch drüberwerfen (Swish geht nicht – man
   // streift immer den Rand –, daher Bonus „1. Versuch“)
   { id: 22, target: 1, props: [fence()], requires: [], bonus: "firstTry", task: "trick.task.fence" },
+  // Kombi: oben durch den Reifen, unten links an der Laterne vorbei
+  {
+    id: 23,
+    target: 1,
+    props: [lamp(0.22, 1.4, 1), ring(-0.2, 3.35, 3.3, 0.5)],
+    requires: [1],
+    bonus: "swish",
+    task: "trick.task.lampRing",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */

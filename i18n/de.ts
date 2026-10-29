@@ -127,6 +127,7 @@ export const de = {
   "trick.task.wind": "Gegen den Wind",
   "trick.task.fence": "Über den Bauzaun",
   "trick.task.lamp": "An der Laterne vorbei",
+  "trick.task.lampRing": "Durch den Reifen, an der Laterne vorbei",
   "trick.task.sign": "Vom Schild abprallen lassen",
   "trick.task.windRing": "Durch den Reifen, gegen den Wind",
   "trick.task.ringMovingBin": "Durch den Reifen in die fahrende Tonne",
