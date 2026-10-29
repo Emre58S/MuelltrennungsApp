@@ -661,10 +661,16 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
     case "perfume":
       return (
         <group rotation={[0.1, 0.4, 0]}>
-          <Box size={[0.34, 0.34, 0.16]} color="#F8C8DC" roughness={0.1} />
+          {/* Flakon: getöntes Glas, darin deckendes rosa Parfüm (nie Durchsichtiges
+              in Durchsichtigem), goldener Hals mit Sprühkopf; die schwarze
+              Kappe liegt daneben (vorher ein deckender Würfel wie Seife) */}
+          <Part geo={G.box(0.34, 0.34, 0.16, 0.01)} color="#FCE7F3" opacity={0.45} />
+          <Box size={[0.3, 0.22, 0.12]} pos={[0, -0.05, 0]} color="#EC4899" />
           <Shine size={[0.035, 0.26, 0.005]} pos={[-0.1, 0, 0.083]} />
           <Cyl r={0.05} h={0.08} pos={[0, 0.21, 0]} color="#D4AF37" metalness={0.7} roughness={0.25} />
-          <Box size={[0.14, 0.12, 0.12]} pos={[0, 0.31, 0]} color="#2B2B2B" roughness={0.4} />
+          <Cyl r={0.03} h={0.04} pos={[0, 0.27, 0]} color="#F8FAFC" />
+          <Cyl r={0.012} h={0.02} pos={[0, 0.275, 0.03]} rot={[Math.PI / 2, 0, 0]} color="#111827" />
+          <Cyl r={0.06} h={0.1} pos={[0.26, -0.11, 0.04]} rot={[0, 0.4, Math.PI / 2]} color="#2B2B2B" />
         </group>
       );
 

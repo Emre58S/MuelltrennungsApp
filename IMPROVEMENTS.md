@@ -77,7 +77,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] G4 Kaffeefilter als flache Filtertüte mit Prägenaht.
 - [x] G5 Sauberer Karton: Klebeband verdeckt (gleiche Höhe) → höher + vorn + Versandetikett.
 - [x] G6 Getränkekarton (Strohhalm, Orange) ≠ Milchkarton (Kuhflecken).
-- [ ] G7 (kleiner) Parfüm als Flakon, Laptop mit Tastatur, Spülmittel schlanker.
+- [~] G7 Parfüm als Flakon (erledigt), Laptop mit Tastatur (erledigt in G2); offen: Spülmittel schlanker.
 
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
 ganze App) → Punkte eintragen → weiter. Nie leer laufen lassen.
