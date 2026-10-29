@@ -40,9 +40,10 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] (c9ad16e) D1 Rückfrage beim Beenden: Fever-Zeit anhalten.
 
 **E – Lernen und Feinschliff (vom Nutzer bestätigt)**
-- [ ] E1 Gegenstand dreht sich vor dem Wurf langsam (besser erkennbar); bei
+- [x] (schon vorhanden: Wiegen ±0,35 rad, bei „Weniger Bewegung“ still; volle Drehung
+  verworfen – Rückseiten der Modelle sind schlicht) E1 Gegenstand dreht sich vor dem Wurf langsam (besser erkennbar); bei
   „Weniger Bewegung“ still.
-- [ ] E4 Lernkarte (nur „Üben“, nach Fehlwurf) bekommt eine kurze Begründung
+- [x] (365a010) E4 Lernkarte (nur „Üben“, nach Fehlwurf) bekommt eine kurze Begründung
   (≤ 4 Wörter, alle Gegenstände DE+EN), Karte ~0,5 s länger, blockiert nichts.
   **Schalter in den Einstellungen** („Begründung nach Fehlern“, an/aus, Standard an).
 - [ ] E2 Leistungs-Check nach den Modell-Umbauten (Zeichenaufrufe, Ruckler).
