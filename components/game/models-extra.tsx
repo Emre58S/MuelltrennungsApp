@@ -145,7 +145,7 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         );
       }
       if (name.includes("prospekt")) {
-        // Werbeprospekt: dünn, knallgelb, Produktbilder mit roten Preisschildern
+        // Werbeprospekt: dünn, knallgelb, roter Kopf, vier große Produktbilder
         return (
           <group rotation={[0.85, -0.2, 0.08]}>
             <Box size={[0.5, 0.012, 0.6]} color="#FDE047" />
@@ -160,16 +160,13 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
             ).map(([x, z, col]) => (
               <group key={`${x}${z}`}>
                 <Box size={[0.17, 0.014, 0.15]} pos={[x, 0.002, z]} color={col} />
-                {/* Preisschild als roter Punkt mit weißem Strich */}
-                <Cyl r={0.045} h={0.016} pos={[x + 0.06, 0.006, z + 0.06]} color="#DC2626" />
-                <Box size={[0.05, 0.018, 0.014]} pos={[x + 0.06, 0.007, z + 0.06]} color="#FFFFFF" />
               </group>
             ))}
           </group>
         );
       }
       // Tageszeitung: einmal gefaltet (runde Knickkante), schwarzer Titelkopf,
-      // Foto und viele graue Textspalten
+      // großes Foto und breite graue Textbalken
       return (
         <group rotation={[0.75, 0.3, 0.1]}>
           <Box size={[0.62, 0.05, 0.46]} color="#F1EEE6" roughness={0.95} />
@@ -177,19 +174,10 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
           <Box size={[0.56, 0.052, 0.07]} pos={[0, 0.002, -0.17]} color="#1F2937" />
           <Box size={[0.1, 0.054, 0.05]} pos={[0.2, 0.003, -0.17]} color="#C0392B" />
           <Box size={[0.22, 0.054, 0.16]} pos={[-0.16, 0.003, -0.02]} color="#6B7280" />
-          {[0.06, 0.1, 0.14, 0.18].map((z) =>
-            [-0.16, 0.04, 0.2].map((x) => (
-              <Box
-                key={`${x}${z}`}
-                size={[0.14, 0.052, 0.014]}
-                pos={[x, 0.002, z]}
-                color="#9AA1AB"
-              />
-            )),
-          )}
-          {[-0.08, -0.04, 0.0].map((z) => (
-            <Box key={`r${z}`} size={[0.24, 0.052, 0.014]} pos={[0.13, 0.002, z]} color="#9AA1AB" />
+          {[0.09, 0.15].map((z) => (
+            <Box key={z} size={[0.56, 0.052, 0.035]} pos={[0, 0.002, z]} color="#9AA1AB" />
           ))}
+          <Box size={[0.26, 0.052, 0.035]} pos={[0.13, 0.002, -0.05]} color="#9AA1AB" />
         </group>
       );
 
@@ -659,38 +647,19 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "phone":
-      // Altes Smartphone: dunkles Display mit bunten App-Kacheln, Hörer oben,
-      // runde Home-Taste unten und Sprünge im Glas (vorher nur eine blaue
-      // Fläche – wie ein Tablet oder Notizblock)
+      // Altes Smartphone: dunkler, abgerundeter Körper, Display mit sechs großen
+      // bunten App-Kacheln (Kleinteile wie Hörer und Sprünge weggelassen –
+      // auf dem Handy nur Rauschen)
       return (
         <group rotation={[0.6, 0.2, 0.1]}>
           <Part geo={G.box(0.32, 0.04, 0.6, 0.015)} color="#1F2937" roughness={0.3} />
           <Box size={[0.28, 0.004, 0.48]} pos={[0, 0.02, 0.01]} color="#0F172A" />
-          {["#F59E0B","#10B981","#3B82F6","#EF4444","#8B5CF6","#06B6D4","#F472B6","#84CC16","#FBBF24","#22C55E","#6366F1","#F97316"].map((col, i) => (
+          {["#F59E0B", "#10B981", "#3B82F6", "#EF4444", "#8B5CF6", "#F472B6"].map((col, i) => (
             <Box
               key={col}
-              size={[0.05, 0.004, 0.05]}
-              pos={[-0.08 + (i % 3) * 0.08, 0.023, -0.15 + Math.floor(i / 3) * 0.08]}
+              size={[0.09, 0.004, 0.09]}
+              pos={[-0.06 + (i % 2) * 0.12, 0.023, -0.13 + Math.floor(i / 2) * 0.12]}
               color={col}
-            />
-          ))}
-          <Box size={[0.08, 0.004, 0.012]} pos={[0, 0.0205, -0.265]} color="#4B5563" />
-          <Part geo={G.ring(0.012, 0.02, 16)} pos={[0, 0.0208, 0.275]} rot={[-Math.PI / 2, 0, 0]} basic color="#6B7280" />
-          {/* Sprünge im Glas: strahlen von einem Punkt oben rechts aus */}
-          {(
-            [
-              [0.1, 2.5],
-              [0.08, 3.6],
-              [0.07, 4.4],
-            ] as [number, number][]
-          ).map(([len, r]) => (
-            <Part
-              key={r}
-              geo={G.box(len, 0.002, 0.006, 0.0005)}
-              pos={[0.11 + (Math.cos(r) * len) / 2, 0.0256, -0.12 - (Math.sin(r) * len) / 2]}
-              rot={[0, r, 0]}
-              basic
-              color="#E5E7EB"
             />
           ))}
         </group>
@@ -701,18 +670,6 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         <group rotation={[0.45, 0.5, 0]}>
           <Box size={[0.62, 0.035, 0.42]} color="#9CA3AF" />
           <Box size={[0.5, 0.037, 0.2]} pos={[0, 0.001, 0.06]} color="#4B5563" />
-          {/* Tastenreihen und Touchpad */}
-          {[0, 1, 2].map((row) =>
-            Array.from({ length: 8 }, (_, k) => (
-              <Box
-                key={`${row}-${k}`}
-                size={[0.045, 0.004, 0.045]}
-                pos={[-0.2 + k * 0.057, 0.021, 0.0 + row * 0.058]}
-                color="#9CA3AF"
-              />
-            )),
-          )}
-          <Box size={[0.14, 0.004, 0.035]} pos={[0, 0.0195, 0.188]} color="#B8BEC6" />
           {/* Aufgeklappter Bildschirm */}
           <group position={[0, 0.02, -0.2]} rotation={[-1.9, 0, 0]}>
             <Box size={[0.62, 0.03, 0.4]} pos={[0, 0, 0.2]} color="#9CA3AF" />

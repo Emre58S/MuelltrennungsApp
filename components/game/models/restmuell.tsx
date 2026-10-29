@@ -300,72 +300,16 @@ export function renderRestmuellModel(key: string, name: string) {
       );
 
     case "razor":
+      // Einwegrasierer: blauer Griff, weißer Kopf quer darauf und ein breites,
+      // gut sichtbares Klingenband (schwarz mit Silberstreifen) – ohne Rillen
+      // und Kleinteile
       return (
         <group rotation={[0.18, 0.25, -0.38]}>
-          <Part
-            geo={G.box(0.12, 0.55, 0.07, 0.03)}
-            pos={[0, -0.1, 0]}
-            color="#3B82F6"
-            roughness={0.45}
-          />
-          {[-0.32, -0.25, -0.18, -0.11].map((y) => (
-            <Part
-              key={y}
-              geo={G.box(0.125, 0.015, 0.075, 0.005)}
-              pos={[0, y, 0]}
-              color="#1D4ED8"
-              roughness={0.5}
-            />
-          ))}
-          <Part
-            geo={G.box(0.07, 0.1, 0.05, 0.02)}
-            pos={[0, 0.22, 0]}
-            color="#3B82F6"
-            roughness={0.45}
-          />
-          <Part
-            geo={G.box(0.3, 0.1, 0.08, 0.025)}
-            pos={[0, 0.31, 0]}
-            color="#F1F5F9"
-            roughness={0.4}
-          />
-          <Part
-            geo={G.box(0.26, 0.018, 0.082, 0.005)}
-            pos={[0, 0.285, 0]}
-            color="#22C55E"
-            roughness={0.5}
-          />
-          <Part
-            geo={G.box(0.26, 0.02, 0.083, 0.005)}
-            pos={[0, 0.325, 0]}
-            color="#0F172A"
-            roughness={0.6}
-          />
-          <Part
-            geo={G.box(0.25, 0.006, 0.084, 0.002)}
-            pos={[0, 0.337, 0]}
-            color="#E2E8F0"
-            roughness={0.25}
-            metalness={0.6}
-          />
-          {/* zwei Klingen vorn auf dem schwarzen Band, mit Glanz */}
-          {[0.319, 0.328].map((y) => (
-            <Part
-              key={y}
-              geo={G.box(0.24, 0.007, 0.004, 0.001)}
-              pos={[0, y, 0.043]}
-              color="#E5E7EB"
-              metalness={0.7}
-            />
-          ))}
-          <Part
-            geo={G.box(0.07, 0.004, 0.002, 0.0005)}
-            pos={[0.05, 0.328, 0.0465]}
-            basic
-            noDepthWrite
-            color="#FFFFFF"
-            opacity={0.8}
-          />
+          <Part geo={G.box(0.12, 0.55, 0.07, 0.03)} pos={[0, -0.1, 0]} color="#3B82F6" roughness={0.45} />
+          <Part geo={G.box(0.07, 0.1, 0.05, 0.02)} pos={[0, 0.22, 0]} color="#3B82F6" roughness={0.45} />
+          <Part geo={G.box(0.3, 0.1, 0.08, 0.025)} pos={[0, 0.31, 0]} color="#F1F5F9" roughness={0.4} />
+          <Part geo={G.box(0.24, 0.04, 0.004, 0.001)} pos={[0, 0.315, 0.041]} color="#0F172A" roughness={0.6} />
+          <Part geo={G.box(0.22, 0.012, 0.004, 0.001)} pos={[0, 0.315, 0.0435]} color="#E5E7EB" metalness={0.7} />
         </group>
       );
 
