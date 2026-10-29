@@ -57,7 +57,7 @@ Tester bekommt nur diesen Bereich); (2) Lernkarte/Endbildschirm-Timing;
 Leitsatz Modelle: Erkennbarkeit vor Details – eine klare Form statt vieler Kleinteile.
 Leitsatz Texte/UI: für Menschen mit wenig Deutsch verständlich, nie strafend.
 
-1. **Serien-/Multiplikator-Anzeige (EIN Zyklus, Tester nur dafür).** Fertige Teile
+1. [x] **Serien-/Multiplikator-Anzeige – erledigt (lokal, nicht gepusht; Tester 8/10).** Offen: Tutorial-Schwellen aus STREAK_TIERS einsetzen. Ursprünglich: Fertige Teile
    liegen auf den lokalen Zweigen verworfen-sparlauf und verworfen-sparlauf-z3
    (git diff auto-improve..verworfen-sparlauf-z3 -- components i18n ansehen).
    Fehlt noch: Fieber-Faktor in „Serie ×m!“ auch bei LAUFENDEM Fieber

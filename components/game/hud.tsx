@@ -115,7 +115,7 @@ export function ScoreBadge({
   return (
     <Animated.View
       accessible
-      accessibilityLabel={`${t("common.points")}: ${score}`}
+      accessibilityLabel={`${t("common.points")}: ${score}${streak >= 2 ? `, ${streak}` : ""}${multiplier > 1 ? `, ×${formatNumber(multiplier)}` : ""}`}
       style={{ transform: [{ scale: pulse }] }}
     >
       <HudSurface style={styles.scorePill}>
@@ -136,7 +136,7 @@ export function ScoreBadge({
               ]}
             >
               <AppText variant="label" color="#3A2600" style={styles.tabular}>
-                ×{multiplier}
+                ×{formatNumber(multiplier)}
               </AppText>
             </Animated.View>
           )}

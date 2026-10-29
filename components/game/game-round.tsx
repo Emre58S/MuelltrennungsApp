@@ -135,6 +135,8 @@ const TIME_UP_GRACE_MS = 1000;
 const MAX_FLOATS = 5;
 /** Zielwurf: ab so vielen Treffern in Folge „On Fire“ (Feuerspur). */
 const ON_FIRE_STREAK = 3;
+/** „Heiß!“-Text erst bei Serie 4: bei 3 zeigt schon die Multiplikator-Meldung. */
+const ON_FIRE_TEXT_STREAK = 4;
 /** expo-gl rendert immer in voller Auflösung. Auf 3x-Displays sind Kanten
  *  ohnehin fein – dort Kantenglättung (MSAA) sparen, das entlastet die GPU. */
 const ANTIALIAS = PixelRatio.get() < 3;
@@ -195,7 +197,7 @@ export function GameRound({
 }) {
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
-  const { t, lang } = useI18n();
+  const { t, lang, formatNumber } = useI18n();
   const { reduceMotion, learnReason } = useAppSettings();
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -485,14 +487,15 @@ export function GameRound({
   /** Serie gerissen: ab einer echten Combo kurz zeigen, was weg ist. */
   const comboLost = (streakBefore: number) => {
     if (streakBefore < COMBO_MIN) return;
-    const m = getMultiplier(streakBefore);
+    // wie der Chip oben: im Fieber doppelt
+    const m = getMultiplier(streakBefore) * (feverRef.current ? 2 : 1);
     setFloats((f) => [
       ...f.slice(-(MAX_FLOATS - 1)),
       {
         id: ++lock.current.id,
         x: screenW / 2,
         y: insets.top + 84,
-        text: `${t("game.comboLost")} ×${m}`,
+        text: `${t("game.comboLost")} ×${formatNumber(m)}`,
         color: "#FFB4A8",
       },
     ]);
@@ -675,7 +678,7 @@ export function GameRound({
       )[id % 4];
       // Zielwurf: genau beim 3. Treffer in Folge „On Fire!“
       const fireText =
-        thrown.free && streakNow === ON_FIRE_STREAK ? t("game.onFire") : null;
+        thrown.free && streakNow === ON_FIRE_TEXT_STREAK ? t("game.onFire") : null;
       // Combo steigt (×1,5 → ×2 → ×3): das soll man spüren
       const comboUp = getMultiplier(streakNow) > getMultiplier(before.streak);
       if (comboUp) {
@@ -691,10 +694,12 @@ export function GameRound({
         setPraise({
           id,
           text: comboUp
-            ? t("game.comboUp", { m: getMultiplier(streakNow) })
+            ? t("game.comboUp", {
+                m: formatNumber(getMultiplier(streakNow) * (feverRef.current || streakNow % FEVER_EVERY === 0 ? 2 : 1)),
+              })
             : ts.perfect
               ? t("game.perfect")
-              : (viaText ?? fireText ?? `${t(praiseKey)} ×${streakNow}`),
+              : (viaText ?? fireText ?? t("game.praiseRow", { p: t(praiseKey), n: streakNow })),
           gold: comboUp || ts.perfect,
         });
         later(() => {
