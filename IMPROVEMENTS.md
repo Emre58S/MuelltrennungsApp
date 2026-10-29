@@ -26,7 +26,16 @@ zu ändern.
 - Ruckeln (Nutzer 29.10., Preview, dauernd im Spiel): im ausgelieferten Code keine Ursache gefunden (Modelle gecacht, nichts pro Frame neu). Erst Gerät prüfen (Expo Go neu, Stromsparmodus); ggf. lokale Commits ausliefern (Normalmodus nötig).
 - M5 Rest: Küchentuch (optional).
 
-## Ideen des Nutzers (29.10., Vorschläge gemacht, Auswahl offen)
+## Als Nächstes (Nutzer, 29.10. abends) – jede Freigabe sofort auf preview
+1. Prall-Level Trickwürfe: Hindernisse zwischen den Tonnen, je nach Treffpunkt
+   richtige oder Nachbartonne; Bonus „Bandenwurf“; jedes Level mit grünem
+   Fairness-Test (npx jest game/__tests__/tricks.test.ts).
+2. Duell (1 gegen 1 an einem Handy): 5 Runden à 3 Würfe je Spieler, gleiche
+   Mischung/Schwierigkeit, Übergabe-Bildschirm, Tauziehen-Balken, Finale ×2,
+   Siegerbildschirm + Revanche + Lernliste. Neuer Modus in game-round.tsx.
+3. Tages-Flamme (mit Rettung 1×/Woche) + 3 Tagesmissionen.
+
+## Ideen des Nutzers (29.10.)
 - Zielwurf ausgeblendet (Menü, Modi, Rangliste); Code bleibt.
 - [x] Trickwürfe: „Erst wählen“ war kurz drin (e1e9acb), auf Wunsch des Nutzers wieder raus. JETZT: direkt werfen, keine Köder; falsche Tonne → „Gehört in: {Zieltonne}“ + Zieltonne hüpft. NÄCHSTES: Prall-Level (Hindernisse zwischen den Tonnen, je nach Treffpunkt richtige/Nachbartonne) + Bonus „Bandenwurf“. Ursprünglich: Köder (DECOY ab Level 5, 30 %) stören. Vorschlag
   „Erst wählen, dann tricksen“: 2–3 Gegenstände zeigen, den für die Zieltonne

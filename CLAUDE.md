@@ -28,8 +28,13 @@ Expo Go.
    unter „Gelernt“ notieren.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
 
-## Modi (welcher gilt, sagt der Nutzer; sonst Sparlauf)
-**Sparlauf (aktuell, seit 29.10. nachmittags)** – Wochenlimit knapp:
+## Modi (welcher gilt, sagt der Nutzer)
+**Aktuell (Nutzer, 29.10. abends): Normalmodus** – „alles immer so, dass Emre es
+bei sich spielen kann“: jede freigegebene Änderung pushen (auto-improve +
+sdk-58) und per EAS auf auto UND preview. Reihenfolge: Prall-Level → Duell →
+Tages-Flamme/Missionen. Lange Sitzungen trotzdem vermeiden (frisch starten).
+
+**Sparlauf (nur auf Ansage; zuletzt 29.10. nachmittags)** – Wochenlimit knapp:
 - Höchstens 3 Zyklen pro Lauf. Nur lokal auf `auto-improve` committen –
   **nichts pushen, nichts per EAS ausliefern**. Keine neuen Abhängigkeiten.
 - Struktur nur einmal erkunden, sonst gezielt greppen; nichts erneut lesen;
