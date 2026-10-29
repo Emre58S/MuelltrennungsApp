@@ -187,7 +187,7 @@ function DetailSheet({
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
-  const { t, itemName, itemFact } = useI18n();
+  const { t, itemName, itemFact, itemReason } = useI18n();
   const { reduceMotion } = useAppSettings();
   const { height } = useWindowDimensions();
   const known = !!item && (stat?.correct ?? 0) > 0;
@@ -231,9 +231,10 @@ function DetailSheet({
                       </AppText>
                     </View>
                   </View>
-                  {item.fact && (
+                  {/* Fakt – oder, wo keiner hinterlegt ist, die kurze Begründung */}
+                  {(itemFact(item) ?? itemReason(item)) && (
                     <View style={[styles.fact, { backgroundColor: colors.primarySoft }]}>
-                      <AppText tone="onPrimarySoft">💡 {itemFact(item)}</AppText>
+                      <AppText tone="onPrimarySoft">💡 {itemFact(item) ?? itemReason(item)}</AppText>
                     </View>
                   )}
                   <View style={[styles.statRow, { backgroundColor: colors.surfaceAlt }]}>

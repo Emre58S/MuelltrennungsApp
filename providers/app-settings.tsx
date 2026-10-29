@@ -24,6 +24,7 @@ import {
   isLanguage,
   itemFact,
   itemName,
+  itemReason,
   type Language,
   resolveLanguage,
   translate,
@@ -209,6 +210,7 @@ export function useI18n() {
         translate(lang, key, vars),
       itemName: (item: Item) => itemName(lang, item),
       itemFact: (item: Item) => itemFact(lang, item),
+      itemReason: (item: Item) => itemReason(lang, item),
       formatNumber: (n: number) => n.toLocaleString(locale),
     };
   }, [lang]);

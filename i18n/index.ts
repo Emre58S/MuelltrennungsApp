@@ -3,6 +3,7 @@ import { type Item } from "@/constants/items";
 import { de, type TranslationKey, type Translations } from "./de";
 import { en } from "./en";
 import { ITEMS_EN } from "./items-en";
+import { ITEM_REASONS } from "./item-reasons";
 
 export type { TranslationKey };
 
@@ -49,4 +50,9 @@ export function itemName(lang: Language, item: Item): string {
 /** Fakt zum Gegenstand in der aktuellen Sprache (falls vorhanden). */
 export function itemFact(lang: Language, item: Item): string | undefined {
   return lang === "en" ? (ITEMS_EN[item.name]?.fact ?? item.fact) : item.fact;
+}
+
+/** Kurze Begründung (≤ 4 Wörter), warum der Gegenstand in seine Tonne gehört. */
+export function itemReason(lang: Language, item: Item): string | undefined {
+  return ITEM_REASONS[item.name]?.[lang];
 }

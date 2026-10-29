@@ -58,12 +58,12 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **F – Audit 3 (06:05)**
 - [x] F1 Blister-Fakt widerspricht Medikamente=Sondermüll → „zurück in die Apotheke oder zur Sammelstelle“ (DE/EN).
-- [ ] F2 Ergebnis-Liste + Sammelbuch: ohne Fakt die Begründung (ITEM_REASONS) zeigen.
+- [x] F2 Ergebnis-Liste + Sammelbuch: ohne Fakt die Begründung (ITEM_REASONS) zeigen.
 - [x] F3 Emojis überall eindeutig: Kaffeefilter 🔻, Zeitschrift 📖, Senfglas 🟨 (+ Test).
 - [ ] F4 Tutorial: Sondermüll im Tonnen-Hinweis, Tagesaufgabe + Trickwürfe in der Modus-Liste.
 - [x] F5 Tages-Vorlage 1 (fahrende Tonne) Aufgabentext trick.task.ringMovingBin.
-- [ ] F6 Trickwürfe-Beschreibung: nicht nur Reifen (DE/EN).
-- [ ] F7 „Alles zurücksetzen“-Text ehrlich; learnReason.desc auch Tagesaufgabe.
+- [x] F6 Trickwürfe-Beschreibung: nicht nur Reifen (DE/EN).
+- [x] F7 „Alles zurücksetzen“-Text ehrlich; learnReason.desc auch Tagesaufgabe.
 - [ ] F8 VoiceOver: Sterne als „n von 3 Sternen“, Level-Aufgabe im Label.
 - [ ] F9 Blister-Modell kontrastreicher (deckende Näpfe, Ränder, Aufdruck).
 - [ ] F10 (klein) Teelicht-Begründung „Alu, wird recycelt“; noTrick bei zwei Reifen.

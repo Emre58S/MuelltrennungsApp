@@ -76,7 +76,7 @@ export function EndScreen({
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
-  const { t, formatNumber, itemName, itemFact } = useI18n();
+  const { t, formatNumber, itemName, itemFact, itemReason } = useI18n();
   const { reduceMotion } = useAppSettings();
   const place = useBoardPlace(board, stats.score);
 
@@ -321,7 +321,10 @@ export function EndScreen({
                     </View>
                     {expanded && (
                       <AppText tone="textSecondary" style={styles.factText}>
-                        {itemFact(m.item) ?? `${itemName(m.item)} → ${m.bin.icon} ${t(m.bin.labelKey)}`}
+                        {/* ohne Fakt: die kurze Begründung (sonst stünde hier nur die Zeile nochmal) */}
+                        {itemFact(m.item) ??
+                          itemReason(m.item) ??
+                          `${itemName(m.item)} → ${m.bin.icon} ${t(m.bin.labelKey)}`}
                       </AppText>
                     )}
                   </Pressable>
