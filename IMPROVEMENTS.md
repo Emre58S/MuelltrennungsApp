@@ -15,8 +15,6 @@ Gegenstand allein am 3D-Modell erkennbar. Pro Zyklus 2–4 Modelle bzw. eine
 kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
-- [ ] A7 Walnuss runzliger, Saftflasche ≠ PET (Metalldeckel), Kassenzettel
-  (eingerollt), Katzenstreu (mit Schaufel).
 - [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
   Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz), Zeitung
   (gefaltet) vs. Zeitschrift (dick, Cover) vs. Prospekt (Preisschild).
@@ -79,6 +77,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Nacht 36: Walnuss-Runzeln, Saftflasche mit Metalldeckel, Kassenzettel eingerollt, Katzenstreu mit Schaufel
 - [x] Nacht 35: Eisbox (eckig, Eiskugel-Bild), Aluschale (Glanz, Rippen), Metalldeckel (Riffelrand)
 - [x] Nacht 34: Obstnetz (leeres Netz mit Clip), Druckerpatrone (Kontakte, C/M/Y), Energiesparlampe (Wendel)
 - [x] Nacht 33: Windel (Sanduhr), Tapete (Altbau-Fetzen mit Putz), Staubsaugerbeutel (prall, Platte mit Loch)

@@ -274,6 +274,17 @@ export function renderRestmuellModel(key: string, name: string) {
               color="#1E293B"
             />
           ))}
+          {/* fette Summenzeile */}
+          <Part geo={G.box(0.17, 0.028, 0.004, 0.001)} pos={[0, -0.18, 0.008]} basic color="#111827" />
+          {/* oberes Ende eingerollt (typisch Kassenbon) */}
+          <Part
+            geo={G.cyl(0.05, 0.05, 0.22, 12, true, 0, Math.PI * 1.6)}
+            pos={[0, 0.42, 0.045]}
+            rot={[0, 0, Math.PI / 2]}
+            double
+            color="#F1F5F9"
+            roughness={0.9}
+          />
         </group>
       );
 
@@ -438,6 +449,14 @@ export function renderRestmuellModel(key: string, name: string) {
               roughness={1}
             />
           ))}
+          {/* Streuschaufel mit Gitter (das kennt jeder vom Katzenklo) */}
+          <group position={[0.24, -0.12, 0.12]} rotation={[0.9, -0.5, 0]}>
+            <Part geo={G.box(0.2, 0.014, 0.16, 0.005)} color="#64748B" roughness={0.6} />
+            <Part geo={G.box(0.05, 0.014, 0.2, 0.005)} pos={[0, 0, -0.17]} color="#475569" roughness={0.6} />
+            {[-0.05, 0, 0.05].map((x) => (
+              <Part key={x} geo={G.box(0.022, 0.012, 0.12, 0.002)} pos={[x, 0.003, 0.01]} color="#1E293B" roughness={1} />
+            ))}
+          </group>
         </group>
       );
 

@@ -318,7 +318,15 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
           <Cyl r={0.13} h={0.4} color="#E6F4F1" opacity={0.55} />
           <Cyl r={0.12} h={0.3} pos={[0, -0.04, 0]} color="#F59E0B" />
           <Cyl r={0.13} rTop={0.06} h={0.1} pos={[0, 0.25, 0]} color="#E6F4F1" opacity={0.55} />
-          <Cyl r={0.065} h={0.06} pos={[0, 0.33, 0]} color="#EF4444" />
+          {/* Metall-Schraubdeckel (PET-Flaschen haben Plastikdeckel) und dicker Glasboden */}
+          <Cyl r={0.068} h={0.06} pos={[0, 0.33, 0]} color="#C0C8D4" />
+          {[0.315, 0.335, 0.355].map((y) => (
+            <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.069, 0.004, 4, 16]} />
+              <meshLambertMaterial color="#9CA3AF" flatShading />
+            </mesh>
+          ))}
+          <Cyl r={0.132} h={0.04} pos={[0, -0.19, 0]} color="#CDE6E0" />
           <Shine size={[0.03, 0.22, 0.01]} pos={[-0.065, 0.02, 0.115]} rot={[0, -0.5, 0]} />
         </group>
       );

@@ -345,6 +345,32 @@ export function renderBioModel(key: string, name: string) {
             <group key={i} position={[x, y, z]} rotation={[Math.PI + tilt, i * 0.8, 0]}>
               {/* Schale (Halbkugel, Öffnung nach oben) */}
               <Part geo={G.ball(0.15, 8, 5, 0, Math.PI / 2)} double flat color="#8B5A2B" roughness={1} />
+              {/* Runzeln außen (typisch Walnuss) */}
+              {(
+                [
+                  [0.05, 0.141],
+                  [0.1, 0.112],
+                ] as [number, number][]
+              ).map(([y, rr]) => (
+                <Part
+                  key={y}
+                  geo={G.torus(rr, 0.012, 4, 14)}
+                  pos={[0, y, 0]}
+                  rot={[Math.PI / 2, 0, 0]}
+                  color="#6B4423"
+                  roughness={1}
+                />
+              ))}
+              {/* knubbeliger Rand (von der Kamera aus sichtbar) */}
+              {[0.3, 1.5, 2.6, 3.8, 5.0].map((a) => (
+                <Part
+                  key={a}
+                  geo={G.ball(0.022, 5, 4)}
+                  pos={[Math.cos(a) * 0.145, 0.005, Math.sin(a) * 0.145]}
+                  color="#5C3A1E"
+                  roughness={1}
+                />
+              ))}
               {/* helle Innenseite */}
               <Part geo={G.ball(0.12, 8, 5, 0, Math.PI / 2)} double flat color="#D9B98C" roughness={1} />
               {/* Naht am Rand */}
