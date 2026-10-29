@@ -34,7 +34,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
   Teelicht-Hülle, Brötchentüte, Tablettenblister ba842b3)
 - [x] (Level 23 Reifen+Laterne 955a28c) C2 1–2 neue Trick-Level als Kombination (z. B. Laterne + Reifen, Schild
   + fahrende Tonne) – nur mit grünem Fairness-Test.
-- [ ] C3 Swish-Test strenger (mehrere Zellen, kleines iPhone).
+- [x] (b2b0dde; fand Tages-Vorlage 5 → Bonus 1. Versuch) C3 Swish-Test strenger (mehrere Zellen, kleines iPhone).
 
 **D – Kleinkram**
 - [ ] D1 Rückfrage beim Beenden: Fever-Zeit anhalten.
