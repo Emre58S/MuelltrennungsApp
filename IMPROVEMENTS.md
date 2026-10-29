@@ -16,8 +16,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
 - [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
-  Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz), Zeitung
-  (gefaltet) vs. Zeitschrift (dick, Cover) vs. Prospekt (Preisschild).
+  Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz). (Zeitung/Zeitschrift/Prospekt: 6773e72)
 - [ ] A9 Aus Audit 2 (00:20): Geschenkpapier mit Folie bunt-metallisch
   (Gold/Pink, Sterne) statt silbern (≈ Alufolie); Nagellackentferner (kleines
   Nagellack-Fläschchen daneben, kleiner, Raute mittig) ≈ Shampoo; Schuhkarton ≠
