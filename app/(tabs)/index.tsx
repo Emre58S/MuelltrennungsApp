@@ -541,15 +541,6 @@ export default function HomeScreen() {
               router.push("/tricks");
             }}
           />
-          <SideTile
-            icon="crosshair"
-            fill={MODE_COLOR.aim.sign}
-            on={MODE_COLOR.aim.on}
-            title={t("mode.aim.title")}
-            caption={loaded && scores.aim > 0 ? `🏆 ${formatNumber(scores.aim)}` : t("home.aimShort")}
-            a11y={`${t("mode.aim.title")}. ${t("mode.aim.desc")}`}
-            onPress={() => launch("aim")}
-          />
         </View>
 
         <View style={styles.footer}>

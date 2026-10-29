@@ -26,6 +26,17 @@ zu ändern.
 - Ruckeln (Nutzer 29.10., Preview, dauernd im Spiel): im ausgelieferten Code keine Ursache gefunden (Modelle gecacht, nichts pro Frame neu). Erst Gerät prüfen (Expo Go neu, Stromsparmodus); ggf. lokale Commits ausliefern (Normalmodus nötig).
 - M5 Rest: Küchentuch (optional).
 
+## Ideen des Nutzers (29.10., Vorschläge gemacht, Auswahl offen)
+- Zielwurf ausgeblendet (Menü, Modi, Rangliste); Code bleibt.
+- Trickwürfe gleichmäßig: Köder (DECOY ab Level 5, 30 %) stören. Vorschlag
+  „Erst wählen, dann tricksen“: 2–3 Gegenstände zeigen, den für die Zieltonne
+  antippen, dann mit Trick werfen (Zieltonne fest → Fairness-Tests bleiben gültig).
+- 1 gegen 1: A) Duell an einem Handy (abwechselnd, gleiche Gegenstände, 10 Würfe,
+  Revanche); B) Herausforderung per Code (gleicher Seed wie Tagesaufgabe).
+- Spannender: Tages-Flamme, 3 Tagesmissionen, Gegenstand meistern (Sterne im
+  Sammelbuch), knifflige Fälle (doppelte Punkte), Zeit-Rhythmus (+2 s/−3 s),
+  Schutzschild bei „Ohne Fehler“, Wochen-Liga.
+
 ## Nächste Aufgaben (von oben nach unten; Erledigtes steht in IMPROVEMENTS-ARCHIV.md)
 
 Leitsatz Modelle: Erkennbarkeit vor Details – eine klare Form statt vieler Kleinteile.

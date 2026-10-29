@@ -36,12 +36,8 @@ export const MODES: ModeConfig[] = [
     descKey: "mode.time.desc",
     icon: "clock",
   },
-  {
-    mode: "aim",
-    titleKey: "mode.aim.title",
-    descKey: "mode.aim.desc",
-    icon: "crosshair",
-  },
+  // „Zielwurf“ (mode: "aim") ist ausgeblendet (Nutzer, 29.10.): Trickwürfe
+  // übernehmen das Zielen. Spiellogik bleibt, falls er zurückkommt.
 ];
 
 /** Im Hauptmenü steht je Modus eine Tonne – dort immer genau 3. */
@@ -62,7 +58,8 @@ function isGameMode(value: string | null): value is GameMode {
 
 export async function getLastMode(): Promise<GameMode> {
   const stored = await getItem(StorageKeys.LAST_MODE);
-  return isGameMode(stored) ? stored : "endless";
+  // ausgeblendeter Zielwurf → wieder mit „Üben“ weitermachen
+  return isGameMode(stored) && stored !== "aim" ? stored : "endless";
 }
 
 /** Tagesaufgabe: 10 feste Gegenstände (für alle gleich), Ablauf wie „Üben“. */

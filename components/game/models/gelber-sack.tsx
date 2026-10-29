@@ -7,10 +7,28 @@ import { type V3 } from "./shared";
 export function renderGelberSackModel(key: string, name: string) {
   switch (key) {
     case "foil":
-      // Alufolie: einfacher, zerknüllter grauer Knäuel – mehr braucht es nicht
+      // Gebrauchte Alufolie: zerknittertes Blatt, darauf ein Knäuel – zwei
+      // Silbertöne, damit es nach Folie aussieht und nicht nach einem Stein
       return (
-        <group rotation={[0.25, -0.28, 0.1]}>
-          <Part geo={G.crumple(0.24, 0.3, 11, 1)} flat color="#C9D1DB" roughness={0.3} metalness={0.5} />
+        <group rotation={[0.6, -0.3, 0.1]}>
+          {/* flaches, welliges Blatt (Dicke ≈ 0,3 · 0,22 = 0,066) */}
+          <Part
+            geo={G.crumple(0.3, 0.35, 5, 1)}
+            scale={[1.2, 0.22, 0.9]}
+            flat
+            color="#DDE3EA"
+            roughness={0.3}
+            metalness={0.5}
+          />
+          {/* Knäuel liegt auf dem Blatt (Unterseite taucht ins Blatt ein) */}
+          <Part
+            geo={G.crumple(0.17, 0.3, 11, 1)}
+            pos={[0.04, 0.13, 0.02]}
+            flat
+            color="#B9C3CF"
+            roughness={0.3}
+            metalness={0.5}
+          />
         </group>
       );
 
@@ -505,46 +523,63 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "chips":
+      // Offene Chipstüte: rotes Kissen, unten Siegelnaht mit Zacken, oben
+      // offen – drei gelbe Chips schauen heraus; vorn ein Chip-Bild
       return (
         <group rotation={[0.18, -0.2, 0.08]}>
+          {/* Kissen als abgerundete Box: x ±0,23, y ±0,31, vorn z = 0,07 */}
           <Part
-            geo={G.ball(0.3, 16, 12)}
-            scale={[0.82, 1.05, 0.28]}
+            geo={G.box(0.46, 0.62, 0.14, 0.06)}
             color="#DC2626"
             roughness={0.35}
             metalness={0.3}
           />
-          {[0.33, -0.33].map((y) => (
-            <Part
-              key={y}
-              geo={G.box(0.46, 0.05, 0.05, 0.01)}
-              pos={[0, y, 0]}
-              color="#B91C1C"
-              roughness={0.4}
-              metalness={0.3}
-            />
-          ))}
-          {[-0.2, -0.14, -0.08, -0.02, 0.04, 0.1, 0.16, 0.22].map((x) => (
+          {/* Siegelnaht unten mit Zacken */}
+          <Part
+            geo={G.box(0.4, 0.05, 0.05, 0.01)}
+            pos={[0, -0.33, 0]}
+            color="#B91C1C"
+            roughness={0.4}
+            metalness={0.3}
+          />
+          {[-0.18, -0.11, -0.04, 0.04, 0.11, 0.18].map((x) => (
             <Part
               key={x}
               geo={G.box(0.012, 0.05, 0.056, 0.004)}
-              pos={[x, 0.355, 0]}
+              pos={[x, -0.355, 0]}
               color="#991B1B"
               roughness={0.4}
             />
           ))}
+          {/* offener Rand oben (Kissen endet bei y = 0,31) */}
           <Part
-            geo={G.circle(0.12, 24)}
-            pos={[0, 0.04, 0.086]}
-            basic
-            color="#FACC15"
+            geo={G.box(0.4, 0.03, 0.06, 0.01)}
+            pos={[0, 0.3, 0]}
+            color="#B91C1C"
+            roughness={0.4}
+            metalness={0.3}
           />
-          <Part
-            geo={G.circle(0.07, 20)}
-            pos={[0, 0.04, 0.088]}
-            basic
-            color="#F97316"
-          />
+          {/* Chips stecken im Rand und ragen heraus */}
+          {(
+            [
+              [-0.1, 0.35, 0.25],
+              [0.02, 0.37, -0.15],
+              [0.12, 0.34, 0.4],
+            ] as V3[]
+          ).map(([x, y, rz], i) => (
+            <Part
+              key={`chip${i}`}
+              geo={G.ball(0.08, 10, 6)}
+              pos={[x, y, 0]}
+              rot={[0.3, 0, rz]}
+              scale={[1, 0.8, 0.22]}
+              color="#F6C445"
+              roughness={0.7}
+            />
+          ))}
+          {/* Chip-Bild vorn */}
+          <Part geo={G.circle(0.12, 24)} pos={[0, 0.0, 0.072]} basic color="#FACC15" />
+          <Part geo={G.circle(0.07, 20)} pos={[0, 0.0, 0.074]} basic color="#F97316" />
         </group>
       );
 

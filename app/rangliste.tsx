@@ -40,7 +40,6 @@ import { sfx } from "@/utils/sfx";
 type Tab = { key: string; label: TranslationKey; board: () => Board; daily?: boolean; trick?: boolean };
 
 const TABS: Tab[] = [
-  { key: "zielwurf", label: "mode.aim.title", board: () => "zielwurf" },
   { key: "zeit", label: "mode.time.title", board: () => "zeit" },
   { key: "runden", label: "mode.survival.title", board: () => "runden" },
   { key: "tagesaufgabe", label: "home.daily", board: () => dailyBoard("tagesaufgabe"), daily: true },
