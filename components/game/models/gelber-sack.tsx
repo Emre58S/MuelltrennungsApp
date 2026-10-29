@@ -66,8 +66,30 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "alutray":
+      // Glanzstreifen auf Wand und Rand: Alu glänzt (Lambert kennt keinen Glanz)
       return (
         <group rotation={[0.35, 0.3, 0.05]}>
+          {(
+            [
+              [-0.08, 0.0, 0.214],
+              [0.1, 0.02, 0.222],
+            ] as V3[]
+          ).map((p, i) => (
+            <Part
+              key={`shine${i}`}
+              geo={G.box(0.03, 0.1, 0.004, 0.001)}
+              pos={p}
+              rot={[0.44, 0, 0]}
+              basic
+              noDepthWrite
+              color="#FFFFFF"
+              opacity={0.7}
+            />
+          ))}
+          {/* Rippen im Boden */}
+          {[-0.06, 0.06].map((z) => (
+            <Part key={`rib${z}`} geo={G.box(0.28, 0.008, 0.02, 0.003)} pos={[0, -0.046, z]} color="#B8C2CF" roughness={0.4} />
+          ))}
           <Part
             geo={G.cyl(0.34, 0.26, 0.12, 4, true)}
             rot={[0, Math.PI / 4, 0]}
@@ -409,8 +431,33 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "lid":
+      // Schraubdeckel aus Metall: Riffelrand rundum und Glanz oben – sonst
+      // wirkt die Scheibe wie eine Münze
       return (
         <group rotation={[0.55, 0.3, 0.1]}>
+          {Array.from({ length: 24 }, (_, i) => {
+            const a = (i / 24) * Math.PI * 2;
+            return (
+              <Part
+                key={`k${i}`}
+                geo={G.box(0.02, 0.05, 0.02, 0.004)}
+                pos={[Math.cos(a) * 0.304, 0.005, Math.sin(a) * 0.304]}
+                rot={[0, -a, 0]}
+                color="#B88A25"
+                roughness={0.4}
+                metalness={0.5}
+              />
+            );
+          })}
+          <Part
+            geo={G.box(0.12, 0.004, 0.03, 0.001)}
+            pos={[-0.06, 0.052, 0.08]}
+            rot={[0, 0.5, 0]}
+            basic
+            noDepthWrite
+            color="#FFF6D6"
+            opacity={0.75}
+          />
           <Part
             geo={G.lathe(
               28,
@@ -622,48 +669,35 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "icecream":
+      // Eckige 2-Liter-Eisbox mit Deckel und Eiskugel-Bild vorn (vorher eine
+      // runde Wanne wie ein großer Joghurtbecher)
       return (
-        <group rotation={[0.2, -0.22, 0.08]}>
+        <group rotation={[0.35, -0.3, 0.06]}>
+          <Part geo={G.box(0.52, 0.22, 0.34, 0.03)} color="#DBEAFE" roughness={0.5} />
+          <Part geo={G.box(0.55, 0.05, 0.37, 0.02)} pos={[0, 0.13, 0]} color="#2563EB" roughness={0.5} />
+          {/* Eiskugeln in Waffel als Bild vorn */}
+          {(
+            [
+              [-0.07, 0.03, "#F9A8D4"],
+              [0.0, 0.05, "#7C4A2D"],
+              [0.07, 0.03, "#FEF3C7"],
+            ] as [number, number, string][]
+          ).map(([x, y, col]) => (
+            <Part key={x} geo={G.circle(0.045, 12)} pos={[x, y, x === 0 ? 0.174 : 0.172]} basic color={col} />
+          ))}
+          <Part geo={G.poly(0.004, 0, [-0.08, 0.0, 0.08, 0.0, 0, -0.1])} pos={[0, -0.03, 0.174]} basic color="#D9A066" />
           <Part
-            geo={G.lathe(
-              26,
-              [
-                0, -0.2, 0.2, -0.2, 0.27, 0.18, 0.285, 0.2, 0.285, 0.23, 0.265,
-                0.23,
-              ],
-            )}
-            double
-            color="#60A5FA"
-            roughness={0.45}
-          />
-          <Part
-            geo={G.cyl(0.252, 0.226, 0.14, 26, true)}
-            pos={[0, -0.02, 0]}
-            double
-            color="#F8FAFC"
-            roughness={0.5}
-          />
-          <Part
-            geo={G.circle(0.06, 20)}
-            pos={[0, -0.02, 0.248]}
+            geo={G.box(0.3, 0.02, 0.004, 0.001)}
+            pos={[-0.08, 0.13, 0.187]}
+            rot={[0, 0, 0]}
             basic
-            color="#F472B6"
-          />
-          <Part
-            geo={G.circle(0.03, 16)}
-            pos={[0, -0.02, 0.25]}
-            basic
+            noDepthWrite
             color="#FFFFFF"
-          />
-          <Part
-            geo={G.cyl(0.28, 0.28, 0.025, 24)}
-            pos={[0.34, -0.12, 0.1]}
-            rot={[0.9, 0.2, 0.6]}
-            color="#F9A8D4"
-            roughness={0.5}
+            opacity={0.6}
           />
         </group>
       );
+
     default:
       return null;
   }

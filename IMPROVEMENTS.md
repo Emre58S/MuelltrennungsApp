@@ -15,8 +15,6 @@ Gegenstand allein am 3D-Modell erkennbar. Pro Zyklus 2–4 Modelle bzw. eine
 kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
-- [ ] A6 Eisverpackung (eckige Schale, Eiskugel-Bild), Aluschale (Glanz,
-  Rippen), Metalldeckel (Riffelrand, Dichtring).
 - [ ] A7 Walnuss runzliger, Saftflasche ≠ PET (Metalldeckel), Kassenzettel
   (eingerollt), Katzenstreu (mit Schaufel).
 - [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
@@ -81,6 +79,7 @@ Werfen, Physik-Grundlagen und Wertung bleiben gleich.
 
 ## Erledigt
 
+- [x] Nacht 35: Eisbox (eckig, Eiskugel-Bild), Aluschale (Glanz, Rippen), Metalldeckel (Riffelrand)
 - [x] Nacht 34: Obstnetz (leeres Netz mit Clip), Druckerpatrone (Kontakte, C/M/Y), Energiesparlampe (Wendel)
 - [x] Nacht 33: Windel (Sanduhr), Tapete (Altbau-Fetzen mit Putz), Staubsaugerbeutel (prall, Platte mit Loch)
 - [x] Nacht 32: Kartoffelschale (Knolle, Augen), Zwiebelschale (Kupfer-Blättchen), Eierschale (braun, Bruchrand)
