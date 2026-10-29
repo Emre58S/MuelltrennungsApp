@@ -15,8 +15,7 @@ Gegenstand allein am 3D-Modell erkennbar. Pro Zyklus 2–4 Modelle bzw. eine
 kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
-- [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Kerze, Ladekabel (Windungen,
-  Stecker), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz). (Zeitung/Zeitschrift/Prospekt: 6773e72)
+- [ ] A8 Rest der „3er“: Plastiktüte (Henkel), Zigarettenkippe (geknickt), Rasierer (Klingen-Glanz). (Zeitungen: 6773e72, Kabel/Kerze: 42b5268)
 - [ ] A9 Aus Audit 2 (00:20): Geschenkpapier mit Folie bunt-metallisch
   (Gold/Pink, Sterne) statt silbern (≈ Alufolie); Nagellackentferner (kleines
   Nagellack-Fläschchen daneben, kleiner, Raute mittig) ≈ Shampoo; Schuhkarton ≠
