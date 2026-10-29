@@ -49,8 +49,10 @@ type Palette = {
   hemi: number;
 };
 
+// Weiches Licht (E5): etwas weniger Sonne, mehr Himmelslicht – flachere
+// Kontraste, Farben bleiben gleich; Himmel oben etwas ruhiger (weniger satt)
 const LIGHT: Palette = {
-  skyTop: "#74C3F2",
+  skyTop: "#8CCAEE",
   skyHorizon: "#FFF0DC",
   ground: "#F2EADC",
   groundLine: "#E2D6C2",
@@ -69,10 +71,10 @@ const LIGHT: Palette = {
   flowers: ["#F27C8A", "#F6C453", "#B58BE0"],
   metal: "#9AA3AC",
   cloud: "#FFFFFF",
-  sun: 1.7,
+  sun: 1.5,
   hemiSky: "#FFFFFF",
   hemiGround: "#E3D3BA",
-  hemi: 1.15,
+  hemi: 1.3,
 };
 
 /** Bedeckter Himmel bei Regen (überschreibt nur Himmel und Licht). */
@@ -83,6 +85,8 @@ function overcast(p: Palette): Palette {
     skyHorizon: "#EEF2F4",
     cloud: "#F2F4F6",
     sun: p.sun * 0.85,
+    // etwas weniger Himmelslicht, damit Regen sichtbar trüber bleibt
+    hemi: p.hemi * 0.92,
   };
 }
 
