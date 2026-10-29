@@ -549,11 +549,31 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         );
       }
       if (name.includes("senf")) {
-        // Senfglas: klein und schmal, knallgelber Senf, dunkelblauer Deckel
+        // Senfglas: klein und schmal, hellgelber Senf mit dunklen Körnern
+        // (Honig ist bernstein und glatt), dunkelblauer Deckel
         return (
           <group rotation={[0.15, 0.3, 0.05]} scale={0.85}>
             <Cyl r={0.15} rTop={0.16} h={0.36} color="#F1F5E8" opacity={0.5} />
-            <Cyl r={0.135} h={0.28} pos={[0, -0.03, 0]} color="#E2B400" />
+            <Cyl r={0.135} h={0.28} pos={[0, -0.03, 0]} color="#EED04A" />
+            {(
+              [
+                [-0.5, -0.07],
+                [-0.15, -0.11],
+                [0.2, -0.06],
+                [0.5, -0.12],
+                [0.05, -0.15],
+                [-0.3, 0.09],
+                [0.3, 0.09],
+              ] as [number, number][]
+            ).map(([a, y]) => (
+              <Box
+                key={`${a}${y}`}
+                size={[0.018, 0.018, 0.006]}
+                pos={[Math.sin(a) * 0.136, y, Math.cos(a) * 0.136]}
+                rot={[0, a, 0.6]}
+                color="#5C4310"
+              />
+            ))}
             <Cyl r={0.165} h={0.06} pos={[0, 0.21, 0]} color="#1E3A8A" />
             <Cyl r={0.162} h={0.1} pos={[0, 0.02, 0]} color="#FFFFFF" />
             <Shine size={[0.03, 0.26, 0.01]} pos={[-0.09, 0, 0.14]} rot={[0, -0.55, 0]} />
@@ -625,15 +645,26 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "remover":
-      // Nagellackentferner: Kunststoffflasche mit orangem Warnetikett
+      // Nagellackentferner: kleine Kunststoffflasche mit orangem Etikett und
+      // mittiger Warnraute; daneben ein rotes Nagellack-Fläschchen, damit man
+      // es nicht für Shampoo hält
       return (
         <group rotation={[0.1, 0.35, -0.1]}>
-          <Cyl r={0.14} h={0.4} color="#F1F5F9" />
-          <Cyl r={0.142} h={0.18} pos={[0, -0.02, 0]} color="#F97316" />
-          {/* Warnraute wie das echte Gefahrensymbol: rot umrandet, weiß gefüllt */}
-          <Box size={[0.12, 0.12, 0.02]} pos={[0, -0.02, 0.14]} rot={[0, 0, Math.PI / 4]} color="#DC2626" />
-          <Box size={[0.085, 0.085, 0.022]} pos={[0, -0.02, 0.142]} rot={[0, 0, Math.PI / 4]} color="#FFFFFF" />
-          <Cyl r={0.06} h={0.1} pos={[0, 0.25, 0]} color="#7C3AED" />
+          <group position={[-0.06, 0, 0]}>
+            <Cyl r={0.112} h={0.32} color="#F1F5F9" />
+            <Cyl r={0.114} h={0.16} pos={[0, -0.02, 0]} color="#F97316" />
+            <Box size={[0.08, 0.08, 0.03]} pos={[0, -0.02, 0.112]} rot={[0, 0, Math.PI / 4]} color="#DC2626" />
+            <Box size={[0.056, 0.056, 0.032]} pos={[0, -0.02, 0.113]} rot={[0, 0, Math.PI / 4]} color="#FFFFFF" />
+            <Box size={[0.01, 0.03, 0.034]} pos={[0, -0.016, 0.113]} color="#111827" />
+            <Box size={[0.01, 0.01, 0.034]} pos={[0, -0.042, 0.113]} color="#111827" />
+            <Cyl r={0.05} h={0.08} pos={[0, 0.2, 0]} color="#7C3AED" />
+          </group>
+          {/* Nagellack: rotes Glasfläschchen (deckend) mit schwarzem Pinseldeckel */}
+          <group position={[0.17, -0.1, 0.06]}>
+            <Cyl r={0.06} rTop={0.05} h={0.12} color="#DC2626" />
+            <Cyl r={0.022} h={0.13} pos={[0, 0.125, 0]} color="#111827" />
+            <Shine size={[0.012, 0.08, 0.004]} pos={[-0.03, 0, 0.046]} rot={[-0.08, -0.55, 0]} />
+          </group>
         </group>
       );
 
