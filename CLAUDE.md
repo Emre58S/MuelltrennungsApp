@@ -27,6 +27,17 @@ Expo Go.
    unter „Gelernt“ notieren.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
 
+## Sparlauf (Nutzer, 29.10. nachmittags – gilt bis zur nächsten Ansage)
+Wochenlimit knapp, daher: höchstens 3 Zyklen pro Lauf; nur lokal auf `auto-improve` committen – **nichts pushen, nichts per EAS ausliefern** (geht vor den älteren
+Regeln unten); keine neuen Abhängigkeiten; Struktur nur einmal erkunden, sonst
+gezielt greppen, nichts erneut lesen, Ausgaben kürzen. Pro Zyklus ein
+unabhängiger Tester (Modell haiku, bekommt nur Startweg + Bereich, nicht die
+Änderung; ≤ 15 Zeilen, Bewertung, FREIGABE ja/nein). Bei „nein“: einmal
+nachbessern, einmal neu testen, sonst zurücknehmen und in IMPROVEMENTS.md
+notieren. Am Ende „Letzter Lauf“ in IMPROVEMENTS.md, dann stoppen.
+Bevorzugt: Bugs, fachliche Richtigkeit, Verständlichkeit, Lernen, Spielspaß –
+keine reine Kosmetik. Start der App: `npx expo start` + Expo Go (Gerät nötig).
+
 ## Tagbetrieb 29.10. (Nutzer, 10:10)
 - Roadmap oben in IMPROVEMENTS.md (Modelle → Szenen → Trick-Level), Takt 12 min.
 - Leitsatz Modelle: Erkennbarkeit vor Details (z. B. Alufolie = grauer Knäuel).
