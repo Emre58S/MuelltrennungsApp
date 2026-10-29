@@ -32,7 +32,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 **C – Inhalt (wenn A/B durch sind)**
 - [x] C1 6 neue Alltags-Gegenstände (Kaugummi, Kaffeekapsel, Spraydose f8b3eb0;
   Teelicht-Hülle, Brötchentüte, Tablettenblister ba842b3)
-- [ ] C2 1–2 neue Trick-Level als Kombination (z. B. Laterne + Reifen, Schild
+- [x] (Level 23 Reifen+Laterne 955a28c) C2 1–2 neue Trick-Level als Kombination (z. B. Laterne + Reifen, Schild
   + fahrende Tonne) – nur mit grünem Fairness-Test.
 - [ ] C3 Swish-Test strenger (mehrere Zellen, kleines iPhone).
 
