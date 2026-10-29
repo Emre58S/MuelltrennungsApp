@@ -382,12 +382,31 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "fruitnet":
-      // Orangenes Netz: bauchiger, durchscheinender Sack, oben zugeknotet
+      // Leeres Plastiknetz (ohne Orangen – die wären Essen und lenkten zum
+      // Biomüll): sich kreuzende Netzschnüre, leicht zusammengefallen,
+      // oben Clip mit Etikett
       return (
-        <group rotation={[0.2, 0.4, 0.15]}>
-          <Cyl r={0.17} rTop={0.23} h={0.16} pos={[0, -0.08, 0]} color="#F97316" opacity={0.55} />
-          <Cyl r={0.23} rTop={0.06} h={0.2} pos={[0, 0.1, 0]} color="#F97316" opacity={0.55} />
-          <Cyl r={0.045} h={0.07} pos={[0, 0.23, 0]} color="#EA580C" />
+        <group rotation={[0.25, 0.4, 0.1]} scale={[1, 0.8, 1]}>
+          {(
+            [
+              [-0.08, 0.185],
+              [0.02, 0.2],
+              [0.1, 0.175],
+            ] as [number, number][]
+          ).map(([y, rad]) => (
+            <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[rad, 0.014, 4, 18]} />
+              <meshLambertMaterial color="#EA580C" flatShading />
+            </mesh>
+          ))}
+          {[0, Math.PI / 3, (2 * Math.PI) / 3].map((ang) => (
+            <mesh key={ang} rotation={[0, ang, 0]} scale={[1, 1.15, 1]}>
+              <torusGeometry args={[0.2, 0.014, 4, 18]} />
+              <meshLambertMaterial color="#EA580C" flatShading />
+            </mesh>
+          ))}
+          <Box size={[0.08, 0.05, 0.05]} pos={[0, 0.25, 0]} color="#F8FAFC" />
+          <Box size={[0.12, 0.08, 0.008]} pos={[0.08, 0.2, 0.03]} rot={[0, 0, -0.3]} color="#FDE68A" />
         </group>
       );
 
@@ -542,25 +561,50 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "cartridge":
+      // Druckerpatrone: flacher schwarzer Körper, Etikett, kupferne Kontakte,
+      // drei Farbpunkte (Cyan/Magenta/Gelb), Düse unten
       return (
-        <group rotation={[0.35, 0.6, 0.1]}>
-          <Box size={[0.3, 0.42, 0.2]} color="#1F2937" />
-          <Box size={[0.302, 0.16, 0.202]} pos={[0, 0.06, 0]} color="#06B6D4" />
-          <Box size={[0.16, 0.06, 0.12]} pos={[0, -0.24, 0]} color="#F59E0B" />
+        <group rotation={[-0.3, 0.6, 0.1]}>
+          <Box size={[0.36, 0.26, 0.14]} color="#1F2937" />
+          <Box size={[0.24, 0.1, 0.004]} pos={[-0.03, 0.04, 0.072]} color="#F8FAFC" />
+          {(
+            [
+              [-0.1, "#06B6D4"],
+              [-0.03, "#EC4899"],
+              [0.04, "#FACC15"],
+            ] as [number, string][]
+          ).map(([x, col]) => (
+            <Cyl key={x} r={0.022} h={0.006} pos={[x, 0.04, 0.076]} rot={[Math.PI / 2, 0, 0]} color={col} />
+          ))}
+          {/* Kontaktfeld (Kupfer) */}
+          <Box size={[0.08, 0.12, 0.004]} pos={[0.13, -0.05, 0.072]} color="#B87333" />
+          {[-0.09, -0.05, -0.01].map((y) => (
+            <Box key={y} size={[0.06, 0.012, 0.006]} pos={[0.13, y, 0.073]} color="#E0A76A" />
+          ))}
+          <Box size={[0.12, 0.04, 0.1]} pos={[-0.08, -0.15, 0]} color="#374151" />
         </group>
       );
 
     case "ecobulb":
-      // Energiesparlampe: gewundene Röhre auf weißem Sockel, Schraubgewinde
+      // Energiesparlampe: gewendelte Röhre (gestapelte, leicht schräge Ringe
+      // wirken wie eine Spirale), weißer Sockel, Schraubgewinde
       return (
         <group rotation={[0.15, 0.3, -0.25]}>
-          {[-0.09, 0.09].map((x) => (
-            <Cyl key={x} r={0.05} h={0.36} pos={[x, 0.2, 0]} color="#EFE9D8" />
+          {[0.04, 0.11, 0.18, 0.25].map((y) => (
+            <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2 + 0.18, 0, 0]} castShadow>
+              <torusGeometry args={[0.1, 0.035, 6, 16]} />
+              <meshLambertMaterial color="#EFE9D8" flatShading />
+            </mesh>
           ))}
-          <Cyl r={0.05} h={0.36} pos={[0, 0.2, 0.09]} color="#E8E1CC" />
-          <Cyl r={0.12} rTop={0.15} h={0.14} pos={[0, -0.03, 0]} color="#FFFFFF" />
-          <Cyl r={0.08} h={0.12} pos={[0, -0.16, 0]} color="#C0C8D4" />
-          <Cyl r={0.04} h={0.04} pos={[0, -0.24, 0]} color="#4B5563" />
+          <Cyl r={0.12} rTop={0.15} h={0.12} pos={[0, -0.06, 0]} color="#FFFFFF" />
+          <Cyl r={0.08} h={0.12} pos={[0, -0.18, 0]} color="#C0C8D4" />
+          {[-0.21, -0.18, -0.15].map((y) => (
+            <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.082, 0.008, 4, 14]} />
+              <meshLambertMaterial color="#9CA3AF" flatShading />
+            </mesh>
+          ))}
+          <Cyl r={0.04} h={0.04} pos={[0, -0.26, 0]} color="#4B5563" />
         </group>
       );
 
