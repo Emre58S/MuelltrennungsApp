@@ -131,7 +131,7 @@ export const en: Translations = {
   "trick.task.lamp": "Past the lamp post",
   "trick.task.lampRing": "Through the hoop, past the lamp post",
   "trick.task.sign": "Bounce it off the sign",
-  "trick.task.bank": "Get it in – best off the sign",
+  "trick.task.bank": "Hit the bin – best off the sign",
   "trick.task.windRing": "Through the hoop, against the wind",
   "trick.task.ringMovingBin": "Through the hoop into the moving bin",
   "trick.task.ringSpin": "Through both hoops – the lower one spins",

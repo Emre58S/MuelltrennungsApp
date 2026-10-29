@@ -27,7 +27,7 @@ zu ändern.
 - M5 Rest: Küchentuch (optional).
 
 ## Als Nächstes (Nutzer, 29.10. abends) – jede Freigabe sofort auf preview
-1. Prall-Level Trickwürfe: Hindernisse zwischen den Tonnen, je nach Treffpunkt
+1. [~] Prall-Level Trickwürfe (Teil 1 erledigt 5e605f7+: Level 24 Schild hinter der Lücke Mitte/rechts, Bonus „Bandenwurf“ = Schild berührt, Tester 8/10. Offen: weitere Prall-Level, z. B. gespiegelt/andere Lücke, bewegtes Brett; Tipp „Ziel in die Lücke“; Tages-Trick nimmt Level 24 automatisch auf): Hindernisse zwischen den Tonnen, je nach Treffpunkt
    richtige oder Nachbartonne; Bonus „Bandenwurf“; jedes Level mit grünem
    Fairness-Test (npx jest game/__tests__/tricks.test.ts).
 2. Duell (1 gegen 1 an einem Handy): 5 Runden à 3 Würfe je Spieler, gleiche

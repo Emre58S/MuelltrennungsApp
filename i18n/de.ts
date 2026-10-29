@@ -130,7 +130,7 @@ export const de = {
   "trick.task.lamp": "An der Laterne vorbei",
   "trick.task.lampRing": "Durch den Reifen, an der Laterne vorbei",
   "trick.task.sign": "Vom Schild abprallen lassen",
-  "trick.task.bank": "Rein – am besten übers Schild",
+  "trick.task.bank": "Triff die Tonne – am besten übers Schild",
   "trick.task.windRing": "Durch den Reifen, gegen den Wind",
   "trick.task.ringMovingBin": "Durch den Reifen in die fahrende Tonne",
   "trick.task.ringSpin": "Durch beide Reifen – der untere dreht sich",
