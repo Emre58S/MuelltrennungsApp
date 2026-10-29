@@ -7,61 +7,10 @@ import { type V3 } from "./shared";
 export function renderGelberSackModel(key: string, name: string) {
   switch (key) {
     case "foil":
-      // Zerknüllte Alufolie: grauer Knäuel mit hellen Glanz-Facetten (Lambert
-      // kennt keine Spiegelung – die Facetten sind eigene helle Flächen) und
-      // ein glattes, abgerissenes Stück mit Zackenkante
+      // Alufolie: einfacher, zerknüllter grauer Knäuel – mehr braucht es nicht
       return (
         <group rotation={[0.25, -0.28, 0.1]}>
-          <Part
-            geo={G.crumple(0.22, 0.3, 11, 1)}
-            pos={[-0.1, 0.05, 0]}
-            flat
-            color="#AEB8C5"
-            roughness={0.3}
-            metalness={0.5}
-          />
-          {(
-            [
-              // z = Knäuel-Oberfläche + 0,005 (nachgerechnet), sonst schweben sie
-              [-0.17, 0.13, 0.166, 0.4],
-              [-0.04, 0.16, 0.131, -0.6],
-              [-0.12, -0.03, 0.2, 1.2],
-              [0.0, 0.04, 0.177, 2.4],
-              [-0.24, 0.0, 0.141, -1.8],
-            ] as [number, number, number, number][]
-          ).map(([x, y, z, r], i) => (
-            <Part
-              key={i}
-              geo={G.poly(0.004, 0, [0, 0.06, -0.045, -0.03, 0.05, -0.035])}
-              pos={[x, y, z]}
-              rot={[0, 0, r]}
-              basic
-              noDepthWrite
-              color="#FFFFFF"
-              opacity={0.85}
-            />
-          ))}
-          {/* glattes Stück mit gezackter Abrisskante */}
-          <group position={[0.2, -0.1, 0.12]} rotation={[-1.0, 0, 0.35]}>
-            <Part
-              geo={G.poly(0.012, 0, [
-                -0.2, -0.16, 0.2, -0.16, 0.2, 0.12, 0.15, 0.16, 0.1, 0.12, 0.05, 0.16, 0, 0.12, -0.05, 0.16,
-                -0.1, 0.12, -0.15, 0.16, -0.2, 0.12,
-              ])}
-              double
-              color="#E8EEF6"
-              roughness={0.3}
-            />
-            <Part
-              geo={G.box(0.3, 0.02, 0.006, 0.002)}
-              pos={[-0.02, -0.02, 0.012]}
-              rot={[0, 0, 0.3]}
-              basic
-              noDepthWrite
-              color="#FFFFFF"
-              opacity={0.85}
-            />
-          </group>
+          <Part geo={G.crumple(0.24, 0.3, 11, 1)} flat color="#C9D1DB" roughness={0.3} metalness={0.5} />
         </group>
       );
 

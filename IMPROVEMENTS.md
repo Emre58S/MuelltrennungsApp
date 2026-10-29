@@ -9,6 +9,33 @@ zu ändern.
 
 ## Offen
 
+**ROADMAP Tag 29.10. (Nutzer, 10:10) – Takt 12 min, oben nach unten**
+Leitsatz: Erkennbarkeit vor Details – lieber eine klare Form als viele kleine Teile.
+
+*Phase 1 – Modelle klar erkennbar*
+- [x] M1 Apfelrest als runder Apfel (mit Biss), Alufolie = einfacher grauer
+  Knäuel, Eierschale vereinfachen (zwei Halbschalen, keine Zacken).
+- [ ] M2 Audit „überladen/schwer erkennbar“ über alle Modelle → Liste.
+- [ ] M3–M4 Audit-Punkte abarbeiten (vereinfachen statt ausschmücken),
+  Spülmittel schlanker.
+
+*Phase 2 – Szenen (Gesamteindruck)*
+- [ ] S1 Audit der drei Szenen (haus/ziegel/garten): was wirkt leer, unruhig,
+  unstimmig; Wiedererkennung und Ruhe hinter den Tonnen.
+- [ ] S2 Bestehende Szenen aufwerten (je Szene ein klarer Blickfang, ruhiger
+  Hintergrund, stimmige Farben), nichts lenkt vom Wurf ab.
+- [ ] S3 Neue Szene „Park“ (Wiese, Bäume, Bank, Weg).
+- [ ] S4 Neue Szene „Wertstoffhof“ (Container, Zaun, Schilder) – passt zum Thema.
+- [ ] S5 Szenen-Wechsel prüfen (Reihenfolge, Leistung, Menü).
+
+*Phase 3 – Trick-Level mit echten Gegenständen* (je Level Fairness-Test grün)
+- [ ] T1 Basketballkorb über der Tonne: Ring + Brett dahinter (Bank-Shot).
+- [ ] T2 Reifenschaukel: schwingender Autoreifen an Seilen (gleitender Ring).
+- [ ] T3 Laubbläser statt Ventilator (Wind, echter Gegenstand).
+- [ ] T4 Wäscheleine mit Wäsche: hängende Tücher als Hindernis – drunter durch.
+- [ ] T5 Rosenbogen im Garten (fester Bogen = Ring, groß und leicht).
+- [ ] T6 Kombi-Level aus T1–T5, sanft steigend.
+
 NACHT 2026-10-29, 00:10–08:15 (vom Nutzer gewünscht, ohne Aufsicht, NICHT
 vorzeitig aufhören). Reihenfolge von oben nach unten. Ziel bleibt: jeder
 Gegenstand allein am 3D-Modell erkennbar. Pro Zyklus 2–4 Modelle bzw. eine

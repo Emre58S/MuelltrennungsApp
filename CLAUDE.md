@@ -27,6 +27,10 @@ Expo Go.
    unter „Gelernt“ notieren.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
 
+## Tagbetrieb 29.10. (Nutzer, 10:10)
+- Roadmap oben in IMPROVEMENTS.md (Modelle → Szenen → Trick-Level), Takt 12 min.
+- Leitsatz Modelle: Erkennbarkeit vor Details (z. B. Alufolie = grauer Knäuel).
+
 ## Nachtbetrieb (ohne Aufsicht)
 - Nacht 2026-10-29 (Nutzer): von 00:10 bis 08:15 durchgehend Zyklen, NICHT
   vorzeitig aufhören. Backlog oben nach unten; ist er leer, ein neues Audit

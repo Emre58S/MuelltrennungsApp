@@ -157,32 +157,19 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "eggshell":
-      // Eierschalen: außen hellbraun, innen weiß, gezackter Bruchrand
+      // Eierschalen: zwei aufgeklappte Halbschalen, außen hellbraun, innen weiß
+      // (ohne Zacken – die einfache Form ist leichter zu erkennen)
       return (
-        <group rotation={[0.5, -0.25, 0.12]}>
+        <group rotation={[0.55, -0.25, 0.1]}>
           {(
             [
-              [-0.13, 0, 0, 0.2, 0.2],
-              [0.15, -0.03, 0.06, -0.3, 0.17],
+              [-0.17, 0, 0, 0.15, 0.2],
+              [0.19, -0.02, 0.05, -0.2, 0.18],
             ] as [number, number, number, number, number][]
           ).map(([x, y, z, rz, r], i) => (
-            <group key={i} position={[x, y, z]} rotation={[Math.PI, 0, rz]}>
-              <Part geo={G.ball(r, 9, 5, 0, Math.PI * 0.5)} double flat color="#E3B98A" roughness={0.9} />
-              <Part geo={G.ball(r * 0.93, 9, 5, 0, Math.PI * 0.5)} double flat color="#FFF8EE" roughness={0.9} />
-              {/* Bruchrand: 6 unregelmäßige Zacken, innerhalb der Schale */}
-              {[0, 1.1, 2.0, 3.3, 4.2, 5.4].map((a, k) => {
-                const h = 0.04 + (k % 3) * 0.01;
-                return (
-                  <Part
-                    key={k}
-                    geo={G.cone(0.022, h, 4)}
-                    pos={[Math.cos(a) * r * 0.93, -h / 2 + 0.005, Math.sin(a) * r * 0.93]}
-                    rot={[Math.PI, 0, 0]}
-                    color="#E3B98A"
-                    roughness={0.9}
-                  />
-                );
-              })}
+            <group key={i} position={[x, y, z]} rotation={[Math.PI, 0, rz]} scale={[1, 1.25, 1]}>
+              <Part geo={G.ball(r, 14, 8, 0, Math.PI * 0.5)} flat color="#E3B98A" roughness={0.9} />
+              <Part geo={G.ball(r * 0.95, 14, 8, 0, Math.PI * 0.5)} double flat color="#FFF8EE" roughness={0.9} />
             </group>
           ))}
         </group>
@@ -498,40 +485,33 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "apple":
+      // Apfelrest: runder roter Apfel mit Stiel und Blatt, vorn rechts ein
+      // Biss (helles Fruchtfleisch) – rund und sofort als Apfel erkennbar
+      // (vorher ein schmales Kerngehäuse)
       return (
-        <group rotation={[0.1, 0.2, 0.1]}>
+        <group rotation={[0.15, 0.2, 0]}>
+          <group rotation={[0, 0.6, 0]}>
+            <group rotation={[Math.PI / 2, 0, 0]}>
+              {/* Kugel ohne Kappe dort, wo abgebissen wurde */}
+              <Part geo={G.ball(0.24, 18, 12, 0.5, Math.PI - 0.5)} color="#D62F2F" roughness={0.5} />
+              <Part
+                geo={G.circle(0.24 * Math.sin(0.5), 18)}
+                pos={[0, 0.24 * Math.cos(0.5), 0]}
+                rot={[-Math.PI / 2, 0, 0]}
+                color="#FDF1CF"
+                roughness={0.8}
+              />
+            </group>
+          </group>
+          <Part geo={G.cyl(0.014, 0.02, 0.1, 6)} pos={[0, 0.27, 0]} rot={[0, 0, -0.2]} color="#5B3716" roughness={1} />
           <Part
-            geo={G.lathe(
-              16,
-              [
-                0, -0.32, 0.1, -0.3, 0.17, -0.2, 0.11, -0.08, 0.07, 0, 0.11,
-                0.08, 0.17, 0.2, 0.1, 0.3, 0, 0.32,
-              ],
-            )}
-            color="#F4E7B8"
-            roughness={0.7}
-          />
-          <Part
-            geo={G.cyl(0.076, 0.076, 0.16, 12)}
-            color="#7A5230"
+            geo={G.poly(0.01, 0.003, LEAF_POINTS)}
+            pos={[0.06, 0.29, 0]}
+            rot={[0.3, 0, -1.1]}
+            scale={0.32}
+            double
+            color="#4CAF50"
             roughness={0.9}
-          />
-          {[0.2, -0.2].map((y) => (
-            <Part
-              key={y}
-              geo={G.torus(0.168, 0.02, 6, 16)}
-              pos={[0, y, 0]}
-              rot={[Math.PI / 2, 0, 0]}
-              color="#B91C1C"
-              roughness={0.6}
-            />
-          ))}
-          <Part
-            geo={G.cyl(0.018, 0.024, 0.12, 8)}
-            pos={[0, 0.37, 0]}
-            rot={[0, 0, -0.2]}
-            color="#5B3716"
-            roughness={1}
           />
         </group>
       );

@@ -8,7 +8,7 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
   Kaffeesatz: { name: "Coffee grounds", fact: "Coffee grounds make great plant fertiliser!" },
   Eierschale: { name: "Eggshell", fact: "Eggshells add lime to compost." },
   Laub: { name: "Leaves" },
-  Apfelrest: { name: "Apple core" },
+  Apfelrest: { name: "Bitten apple" },
   Karottenschalen: { name: "Carrot peels" },
   "Verwelkte Blumen": { name: "Wilted flowers" },
   Teebeutel: { name: "Tea bag", fact: "Tea bags that contain plastic go in general waste!" },
