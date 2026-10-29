@@ -217,8 +217,23 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       return (
         <group rotation={[0.25, 0.6, 0]}>
           <Box size={[0.52, 0.36, 0.42]} color="#C79A63" roughness={0.95} />
-          <Box size={[0.52, 0.01, 0.06]} pos={[0, 0.185, 0]} color="#A97C48" />
           <Box size={[0.36, 0.02, 0.43]} pos={[0, 0.18, 0]} rot={[0, 0, 0]} color="#D9B07C" />
+          {/* Klebeband über dem Deckel und vorn herunter (lag vorher genau in
+              der Höhe der Klappe und verschwand) */}
+          <Box size={[0.07, 0.012, 0.43]} pos={[0, 0.196, 0]} color="#A97C48" />
+          <Box size={[0.07, 0.032, 0.004]} pos={[0, 0.186, 0.217]} color="#A97C48" />
+          <Box size={[0.07, 0.11, 0.004]} pos={[0, 0.115, 0.212]} color="#A97C48" />
+          {/* weißes Versandetikett vorn */}
+          <Box size={[0.16, 0.1, 0.004]} pos={[-0.13, -0.03, 0.212]} color="#FFFFFF" />
+          {(
+            [
+              [-0.01, 0.12],
+              [-0.03, 0.09],
+              [-0.05, 0.06],
+            ] as [number, number][]
+          ).map(([y, w]) => (
+            <Box key={y} size={[w, 0.008, 0.003]} pos={[-0.19 + w / 2, y, 0.2145]} color="#94A3B8" />
+          ))}
         </group>
       );
 
@@ -756,17 +771,48 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "pills":
+      // Abgelaufene Medikamente: braune Tablettendose mit weißem Kindersicherungs-
+      // Deckel und Etikett mit rotem Kreuz, davor zwei rot-weiße Kapseln
+      // (vorher ein Blister mit Tabletten – sah aus wie der leere Blister,
+      // der aber in den Gelben Sack gehört)
       return (
-        <group rotation={[0.7, 0.3, 0]}>
-          <Box size={[0.5, 0.04, 0.3]} color="#E5E7EB" roughness={0.3} metalness={0.4} />
-          {[-0.15, 0, 0.15].map((x) =>
-            [-0.07, 0.07].map((z) => (
-              <mesh key={`${x}-${z}`} position={[x, 0.035, z]} castShadow>
-                <sphereGeometry args={[0.045, 12, 8]} />
-                <meshLambertMaterial color="#EF4444" flatShading />
+        <group rotation={[0.3, 0.3, 0]}>
+          <Cyl r={0.11} h={0.26} pos={[-0.08, 0, 0]} color="#B45309" />
+          <Cyl r={0.12} h={0.07} pos={[-0.08, 0.165, 0]} color="#F8FAFC" />
+          {Array.from({ length: 12 }, (_, i) => {
+            const a = (i / 12) * Math.PI * 2;
+            return (
+              <Box
+                key={i}
+                size={[0.012, 0.06, 0.008]}
+                pos={[-0.08 + Math.sin(a) * 0.121, 0.165, Math.cos(a) * 0.121]}
+                rot={[0, a, 0]}
+                color="#E2E8F0"
+              />
+            );
+          })}
+          <Cyl r={0.113} h={0.1} pos={[-0.08, -0.01, 0]} color="#FFFFFF" />
+          <Box size={[0.06, 0.018, 0.006]} pos={[-0.08, -0.01, 0.113]} color="#DC2626" />
+          <Box size={[0.018, 0.06, 0.006]} pos={[-0.08, -0.01, 0.113]} color="#DC2626" />
+          {(
+            [
+              [0.13, 0.12, 0.4],
+              [0.2, -0.02, -0.3],
+            ] as V3[]
+          ).map(([x, z, r]) => (
+            <group key={x} position={[x, -0.105, z]} rotation={[0, r, Math.PI / 2]}>
+              <Cyl r={0.025} h={0.03} pos={[0, 0.015, 0]} color="#DC2626" />
+              <Cyl r={0.025} h={0.03} pos={[0, -0.015, 0]} color="#F8FAFC" />
+              <mesh position={[0, 0.03, 0]}>
+                <sphereGeometry args={[0.025, 20, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                <meshLambertMaterial color="#DC2626" flatShading />
               </mesh>
-            )),
-          )}
+              <mesh position={[0, -0.03, 0]} rotation={[Math.PI, 0, 0]}>
+                <sphereGeometry args={[0.025, 20, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                <meshLambertMaterial color="#F8FAFC" flatShading />
+              </mesh>
+            </group>
+          ))}
         </group>
       );
 

@@ -68,6 +68,15 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] F9 Blister-Modell kontrastreicher (deckende Näpfe, Ränder, Aufdruck).
 - [x] F10 (klein) Teelicht-Begründung „Alu, wird recycelt“; noTrick bei zwei Reifen.
 
+**G – Audit 4 Modelle (06:55)**
+- [x] G1 Medikamente ≠ Blister: Tablettendose (braun, weißer Deckel, Kreuz-Etikett) + Kapseln.
+- [ ] G2 Altes Smartphone: dunkles Display mit App-Kacheln, Hörer, Home-Taste, Sprünge.
+- [ ] G3 Geschenkpapier mit/ohne Folie auch in der Form unterscheiden (Ringelband vs. Paketschnur).
+- [ ] G4 Kaffeefilter als flache Filtertüte mit Prägenaht.
+- [x] G5 Sauberer Karton: Klebeband verdeckt (gleiche Höhe) → höher + vorn + Versandetikett.
+- [ ] G6 Getränkekarton (Strohhalm, Orange) ≠ Milchkarton (Kuhflecken).
+- [ ] G7 (kleiner) Parfüm als Flakon, Laptop mit Tastatur, Spülmittel schlanker.
+
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
 ganze App) → Punkte eintragen → weiter. Nie leer laufen lassen.
 
