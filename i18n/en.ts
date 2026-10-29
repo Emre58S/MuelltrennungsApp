@@ -263,6 +263,8 @@ export const en: Translations = {
   "settings.music.off": "Background music is off",
   "settings.reduceMotion": "Reduce motion",
   "settings.reduceMotion.desc": "Fewer animations",
+  "settings.learnReason": "Reason after mistakes",
+  "settings.learnReason.desc": "In Practice mode, briefly explain why",
   "settings.data": "Data",
   "settings.showTips": "Show tips again",
   "settings.showTips.desc": "The short in-game hints will appear again.",

@@ -118,6 +118,7 @@ import { playMusic } from "@/utils/music";
 import { newlyUnlocked, type Progress, unlockMessageKey, usableSkin, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
 import { itemMass, itemMaterial, type Material, MASS_FEEL } from "@/game/item-mass";
+import { ITEM_REASONS } from "@/i18n/item-reasons";
 import {
   beginThrow,
   createThrowInput,
@@ -195,7 +196,7 @@ export function GameRound({
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
   const { t, lang } = useI18n();
-  const { reduceMotion } = useAppSettings();
+  const { reduceMotion, learnReason } = useAppSettings();
   const fx = useRef(createFx());
   const bus = useRef(createBus());
   useEffect(() => {
@@ -720,9 +721,10 @@ export function GameRound({
         if (correctIndex !== -1)
           later(() => queueBinEvent(bus.current, correctIndex, "peek"), 250);
         setLearn({ id, item: ts.item, bin: correctBin });
+        // Mit Begründung bleibt die Karte etwas länger stehen (zum Lesen)
         later(() => {
           setLearn((v) => (v?.id === id ? null : v));
-        }, 1800);
+        }, learnReason ? 2300 : 1800);
       }
       setMistakes((m) => [...m, { item: ts.item, bin: correctBin }]);
       if (mode === "survival") {
@@ -1010,7 +1012,12 @@ export function GameRound({
                 pointerEvents="none"
                 style={[styles.overlayRow, { top: learnTop }]}
               >
-                <LearnCard key={learn.id} item={learn.item} bin={learn.bin} />
+                <LearnCard
+                  key={learn.id}
+                  item={learn.item}
+                  bin={learn.bin}
+                  reason={learnReason ? ITEM_REASONS[learn.item.name]?.[lang] : undefined}
+                />
               </View>
             )}
             {currentItem && (

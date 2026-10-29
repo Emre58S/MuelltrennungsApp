@@ -46,6 +46,8 @@ export default function EinstellungenScreen() {
     setLanguage,
     reduceMotionSetting,
     setReduceMotion,
+    learnReason,
+    setLearnReason,
   } = useAppSettings();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [musicEnabled, setMusicEnabledState] = useState(true);
@@ -200,6 +202,14 @@ export default function EinstellungenScreen() {
             subtitle={t("settings.reduceMotion.desc")}
             value={reduceMotionSetting}
             onChange={setReduceMotion}
+            divider
+          />
+          <SwitchRow
+            icon="book-open"
+            title={t("settings.learnReason")}
+            subtitle={t("settings.learnReason.desc")}
+            value={learnReason}
+            onChange={setLearnReason}
             divider
           />
         </Card>

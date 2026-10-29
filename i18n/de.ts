@@ -262,6 +262,8 @@ export const de = {
   "settings.music.off": "Hintergrundmusik ist aus",
   "settings.reduceMotion": "Weniger Bewegung",
   "settings.reduceMotion.desc": "Weniger Animationen",
+  "settings.learnReason": "Begründung nach Fehlern",
+  "settings.learnReason.desc": "Beim Üben kurz erklären, warum es falsch war",
   "settings.data": "Daten",
   "settings.showTips": "Tipps wieder zeigen",
   "settings.showTips.desc": "Die kurzen Hinweise im Spiel erscheinen erneut.",

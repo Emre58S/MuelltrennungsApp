@@ -31,6 +31,7 @@ export const StorageKeys = {
   PLAYER_NAME: "muell_player_name",
   PENDING_SCORES: "muell_pending_scores",
   REDUCE_MOTION: "muell_reduce_motion",
+  LEARN_REASON: "muell_learn_reason",
   ITEM_STATS: "muell_item_stats",
   DAILY_RESULT: "muell_daily_result",
 } as const;

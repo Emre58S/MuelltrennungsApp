@@ -370,7 +370,7 @@ export function ItemCard({
 
 /* ── Hinweis bei Fehler (schmale Zeile, die richtige Tonne hüpft dazu) ── */
 
-export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
+export function LearnCard({ item, bin, reason }: { item: Item; bin: BinDef; reason?: string }) {
   const { t, itemName } = useI18n();
   const { colors } = useAppTheme();
   const enter = useEnter(260, Easing.out(Easing.quad));
@@ -386,7 +386,7 @@ export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
       ]}
       accessible
       accessibilityLiveRegion="assertive"
-      accessibilityLabel={`${t("game.almost")} ${itemName(item)} ${t("game.belongsIn")} ${t(bin.labelKey)}`}
+      accessibilityLabel={`${t("game.almost")} ${itemName(item)} ${t("game.belongsIn")} ${t(bin.labelKey)}${reason ? `. ${reason}` : ""}`}
     >
       <HudSurface style={[styles.learnPill, { borderColor: colors.warning }]}>
         <AppText variant="caption" numberOfLines={1} style={styles.flexShrink}>
@@ -398,6 +398,14 @@ export function LearnCard({ item, bin }: { item: Item; bin: BinDef }) {
           </AppText>
         </View>
       </HudSurface>
+      {/* kurze Begründung (Einstellung „Begründung nach Fehlern“) */}
+      {reason && (
+        <HudSurface style={styles.learnReason}>
+          <AppText variant="caption" numberOfLines={1} center>
+            💡 {reason}
+          </AppText>
+        </HudSurface>
+      )}
     </Animated.View>
   );
 }
@@ -776,6 +784,7 @@ const styles = StyleSheet.create({
     maxWidth: "92%",
   },
   learnBin: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.pill },
+  learnReason: { marginTop: 4, paddingHorizontal: Spacing.md, paddingVertical: 2, maxWidth: "92%" },
 
   praise: { position: "absolute", left: 0, right: 0, alignItems: "center", justifyContent: "center", height: 80 },
   praiseText: { textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 },

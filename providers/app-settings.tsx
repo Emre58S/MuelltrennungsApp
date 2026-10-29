@@ -56,6 +56,10 @@ type AppSettings = {
   setReduceMotion: (value: boolean) => void;
   /** true, wenn der Nutzer ODER das Betriebssystem weniger Bewegung wünscht. */
   reduceMotion: boolean;
+
+  /** Lernkarte nach Fehlwurf („Üben“) zeigt eine kurze Begründung. */
+  learnReason: boolean;
+  setLearnReason: (value: boolean) => void;
 };
 
 const AppSettingsContext = createContext<AppSettings | null>(null);
@@ -74,20 +78,23 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     useState<LanguageSetting>("system");
   const [reduceMotionSetting, setReduceMotionState] = useState(false);
   const [systemReduceMotion, setSystemReduceMotion] = useState(false);
+  const [learnReason, setLearnReasonState] = useState(true);
 
   useEffect(() => {
     let active = true;
 
     (async () => {
-      const [storedTheme, storedLang, storedMotion] = await Promise.all([
+      const [storedTheme, storedLang, storedMotion, storedReason] = await Promise.all([
         getItem(StorageKeys.THEME_MODE),
         getItem(StorageKeys.LANGUAGE),
         getBoolean(StorageKeys.REDUCE_MOTION, false),
+        getBoolean(StorageKeys.LEARN_REASON, true),
       ]);
       if (!active) return;
       if (isThemeMode(storedTheme)) setThemeModeState(storedTheme);
       if (isLanguage(storedLang)) setLanguageState(storedLang);
       setReduceMotionState(storedMotion);
+      setLearnReasonState(storedReason);
       setReady(true);
     })();
 
@@ -120,6 +127,11 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     setBoolean(StorageKeys.REDUCE_MOTION, value);
   }, []);
 
+  const setLearnReason = useCallback((value: boolean) => {
+    setLearnReasonState(value);
+    setBoolean(StorageKeys.LEARN_REASON, value);
+  }, []);
+
   const scheme: ColorScheme =
     themeMode === "system"
       ? systemScheme === "dark"
@@ -145,6 +157,8 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       reduceMotionSetting,
       setReduceMotion,
       reduceMotion: reduceMotionSetting || systemReduceMotion,
+      learnReason,
+      setLearnReason,
     }),
     [
       ready,
@@ -157,6 +171,8 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       reduceMotionSetting,
       setReduceMotion,
       systemReduceMotion,
+      learnReason,
+      setLearnReason,
     ],
   );
 
