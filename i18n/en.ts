@@ -55,6 +55,7 @@ export const en: Translations = {
   "tricks.progress": "{stars} of {total} stars",
   "trick.attempt": "Try {n}",
   "trick.noTrick": "Through the hoop first!",
+  "trick.noTrickBoth": "Through both hoops first!",
   "trick.noSign": "Bank it off the sign first!",
   "trick.wrongBin": "Wrong bin",
   "trick.done": "Done!",

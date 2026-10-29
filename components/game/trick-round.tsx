@@ -405,7 +405,12 @@ export function TrickRound({
     if (bin === level.target) {
       // In der richtigen Tonne – aber ohne den verlangten Trick
       const needsSign = level.requires.some((i) => level.props[i]?.kind === "sign");
-      float(t(needsSign ? "trick.noSign" : "trick.noTrick"), screenX(binXs[bin]), y);
+      const rings = level.requires.filter((i) => level.props[i]?.kind === "ring").length;
+      float(
+        t(needsSign ? "trick.noSign" : rings > 1 ? "trick.noTrickBoth" : "trick.noTrick"),
+        screenX(binXs[bin]),
+        y,
+      );
       sfx("plop");
     } else if (bin !== null) {
       queueBinEvent(bus.current, bin, "reject");

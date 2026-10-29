@@ -902,11 +902,13 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "blister":
-      // Leerer Tablettenblister: silberne Folie, darauf 2×4 klare Näpfchen,
-      // alle eingedrückt und leer (silberne Folie scheint durch)
+      // Leerer Tablettenblister: silberne Folie mit blauem Aufdruck, darauf
+      // 2×4 eingedrückte, leere Näpfchen (deckend hellblau mit dunklem Rand –
+      // halbdurchsichtig verschwanden sie fast auf der Folie)
       return (
         <group rotation={[0.55, 0.3, 0.08]}>
           <Box size={[0.44, 0.26, 0.012]} color="#D1D5DB" />
+          <Box size={[0.4, 0.022, 0.004]} pos={[0, -0.118, 0.007]} color="#2563EB" />
           {[-0.15, -0.05, 0.05, 0.15].map((x) =>
             [-0.06, 0.06].map((y) => (
               <group key={`${x}${y}`} position={[x, y, 0.006]}>
@@ -915,9 +917,9 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
                   geo={G.crumple(0.036, 0.3, Math.round((x + y) * 100) + 50, 0)}
                   scale={[1, 1, 0.3]}
                   flat
-                  color="#E2E8F0"
-                  opacity={0.55}
+                  color="#EEF4FF"
                 />
+                <Part geo={G.ring(0.03, 0.044, 16)} pos={[0, 0, 0.0008]} basic color="#94A3B8" />
               </group>
             )),
           )}

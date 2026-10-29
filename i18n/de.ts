@@ -54,6 +54,7 @@ export const de = {
   "tricks.progress": "{stars} von {total} Sternen",
   "trick.attempt": "Versuch {n}",
   "trick.noTrick": "Erst durch den Reifen!",
+  "trick.noTrickBoth": "Erst durch beide Reifen!",
   "trick.noSign": "Erst gegen das Schild!",
   "trick.wrongBin": "Falsche Tonne",
   "trick.done": "Geschafft!",

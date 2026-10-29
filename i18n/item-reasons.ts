@@ -57,7 +57,7 @@ export const ITEM_REASONS: Record<string, { de: string; en: string }> = {
   "Obstnetz (Plastik)": { de: "Plastikverpackung", en: "Plastic packaging" },
   "Kaffeekapsel (Alu)": { de: "Alu-Verpackung", en: "Aluminium packaging" },
   "Spraydose (leer)": { de: "Leere Metallverpackung", en: "Empty metal packaging" },
-  "Teelicht-Hülle (Alu)": { de: "Alu-Verpackung", en: "Aluminium packaging" },
+  "Teelicht-Hülle (Alu)": { de: "Leere Alu-Verpackungsschale", en: "Empty aluminium packaging cup" },
   "Tablettenblister (leer)": { de: "Leere Verpackung", en: "Empty packaging" },
   // Glas
   Weinflasche: { de: "Glasverpackung", en: "Glass packaging" },

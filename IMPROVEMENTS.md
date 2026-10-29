@@ -65,8 +65,8 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] F6 Trickwürfe-Beschreibung: nicht nur Reifen (DE/EN).
 - [x] F7 „Alles zurücksetzen“-Text ehrlich; learnReason.desc auch Tagesaufgabe.
 - [x] F8 VoiceOver: Sterne als „n von 3 Sternen“, Level-Aufgabe im Label.
-- [ ] F9 Blister-Modell kontrastreicher (deckende Näpfe, Ränder, Aufdruck).
-- [ ] F10 (klein) Teelicht-Begründung „Alu, wird recycelt“; noTrick bei zwei Reifen.
+- [x] F9 Blister-Modell kontrastreicher (deckende Näpfe, Ränder, Aufdruck).
+- [x] F10 (klein) Teelicht-Begründung „Alu, wird recycelt“; noTrick bei zwei Reifen.
 
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder
 ganze App) → Punkte eintragen → weiter. Nie leer laufen lassen.
