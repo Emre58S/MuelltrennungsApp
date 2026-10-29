@@ -37,7 +37,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] (b2b0dde; fand Tages-Vorlage 5 → Bonus 1. Versuch) C3 Swish-Test strenger (mehrere Zellen, kleines iPhone).
 
 **D – Kleinkram**
-- [ ] D1 Rückfrage beim Beenden: Fever-Zeit anhalten.
+- [x] (c9ad16e) D1 Rückfrage beim Beenden: Fever-Zeit anhalten.
 
 **E – Lernen und Feinschliff (vom Nutzer bestätigt)**
 - [ ] E1 Gegenstand dreht sich vor dem Wurf langsam (besser erkennbar); bei
