@@ -21,7 +21,7 @@
 import { type TranslationKey } from "@/i18n";
 
 import { hashString, seededRandom } from "./logic";
-import { type BinSlide, type PropCollider, type RingMotion } from "./physics";
+import { type BinSlide, type LidFlap, type PropCollider, type RingMotion } from "./physics";
 
 /** Dicke des Reifen-Rohrs (passend zu components/game/trick-props.tsx). */
 export const RING_TUBE = 0.05;
@@ -81,6 +81,19 @@ export type TrickProp =
       halfD: number;
       /** Wind-Beschleunigung in x (+ = nach rechts). */
       force: number;
+    }
+  | {
+      /** Trampolin vor einer Tonne: Sprungtuch-Mitte bei x/z, Oberkante y. */
+      kind: "trampoline";
+      x: number;
+      y: number;
+      z: number;
+      halfW: number;
+      halfD: number;
+      /** Scheitel des Sprungs über dem Tonnenrand. */
+      kick: number;
+      /** Fährt seitlich hin und her (schleudert zur Tonne davor). */
+      slide?: { amp: number; period: number; phase?: number };
     };
 
 /** Bonus-Ziel für den dritten Stern (bank = Bandenwurf: übers Schild hinein). */
@@ -97,6 +110,8 @@ export type TrickLevel = {
   requires: number[];
   /** Die Zieltonne fährt (auf dich zu und weg). */
   binSlide?: BinSlide;
+  /** Der Deckel der Zieltonne klappt auf und zu (Timing). */
+  binFlap?: LidFlap;
   bonus: TrickBonus;
   /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
@@ -135,6 +150,22 @@ const fan = (x: number, force: number): TrickProp => ({
   force,
 });
 
+/** Trampolin vor einer Tonne: kurz werfen, aufs Tuch – „Boing“ – hinein. */
+export const trampoline = (
+  x: number,
+  slide?: { amp: number; period: number; phase?: number },
+  z = 2.3,
+): TrickProp => ({
+  kind: "trampoline",
+  x,
+  y: 0.42,
+  z,
+  halfW: 0.6,
+  halfD: 0.55,
+  kick: 1.1,
+  slide,
+});
+
 /** Bauzaun über die ganze Breite vor den Tonnen – weit genug weg, dass ein
  *  Abpraller an der Rückseite nicht in die Tonne fällt (Treffer gehen drüber). */
 export const fence = (z = 1.5, top = 2.8): TrickProp => ({ kind: "fence", z, top, halfW: 2.4 });
@@ -160,6 +191,9 @@ export const sign = (x: number, y: number, z: number, yaw: number, tilt = 0): Tr
   tilt,
   yaw,
 });
+
+/** Trampolin vor einer äußeren Tonne (Abstand der Tonnen, game/layout.ts). */
+const TRAMP_SIDE = 1.28;
 
 /** Tonne fährt auf dich zu und zurück (0 … 1,7 vor der Reihe). */
 const ROLL: BinSlide = { axis: "z", amp: 0.85, shift: 0.85, period: 3.4 };
@@ -291,28 +325,43 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "swish",
     task: "trick.task.windRing",
   },
-  // Straßenschild als Bande: links an der mittleren Tonne vorbei, abprallen, rein
-  { id: 19, target: 1, props: [sign(-0.75, 2.2, -0.2, 0.6)], requires: [0], bonus: "firstTry", task: "trick.task.sign" },
-  // Gespiegelt: das Schild steht rechts
-  { id: 20, target: 1, props: [sign(0.75, 2.2, -0.2, -0.6)], requires: [0], bonus: "firstTry", task: "trick.task.sign" },
-  // Laternenmast vor der mittleren Tonne (rechts, Beschriftung bleibt frei): links vorbei
-  { id: 21, target: 1, props: [lamp(0.22, 1.4, 1)], requires: [], bonus: "swish", task: "trick.task.lamp" },
-  // Bauzaun quer vor den Tonnen: hoch drüberwerfen (Swish geht nicht – man
-  // streift immer den Rand –, daher Bonus „1. Versuch“)
-  { id: 22, target: 1, props: [fence()], requires: [], bonus: "firstTry", task: "trick.task.fence" },
-  // Kombi: oben durch den Reifen, unten links an der Laterne vorbei
+  // ── Spielplatz (ersetzt Schild, Laterne und Bauzaun: die standen nur im
+  // Weg). Trampolin = kurz werfen, „Boing“, hinein; Deckel = Timing. ──
+  // Trampolin vor der mittleren Tonne: kurz werfen, aufs Tuch – hinein
+  { id: 19, target: 1, props: [trampoline(0)], requires: [0], bonus: "swish", task: "trick.task.trampoline" },
+  // Trampolin vor der rechten Tonne
+  { id: 20, target: 2, props: [trampoline(TRAMP_SIDE)], requires: [0], bonus: "swish", task: "trick.task.trampoline" },
+  // Der Deckel klappt auf und zu: werfen, wenn er gleich offen ist
+  { id: 21, target: 1, props: [], requires: [], binFlap: { period: 2.6 }, bonus: "swish", task: "trick.task.flap" },
+  // Aufs Trampolin und im Sprung durch den Reifen
+  {
+    id: 22,
+    target: 1,
+    props: [trampoline(0), ring(0, 2.7, 1.0, 0.5)],
+    requires: [0, 1],
+    bonus: "firstTry",
+    task: "trick.task.trampolineRing",
+  },
+  // Das Trampolin fährt: treffen, wenn es vor der rechten Tonne steht –
+  // sonst springt der Wurf in die mittlere
   {
     id: 23,
-    target: 1,
-    props: [lamp(0.22, 1.4, 1), ring(-0.2, 3.35, 3.3, 0.5)],
-    requires: [1],
-    bonus: "swish",
-    task: "trick.task.lampRing",
+    target: 2,
+    props: [trampoline(0.64, { amp: 0.9, period: 3.6 })],
+    requires: [0],
+    bonus: "firstTry",
+    task: "trick.task.trampolineMoving",
   },
-  // Prall-Level: Schild hinter der Lücke zwischen Mitte und rechts. Direkt
-  // werfen geht; wer in die Lücke zielt, prallt je nach Treffpunkt in die
-  // rechte Tonne (Bonus „Bandenwurf“) oder in die mittlere.
-  { id: 24, target: 2, props: [sign(0.75, 2.2, -0.4, 0.4)], requires: [], bonus: "bank", task: "trick.task.bank" },
+  // Trampolin vor der linken Tonne, deren Deckel klappt
+  {
+    id: 24,
+    target: 0,
+    props: [trampoline(-TRAMP_SIDE)],
+    requires: [0],
+    binFlap: { period: 2.8 },
+    bonus: "firstTry",
+    task: "trick.task.trampolineFlap",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -330,6 +379,8 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): strin
           ? "🚧"
           : p.kind === "windmill"
           ? "🌀"
+          : p.kind === "trampoline"
+          ? "🤸"
           : p.motion?.kind === "spin"
             ? "🔄"
             : p.motion?.kind === "slide" && p.motion.axis === "y"
@@ -388,6 +439,8 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
     if (p.kind === "sign") return { ...p, x: -p.x, yaw: -p.yaw };
     if (p.kind === "lamp") return { ...p, x: -p.x, side: (-p.side) as 1 | -1 };
     if (p.kind === "fence") return p;
+    if (p.kind === "trampoline")
+      return { ...p, x: -p.x, slide: p.slide && { ...p.slide, phase: (p.slide.phase ?? 0) + Math.PI } };
     const m = p.motion;
     const motion: RingMotion | undefined = !m
       ? undefined
@@ -430,12 +483,13 @@ export function levelColliders(level: Pick<TrickLevel, "props">): PropCollider[]
 function propPeriod(p: TrickProp): number {
   if (p.kind === "windmill") return Math.abs(p.period) / p.blades;
   if (p.kind === "ring") return Math.abs(p.motion?.period ?? 0);
+  if (p.kind === "trampoline") return p.slide?.period ?? 0;
   return 0;
 }
 
 /** Längste Bewegungs-Periode eines Levels (0 = alles ruht). */
-export function levelPeriod(level: Pick<TrickLevel, "props" | "binSlide">): number {
-  return Math.max(Math.abs(level.binSlide?.period ?? 0), ...level.props.map(propPeriod));
+export function levelPeriod(level: Pick<TrickLevel, "props" | "binSlide" | "binFlap">): number {
+  return Math.max(Math.abs(level.binSlide?.period ?? 0), level.binFlap?.period ?? 0, ...level.props.map(propPeriod));
 }
 
 /** Weht in diesem Level Wind (Gewicht des Gegenstands zählt)? */

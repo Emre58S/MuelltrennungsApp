@@ -1,6 +1,6 @@
 // Datei: game/rewards.ts
-// Belohnungen: Wurfspuren und Tonnen-Sticker, die man mit Trick-Sternen oder
-// dem XP-Level freischaltet und dann auswählt (Sticker: components/game/trash-bin.tsx). Rein und ohne React –
+// Belohnungen: Wurfspuren und Tonnen-Sticker, die man mit Trick-Sternen, dem
+// XP-Level oder Gold-Medaillen im Sammelbuch (game/mastery.ts) freischaltet und dann auswählt (Sticker: components/game/trash-bin.tsx). Rein und ohne React –
 // Farben der Spuren macht components/game/items.tsx (trailColor).
 
 import { type TranslationKey } from "@/i18n";
@@ -15,15 +15,20 @@ export type TrailId =
   | "polarlicht"
   | "seifenblasen"
   | "funken"
-  | "sternenstaub";
+  | "sternenstaub"
+  | "smaragd"
+  | "lava"
+  | "diamant";
 
 export type TrailReward = {
   id: TrailId;
   name: TranslationKey;
   /** Frei ab so vielen Trick-Sternen … */
   stars?: number;
-  /** … oder ab diesem XP-Level. */
+  /** … oder ab diesem XP-Level … */
   level?: number;
+  /** … oder ab so vielen Gold-Gegenständen (Sammelbuch). */
+  gold?: number;
 };
 
 /** Reihenfolge = Anzeige auf der Belohnungs-Seite (von leicht nach schwer). */
@@ -38,9 +43,13 @@ export const TRAILS: TrailReward[] = [
   { id: "seifenblasen", name: "reward.trail.seifenblasen", stars: 28 },
   { id: "funken", name: "reward.trail.funken", level: 12 },
   { id: "sternenstaub", name: "reward.trail.sternenstaub", stars: 40 },
+  { id: "smaragd", name: "reward.trail.smaragd", gold: 3 },
+  { id: "lava", name: "reward.trail.lava", gold: 10 },
+  { id: "diamant", name: "reward.trail.diamant", gold: 25 },
 ];
 
-export type Progress = { stars: number; level: number };
+/** `gold` = Gegenstände mit Gold-Medaille (fehlt = 0). */
+export type Progress = { stars: number; level: number; gold?: number };
 
 export type BinSkinId = "keiner" | "stern" | "herz" | "punkte";
 
@@ -65,7 +74,8 @@ export function usableSkin(id: string | null, progress: Progress): BinSkinId {
   return reward && isUnlocked(reward, progress) ? reward.id : "keiner";
 }
 
-export function isUnlocked(reward: { stars?: number; level?: number }, progress: Progress): boolean {
+export function isUnlocked(reward: { stars?: number; level?: number; gold?: number }, progress: Progress): boolean {
+  if (reward.gold !== undefined) return (progress.gold ?? 0) >= reward.gold;
   if (reward.stars !== undefined) return progress.stars >= reward.stars;
   if (reward.level !== undefined) return progress.level >= reward.level;
   return true;

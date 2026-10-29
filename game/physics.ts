@@ -157,12 +157,52 @@ export type LampCollider = {
   side: 1 | -1;
 };
 
-export type PropCollider = RingCollider | WindmillCollider | FanCollider | SignCollider | LampCollider;
+/** Trampolin: waagrechtes Sprungtuch (Oberkante bei y) vor einer Tonne. Wer
+ *  von oben draufwirft, fliegt im hohen Bogen (Scheitel `kick` über dem
+ *  Tonnenrand) zur Tonne dahinter (x wie das Trampolin, z = `toZ`). Wo man
+ *  das Tuch trifft, zählt: Wer am Rand landet, fliegt auch am Rand der
+ *  Öffnung (oder knapp daneben) an – mittig ist sicher. */
+export type TrampolineCollider = {
+  kind: "trampoline";
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  halfW: number;
+  halfD: number;
+  kick: number;
+  /** z der Tonne, zu der das Tuch schleudert (Standard 0 = Tonnenreihe). */
+  toZ?: number;
+  /** Fährt seitlich hin und her – schleudert dann zur Tonne, vor der es
+   *  gerade steht (Timing: vor der richtigen Tonne treffen). */
+  slide?: { amp: number; period: number; phase?: number };
+};
+
+/** Abstand der Tonnen (Mitte zu Mitte, wie game/layout.ts). */
+const BIN_STEP = 1.28;
+
+/** Mitte des (fahrenden) Trampolins zur Szenen-Zeit `time`. */
+export function trampolineX(t: TrampolineCollider, time: number) {
+  const m = t.slide;
+  return m ? t.x + Math.sin((time / m.period) * TAU + (m.phase ?? 0)) * m.amp : t.x;
+}
+
+export type PropCollider =
+  | RingCollider
+  | WindmillCollider
+  | FanCollider
+  | SignCollider
+  | LampCollider
+  | TrampolineCollider;
 
 /** Radius des Laternenmasts. */
 export const LAMP_R = 0.07;
 /** Halbe Dicke des Auslegers samt Leuchte. */
 export const LAMP_ARM_HALF = 0.07;
+
+/** Trampolin: Abstand des Treffpunkts zur Tuch-Mitte → so viel (×) Abstand
+ *  zur Mitte der Tonnen-Öffnung. Über 1 = der Rand des Tuchs geht daneben. */
+const TRAMPOLINE_SPREAD = 1.1;
 
 /** Halbe Dicke der Schild-Tafel. */
 export const SIGN_THICK = 0.03;
@@ -199,11 +239,27 @@ export function slideOffset(slide: BinSlide, time: number) {
   return (slide.shift ?? 0) + Math.sin((time / slide.period) * TAU + (slide.phase ?? 0)) * slide.amp;
 }
 
+/** Deckel klappt von selbst auf und zu (Trickwürfe) – rein zeitabhängig. */
+export type LidFlap = { period: number; phase?: number };
+
+/** Ganz offener Deckel (wie im Trick-Modus sonst auch). */
+const FLAP_OPEN = 1.85;
+
+/** Deckel-Winkel einer klappenden Tonne zur Szenen-Zeit `time`: etwa ein
+ *  Drittel der Zeit zu, knapp die Hälfte ganz offen, dazwischen klappt er. */
+export function flapAngle(flap: LidFlap, time: number) {
+  const s = 0.5 + 0.5 * Math.sin((time / flap.period) * Math.PI * 2 + (flap.phase ?? 0));
+  const k = THREE.MathUtils.clamp((s - 0.3) / 0.3, 0, 1);
+  return FLAP_OPEN * k * k * (3 - 2 * k);
+}
+
 export type BinCollider = {
   x: number;
   z: number;
   /** Deckel-Winkel in rad (0 = zu, ~1 = offen). */
   lid: number;
+  /** Deckel klappt von selbst (setzt `lid` pro Schritt). */
+  flap?: LidFlap;
   /** Fahrende Tonne: Ruhelage und Bewegung (x/z wird pro Schritt gesetzt). */
   slide?: BinSlide;
   baseX?: number;
@@ -235,7 +291,7 @@ export type BallEvent =
       type: "bounce";
       bin: number | null;
       speed: number;
-      part: BinPart | "ring" | "blade" | "sign" | "fence" | "lamp" | "ground";
+      part: BinPart | "ring" | "blade" | "sign" | "fence" | "lamp" | "trampoline" | "ground";
       /** Reifen (Trickwürfe), falls einer berührt wurde. */
       prop?: number;
     }
@@ -542,6 +598,30 @@ function collideLamp(ball: Ball, lamp: LampCollider, events: BallEvent[]) {
   events.push({ type: "bounce", bin: null, speed, part: "lamp", prop: lamp.id });
 }
 
+/** Trampolin: von oben aufs Sprungtuch → hochschleudern (zählt wie ein
+ *  durchflogener Reifen, so lässt sich „übers Trampolin“ verlangen). Wer
+ *  nur den Rand trifft, landet am Rand der Öffnung – mittig wird es ein Swish. */
+function collideTrampoline(ball: Ball, t: TrampolineCollider, prev: THREE.Vector3, events: BallEvent[]) {
+  const p = ball.p;
+  const cx = trampolineX(t, ball.time);
+  if (ball.v.y >= 0 || Math.abs(p.x - cx) > t.halfW || Math.abs(p.z - t.z) > t.halfD) return;
+  const surface = t.y + BALL_R;
+  if (p.y >= surface || prev.y < surface - 0.02) return;
+  const speed = -ball.v.y;
+  p.y = surface;
+  // Bogen zur Tonne: Treffpunkt auf dem Tuch verschiebt das Ziel mit
+  const lane = t.slide ? THREE.MathUtils.clamp(Math.round(cx / BIN_STEP), -1, 1) * BIN_STEP : t.x;
+  const toX = lane + (p.x - cx) * TRAMPOLINE_SPREAD;
+  const toZ = (t.toZ ?? 0) + (p.z - t.z) * TRAMPOLINE_SPREAD;
+  const aimY = BIN_SHAPE.top - 0.1;
+  const vy = Math.sqrt(2 * GRAVITY * (BIN_SHAPE.top + t.kick - p.y));
+  const time = (vy + Math.sqrt(vy * vy - 2 * GRAVITY * (aimY - p.y))) / GRAVITY;
+  ball.v.set((toX - p.x) / time, vy, (toZ - p.z) / time);
+  // Wie ein Reifen: Das Tuch zählt nicht als Berührung (Swish bleibt möglich)
+  events.push({ type: "bounce", bin: null, speed, part: "trampoline", prop: t.id });
+  events.push({ type: "pass", prop: t.id });
+}
+
 /** Ventilator: im Windfeld seitlich beschleunigen (je nach Gewicht). */
 function blowFan(ball: Ball, fan: FanCollider, h: number) {
   const p = ball.p;
@@ -573,6 +653,7 @@ export function stepBall(
         if (bin.slide.axis === "z") bin.z = (bin.baseZ ?? 0) + off;
         else bin.x = (bin.baseX ?? 0) + off;
       }
+      if (bin.flap) bin.lid = flapAngle(bin.flap, ball.time);
       collideBin(ball, bin, i, events);
       collideLid(ball, bin, i, events);
     }
@@ -582,6 +663,7 @@ export function stepBall(
       else if (prop.kind === "windmill") collideWindmill(ball, prop, events);
       else if (prop.kind === "sign") collideSign(ball, prop, events);
       else if (prop.kind === "lamp") collideLamp(ball, prop, events);
+      else if (prop.kind === "trampoline") collideTrampoline(ball, prop, prevP, events);
       else blowFan(ball, prop, h);
     }
 

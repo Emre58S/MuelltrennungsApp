@@ -216,10 +216,11 @@ export const GameScene = memo(function GameScene({
             bus={bus}
             label={binLabelTexture(bin.key, lang)}
             openLid={openLids}
+            flap={trick?.binSlide?.bin === i ? trick.binSlide.flap : undefined}
           />
         );
         // Fahrende Zieltonne (Trickwürfe): bewegt sich genau wie in der Physik
-        return trick?.binSlide?.bin === i ? (
+        return trick?.binSlide?.bin === i && trick.binSlide.slide ? (
           <SlidingBin key={bin.key} slide={trick.binSlide.slide} bus={bus}>
             {tonne}
           </SlidingBin>

@@ -2,6 +2,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Storage Keys ──────────────────────────────────────────────────────
+import { goldCount } from "@/game/mastery";
+
 export const StorageKeys = {
   SOUND_ENABLED: "muell_sound_enabled",
   MUSIC_ENABLED: "muell_music_enabled",
@@ -34,6 +36,8 @@ export const StorageKeys = {
   LEARN_REASON: "muell_learn_reason",
   ITEM_STATS: "muell_item_stats",
   DAILY_RESULT: "muell_daily_result",
+  /** Schnell-Duell schon einmal geöffnet (sonst „Neu“-Punkt im Menü). */
+  SEEN_DUEL: "muell_seen_duel",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -478,11 +482,16 @@ export function saveTrickStars(level: number, stars: number): Promise<void> {
 // ── Belohnungen: Fortschritt und gewählte Wurfspur ──────────────────
 
 /** Trick-Sterne (Summe) und XP-Level – daran hängen die Belohnungen. */
-export async function getRewardProgress(): Promise<{ stars: number; level: number }> {
-  const [stars, xp] = await Promise.all([getTrickStars(), getNumber(StorageKeys.TOTAL_XP)]);
+export async function getRewardProgress(): Promise<{ stars: number; level: number; gold: number }> {
+  const [stars, xp, items] = await Promise.all([
+    getTrickStars(),
+    getNumber(StorageKeys.TOTAL_XP),
+    getItemStats(),
+  ]);
   return {
     stars: Object.values(stars).reduce((sum, n) => sum + n, 0),
     level: getLevelFromXP(xp),
+    gold: goldCount(items),
   };
 }
 

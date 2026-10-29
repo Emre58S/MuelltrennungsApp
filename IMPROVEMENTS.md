@@ -7,6 +7,26 @@ ergänzen oder umsortieren – ich lese die Datei zu Beginn jedes Zyklus neu.
 Leitlinie: Das Spielgefühl soll sehr gut sein – ohne grundlegende Mechaniken
 zu ändern.
 
+## Zweig `spielspass` (Emre, 29.10. abends) – lokal, noch nicht gepusht
+
+**Trickwürfe – Spielplatz statt Hindernisse:** Level 19–24 (Schild, Laterne,
+Bauzaun, Bandenwurf) ersetzt – sie standen nur im Weg. Neu: Trampolin
+(kurz werfen → „Boing“ → in die Tonne dahinter; Rand des Tuchs = Rand der
+Öffnung, mittig = Swish), fahrendes Trampolin (schleudert zur Tonne, vor der
+es gerade steht), Trampolin + Reifen, klappender Deckel (binFlap, Timing).
+Alle Level mit grünem Fairness-Test; Trampolin-Level prüfen Kraft ab 0,24
+(kurzer Wurf ist gewollt). Schild/Laterne/Zaun bleiben im Code (Physik/Modelle).
+**Duell (Schnell-Duell):** 1 gegen 1 gleichzeitig an einem Handy (links/rechts
+wischen), gleicher Gegenstand, erster richtiger Wurf gewinnt, falsch = raus,
+Finale ×2, Tauziehen, Ergebnis-Tabelle, schnellster Wurf, Lernliste, Revanche.
+Logik game/duel.ts (+Tests), Bildschirm components/game/duel-round.tsx,
+Route /runde?mode=duel, Kachel im Menü. Damit ist Backlog „Duell“ (abwechselnd)
+vorerst ersetzt – erst Spieler-Rückmeldung abwarten.
+**Medaillen je Gegenstand:** Bronze 3 / Silber 8 / Gold 15 richtige Würfe
+(game/mastery.ts), nie verlierbar; Banner beim Aufstieg, Medaille an der
+Item-Karte, Gold fliegt golden, Sammelbuch zeigt Medaille + Weg zur nächsten;
+neue Wurfspuren Smaragd/Lava/Diamant ab 3/10/25 Gold.
+
 ## Letzter Lauf (29.10., Sonnet/Opus) – alles bis 561d760 gepusht, EAS auto + preview
 
 **Umgesetzt und ausgeliefert (auch Modelle Mais, Katzenstreu, Obstnetz, Spülmittel, Garten-Hecke):**

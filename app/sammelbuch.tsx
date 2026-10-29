@@ -4,6 +4,7 @@
 // Raster; noch unbekannte Gegenstände sind verdeckt. Antippen zeigt Lern-
 // Fakt, richtige Tonne und den eigenen Lernstand („Sicher“ / „Noch üben“).
 // Motiviert, alle Gegenstände zu finden – und wiederholt nebenbei Wissen.
+// Medaillen (game/mastery.ts): Bronze/Silber/Gold je nach richtigen Würfen.
 
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
@@ -20,6 +21,7 @@ import { type TranslationKey } from "@/i18n";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { ItemPreview3D } from "@/components/game/item-preview";
 import { EMPTY_ITEM_STAT, getItemStats, type ItemStat, type ItemStats } from "@/utils/storage";
+import { goldCount, MEDAL_AT, MEDAL_ICON, medalFor, nextMedal } from "@/game/mastery";
 
 const CATEGORY_BIN: Record<Category, BinKey> = {
   Biomüll: "bio",
@@ -64,6 +66,7 @@ export default function CollectionScreen() {
   const isFound = useCallback((item: Item) => (stats[item.name]?.correct ?? 0) > 0, [stats]);
   const found = useMemo(() => ITEMS.filter(isFound).length, [isFound]);
   const progress = found / ITEMS.length;
+  const golds = useMemo(() => goldCount(stats), [stats]);
   // 4 Kacheln pro Zeile (5 auf breiten Geräten)
   const columns = width >= 600 ? 6 : width >= 400 ? 5 : 4;
   const tileSize = (width - Spacing.md * 2 - Spacing.sm * (columns - 1)) / columns;
@@ -94,6 +97,10 @@ export default function CollectionScreen() {
               {Math.round(progress * 100)}%
             </AppText>
           </View>
+          <AppText variant="caption" tone="textSecondary">
+            {t("book.golds", { n: golds })} · {MEDAL_ICON.bronze} {MEDAL_AT.bronze} · {MEDAL_ICON.silver}{" "}
+            {MEDAL_AT.silver} · {MEDAL_ICON.gold} {MEDAL_AT.gold} ✓
+          </AppText>
           <View style={[styles.track, { backgroundColor: colors.surfaceAlt }]}>
             <View style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: colors.primary }]} />
           </View>
@@ -153,6 +160,11 @@ export default function CollectionScreen() {
                       </AppText>
                       {mastery === "mastered" && <Badge text="⭐" />}
                       {mastery === "practice" && <Badge text="💡" />}
+                      {known && medalFor(stat.correct) && (
+                        <View style={styles.medal}>
+                          <AppText style={styles.badgeText}>{MEDAL_ICON[medalFor(stat.correct)!]}</AppText>
+                        </View>
+                      )}
                     </Pressable>
                   );
                 })}
@@ -250,6 +262,19 @@ function DetailSheet({
                         {t("book.wrong")}
                       </AppText>
                     </View>
+                    <View style={styles.stat}>
+                      <AppText variant="heading">
+                        {medalFor(stat?.correct ?? 0) ? MEDAL_ICON[medalFor(stat?.correct ?? 0)!] : "–"}
+                      </AppText>
+                      <AppText variant="caption" tone="textMuted" center>
+                        {(() => {
+                          const next = nextMedal(stat?.correct ?? 0);
+                          return next
+                            ? t("medal.next", { n: next.left, medal: t(`medal.${next.medal}`) })
+                            : t("medal.max");
+                        })()}
+                      </AppText>
+                    </View>
                     {mastery && mastery !== "known" && (
                       <View style={styles.stat}>
                         <AppText variant="heading">{mastery === "mastered" ? "⭐" : "💡"}</AppText>
@@ -311,6 +336,7 @@ const styles = StyleSheet.create({
   tileEmoji: { fontSize: 30, lineHeight: 38 },
   locked: { opacity: 0.45 },
   badge: { position: "absolute", top: 2, right: 4 },
+  medal: { position: "absolute", bottom: 2, left: 4 },
   badgeText: { fontSize: 13, lineHeight: 16 },
 
   backdrop: { flex: 1, justifyContent: "flex-end" },

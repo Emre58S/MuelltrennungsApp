@@ -29,12 +29,16 @@ import { createSolver, layout, sampleTimes, success, throwAt } from "../trick-so
 type Level = Omit<TrickLevel, "id">;
 const small = createSolver(375, 667);
 
+/** Kleinste Kraft, die ein Spieler normal nimmt. Trampolin-Level verlangen
+ *  bewusst einen kurzen Wurf (aufs Tuch statt in die Tonne) – dort ab 0,24. */
+const lowest = (level: Level) => (level.props.some((p) => p.kind === "trampoline") ? 0.24 : 0.6);
+
 /** Bester Wurf: unter den Würfen, die zu den meisten Zeitpunkten treffen,
  *  der mittlere (Richtung und Kraft) – dort, wo ein Spieler hinzielt. */
 function findBest(level: Level, hit: typeof success = success, mass: Mass = "normal") {
   const times = sampleTimes(level, 12);
   const cells: { angle: number; strength: number; times: number[]; n: number }[] = [];
-  for (let strength = 0.6; strength <= 0.86; strength += 0.02)
+  for (let strength = lowest(level); strength <= 0.86; strength += 0.02)
     for (let angle = -28; angle <= 28; angle += 2) {
       const ok = times.filter((t) => hit(level, angle, strength, t, mass));
       if (ok.length) cells.push({ angle, strength, times: ok, n: ok.length });
@@ -136,7 +140,7 @@ describe("Trickwurf-Level", () => {
     (_name, _device, level, solver) => {
       const times = sampleTimes(level, 12);
       const cells: { angle: number; strength: number }[] = [];
-      for (let strength = 0.6; strength <= 0.8601; strength += 0.02)
+      for (let strength = lowest(level); strength <= 0.8601; strength += 0.02)
         for (let angle = -28; angle <= 28; angle += 2)
           for (const time of times) {
             const r = solver.throwAt(level, angle, strength, time);
@@ -157,7 +161,8 @@ describe("Trickwurf-Level", () => {
       [name, "groß", l, { layout, throwAt, success }],
       [name, "klein", l, small],
     ]);
-  test.each(bankCases)(
+  // (zurzeit kein Level mit Bandenwurf – der Test greift, sobald eins dazukommt)
+  (bankCases.length ? test.each(bankCases) : test.skip.each([["–", "–", cases[0][1], small]] as typeof bankCases))(
     "%s (%s): Bandenwurf-Bonus ist mit mehreren normalen Würfen erreichbar",
     (_name, _device, level, solver) => {
       let cells = 0;

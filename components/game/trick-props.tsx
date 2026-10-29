@@ -10,6 +10,8 @@
 //  - Bauzaun: Gitterfelder mit Pfosten und Betonfüßen, durchsichtig
 //  - Straßenschild: blaues Einbahnstraßen-Schild auf einem Pfosten zwischen
 //    zwei Tonnen; der Pfeil zeigt, wohin der Abpraller geht
+//  - Trampolin: Garten-Trampolin mit blauem Polster; das Tuch federt beim
+//    Aufprall sichtbar ein, ein fahrendes rollt auf der Szenen-Uhr mit
 // Bewegung folgt der Szenen-Uhr (bus.clock) – genau wie die Physik
 // (game/physics.ts → ringPose, windmillAngle).
 
@@ -28,6 +30,8 @@ import {
   ringPose,
   SIGN_THICK,
   type SignCollider,
+  type TrampolineCollider,
+  trampolineX,
   type WindmillCollider,
   windmillAngle,
 } from "@/game/physics";
@@ -389,6 +393,75 @@ const Fence = memo(function Fence({ fence }: { fence: SignCollider }) {
   );
 });
 
+/** Trampolin-Gestell (Beine + Polsterring), einmal gebaut und gebacken. Das
+ *  Tuch ist ein eigenes Teil – es federt beim Aufprall. Rund gezeichnet, in
+ *  der Tiefe auf die Maße der Physik (halfW × halfD) gestaucht. */
+function trampolineFrame(t: TrampolineCollider): THREE.Object3D {
+  const g = new THREE.Group();
+  const metal = lowpoly("#6B7280");
+  for (let k = 0; k < 4; k++) {
+    const a = Math.PI / 4 + (k * Math.PI) / 2;
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, t.y, 6), metal);
+    leg.position.set(Math.cos(a) * t.halfW * 0.92, t.y / 2, Math.sin(a) * t.halfW * 0.92);
+    g.add(leg);
+  }
+  // Polster: abwechselnd blau und hellblau, gut zu sehen auf Rasen und Pflaster
+  const parts = 12;
+  const arc = (Math.PI * 2) / parts;
+  for (let i = 0; i < parts; i++) {
+    const pad = new THREE.Mesh(
+      new THREE.TorusGeometry(t.halfW, 0.07, 6, 4, arc),
+      lowpoly(i % 2 ? "#7CC8F8" : "#2F8FE0"),
+    );
+    pad.rotation.set(Math.PI / 2, 0, i * arc);
+    pad.position.y = t.y;
+    g.add(pad);
+  }
+  g.scale.z = t.halfD / t.halfW;
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
+/** So lange (s) federt das Tuch nach einem Aufprall nach. */
+const BOUNCE = 0.45;
+
+const Trampoline = memo(function Trampoline({ tramp, bus }: { tramp: TrampolineCollider; bus: BusRef }) {
+  const group = useRef<THREE.Group>(null);
+  const mat = useRef<THREE.Mesh>(null);
+  const model = useMemo(() => trampolineFrame(tramp), [tramp]);
+  const matGeo = useMemo(() => new THREE.CylinderGeometry(tramp.halfW - 0.04, tramp.halfW - 0.04, 0.02, 20), [tramp]);
+  useEffect(
+    () => () => {
+      model.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      matGeo.dispose();
+    },
+    [model, matGeo],
+  );
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    const clock = bus.current.clock;
+    g.position.x = trampolineX(tramp, clock);
+    // Aufprall: Tuch taucht ein und schwingt aus
+    const since = clock - (bus.current.ringPass[tramp.id] ?? -99);
+    const k = since >= 0 && since < BOUNCE ? 1 - since / BOUNCE : 0;
+    if (mat.current) mat.current.position.y = tramp.y - 0.03 - Math.sin(since * 30) * 0.09 * k;
+  });
+  return (
+    <group ref={group} position={[tramp.x, 0, tramp.z]}>
+      <primitive object={model} />
+      <mesh
+        ref={mat}
+        geometry={matGeo}
+        material={lowpoly("#26324A")}
+        position={[0, tramp.y - 0.03, 0]}
+        scale={[1, 1, tramp.halfD / tramp.halfW]}
+      />
+    </group>
+  );
+});
+
 /** Alle Hindernisse eines Levels. */
 export const TrickProps = memo(function TrickProps({
   props,
@@ -412,6 +485,8 @@ export const TrickProps = memo(function TrickProps({
           <Sign key={prop.id} sign={prop} bus={bus} />
         ) : prop.kind === "lamp" ? (
           <Lamp key={prop.id} lamp={prop} />
+        ) : prop.kind === "trampoline" ? (
+          <Trampoline key={prop.id} tramp={prop} bus={bus} />
         ) : (
           <Fan key={prop.id} fan={prop} calm={calm} />
         ),

@@ -119,6 +119,7 @@ import { newlyUnlocked, type Progress, unlockMessageKey, usableSkin, usableTrail
 import { useTips } from "./tips";
 import { itemMass, itemMaterial, type Material, MASS_FEEL } from "@/game/item-mass";
 import { ITEM_REASONS } from "@/i18n/item-reasons";
+import { type Medal, MEDAL_ICON, medalFor, medalUp } from "@/game/mastery";
 import {
   beginThrow,
   createThrowInput,
@@ -197,7 +198,7 @@ export function GameRound({
 }) {
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
-  const { t, lang, formatNumber } = useI18n();
+  const { t, lang, formatNumber, itemName } = useI18n();
   const { reduceMotion, learnReason } = useAppSettings();
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -246,12 +247,15 @@ export function GameRound({
       liveStats.current.throws,
     );
   const itemRef = useRef<Item | null>(currentItem);
+  /** Medaille des aktuellen Gegenstands (Sammelbuch) – für die Item-Karte. */
+  const [currentMedal, setCurrentMedal] = useState<Medal | null>(null);
   // Die 3D-Szene liest das Item direkt aus dem Bus (kein Neu-Rendern dort);
   // der React-State ist nur für die Item-Karte im HUD.
   const setCurrentItem = useCallback((item: Item | null) => {
     itemRef.current = item;
     setPreview(bus.current, item);
     setCurrentItemState(item);
+    setCurrentMedal(item ? medalFor(itemStats.current[item.name]?.correct ?? 0) : null);
   }, []);
   useLayoutEffect(() => {
     setPreview(bus.current, itemRef.current);
@@ -457,7 +461,11 @@ export function GameRound({
       binIndex: shot ? -1 : binIndex,
       hit,
       perfect: hit && perfect,
-      glow: (hit && perfect) || feverRef.current,
+      // Gold-Gegenstände (Sammelbuch) fliegen immer mit goldener Spur
+      glow:
+        (hit && perfect) ||
+        feverRef.current ||
+        medalFor(itemStats.current[item.name]?.correct ?? 0) === "gold",
       // Zielwurf: ab 3 Treffern in Folge Feuerspur
       fire: !!shot && liveStats.current.streak >= ON_FIRE_STREAK,
       power,
@@ -593,6 +601,25 @@ export function GameRound({
     itemStats.current[ts.item.name] = ts.hit
       ? { ...old, correct: old.correct + 1, streak: old.streak + 1 }
       : { ...old, wrong: old.wrong + 1, streak: 0, lastWrong: Date.now() };
+    // Neue Medaille für diesen Gegenstand? Gold zählt für neue Wurfspuren
+    const medal = ts.hit ? medalUp(old.correct, old.correct + 1) : null;
+    if (medal) {
+      const name = itemName(ts.item);
+      later(() => {
+        sfx("unlock");
+        showBanner(`${MEDAL_ICON[medal]} ${t(`medal.new.${medal}`, { item: name })}`, 2600);
+      }, 700);
+      if (medal === "gold") {
+        const before = rewardProgress.current;
+        const after = { ...before, gold: (before.gold ?? 0) + 1 };
+        rewardProgress.current = after;
+        const rewards = newlyUnlocked(before, after);
+        if (rewards.length)
+          later(() => {
+            showBanner(`🎁 ${t(unlockMessageKey(rewards[0]), { name: t(rewards[0].name) })}`, 3000);
+          }, 3500);
+      }
+    }
     if (daily && after.throws >= DAILY_COUNT && !l.ended) {
       l.ended = true;
       setAim(bus.current, null);
@@ -1038,6 +1065,7 @@ export function GameRound({
                   showHint={!hasThrown}
                   hint={mode === "aim" ? t("game.aimHint") : undefined}
                   mass={mode === "aim" ? itemMass(currentItem) : undefined}
+                  medal={currentMedal}
                 />
               </View>
             )}

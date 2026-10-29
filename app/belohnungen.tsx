@@ -49,6 +49,9 @@ const SWATCH: Record<TrailId, string[]> = {
   seifenblasen: ["#B9F3F0", "#D9CCFF", "#FFD1EC"],
   funken: ["#FF9F1C", "#FFD54A", "#FFFFFF"],
   sternenstaub: ["#5B4BC4", "#FFFFFF", "#7A6AE0", "#FFFFFF"],
+  smaragd: ["#0E7A45", "#2BBF73", "#8FF0B8"],
+  lava: ["#7A1408", "#E2481B", "#FFB000"],
+  diamant: ["#FFFFFF", "#9FE3FF", "#FFFFFF", "#C8F0FF"],
 };
 
 export default function RewardsScreen() {
@@ -107,6 +110,7 @@ export default function RewardsScreen() {
         <FadeIn delay={60}>
           <AppText variant="label" tone="textSecondary">
             {t("reward.progress", { stars: progress.stars, level: progress.level })}
+            {`  ·  🥇 ${progress.gold ?? 0}`}
           </AppText>
         </FadeIn>
 
@@ -114,11 +118,13 @@ export default function RewardsScreen() {
           const open = isUnlocked(reward, progress);
           const active = open && selected === reward.id;
           const need =
-            reward.stars !== undefined
-              ? t("reward.needStars", { n: reward.stars })
-              : reward.level !== undefined
-                ? t("reward.needLevel", { n: reward.level })
-                : "";
+            reward.gold !== undefined
+              ? t("reward.needGold", { n: reward.gold })
+              : reward.stars !== undefined
+                ? t("reward.needStars", { n: reward.stars })
+                : reward.level !== undefined
+                  ? t("reward.needLevel", { n: reward.level })
+                  : "";
           return (
             <FadeIn key={reward.id} delay={90 + index * 40}>
               <Pressable

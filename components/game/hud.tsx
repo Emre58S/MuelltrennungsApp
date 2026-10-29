@@ -17,6 +17,7 @@ import { FontFamily, Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
 import { type ScreenRect } from "@/game/layout";
 import { type Mass } from "@/game/item-mass";
+import { type Medal, MEDAL_ICON } from "@/game/mastery";
 import { type TrickBonus } from "@/game/trick-levels";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
@@ -281,6 +282,7 @@ export function ItemCard({
   showHint,
   hint,
   mass,
+  medal,
 }: {
   item: Item;
   showHint: boolean;
@@ -288,6 +290,8 @@ export function ItemCard({
   hint?: string;
   /** Zielwurf/Trickwürfe: Gewicht des Gegenstands (normal = keine Angabe). */
   mass?: Mass;
+  /** Medaille aus dem Sammelbuch (verrät die Tonne nicht). */
+  medal?: Medal | null;
 }) {
   const { t, itemName } = useI18n();
   const { colors } = useAppTheme();
@@ -329,6 +333,7 @@ export function ItemCard({
         <View style={styles.itemText}>
           <AppText variant="label" numberOfLines={1}>
             {itemName(item)}
+            {medal ? ` ${MEDAL_ICON[medal]}` : ""}
           </AppText>
           {/* Nur das Gewicht (Zielwurf/Trick): schwer fliegt flach, leicht hoch und
               treibt im Wind. Kein Material – das würde die Tonne verraten. */}

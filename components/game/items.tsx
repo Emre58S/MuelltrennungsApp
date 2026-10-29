@@ -20,6 +20,7 @@ import {
   BIN_SHAPE,
   type BinCollider,
   type BinSlide,
+  type LidFlap,
   FLIGHT_TIME,
   freshBall,
   lobVelocity,
@@ -155,16 +156,19 @@ export const PreviewItem = memo(function PreviewItem({
 const DOTS = 14;
 const NO_PROPS: PropCollider[] = [];
 
-/** Fahrende Zieltonne (Trickwürfe): welche Tonne, wie sie sich bewegt. */
-export type BinSlideSpec = { bin: number; slide: BinSlide };
+/** Bewegte Zieltonne (Trickwürfe): welche Tonne, wie sie fährt und ob ihr
+ *  Deckel von selbst auf- und zuklappt. */
+export type BinSlideSpec = { bin: number; slide?: BinSlide; flap?: LidFlap };
 
 /** Physik-Tonnen aus den Öffnungen (gleitende Tonne mit Ruhelage). */
 function binColliders(openings: THREE.Vector3[], binSlide?: BinSlideSpec): BinCollider[] {
-  return openings.map((o, i) =>
-    binSlide?.bin === i
-      ? { x: o.x, z: o.z - 0.05, lid: 0, slide: binSlide.slide, baseX: o.x, baseZ: o.z - 0.05 }
-      : { x: o.x, z: o.z - 0.05, lid: 0 },
-  );
+  return openings.map((o, i) => {
+    const c: BinCollider = { x: o.x, z: o.z - 0.05, lid: 0 };
+    if (binSlide?.bin !== i) return c;
+    if (binSlide.slide) Object.assign(c, { slide: binSlide.slide, baseX: o.x, baseZ: o.z - 0.05 });
+    if (binSlide.flap) c.flap = binSlide.flap;
+    return c;
+  });
 }
 const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
 
@@ -221,7 +225,12 @@ export const ShotGuideDots = memo(function ShotGuideDots({
   }, []);
   const colliders = useMemo(() => binColliders(openings, binSlide), [openings, binSlide]);
   const moving = useMemo(
-    () => !!binSlide || props.some((p) => p.kind === "windmill" || (p.kind === "ring" && !!p.motion)),
+    () =>
+      !!binSlide ||
+      props.some(
+        (p) =>
+          p.kind === "windmill" || (p.kind === "ring" && !!p.motion) || (p.kind === "trampoline" && !!p.slide),
+      ),
     [props, binSlide],
   );
   // Letzte Berechnung: nur neu rechnen, wenn sich der Wurf ändert
@@ -399,6 +408,8 @@ const KONFETTI = ["#FF5A5F", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"].map((c)
 const KOMET_TAIL = new THREE.Color("#5AA9FF");
 const LAUB = ["#E8772E", "#C94A2A", "#F2B134", "#9C5B2E"].map((c) => new THREE.Color(c));
 const STERNENSTAUB = new THREE.Color("#5B4BC4");
+const LAVA_DARK = new THREE.Color("#7A1408");
+const LAVA_HOT = new THREE.Color("#FFB000");
 
 /** Farbe eines Spur-Punkts: `k` = 0 (Ende) … 1 (Kopf), `t` = Zeit (s),
  *  `i` = Nummer des Punkts. */
@@ -428,6 +439,15 @@ function trailColor(out: THREE.Color, style: TrailId | "fire" | "glow", k: numbe
     case "sternenstaub":
       // Dunkles Violett, jeder dritte Punkt funkelt weiß
       return i % 3 === 0 ? out.copy(WHITE) : out.copy(STERNENSTAUB).lerp(WHITE, k * 0.4);
+    case "smaragd":
+      // Grün schimmernd, zum Kopf hin heller
+      return out.setHSL(0.38 + 0.03 * Math.sin(t * 4 + i), 0.85, 0.35 + 0.35 * k);
+    case "lava":
+      // Glühend: dunkles Rot am Ende, flackerndes Gelb-Orange am Kopf
+      return out.copy(LAVA_DARK).lerp(LAVA_HOT, Math.min(1, k * (0.8 + 0.3 * Math.sin(t * 10 + i * 1.7))));
+    case "diamant":
+      // Funkelnd: abwechselnd Weiß und eisiges Hellblau
+      return i % 2 === 0 ? out.copy(WHITE) : out.setHSL(0.53, 0.8, 0.72 + 0.18 * Math.sin(t * 6 + i));
     default:
       return out.copy(WHITE);
   }
@@ -722,6 +742,11 @@ export const ThrowLayer = memo(function ThrowLayer({
           else if (e.part === "lamp") sfx("rim", { volume: loud, rate: pitch * 0.7 });
           // Bauzaun: Gitter scheppert tief
           else if (e.part === "fence") sfx("rim", { volume: loud, rate: pitch * 0.55 });
+          // Trampolin: federndes „Boing“ (tiefer Holz-Ton, dann hell)
+          else if (e.part === "trampoline") {
+            sfx("lid", { volume: loud, rate: 0.6 });
+            sfx("note5", { volume: 0.5, rate: 1 });
+          }
           else sfx("rim", { volume: loud, rate: e.part === "wall" ? pitch * 0.8 : pitch });
         }
         if (e.prop !== undefined && e.speed > 1.5)

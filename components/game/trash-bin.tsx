@@ -14,6 +14,7 @@ import { memo, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 import { type BinDef } from "@/game/bins";
+import { flapAngle, type LidFlap } from "@/game/physics";
 
 import { type FxRef } from "./fx";
 import { lowpoly, lowpolyOwn, roundedFrame, roundedFrustum, roundedSlab } from "./materials";
@@ -118,6 +119,7 @@ export const TrashBin = memo(function TrashBin({
   bus,
   label,
   openLid = false,
+  flap,
 }: {
   bin: BinDef;
   x: number;
@@ -129,6 +131,9 @@ export const TrashBin = memo(function TrashBin({
   label?: THREE.Texture | null;
   /** Zielwurf: Deckel steht offen, klappt nach einem Treffer kurz zu. */
   openLid?: boolean;
+  /** Trickwürfe: Deckel klappt von selbst auf und zu (nach der Szenen-Uhr,
+   *  genau wie die Physik). */
+  flap?: LidFlap;
 }) {
   const rootRef = useRef<THREE.Group>(null);
   const lidRef = useRef<THREE.Group>(null);
@@ -247,7 +252,9 @@ export const TrashBin = memo(function TrashBin({
       if (a.peek > 0.15 && !aimed) lidTarget = LID_OPEN * 0.55 * Math.sin((1 - a.peek) * Math.PI);
     }
     if (a.reject > 0.2) lidTarget = 0;
-    lid.rotation.x = -THREE.MathUtils.damp(-lid.rotation.x, lidTarget, openLid ? 11 : 16, delta);
+    lid.rotation.x = flap
+      ? -flapAngle(flap, bus.current.clock)
+      : -THREE.MathUtils.damp(-lid.rotation.x, lidTarget, openLid ? 11 : 16, delta);
     setLid(bus.current, index, -lid.rotation.x);
 
     if (ringRef.current) {

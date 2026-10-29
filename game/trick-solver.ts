@@ -12,7 +12,7 @@ import { type Mass, MASS_FEEL } from "./item-mass";
 import { type BinCollider, lobVelocity, simulateShot } from "./physics";
 import { levelColliders, levelPeriod, meetsRequirement, type TrickLevel } from "./trick-levels";
 
-type SolverLevel = Pick<TrickLevel, "props" | "binSlide">;
+type SolverLevel = Pick<TrickLevel, "props" | "binSlide" | "binFlap">;
 
 /** Deckel stehen im Trick-Modus offen (wie im Zielwurf). */
 const LID_OPEN = 1.85;
@@ -25,11 +25,13 @@ export function createSolver(width = 390, height = 844) {
 
   /** Physik-Tonnen wie in der Szene (fahrende Zieltonne mit Ruhelage). */
   const binsFor = (level: SolverLevel, target: number): BinCollider[] =>
-    layout.bins.map((b, i) =>
-      level.binSlide && i === target
-        ? { x: b.x, z: b.z, lid: LID_OPEN, slide: level.binSlide, baseX: b.x, baseZ: b.z }
-        : { x: b.x, z: b.z, lid: LID_OPEN },
-    );
+    layout.bins.map((b, i) => ({
+      x: b.x,
+      z: b.z,
+      lid: LID_OPEN,
+      ...(level.binSlide && i === target ? { slide: level.binSlide, baseX: b.x, baseZ: b.z } : {}),
+      ...(level.binFlap && i === target ? { flap: level.binFlap } : {}),
+    }));
 
   /** Ein Wurf: Winkel (Grad, 0 = gerade), Kraft (0…1; Wischlänge oder -tempo),
    *  Szenen-Zeit beim Abwurf (Bewegung) und Gewicht (Wind; Bogen bleibt im

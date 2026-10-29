@@ -4,6 +4,7 @@
 // Runde eine frische GameRound auf (siehe components/game/game-round.tsx).
 // mode=trick&level=N: ein Trickwurf-Level (components/game/trick-round.tsx),
 // mode=trick&daily=1: der Tages-Trick.
+import { DuelRound } from "@/components/game/duel-round";
 import { GameRound } from "@/components/game/game-round";
 import { TrickRound } from "@/components/game/trick-round";
 import { dailyTrick, TRICK_LEVELS } from "@/game/trick-levels";
@@ -35,6 +36,7 @@ export default function GameScreen() {
     level?: string;
   }>();
   const isTrick = rawMode === "trick";
+  const isDuel = rawMode === "duel";
   const [trickLevel, setTrickLevel] = useState(() => Number(rawLevel) || 1);
   // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
   const daily = rawDaily === "1";
@@ -85,7 +87,7 @@ export default function GameScreen() {
   }, []);
   const retryTrick = useCallback(() => setRound((r) => r + 1), []);
   // Ladeanzeige erst nach kurzer Zeit – meist ist alles sofort da, dann blitzt nichts
-  const loading = !isTrick && (xp === null || level === null);
+  const loading = !isTrick && !isDuel && (xp === null || level === null);
   const [slow, setSlow] = useState(false);
   useEffect(() => {
     if (!loading) return;
@@ -124,7 +126,8 @@ export default function GameScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
-      {!isTrick && xp !== null && level !== null && (
+      {isDuel && <DuelRound key={`${round}-duel`} onAgain={retryTrick} onExit={goBack} />}
+      {!isTrick && !isDuel && xp !== null && level !== null && (
         // Profiler: Render-Dauer der Runde für die Hänger-Messung (nur Entwicklung)
         <Profiler id="runde" onRender={onRender}>
           <GameRound

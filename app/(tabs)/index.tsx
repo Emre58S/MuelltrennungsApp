@@ -72,6 +72,7 @@ import {
   flushThrowRecords,
   getActiveStreak,
   getBoolean,
+  setBoolean,
   getHighscoreKey,
   getLevelProgress,
   getBinSkin,
@@ -139,6 +140,7 @@ export default function HomeScreen() {
   const [loaded, setLoaded] = useState(false);
   const [daily, setDaily] = useState<DailyResult | null>(null);
   const [seenTutorial, setSeenTutorial] = useState(true);
+  const [seenDuel, setSeenDuel] = useState(true);
 
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -291,11 +293,13 @@ export default function HomeScreen() {
             getLastMode(),
             getTodayDaily(),
             getBoolean(StorageKeys.HAS_SEEN_TUTORIAL, false),
+            getBoolean(StorageKeys.SEEN_DUEL, false),
           ]),
         )
-        .then(([endless, survival, time, aim, activeStreak, xp, mode, today, seen]) => {
+        .then(([endless, survival, time, aim, activeStreak, xp, mode, today, seen, duelSeen]) => {
           if (!active) return;
           setSeenTutorial(seen);
+          setSeenDuel(duelSeen);
           setDaily(today);
           setScores({ endless, survival, time, aim });
           setStreak(activeStreak);
@@ -539,6 +543,23 @@ export default function HomeScreen() {
               sfx("tap");
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
               router.push("/tricks");
+            }}
+          />
+          <SideTile
+            icon="users"
+            fill="#FF8A3D"
+            on="#2A1400"
+            dot={loaded && !seenDuel}
+            title={t("home.duel")}
+            caption={t("home.duelShort")}
+            a11y={`${t("home.duel")}. ${t("home.duelDesc")}`}
+            onPress={() => {
+              if (starting.current) return;
+              starting.current = true;
+              sfx("tap");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+              setBoolean(StorageKeys.SEEN_DUEL, true).catch(() => undefined);
+              router.push({ pathname: "/runde", params: { mode: "duel" } });
             }}
           />
         </View>

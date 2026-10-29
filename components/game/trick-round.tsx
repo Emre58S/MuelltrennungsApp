@@ -125,7 +125,10 @@ export function TrickRound({
     () => ({
       props: level.props,
       colliders: levelColliders(level),
-      binSlide: level.binSlide ? { bin: level.target, slide: level.binSlide } : undefined,
+      binSlide:
+        level.binSlide || level.binFlap
+          ? { bin: level.target, slide: level.binSlide, flap: level.binFlap }
+          : undefined,
     }),
     [level],
   );
@@ -201,7 +204,11 @@ export function TrickRound({
     const has = (kind: string) => level.props.some((p) => p.kind === kind);
     const ring = level.props.find((p) => p.kind === "ring");
     const motion = ring?.kind === "ring" ? ring.motion : undefined;
-    const id = hasWind(level)
+    const id = has("trampoline")
+      ? "trampoline"
+      : level.binFlap
+        ? "flap"
+        : hasWind(level)
       ? "wind"
       : level.binSlide
         ? "movingBin"
@@ -336,9 +343,20 @@ export function TrickRound({
     if (bin === level.target) {
       // In der richtigen Tonne – aber ohne den verlangten Trick
       const needsSign = level.requires.some((i) => level.props[i]?.kind === "sign");
+      const needsTrampoline = level.requires.some(
+        (i) => level.props[i]?.kind === "trampoline" && !(outcome?.props ?? []).includes(i),
+      );
       const rings = level.requires.filter((i) => level.props[i]?.kind === "ring").length;
       float(
-        t(needsSign ? "trick.noSign" : rings > 1 ? "trick.noTrickBoth" : "trick.noTrick"),
+        t(
+          needsTrampoline
+            ? "trick.noTrampoline"
+            : needsSign
+              ? "trick.noSign"
+              : rings > 1
+                ? "trick.noTrickBoth"
+                : "trick.noTrick",
+        ),
         screenX(binXs[bin]),
         y,
       );
