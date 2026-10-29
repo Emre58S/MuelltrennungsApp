@@ -19,11 +19,11 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 - [x] A9 Aus Audit 2 (Geschenkfolie+Thermometer 5031ae2, Nagellack+Senf a396b53,
   Schuhkarton+Kaffeesatz 6bc9564, Backpapier 03b40d8). Küchentuch-Prägemuster
   weggelassen: auf der Knüllform nicht sauber platzierbar, Unterschied reicht.
-- [ ] A10 Fakt Druckerpatronen DE/EN: „Zurück in den Handel oder zum Hersteller
+- [x] (d256aa5) A10 Fakt Druckerpatronen DE/EN: „Zurück in den Handel oder zum Hersteller
   – sie werden wieder befüllt.“ (Namen nicht ändern: Name = ID für Statistik.)
 
 **B – Hinweise und Emojis**
-- [ ] B1 Emojis (Audit 2): Alufolie 🫙→✨/🍫, Senfglas 🥃→🌭, Trinkglas 🍷→🥃,
+- [x] (d256aa5, keine Doppelten über Tonnen mehr) B1 Emojis (Audit 2): Alufolie 🫙→✨/🍫, Senfglas 🥃→🌭, Trinkglas 🍷→🥃,
   Prospekt 🧾→📑, Nagellackentferner 🧴→💅, Parfüm 🧴→✨-Alternative,
   Energiesparlampe 💡→🔆, Eierkarton 🥚→🐣, Aluschale 🧽, Wattestäbchen 🧷,
   Chipstüte 🍬, Toilettenpapier 📜→🧻 (Küchenrolle dann anders). Jedes Emoji
