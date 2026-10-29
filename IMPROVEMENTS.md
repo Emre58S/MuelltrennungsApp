@@ -16,10 +16,8 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **A – Modelle aus dem Audit (Rest)**
 - [x] A8 Rest der „3er“ (Zeitungen 6773e72, Kabel/Kerze 42b5268, Kippe/Rasierer eb0188f, Plastiktüte 36d7306)
-- [ ] A9 Aus Audit 2 (00:20): (Geschenkfolie+Thermometer: 5031ae2, Nagellack+Senf: a396b53)
-  Schuhkarton ≠
-  sauberer Karton (flach, Stülpdeckel, bedruckt, Seidenpapier); Kaffeesatz eigene Form (Espresso-Puck);
-  Backpapier (Ende eingerollt, Keks-Abdrücke) vs. Küchentuch (Prägemuster).
+- [ ] A9 Aus Audit 2 (00:20): (Geschenkfolie+Thermometer: 5031ae2, Nagellack+Senf: a396b53,
+  Schuhkarton+Kaffeesatz: 6bc9564) Backpapier (Ende eingerollt, Keks-Abdrücke) vs. Küchentuch (Prägemuster).
 - [ ] A10 Fakt Druckerpatronen DE/EN: „Zurück in den Handel oder zum Hersteller
   – sie werden wieder befüllt.“ (Namen nicht ändern: Name = ID für Statistik.)
 
