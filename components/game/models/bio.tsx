@@ -78,6 +78,37 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "coffee":
+      if (name.includes("kaffeesatz")) {
+        // Kaffeesatz: festgepresster Espresso-Puck (dunkel, mit Riss und
+        // hellerem Rand) mit losen Krümeln und zwei Kaffeebohnen daneben
+        return (
+          <group rotation={[0.6, 0.3, 0]}>
+            <Part geo={G.cyl(0.17, 0.16, 0.08, 22)} color="#3B2418" roughness={1} />
+            <Part geo={G.ring(0.14, 0.166, 22)} pos={[0, 0.041, 0]} rot={[-Math.PI / 2, 0, 0]} basic color="#5A3A26" />
+            <Part geo={G.box(0.16, 0.004, 0.012, 0.001)} pos={[0.02, 0.042, 0.03]} rot={[0, 0.5, 0]} basic color="#1E120B" />
+            {(
+              [
+                [0.19, -0.015, 0.06],
+                [0.18, -0.015, -0.06],
+                [-0.18, -0.015, 0.08],
+              ] as V3[]
+            ).map((p, i) => (
+              <Part key={i} geo={G.crumple(0.025, 0.3, 40 + i, 0)} pos={p} flat color="#4A2E1E" roughness={1} />
+            ))}
+            {(
+              [
+                [-0.12, 0.0, 0.19, 0.4],
+                [0.05, 0.0, 0.23, -0.5],
+              ] as [number, number, number, number][]
+            ).map(([x, y, z, r]) => (
+              <group key={x} position={[x, y - 0.015, z]} rotation={[0, r, 0]}>
+                <Part geo={G.ball(0.045, 10, 8)} scale={[1, 0.6, 1.35]} color="#7A4A26" roughness={0.7} />
+                <Part geo={G.box(0.006, 0.004, 0.04, 0.001)} pos={[0, 0.021, 0]} basic color="#2A170B" />
+              </group>
+            ))}
+          </group>
+        );
+      }
       return (
         <group rotation={[0.15, 0.35, -0.1]}>
           {/* Kaffeefilter */}

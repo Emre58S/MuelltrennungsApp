@@ -188,6 +188,26 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "box":
+      if (name.includes("schuhkarton")) {
+        // Schuhkarton: flach und breit, oranger Unterteil mit Größen-Etikett,
+        // schräg aufgelegter Stülpdeckel mit Streifen, weißes Seidenpapier
+        // schaut vorn heraus (der saubere Versandkarton ist braun mit Klebeband)
+        return (
+          <group rotation={[0.35, 0.5, 0]}>
+            <Box size={[0.6, 0.2, 0.36]} color="#F97316" />
+            <Box size={[0.13, 0.08, 0.004]} pos={[0.17, -0.02, 0.182]} color="#FFFFFF" />
+            {[-0.035, -0.015, 0.005].map((y) => (
+              <Box key={y} size={[0.09, 0.008, 0.005]} pos={[0.17, y, 0.183]} color="#374151" />
+            ))}
+            <Part geo={G.crumple(0.1, 0.25, 7, 1)} pos={[0, 0.12, 0.06]} scale={[2.4, 0.35, 0.9]} flat color="#F8FAFC" roughness={1} />
+            <group position={[0, 0.15, -0.08]} rotation={[-0.25, 0, 0]}>
+              <Box size={[0.62, 0.07, 0.38]} color="#EA580C" />
+              <Box size={[0.62, 0.02, 0.004]} pos={[0, 0, 0.191]} color="#FFFFFF" />
+              <Box size={[0.2, 0.004, 0.06]} pos={[0, 0.036, 0]} color="#FFFFFF" />
+            </group>
+          </group>
+        );
+      }
       return (
         <group rotation={[0.25, 0.6, 0]}>
           <Box size={[0.52, 0.36, 0.42]} color="#C79A63" roughness={0.95} />
