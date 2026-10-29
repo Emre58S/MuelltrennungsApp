@@ -90,5 +90,11 @@ Expo Go.
   tönen. Details (Glanz, Flecken, Etiketten) per Rechnung auf/vor die Fläche
   setzen – der Tester rechnet nach, schwebende oder versteckte Teile fallen auf.
 - Lange Edit-Skripte mit Write in den Scratchpad schreiben (Heredoc bricht ab).
+- Teile an runden Körpern (Rolle, Dose): Abstand zur Achse > Radius rechnen –
+  Geschenkband-Enden steckten unsichtbar in der Rolle. Gestapelte Ringe lesen
+  sich nicht als Kräuselband (verworfen).
+- Schutz-Hook blockiert auch die EAS-Update-Liste (Befehlstext passt aufs Muster)
+  – ein &&-verketteter Update-Befehl mit Exit 0 gilt als veröffentlicht.
+- Test sichert: jedes Emoji nur einmal, jede Begründung ≤ 4 Wörter DE/EN.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.
