@@ -19,7 +19,8 @@ Expo Go.
 4. Tester-Agent `gameplay-tester` mit dem Commit-Bereich aufrufen (nicht mit
    meiner Begründung). Freigabe nur bei „FREIGABE: ja“ und Bewertung ≥ 7.
    Sonst nachbessern (einmal) oder die Änderung verwerfen (`git checkout -- .`).
-5. Commit auf `auto-improve` und pushen, dann `sdk-58` per Fast-Forward
+5. (Nur Normalmodus, siehe „Modi“ – im Sparlauf entfällt Push/EAS.) Commit auf
+   `auto-improve` und pushen, dann `sdk-58` per Fast-Forward
    nachziehen (`git fetch . auto-improve:sdk-58`) und ebenfalls pushen. Danach
    EAS-Update auf **beide** Kanäle, `auto` und `preview`:
    `npx --yes eas-cli@latest update --channel … --environment preview --message "…" --non-interactive`.
@@ -27,37 +28,35 @@ Expo Go.
    unter „Gelernt“ notieren.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
 
-## Sparlauf (Nutzer, 29.10. nachmittags – gilt bis zur nächsten Ansage)
-Wochenlimit knapp, daher: höchstens 3 Zyklen pro Lauf; nur lokal auf `auto-improve` committen – **nichts pushen, nichts per EAS ausliefern** (geht vor den älteren
-Regeln unten); keine neuen Abhängigkeiten; Struktur nur einmal erkunden, sonst
-gezielt greppen, nichts erneut lesen, Ausgaben kürzen. Pro Zyklus ein
-unabhängiger Tester (Modell haiku, bekommt nur Startweg + Bereich, nicht die
-Änderung; ≤ 15 Zeilen, Bewertung, FREIGABE ja/nein). Bei „nein“: einmal
-nachbessern, einmal neu testen, sonst zurücknehmen und in IMPROVEMENTS.md
-notieren. Am Ende „Letzter Lauf“ in IMPROVEMENTS.md, dann stoppen.
-Bevorzugt: Bugs, fachliche Richtigkeit, Verständlichkeit, Lernen, Spielspaß –
-keine reine Kosmetik. Start der App: `npx expo start` + Expo Go (Gerät nötig).
+## Modi (welcher gilt, sagt der Nutzer; sonst Sparlauf)
+**Sparlauf (aktuell, seit 29.10. nachmittags)** – Wochenlimit knapp:
+- Höchstens 3 Zyklen pro Lauf. Nur lokal auf `auto-improve` committen –
+  **nichts pushen, nichts per EAS ausliefern**. Keine neuen Abhängigkeiten.
+- Struktur nur einmal erkunden, sonst gezielt greppen; nichts erneut lesen;
+  Ausgaben kürzen. Eine lange Sitzung ist teuer → lieber frische Sitzung
+  starten: Regeln und Backlog stehen in dieser Datei und IMPROVEMENTS.md.
+- Pro Zyklus ein unabhängiger Tester (Modell haiku; bekommt nur Startweg +
+  ENG gefassten Bereich, nicht die Änderung; ≤ 15 Zeilen, Bewertung 1–10,
+  FREIGABE ja/nein). Bei „nein“: einmal nachbessern, einmal neu testen, sonst
+  zurücknehmen (auf Nebenzweig `verworfen-…` sichern) und in IMPROVEMENTS.md
+  notieren. Am Ende „Letzter Lauf“ in IMPROVEMENTS.md, dann stoppen.
+- Bevorzugt: Bugs, fachliche Richtigkeit, Verständlichkeit, Lernen, Spielspaß –
+  keine reine Kosmetik. Start der App: `npx expo start` + Expo Go (Gerät nötig).
 
-## Tagbetrieb 29.10. (Nutzer, 10:10)
-- Roadmap oben in IMPROVEMENTS.md (Modelle → Szenen → Trick-Level), Takt 12 min.
-- Leitsatz Modelle: Erkennbarkeit vor Details (z. B. Alufolie = grauer Knäuel).
+**Normalmodus / ohne Aufsicht (nur wenn der Nutzer es ausdrücklich erlaubt)** –
+Zyklus wie oben inkl. Push, `sdk-58`, EAS auf `auto` UND `preview`;
+Takt und Zeitraum nennt der Nutzer (z. B. 12 min); nicht vorzeitig aufhören;
+lieber verwerfen als Zweifelhaftes durchwinken; bei Fehlern zurücknehmen,
+im Backlog notieren, weitermachen.
 
-## Nachtbetrieb (ohne Aufsicht)
-- Nacht 2026-10-29 (Nutzer): von 00:10 bis 08:15 durchgehend Zyklen, NICHT
-  vorzeitig aufhören. Backlog oben nach unten; ist er leer, ein neues Audit
-  machen und dessen Punkte abarbeiten. Ab 08:15 Loop beenden und eine
-  Zusammenfassung der Nacht schreiben.
-- Takt: nächster Zyklus kurz nach dem vorigen (Pause ~5 min).
-- Lieber eine Änderung verwerfen als eine zweifelhafte durchwinken – ein
-  verworfener Zyklus ist kein Grund aufzuhören, einfach den nächsten Punkt nehmen.
-- Bei Fehlern (Tests rot, EAS-Update schlägt fehl): Änderung zurücknehmen,
-  im Backlog notieren, weitermachen.
+Leitsätze: Modelle – Erkennbarkeit vor Details. Texte – verständlich auch mit
+wenig Deutsch, nie strafend.
 
 ## Grenzen
-- Arbeiten auf `auto-improve`; `sdk-58` nur per Fast-Forward nachziehen.
-  `main` nie anfassen.
-- EAS-Updates auf `auto` UND `preview` (Nutzer, 2026-10-28: „alle Änderungen
-  immer auch in preview“). `preview` ist die Spielversion – nur Freigegebenes.
+- Arbeiten auf `auto-improve`; `sdk-58` nur per Fast-Forward nachziehen (nur
+  Normalmodus). `main` nie anfassen.
+- EAS-Updates (nur Normalmodus) auf `auto` UND `preview` (Nutzer, 2026-10-28:
+  „alle Änderungen immer auch in preview“). `preview` ist die Spielversion – nur Freigegebenes.
 - Expo-Projekt gehört der Organisation `philippemremullsortieren` (app.json owner).
 - Keine grundlegenden Mechaniken ändern (Werfen, Physik, Regeln, Wertung).
   Ausnahme (Nutzer, 2026-10-28): neue Ziele (Sondermüll-Box) und neue
