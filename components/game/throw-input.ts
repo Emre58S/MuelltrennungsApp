@@ -38,6 +38,9 @@ export type ThrowContext = {
   binXs: number[];
   /** Hilfe nach Pech (missAssist). */
   assist?: number;
+  /** false = dieser Wurf lernt nicht mit (z. B. bewusst kurze Würfe aufs
+   *  Trampolin – sonst flöge danach jeder normale Wisch zu weit). */
+  learn?: boolean;
 };
 
 export function createThrowInput(): ThrowInput {
@@ -80,7 +83,7 @@ export function releaseShot(
     ideal: adaptiveIdeal(input.flicks),
     assist: ctx.assist,
   });
-  if (shot) input.flicks = [...input.flicks, flickPower(dx, dy, vy)].slice(-LEARN_WINDOW);
+  if (shot && ctx.learn !== false) input.flicks = [...input.flicks, flickPower(dx, dy, vy)].slice(-LEARN_WINDOW);
   return shot;
 }
 

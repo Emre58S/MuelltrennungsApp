@@ -115,7 +115,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { boardFor, HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
 import { playMusic } from "@/utils/music";
-import { newlyUnlocked, type Progress, unlockMessageKey, usableSkin, usableTrail } from "@/game/rewards";
+import { newlyUnlocked, type Progress, type TrailId, unlockMessageKey, usableSkin, usableTrail } from "@/game/rewards";
 import { useTips } from "./tips";
 import { itemMass, itemMaterial, type Material, MASS_FEEL } from "@/game/item-mass";
 import { ITEM_REASONS } from "@/i18n/item-reasons";
@@ -307,11 +307,14 @@ export function GameRound({
   const flicksNoHold = useRef(0);
   // Belohnungen: gewählte Wurfspur laden, Fortschritt für „neu freigeschaltet“
   const rewardProgress = useRef<Progress>({ stars: 0, level: 0 });
+  /** Gewählte Wurfspur – Gold-Gegenstände leuchten nur, wenn keine eigene gewählt ist. */
+  const trailRef = useRef<TrailId>("standard");
   useEffect(() => {
     Promise.all([getTrail(), getRewardProgress(), getBinSkin()])
       .then(([id, progress, skin]) => {
         rewardProgress.current = progress;
-        setTrail(bus.current, usableTrail(id, progress));
+        trailRef.current = usableTrail(id, progress);
+        setTrail(bus.current, trailRef.current);
         setBinSkin(bus.current, usableSkin(skin, progress));
       })
       .catch(() => undefined);
@@ -333,6 +336,9 @@ export function GameRound({
     getItemStats()
       .then((s) => {
         itemStats.current = { ...s, ...itemStats.current };
+        // Medaille des ersten Gegenstands (war vor dem Laden noch unbekannt)
+        const first = itemRef.current;
+        if (first) setCurrentMedal(medalFor(itemStats.current[first.name]?.correct ?? 0));
       })
       .catch(() => undefined);
     if (daily) getTodayDaily().then((d) => setBestBefore(d?.score ?? 0));
@@ -461,11 +467,14 @@ export function GameRound({
       binIndex: shot ? -1 : binIndex,
       hit,
       perfect: hit && perfect,
-      // Gold-Gegenstände (Sammelbuch) fliegen immer mit goldener Spur
+      // Gold-Gegenstände (Sammelbuch) treffen mit goldener Spur – aber nur,
+      // wenn keine eigene Spur gewählt ist (die soll man sehen)
       glow:
         (hit && perfect) ||
         feverRef.current ||
-        medalFor(itemStats.current[item.name]?.correct ?? 0) === "gold",
+        (hit &&
+          trailRef.current === "standard" &&
+          medalFor(itemStats.current[item.name]?.correct ?? 0) === "gold"),
       // Zielwurf: ab 3 Treffern in Folge Feuerspur
       fire: !!shot && liveStats.current.streak >= ON_FIRE_STREAK,
       power,

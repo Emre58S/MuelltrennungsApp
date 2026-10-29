@@ -365,7 +365,7 @@ export const TRICK_LEVELS: TrickLevel[] = [
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
-export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): string[] {
+export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide" | "binFlap">): string[] {
   const icons: string[] = [];
   for (const p of level.props) {
     const icon =
@@ -391,6 +391,7 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide">): strin
     if (!icons.includes(icon)) icons.push(icon);
   }
   if (level.binSlide) icons.unshift("🗑️");
+  if (level.binFlap) icons.unshift("⏱️");
   return icons.slice(0, 2);
 }
 

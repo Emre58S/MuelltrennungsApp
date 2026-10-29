@@ -393,6 +393,8 @@ export function TrickRound({
     full: screenH * FULL_SWIPE_SHARE,
     binAngles: layout.binAngles,
     binXs,
+    // Trampolin: kurze Würfe sind gewollt – sie sollen den Schwung nicht umlernen
+    learn: !level.props.some((p) => p.kind === "trampoline"),
   });
   useLayoutEffect(() => {
     handlers.current = {

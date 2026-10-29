@@ -133,6 +133,8 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
   useEffect(() => {
     refreshSfxSetting();
     preloadSfx();
+    // Auch nach „Revanche“ wieder Spielmusik (am Ende lief die Menü-Musik)
+    playMusic("game");
   }, []);
 
   const goPhase = useCallback((p: Phase) => {
@@ -240,11 +242,16 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
   const sideX = (p: Player) => (p === 0 ? screenW * 0.25 : screenW * 0.75);
   const feedbackY = screenH - insets.bottom - 150;
 
-  const handleThrow = (p: Player, dx: number, dy: number, vy: number) => {
+  /** Richtung zu jeder Tonne vom Startpunkt des Daumens aus (Grad, 0 = gerade
+   *  hoch) – wer links sitzt, zielt von links auf die Tonnen. */
+  const anglesFrom = (x: number, y: number) =>
+    layout.binTops.map((b) => (Math.atan2(b.x - x, y - b.y) * 180) / Math.PI);
+
+  const handleThrow = (p: Player, x0: number, y0: number, dx: number, dy: number, vy: number) => {
     if (phaseRef.current !== "play") return;
     const current = item;
     if (!current) return;
-    const aim = aimFromDrag(dx, dy, layout.binAngles);
+    const aim = aimFromDrag(dx, dy, anglesFrom(x0, y0));
     if (!aim) return;
     const correct = bins[aim.binIndex].category === current.category;
     const now = Date.now();
@@ -342,7 +349,16 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
       Gesture.Pan()
         .runOnJS(true)
         .minDistance(6)
-        .onEnd((e) => throwRef.current(p, e.translationX, e.translationY, e.velocityY));
+        .onEnd((e) =>
+          throwRef.current(
+            p,
+            e.absoluteX - e.translationX,
+            e.absoluteY - e.translationY,
+            e.translationX,
+            e.translationY,
+            e.velocityY,
+          ),
+        );
     const left = pan(0);
     const right = pan(1);
     // Beide dürfen gleichzeitig wischen (zwei Finger, zwei Hälften)
@@ -440,7 +456,10 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
       )}
 
       {phase === "ready" && (
-        <View style={[styles.cover, { paddingTop: insets.top + 90, paddingBottom: insets.bottom + Spacing.lg }]}>
+        <View
+          pointerEvents="box-none"
+          style={[styles.cover, { paddingTop: insets.top + 90, paddingBottom: insets.bottom + Spacing.lg }]}
+        >
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <AppText variant="title" style={styles.center}>
               ⚡ {t("duel.title")}
@@ -603,23 +622,23 @@ function DuelEnd({
         <AppText variant="display" style={styles.center}>
           {winner === null ? "🤝" : "🏆"}
         </AppText>
-        <AppText
-          variant="title"
-          color={winner === null ? undefined : PLAYER[winner].color}
-          style={[styles.center, winner !== null && styles.winnerText]}
-        >
+        <AppText variant="title" style={styles.center}>
           {winner === null ? t("duel.draw") : t("duel.wins", { name: t(nameKey(winner)) })}
         </AppText>
         <View style={styles.bigScore}>
-          <AppText variant="display" color={PLAYER[0].color} style={styles.scoreNum}>
-            {a.points}
-          </AppText>
+          <View style={[styles.scorePill, { backgroundColor: PLAYER[0].color }]}>
+            <AppText variant="display" color={PLAYER[0].on} style={styles.scoreNum}>
+              {a.points}
+            </AppText>
+          </View>
           <AppText variant="title" tone="textMuted">
             :
           </AppText>
-          <AppText variant="display" color={PLAYER[1].color} style={styles.scoreNum}>
-            {b.points}
-          </AppText>
+          <View style={[styles.scorePill, { backgroundColor: PLAYER[1].color }]}>
+            <AppText variant="display" color={PLAYER[1].on} style={styles.scoreNum}>
+              {b.points}
+            </AppText>
+          </View>
         </View>
 
         {/* Tabelle: Spalte je Spieler */}
@@ -768,9 +787,9 @@ const styles = StyleSheet.create({
   countText: { fontSize: 120, lineHeight: 132, textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 12 },
   endRoot: { ...StyleSheet.absoluteFill },
   endContent: { paddingHorizontal: Spacing.md, gap: Spacing.md },
-  winnerText: { textShadowColor: "rgba(0,0,0,0.25)", textShadowRadius: 2 },
   bigScore: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: Spacing.md },
-  scoreNum: { fontSize: 64, lineHeight: 72 },
+  scoreNum: { fontSize: 56, lineHeight: 64 },
+  scorePill: { minWidth: 88, alignItems: "center", borderRadius: Radius.xl, paddingHorizontal: Spacing.md },
   table: { borderRadius: Radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.sm },
   tableRow: { flexDirection: "row", alignItems: "center", paddingVertical: Spacing.sm, gap: Spacing.sm },
   tableLabel: { flex: 1.4 },

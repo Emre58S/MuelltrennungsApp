@@ -79,13 +79,18 @@ export default function GameScreen() {
     setXp(null);
     loadXp();
     setRound((r) => r + 1);
+    // Am Ende lief die Menü-Musik – die neue Runde startet wieder mit Spielmusik
+    playMusic("game");
   }, [loadXp]);
   const level = xp !== null ? getLevelFromXP(xp) : null;
   const nextTrick = useCallback(() => {
     setTrickLevel((n) => Math.min(n + 1, TRICK_LEVELS.length));
     setRound((r) => r + 1);
   }, []);
-  const retryTrick = useCallback(() => setRound((r) => r + 1), []);
+  const retryTrick = useCallback(() => {
+    setRound((r) => r + 1);
+    playMusic("game");
+  }, []);
   // Ladeanzeige erst nach kurzer Zeit – meist ist alles sofort da, dann blitzt nichts
   const loading = !isTrick && !isDuel && (xp === null || level === null);
   const [slow, setSlow] = useState(false);

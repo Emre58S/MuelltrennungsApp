@@ -40,4 +40,21 @@ describe("Wurf-Eingabe", () => {
     const thrown = releaseShot(input, 0, -100, -100, ctx);
     expect(thrown?.strength).toBeCloseTo(shown!.strength);
   });
+
+  test("Trampolin (learn: false): kurze Würfe verstellen den normalen Wisch nicht", () => {
+    const input = createThrowInput();
+    const normal = () => {
+      beginThrow(input, 0);
+      return releaseShot(input, 0, -120, -IDEAL_FLICK, ctx)?.strength ?? 0;
+    };
+    const before = normal();
+    input.flicks = [];
+    // Drei bewusst kurze Würfe aufs Trampolin
+    for (let i = 0; i < 3; i++) {
+      beginThrow(input, 0);
+      releaseShot(input, 0, -40, -IDEAL_FLICK * 0.35, { ...ctx, learn: false });
+    }
+    expect(input.flicks).toHaveLength(0);
+    expect(normal()).toBeCloseTo(before);
+  });
 });
