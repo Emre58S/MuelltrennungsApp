@@ -46,6 +46,7 @@ Leitsatz Texte/UI: für Menschen mit wenig Deutsch verständlich, nie strafend.
    Netzbeutel, Maiskolben (erledigt, Tester 8/10), Katzenstreu 3–4
    Klumpen, Spülmittel (erledigt, schlank, Tester 8/10), Küchentuch-Prägemuster (optional).
 4. **Phase 2 Szenen** (haus/ziegel/garten; Spielszene = stage.tsx):
+   S1 Audit erledigt (29.10.): Haus/Ziegel ruhig hinter den Tonnen; Garten hatte Latten hinter den Tonnen → Hecke in der Mitte (Tester 7/10). Weitere S2-Ideen: Haus ohne Tür (Platz nur seitlich, Sichtbreite knapp), Hecke/Baumkronen-Grün abstimmen.
    S1 Audit (leer/unruhig/unstimmig) → S2 aufwerten (je ein Blickfang, ruhiger
    Hintergrund) → S3 neue Szene „Park“ → S4 „Wertstoffhof“ → S5 Wechsel, Leistung, Menü.
 5. **Phase 3 Trick-Level** (jedes nur mit grünem Fairness-Test

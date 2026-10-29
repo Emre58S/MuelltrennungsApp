@@ -375,18 +375,25 @@ const BrickWall = memo(function BrickWall({ p }: { p: Palette }) {
   );
 });
 
-/** Lattenzaun in einem Draw-Call. */
+/** Halbe Breite der Hecke in der Zaunmitte – reicht auch hinter 6 Tonnen (bis ±3,76). */
+const HEDGE_HALF = 3.3;
+/** Latten nur seitlich der Hecke: hinter den Tonnen bleibt es ruhig. */
+const PICKETS_X = Array.from({ length: 36 }, (_, i) => -8.75 + i * 0.5).filter(
+  (x) => Math.abs(x) > HEDGE_HALF,
+);
+
+/** Lattenzaun in einem Draw-Call, in der Mitte eine ruhige Hecke. */
 const PicketFence = memo(function PicketFence({ p }: { p: Palette }) {
   const ref = useRef<THREE.InstancedMesh>(null);
-  const count = 36;
+  const count = PICKETS_X.length;
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
     const m = new THREE.Matrix4();
-    for (let i = 0; i < count; i++) {
-      m.makeTranslation(-8.75 + i * 0.5, 0.5, WALL_Z);
+    PICKETS_X.forEach((x, i) => {
+      m.makeTranslation(x, 0.5, WALL_Z);
       mesh.setMatrixAt(i, m);
-    }
+    });
     mesh.instanceMatrix.needsUpdate = true;
   }, []);
   const mat = lowpoly(p.fence);
@@ -400,6 +407,11 @@ const PicketFence = memo(function PicketFence({ p }: { p: Palette }) {
           <boxGeometry args={[18, 0.08, 0.04]} />
         </mesh>
       ))}
+      {/* Hecke: eine ruhige grüne Fläche statt Latten hinter den Tonnen;
+          umschließt die Querlatten (Tiefe 0,5 um WALL_Z) */}
+      <mesh position={[0, 0.5, WALL_Z]} material={lowpoly(p.leaves[1])}>
+        <boxGeometry args={[HEDGE_HALF * 2 + 0.2, 1.0, 0.5]} />
+      </mesh>
     </group>
   );
 });
