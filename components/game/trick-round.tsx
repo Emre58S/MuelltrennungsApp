@@ -57,7 +57,6 @@ import { SceneCanvas } from "./game-round";
 import {
   FloatingText,
   type FloatText,
-  ChoiceCards,
   ItemCard,
   TipCard,
   TrickHud,
@@ -86,13 +85,6 @@ import {
   setTrail,
   type ThrowSpec,
 } from "./scene-bus";
-
-/** Ab diesem Level (und im Tages-Trick): vor jedem Wurf aus drei Karten den
- *  Gegenstand für die Zieltonne wählen – falsch gewählt zählt als Fehlversuch.
- *  So steckt das Sortieren in jedem Wurf, und jeder Wurf bleibt ein Trick. */
-const CHOICE_FROM = 5;
-/** So lange bleibt eine falsch gewählte Karte stehen (Lernmoment). */
-const WRONG_PICK_MS = 1400;
 
 export function TrickRound({
   level,
@@ -140,15 +132,10 @@ export function TrickRound({
    *  aber leichte Sachen treibt der Wind weiter ab. */
   const feelOf = (it: Item) => ({ loft: 1, drift: MASS_FEEL[itemMass(it)].drift });
 
-  // Gegenstände aus der Zieltonne, ohne direkte Wiederholung. Ab CHOICE_FROM
-  // (und im Tages-Trick) liegen davor drei Karten: der richtige plus je einer
-  // aus den anderen Tonnen.
+  // Nur Gegenstände der Zieltonne, ohne direkte Wiederholung: jeder Wurf ist
+  // ein Trick (Nutzer, 29.10.: keine Köder, kein Auswählen). Sortiert wird
+  // über die Hindernisse – wer abprallt, kann in einer falschen Tonne landen.
   // (veränderliche Listen wie der „picker“ der Spielrunde – dürfen beim ersten Render gelesen werden)
-  const choosing = daily || level.id >= CHOICE_FROM;
-  const otherPools = useMemo(
-    () => (choosing ? bins.filter((b) => b !== target).map((b) => getItemsForBins([b])) : []),
-    [choosing, bins, target],
-  );
   const [recent] = useState<string[]>(() => []);
   const draw = useCallback(() => {
     const item = pickItem(pool, () => 1, recent);
@@ -158,24 +145,9 @@ export function TrickRound({
     }
     return item;
   }, [pool, recent]);
-  /** Drei Karten in zufälliger Reihenfolge (der richtige ist nicht immer gleich platziert). */
-  const drawChoice = useCallback((): Item[] => {
-    const list = [draw(), ...otherPools.map((p) => pickItem(p, () => 1, []))].filter(
-      (x): x is Item => x !== null,
-    );
-    for (let i = list.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [list[i], list[j]] = [list[j], list[i]];
-    }
-    return list;
-  }, [draw, otherPools]);
-  const [choice, setChoice] = useState<Item[] | null>(() => (choosing ? drawChoice() : null));
-  const [wrongPick, setWrongPick] = useState<string | null>(null);
-  /** Je Auswahl neu: Karten blenden jedes Mal frisch ein. */
-  const [choiceId, setChoiceId] = useState(0);
-  const [item, setItemState] = useState<Item | null>(() => (choosing ? null : draw()));
-  // Alle Modelle vorab aufbauen – auch die der anderen Tonnen (sonst ruckelt der erste)
-  const [warmItems] = useState(() => [...pool, ...otherPools.flat()]);
+  const [item, setItemState] = useState<Item | null>(draw);
+  // Alle Modelle vorab aufbauen (sonst ruckelt der erste)
+  const [warmItems] = useState(() => pool);
   const itemRef = useRef<Item | null>(item);
   const setItem = useCallback((next: Item | null) => {
     itemRef.current = next;
@@ -224,10 +196,6 @@ export function TrickRound({
   }, [level.id]);
   const heldEver = useRef(false);
   const missesNoHold = useRef(0);
-  // Erste Auswahl: kurz erklären, wie es geht
-  useEffect(() => {
-    if (choice) showTip("decoy");
-  }, [choice, showTip]);
   useEffect(() => {
     const has = (kind: string) => level.props.some((p) => p.kind === kind);
     const ring = level.props.find((p) => p.kind === "ring");
@@ -350,44 +318,9 @@ export function TrickRound({
     );
   };
 
-  /** Nächster Wurf: drei Karten zur Auswahl oder direkt ein Gegenstand. */
+  /** Nächster Wurf: neuer Gegenstand der Zieltonne. */
   const next = () => {
-    if (done.current) return;
-    if (choosing) {
-      setChoice(drawChoice());
-      setChoiceId((n) => n + 1);
-    }
-    else setItem(draw());
-  };
-
-  /** Karte gewählt: richtig → werfen; falsch → zählt als Fehlversuch, die
-   *  Tonne, in die er gehört, hüpft, und es gibt drei neue Karten. */
-  const pick = (picked: Item) => {
-    if (done.current || wrongPick !== null) return;
-    if (picked.category === target.category) {
-      setChoice(null);
-      setItem(picked);
-      sfx("tap");
-      return;
-    }
-    attemptsRef.current += 1;
-    setAttempt(attemptsRef.current + 1);
-    setWrongPick(picked.name);
-    const right = bins.findIndex((b) => b.category === picked.category);
-    if (right >= 0) queueBinEvent(bus.current, right, "peek");
-    // Hinweis steht auf der Karte selbst; VoiceOver liest ihn vor
-    AccessibilityInfo.announceForAccessibility(
-      t("trick.pickWrong", {
-        name: itemName(picked),
-        bin: t(bins[right]?.labelKey ?? target.labelKey),
-      }),
-    );
-    sfx("wrong");
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
-    later(() => {
-      setWrongPick(null);
-      next();
-    }, WRONG_PICK_MS);
+    if (!done.current) setItem(draw());
   };
 
   const handleLand = (_id: number, outcome?: LandOutcome) => {
@@ -410,7 +343,10 @@ export function TrickRound({
       sfx("plop");
     } else if (bin !== null) {
       queueBinEvent(bus.current, bin, "reject");
-      float(t("trick.wrongBin"), screenX(binXs[bin]), y);
+      // Abgeprallt oder verfehlt in eine andere Tonne: sagen, wohin es gehört,
+      // und die Zieltonne kurz hüpfen lassen (Sortier-Lernmoment)
+      float(t("trick.belongsIn", { bin: t(target.labelKey) }), screenX(binXs[bin]), y);
+      later(() => queueBinEvent(bus.current, level.target, "peek"), 250);
       sfx("plop");
     } else {
       const text = outcome?.near ? t("game.near") : t("game.miss");
@@ -493,18 +429,16 @@ export function TrickRound({
   const onCancel = useCallback(() => handlers.current.cancel(), []);
   const finished = result !== null;
   /* eslint-disable react-hooks/refs */
-  // Während der Auswahl nicht werfen (die Karten nehmen das Tippen an)
-  const picking = choice !== null;
   const gesture = useMemo(() => {
     return Gesture.Pan()
-      .enabled(!finished && !picking)
+      .enabled(!finished)
       .runOnJS(true)
       .minDistance(6)
       .onBegin(onBegin)
       .onUpdate((e) => onAim(e.translationX, e.translationY, e.velocityY))
       .onEnd((e) => onRelease(e.translationX, e.translationY, e.velocityY))
       .onFinalize(onCancel);
-  }, [onBegin, onAim, onRelease, onCancel, finished, picking]);
+  }, [onBegin, onAim, onRelease, onCancel, finished]);
   /* eslint-enable react-hooks/refs */
   const onFloatDone = useCallback((id: number) => {
     setFloats((f) => f.filter((x) => x.id !== id));
@@ -512,11 +446,6 @@ export function TrickRound({
 
   const ready = screenW > 0 && screenH > 0;
   const itemTagTop = layout.item.screen.y + screenW * 0.15 + 4;
-  const wrongItem = choice?.find((c) => c.name === wrongPick);
-  const wrongBin = wrongItem ? bins.find((b) => b.category === wrongItem.category) : undefined;
-  const wrongPickNote = wrongBin ? t("trick.goesIn", { bin: t(wrongBin.labelKey) }) : undefined;
-  // Auswahl-Karten dort, wo sonst der Gegenstand schwebt
-  const choiceTop = layout.item.screen.y - 56;
   // Tipps knapp unter den Tonnen – im Bild, aber nicht über dem Wurf
   const tipTop = Math.max(0, ...layout.binRects.map((r) => r.y + r.h)) + 10;
   return (
@@ -554,22 +483,11 @@ export function TrickRound({
               <TrickHud
                 title={daily ? t("tricks.daily") : t("tricks.level", { n: level.id })}
                 attempt={attempt}
-                task={choice ? t("trick.pickTask", { bin: t(target.labelKey) }) : t(level.task)}
+                task={t(level.task)}
                 bonus={level.bonus}
               />
               <View style={styles.topSpacer} />
             </View>
-            {choice && !finished && (
-              <View pointerEvents="box-none" style={[styles.overlayRow, { top: choiceTop }]}>
-                <ChoiceCards
-                  key={choiceId}
-                  items={choice}
-                  wrong={wrongPick}
-                  wrongNote={wrongPickNote}
-                  onPick={pick}
-                />
-              </View>
-            )}
             {item && !finished && (
               <View pointerEvents="none" style={[styles.overlayRow, { top: itemTagTop }]}>
                 <ItemCard key={item.name} item={item} showHint={!hasThrown} hint={t("trick.hint")}

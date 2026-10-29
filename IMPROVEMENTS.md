@@ -28,7 +28,7 @@ zu ändern.
 
 ## Ideen des Nutzers (29.10., Vorschläge gemacht, Auswahl offen)
 - Zielwurf ausgeblendet (Menü, Modi, Rangliste); Code bleibt.
-- [x] ERLEDIGT 29.10. (Tester 8/10): Trickwürfe „Erst wählen, dann tricksen“ ab Level 5 + Tages-Trick. Rest: Hinweis-Farbe aus Theme, accessibilityHint. Ursprünglich: Köder (DECOY ab Level 5, 30 %) stören. Vorschlag
+- [x] Trickwürfe: „Erst wählen“ war kurz drin (e1e9acb), auf Wunsch des Nutzers wieder raus. JETZT: direkt werfen, keine Köder; falsche Tonne → „Gehört in: {Zieltonne}“ + Zieltonne hüpft. NÄCHSTES: Prall-Level (Hindernisse zwischen den Tonnen, je nach Treffpunkt richtige/Nachbartonne) + Bonus „Bandenwurf“. Ursprünglich: Köder (DECOY ab Level 5, 30 %) stören. Vorschlag
   „Erst wählen, dann tricksen“: 2–3 Gegenstände zeigen, den für die Zieltonne
   antippen, dann mit Trick werfen (Zieltonne fest → Fairness-Tests bleiben gültig).
 - 1 gegen 1: A) Duell an einem Handy (abwechselnd, gleiche Gegenstände, 10 Würfe,

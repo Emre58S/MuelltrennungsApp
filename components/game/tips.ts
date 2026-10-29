@@ -20,7 +20,6 @@ export type TipId =
   | "movingRing"
   | "spin"
   | "stars"
-  | "decoy"
   | "sonder"
   | "sign"
   | "lamp"

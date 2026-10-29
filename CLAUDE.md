@@ -61,8 +61,8 @@ wenig Deutsch, nie strafend.
 - Keine grundlegenden Mechaniken ändern (Werfen, Physik, Regeln, Wertung).
   Ausnahme (Nutzer, 2026-10-28): neue Ziele (Sondermüll-Box) und neue
   Trick-Hindernisse (Schild, Laterne, Markise, Zaun) sind erlaubt.
-  Ausnahme (Nutzer, 2026-10-29): Trickwürfe „Erst wählen, dann tricksen“
-  (Köder raus, falsche Karte = Fehlversuch), Modus Duell (1 gegen 1 an einem
+  Ausnahme (Nutzer, 2026-10-29): Trickwürfe ohne Köder/Auswahl (direkt werfen),
+  Prall-Level zwischen den Tonnen, Modus Duell (1 gegen 1 an einem
   Handy), Tages-Flamme + Tagesmissionen; Zielwurf ausgeblendet.
 - Keine neuen Abhängigkeiten ohne klaren Grund; nichts löschen, was genutzt wird.
 - Texte immer Deutsch UND Englisch (i18n/de.ts, i18n/en.ts).
