@@ -111,5 +111,12 @@ keine reine Kosmetik. Start der App: `npx expo start` + Expo Go (Gerät nötig).
 - Schutz-Hook blockiert auch die EAS-Update-Liste (Befehlstext passt aufs Muster)
   – ein &&-verketteter Update-Befehl mit Exit 0 gilt als veröffentlicht.
 - Test sichert: jedes Emoji nur einmal, jede Begründung ≤ 4 Wörter DE/EN.
+- Tester-Bereich ENG fassen („Anzeige des Multiplikators“ statt „Texte rund um
+  Serien“): breite Bereiche liefern jedes Mal neue ältere Fehler → „nein“ ohne
+  Bezug zur Änderung. Ältere Funde lieber in IMPROVEMENTS.md sammeln und als
+  eigenen Zyklus bündeln.
+- Shell: In `node -e "…"` führt die Shell Backticks aus (es lief versehentlich
+  `npx expo start`). Skripte mit Backticks per Write-Datei, nicht inline.
+- Verworfene Zyklen lokal auf Nebenzweige sichern (`verworfen-…`), nicht löschen.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.
