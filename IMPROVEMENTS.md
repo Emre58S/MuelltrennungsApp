@@ -76,7 +76,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
   → verworfen; Idee für später: eine durchgehende Spirale (G.tube) statt Ringe.
 - [ ] G4 Kaffeefilter als flache Filtertüte mit Prägenaht.
 - [x] G5 Sauberer Karton: Klebeband verdeckt (gleiche Höhe) → höher + vorn + Versandetikett.
-- [ ] G6 Getränkekarton (Strohhalm, Orange) ≠ Milchkarton (Kuhflecken).
+- [x] G6 Getränkekarton (Strohhalm, Orange) ≠ Milchkarton (Kuhflecken).
 - [ ] G7 (kleiner) Parfüm als Flakon, Laptop mit Tastatur, Spülmittel schlanker.
 
 **Wenn alles erledigt ist, bevor 08:15 erreicht ist:** neues Audit (Modelle oder

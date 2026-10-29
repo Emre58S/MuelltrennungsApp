@@ -279,6 +279,35 @@ export function renderGelberSackModel(key: string, name: string) {
       const milk = name.includes("milch");
       const band = milk ? "#2563EB" : "#F97316";
 
+      if (!milk) {
+        // Getränkekarton (Saft): flacher Quader mit Strohhalm oben und
+        // Orangenscheibe vorn – der Milchkarton hat Giebel und Kuhflecken
+        return (
+          <group rotation={[0.12, -0.3, 0.05]}>
+            <Part geo={G.box(0.3, 0.46, 0.2, 0.015)} color="#FFF7ED" roughness={0.7} />
+            <Part geo={G.box(0.305, 0.2, 0.205, 0.012)} pos={[0, -0.06, 0]} color={band} roughness={0.6} />
+            <Part geo={G.box(0.27, 0.012, 0.03, 0.004)} pos={[0, 0.236, 0]} color="#FED7AA" roughness={0.7} />
+            {/* Orangenscheibe */}
+            <Part geo={G.circle(0.07, 18)} pos={[0, -0.06, 0.104]} basic color="#FED7AA" />
+            <Part geo={G.ring(0.06, 0.07, 18)} pos={[0, -0.06, 0.105]} basic color="#FFFFFF" />
+            {[0, Math.PI / 3, (2 * Math.PI) / 3].map((r) => (
+              <Part
+                key={r}
+                geo={G.box(0.12, 0.006, 0.002, 0.0005)}
+                pos={[0, -0.06, 0.106]}
+                rot={[0, 0, r]}
+                basic
+                color="#FFFFFF"
+              />
+            ))}
+            {/* Strohhalm mit Knick */}
+            <Part geo={G.cyl(0.012, 0.012, 0.16, 8)} pos={[0.08, 0.3, 0.04]} rot={[0, 0, 0.15]} color="#F8FAFC" />
+            <Part geo={G.cyl(0.012, 0.012, 0.06, 8)} pos={[0.04, 0.39, 0.04]} rot={[0, 0, 1.2]} color="#EF4444" />
+            <Part geo={G.ball(0.012, 8, 6)} pos={[0.068, 0.379, 0.04]} color="#EF4444" />
+          </group>
+        );
+      }
+
       return (
         <group rotation={[0.08, -0.28, 0.05]}>
           <Part
@@ -318,6 +347,10 @@ export function renderGelberSackModel(key: string, name: string) {
             color={band}
             roughness={0.45}
           />
+          {/* Kuhflecken auf den weißen Flächen (Milch!) */}
+          <Part geo={G.poly(0.002, 0, [-0.05, 0, -0.02, 0.04, 0.03, 0.035, 0.05, -0.01, 0.01, -0.04, -0.04, -0.03])} pos={[-0.07, 0.15, 0.1725]} basic color="#1F2937" />
+          <Part geo={G.poly(0.002, 0, [-0.03, 0, 0, 0.03, 0.035, 0.01, 0.02, -0.025, -0.015, -0.03])} pos={[0.08, 0.07, 0.1725]} basic color="#1F2937" />
+          <Part geo={G.poly(0.002, 0, [-0.04, 0, -0.01, 0.035, 0.04, 0.02, 0.03, -0.03, -0.02, -0.025])} pos={[0.1725, 0.14, -0.04]} rot={[0, Math.PI / 2, 0]} basic color="#1F2937" />
         </group>
       );
     }
