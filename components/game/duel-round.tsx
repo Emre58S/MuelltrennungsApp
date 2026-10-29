@@ -216,6 +216,8 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
   });
 
   const start = () => {
+    // Doppelt getippt? Nur ein Countdown
+    if (phaseRef.current !== "ready") return;
     goPhase("countdown");
     setCount(3);
     sfx("tick");
@@ -411,11 +413,11 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
       <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + Spacing.sm }]}>
         <View pointerEvents="box-none" style={styles.topRow}>
           <IconButton icon="x" label={t("common.close")} onPress={askExit} />
-          <ScoreChip p={0} points={a.points} hot={a.streak >= DUEL_HOT} label={t(nameKey(0))} />
+          <ScoreChip p={0} points={a.points} hot={a.streak >= DUEL_HOT} label={t(nameKey(0))} calm={reduceMotion} />
           <AppText variant="label" color="#FFFFFF" style={styles.counter}>
             {phase === "play" || phase === "end" ? `${shownIndex}/${DUEL_ITEMS}` : "VS"}
           </AppText>
-          <ScoreChip p={1} points={b.points} hot={b.streak >= DUEL_HOT} label={t(nameKey(1))} />
+          <ScoreChip p={1} points={b.points} hot={b.streak >= DUEL_HOT} label={t(nameKey(1))} calm={reduceMotion} />
         </View>
         <Tug value={tugOf(duel)} calm={reduceMotion} />
       </View>
@@ -460,7 +462,7 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
 
       {phase === "countdown" && (
         <View pointerEvents="none" style={styles.countWrap}>
-          <Countdown key={count} n={count} />
+          <Countdown key={count} n={count} calm={reduceMotion} />
         </View>
       )}
 
@@ -473,13 +475,25 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
 
 const nameKey = (p: Player) => (p === 0 ? "duel.p1" : "duel.p2");
 
-function ScoreChip({ p, points, hot, label }: { p: Player; points: number; hot: boolean; label: string }) {
+function ScoreChip({
+  p,
+  points,
+  hot,
+  label,
+  calm,
+}: {
+  p: Player;
+  points: number;
+  hot: boolean;
+  label: string;
+  calm: boolean;
+}) {
   const [pulse] = useState(() => new Animated.Value(1));
   useEffect(() => {
-    if (!points) return;
+    if (!points || calm) return;
     pulse.setValue(1.25);
     Animated.spring(pulse, { toValue: 1, useNativeDriver: true, friction: 4 }).start();
-  }, [points, pulse]);
+  }, [points, pulse, calm]);
   return (
     <Animated.View
       accessible
@@ -528,11 +542,11 @@ function RulePill({ p, text }: { p: Player; text: string }) {
   );
 }
 
-function Countdown({ n }: { n: number }) {
-  const [s] = useState(() => new Animated.Value(1.8));
+function Countdown({ n, calm }: { n: number; calm: boolean }) {
+  const [s] = useState(() => new Animated.Value(calm ? 1 : 1.8));
   useEffect(() => {
-    Animated.spring(s, { toValue: 1, useNativeDriver: true, friction: 5 }).start();
-  }, [s]);
+    if (!calm) Animated.spring(s, { toValue: 1, useNativeDriver: true, friction: 5 }).start();
+  }, [s, calm]);
   return (
     <Animated.View style={{ transform: [{ scale: s }] }}>
       <AppText variant="display" color="#FFFFFF" style={styles.countText}>

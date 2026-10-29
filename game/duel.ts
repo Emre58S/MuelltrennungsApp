@@ -99,6 +99,8 @@ export function duelThrow(
 ): { state: DuelState; outcome: ThrowOutcome } {
   if (state.index >= DUEL_ITEMS || state.out[p]) return { state, outcome: "ignored" };
   if (state.settled) {
+    // Der Sieger selbst (zweiter Wisch) zählt nicht
+    if (state.log[state.log.length - 1]?.winner === p) return { state, outcome: "ignored" };
     // Nach dem Sieg zählt nichts mehr – nur das knappe „Fotofinish“ zeigen
     if (correct && state.wonAt !== null && now - state.wonAt <= PHOTO_FINISH_MS) return { state, outcome: "photo" };
     return { state, outcome: correct ? "late" : "ignored" };

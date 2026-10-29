@@ -36,6 +36,8 @@ describe("Schnell-Duell", () => {
     const r = duelThrow(s, 1, true, 1000 + PHOTO_FINISH_MS - 10, "Apfel");
     expect(r.outcome).toBe("photo");
     expect(r.state.players[1].points).toBe(0);
+    // Der Sieger selbst wischt nochmal: kein Fotofinish
+    expect(duelThrow(s, 0, true, 1100, "Apfel").outcome).toBe("ignored");
   });
 
   test("falsch = raus für diesen Gegenstand, der andere darf noch", () => {

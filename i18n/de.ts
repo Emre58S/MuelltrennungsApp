@@ -338,7 +338,8 @@ export const de = {
   "medal.gold": "Gold",
   "medal.next": "Noch {n}× richtig bis {medal}",
   "medal.max": "Gold – gemeistert!",
-  "book.golds": "{n} 🥇 Gold",
+  "book.golds": "🥇 {n} Gegenstände mit Gold",
+  "book.medalRule": "Medaillen: 🥉 ab {b}× richtig · 🥈 ab {s}× · 🥇 ab {g}×",
 
   // Schnell-Duell (1 gegen 1 an einem Handy)
   "home.duel": "Duell",

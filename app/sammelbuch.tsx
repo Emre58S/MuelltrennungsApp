@@ -97,9 +97,9 @@ export default function CollectionScreen() {
               {Math.round(progress * 100)}%
             </AppText>
           </View>
+          <AppText variant="label">{t("book.golds", { n: golds })}</AppText>
           <AppText variant="caption" tone="textSecondary">
-            {t("book.golds", { n: golds })} · {MEDAL_ICON.bronze} {MEDAL_AT.bronze} · {MEDAL_ICON.silver}{" "}
-            {MEDAL_AT.silver} · {MEDAL_ICON.gold} {MEDAL_AT.gold} ✓
+            {t("book.medalRule", { b: MEDAL_AT.bronze, s: MEDAL_AT.silver, g: MEDAL_AT.gold })}
           </AppText>
           <View style={[styles.track, { backgroundColor: colors.surfaceAlt }]}>
             <View style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: colors.primary }]} />

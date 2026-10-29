@@ -339,7 +339,8 @@ export const en: Translations = {
   "medal.gold": "Gold",
   "medal.next": "{n} more correct for {medal}",
   "medal.max": "Gold – mastered!",
-  "book.golds": "{n} 🥇 gold",
+  "book.golds": "🥇 {n} items with gold",
+  "book.medalRule": "Medals: 🥉 from {b}× correct · 🥈 from {s}× · 🥇 from {g}×",
 
   // Quick duel (1 vs 1 on one phone)
   "home.duel": "Duel",
