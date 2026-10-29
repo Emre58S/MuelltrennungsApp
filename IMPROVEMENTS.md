@@ -70,7 +70,7 @@ kleine Aufgabe; Tester-Freigabe ≥ 7, sonst einmal nachbessern oder verwerfen.
 
 **G – Audit 4 Modelle (06:55)**
 - [x] G1 Medikamente ≠ Blister: Tablettendose (braun, weißer Deckel, Kreuz-Etikett) + Kapseln.
-- [ ] G2 Altes Smartphone: dunkles Display mit App-Kacheln, Hörer, Home-Taste, Sprünge.
+- [x] G2 Altes Smartphone: dunkles Display mit App-Kacheln, Hörer, Home-Taste, Sprünge.
 - [ ] G3 Geschenkpapier mit/ohne Folie auch in der Form unterscheiden (Ringelband vs. Paketschnur).
 - [ ] G4 Kaffeefilter als flache Filtertüte mit Prägenaht.
 - [x] G5 Sauberer Karton: Klebeband verdeckt (gleiche Höhe) → höher + vorn + Versandetikett.

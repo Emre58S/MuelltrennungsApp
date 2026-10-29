@@ -678,10 +678,40 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "phone":
+      // Altes Smartphone: dunkles Display mit bunten App-Kacheln, Hörer oben,
+      // runde Home-Taste unten und Sprünge im Glas (vorher nur eine blaue
+      // Fläche – wie ein Tablet oder Notizblock)
       return (
         <group rotation={[0.6, 0.2, 0.1]}>
-          <Box size={[0.32, 0.04, 0.6]} color="#1F2937" roughness={0.3} metalness={0.4} />
-          <Box size={[0.28, 0.042, 0.52]} pos={[0, 0.001, 0]} color="#3B82F6" roughness={0.15} />
+          <Part geo={G.box(0.32, 0.04, 0.6, 0.015)} color="#1F2937" roughness={0.3} />
+          <Box size={[0.28, 0.004, 0.48]} pos={[0, 0.02, 0.01]} color="#0F172A" />
+          {["#F59E0B","#10B981","#3B82F6","#EF4444","#8B5CF6","#06B6D4","#F472B6","#84CC16","#FBBF24","#22C55E","#6366F1","#F97316"].map((col, i) => (
+            <Box
+              key={col}
+              size={[0.05, 0.004, 0.05]}
+              pos={[-0.08 + (i % 3) * 0.08, 0.023, -0.15 + Math.floor(i / 3) * 0.08]}
+              color={col}
+            />
+          ))}
+          <Box size={[0.08, 0.004, 0.012]} pos={[0, 0.0205, -0.265]} color="#4B5563" />
+          <Part geo={G.ring(0.012, 0.02, 16)} pos={[0, 0.0208, 0.275]} rot={[-Math.PI / 2, 0, 0]} basic color="#6B7280" />
+          {/* Sprünge im Glas: strahlen von einem Punkt oben rechts aus */}
+          {(
+            [
+              [0.1, 2.5],
+              [0.08, 3.6],
+              [0.07, 4.4],
+            ] as [number, number][]
+          ).map(([len, r]) => (
+            <Part
+              key={r}
+              geo={G.box(len, 0.002, 0.006, 0.0005)}
+              pos={[0.11 + (Math.cos(r) * len) / 2, 0.0256, -0.12 - (Math.sin(r) * len) / 2]}
+              rot={[0, r, 0]}
+              basic
+              color="#E5E7EB"
+            />
+          ))}
         </group>
       );
 
@@ -690,10 +720,24 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         <group rotation={[0.45, 0.5, 0]}>
           <Box size={[0.62, 0.035, 0.42]} color="#9CA3AF" />
           <Box size={[0.5, 0.037, 0.2]} pos={[0, 0.001, 0.06]} color="#4B5563" />
+          {/* Tastenreihen und Touchpad */}
+          {[0, 1, 2].map((row) =>
+            Array.from({ length: 8 }, (_, k) => (
+              <Box
+                key={`${row}-${k}`}
+                size={[0.045, 0.004, 0.045]}
+                pos={[-0.2 + k * 0.057, 0.021, 0.0 + row * 0.058]}
+                color="#9CA3AF"
+              />
+            )),
+          )}
+          <Box size={[0.14, 0.004, 0.035]} pos={[0, 0.0195, 0.188]} color="#B8BEC6" />
           {/* Aufgeklappter Bildschirm */}
           <group position={[0, 0.02, -0.2]} rotation={[-1.9, 0, 0]}>
             <Box size={[0.62, 0.03, 0.4]} pos={[0, 0, 0.2]} color="#9CA3AF" />
-            <Box size={[0.54, 0.032, 0.32]} pos={[0, 0.001, 0.2]} color="#1E3A5F" />
+            {/* Bildschirm als dünne Platte auf der Innenseite (lag vorher in
+                derselben Ebene wie der Deckel und flimmerte) */}
+            <Box size={[0.54, 0.004, 0.32]} pos={[0, -0.017, 0.2]} color="#1E3A5F" />
           </group>
         </group>
       );
