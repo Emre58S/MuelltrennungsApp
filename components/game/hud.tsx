@@ -718,6 +718,102 @@ const shadow = {
   elevation: 3,
 };
 
+/* ── Trickwürfe: Gegenstand wählen ─────────────────────────── */
+
+/** Trickwürfe: drei Karten, eine gehört in die Zieltonne – antippen, dann
+ *  mit Trick werfen. Keine Farbe/kein Material: das würde die Tonne verraten. */
+export function ChoiceCards({
+  items,
+  wrong,
+  wrongNote,
+  onPick,
+}: {
+  items: Item[];
+  /** Zuletzt falsch gewählte Karte (bleibt kurz blass stehen). */
+  wrong: string | null;
+  /** Auf der falschen Karte: wohin sie gehört (Lernmoment). */
+  wrongNote?: string;
+  onPick: (item: Item) => void;
+}) {
+  const { itemName } = useI18n();
+  const { colors } = useAppTheme();
+  const enter = useEnter(260, Easing.out(Easing.quad));
+  return (
+    <Animated.View
+      style={[
+        choiceStyles.row,
+        {
+          opacity: enter,
+          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
+        },
+      ]}
+    >
+      {items.map((it) => (
+        <Pressable
+          key={it.name}
+          disabled={wrong !== null}
+          onPress={() => {
+            tapHaptic();
+            onPick(it);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={itemName(it)}
+          style={({ pressed }) => [
+            choiceStyles.card,
+            pressed && press.pressed,
+            wrong === it.name && choiceStyles.wrong,
+          ]}
+        >
+          <HudSurface style={choiceStyles.surface}>
+            <View style={[choiceStyles.bubble, { backgroundColor: colors.surfaceAlt }]}>
+              <AppText style={choiceStyles.emoji}>{it.emoji}</AppText>
+            </View>
+            {/* Bis 3 Zeilen, notfalls kleiner: der Klammerzusatz („mit Folie“)
+                entscheidet oft über die Tonne und darf nicht wegfallen */}
+            <AppText
+              variant="label"
+              numberOfLines={3}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={choiceStyles.name}
+            >
+              {itemName(it)}
+            </AppText>
+            {wrong === it.name && wrongNote && (
+              <AppText variant="caption" numberOfLines={2} style={choiceStyles.note}>
+                {wrongNote}
+              </AppText>
+            )}
+          </HudSurface>
+        </Pressable>
+      ))}
+    </Animated.View>
+  );
+}
+
+const choiceStyles = StyleSheet.create({
+  row: { flexDirection: "row", gap: Spacing.sm, alignSelf: "stretch" },
+  card: { flex: 1 },
+  wrong: { opacity: 0.6 },
+  note: { textAlign: "center", color: "#FFB4A8" },
+  surface: {
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: 6,
+    minHeight: 112,
+  },
+  bubble: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emoji: { fontSize: 30, lineHeight: 38 },
+  name: { textAlign: "center" },
+});
+
 const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
   bold: { fontFamily: FontFamily.bold },

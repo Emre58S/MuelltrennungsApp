@@ -28,7 +28,7 @@ zu ändern.
 
 ## Ideen des Nutzers (29.10., Vorschläge gemacht, Auswahl offen)
 - Zielwurf ausgeblendet (Menü, Modi, Rangliste); Code bleibt.
-- Trickwürfe gleichmäßig: Köder (DECOY ab Level 5, 30 %) stören. Vorschlag
+- [x] ERLEDIGT 29.10. (Tester 8/10): Trickwürfe „Erst wählen, dann tricksen“ ab Level 5 + Tages-Trick. Rest: Hinweis-Farbe aus Theme, accessibilityHint. Ursprünglich: Köder (DECOY ab Level 5, 30 %) stören. Vorschlag
   „Erst wählen, dann tricksen“: 2–3 Gegenstände zeigen, den für die Zieltonne
   antippen, dann mit Trick werfen (Zieltonne fest → Fairness-Tests bleiben gültig).
 - 1 gegen 1: A) Duell an einem Handy (abwechselnd, gleiche Gegenstände, 10 Würfe,
