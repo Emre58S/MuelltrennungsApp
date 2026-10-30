@@ -477,7 +477,13 @@ export async function getCampaignStars(): Promise<CampaignStars> {
   if (!raw) return {};
   try {
     const parsed: unknown = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? (parsed as CampaignStars) : {};
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    // Nur gültige Werte (ganze Zahlen 0–3) übernehmen
+    const stars: CampaignStars = {};
+    for (const [id, v] of Object.entries(parsed)) {
+      if (typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 3) stars[id] = v;
+    }
+    return stars;
   } catch {
     return {};
   }

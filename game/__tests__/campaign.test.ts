@@ -27,10 +27,11 @@ describe("Welten und Stationen", () => {
     expect(new Set(STATIONS.map((s) => s.id)).size).toBe(STATIONS.length);
   });
 
-  test("Jede Station: Ziel liegt zwischen 1 und allen Würfen", () => {
+  test("Jede Station: Ziel erreichbar und alle 3 Sternstufen möglich", () => {
     for (const s of STATIONS) {
       expect(s.goal).toBeGreaterThan(0);
-      expect(s.goal).toBeLessThan(s.total);
+      expect(s.goal).toBeLessThanOrEqual(s.total - 2);
+      expect(starsFor(s, s.total - 1)).toBe(2);
     }
   });
 

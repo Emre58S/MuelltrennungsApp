@@ -41,10 +41,10 @@ const ORDER: Difficulty[] = ["leicht", "mittel", "schwer"];
 
 /** Stationen einer Welt: erst leichte Gegenstände, dann alle, Ziel steigt. */
 const STEPS: { upTo: Difficulty; goal: number }[] = [
-  { upTo: "leicht", goal: 7 },
-  { upTo: "mittel", goal: 8 },
+  { upTo: "leicht", goal: 6 },
+  { upTo: "mittel", goal: 7 },
+  { upTo: "schwer", goal: 7 },
   { upTo: "schwer", goal: 8 },
-  { upTo: "schwer", goal: 9 },
 ];
 
 /** Reihenfolge der Tonnen: Welt 1 Papier vs. Rest, dann je eine neue. */

@@ -95,9 +95,11 @@ JS-Änderungen per EAS-Update nachkommen.
 
 ### R2 – Kampagne als Lernpfad (Muss)
 Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
-- [ ] **R2a** Datenmodell `game/campaign.ts` (+Tests): Welten → Stationen;
-  Station = Tonnen-Auswahl + Gegenstands-Pool + Ziel (z. B. 8 von 10 richtig);
-  1–3 Sterne; Fortschritt in storage. Freischalten: nächste Station ab 1 Stern.
+- [x] **R2a** Datenmodell `game/campaign.ts` (+Tests): Welten 1–5 (Papier/Rest → +Gelb
+  → +Glas → +Bio → +Sonder) mit je 4 Stationen (leicht 6/10 … alle 8/10); Sterne
+  Ziel/mehr/alles; frei ab 1 Stern; Speicher getCampaignStars/saveCampaignStars
+  (8ee8d09 + Nachbesserung, Tester 7/10). Offen für die UI (R2c): bei 0 Sternen
+  freundlicher Hinweis statt Sackgasse.
 - [ ] **R2b** Welten (Vorschlag): 1 Papier vs. Rest · 2 + Gelber Sack ·
   3 + Glas · 4 + Bio · 5 + Sondermüll · 6 „Knifflige Fälle“ (Kassenbon,
   Pizzakarton, Spiegel …). Je Welt 4–6 Stationen. Neue Tonne = kurze Einführung
