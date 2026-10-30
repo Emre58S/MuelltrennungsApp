@@ -73,6 +73,11 @@ neue Wurfspuren Smaragd/Lava/Diamant ab 3/10/25 Gold.
    **G4** (optional) Live-Raum über Supabase Realtime mit demselben Ereignisformat.
    Emres Schnell-Duell (ein Handy, gleichzeitig) bleibt für „zusammen auf dem Sofa“.
 2. Tages-Flamme (mit Rettung 1×/Woche) + 3 Tagesmissionen.
+   [x] **F1** Flamme mit Rettung (5940dae + c179043, Tester 6/10 → 8/10): utils/streak.ts (getestet),
+   Tage nach Ortszeit statt UTC, Startschirm-Hinweis „Heute spielen – deine Flamme bleibt“ / „Gerettet“,
+   ⏳ im Chip bei Gefahr. Ideen: Rettungstext nur kurz zeigen (verdrängt sonst den ganzen Tag den
+   Wurf-Hinweis); ⏳ per Antippen erklären; einmaliger UTC→Ortszeit-Wechsel kann eine Rettung verbrauchen.
+   **F2** (nächster Schritt) 3 Tagesmissionen.
 3. Prall-Level: von Emre durch Trampolin-/Deckel-Level ersetzt (Level 19–24) –
    nur auf Ansage wieder aufnehmen.
 
