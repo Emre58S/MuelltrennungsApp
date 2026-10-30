@@ -105,8 +105,15 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   alles); Test: keine Tonne allein reicht fürs Ziel. Lernkarte = introExamples
   (3 Beispiele) + bin.<key>.examples (90b64e7 + Nachbesserung, Tester 7/10).
   Für R2c: Runde mit fester Liste ohne Zurücklegen ziehen.
-- [ ] **R2c** Pfad-Bildschirm: Stationen, Sterne, aktuelle Station hüpft, Tonnen-
+- [x] **R2c** Pfad-Bildschirm: Stationen, Sterne, aktuelle Station hüpft, Tonnen-
   Symbol an Weltgrenzen. Start = 1 Tipp („Weiter“ ist damit der Pfad selbst).
+  (d76abbe, Tester 8/10, EAS auto + preview): Welt-Köpfe mit Tonnen + „Neu: …“,
+  Stations-Runde (`/runde?station=…`, Liste ohne Zurücklegen, 10 Würfe, HUD
+  „3/10 · Ziel 7“, Sterne gespeichert, „Nächste Station“); alte Spielarten als
+  Chips oben. Offen (R2c-Rest): in Stationen kein „🎁 Neue Tonne“-Hinweis beim
+  Level-Aufstieg; Überschrift bei wenig richtig nicht „Fast geschafft!“ (erst ab
+  Ziel−2); Tagesaufgaben-Chip mit Punkt/„erledigt“; Scrollen zur Station nach
+  „Zum Pfad“ auf dem Gerät prüfen; 2-Tonnen-Welt auf dem Gerät prüfen.
 - [ ] **R2d** Stations-Arten: normal · **Zeit** (Gegen die Zeit) · **Ohne Fehler**
   · **Trick** (Trick-Level 1–24 als Seitenstationen) · **Boss**. Damit leben die
   bisherigen Modi im Pfad weiter.
