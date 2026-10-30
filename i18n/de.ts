@@ -32,7 +32,7 @@ export const de = {
   "home.titleBottom": "Sortieren",
   "home.continue": "Weiter",
   "home.record": "Rekord",
-  "home.modesLabel": "Spielmodus wählen",
+  "home.modesLabel": "Bereich wählen",
   "home.throwHint": "Wirf in eine Tonne, um zu starten",
   "home.flameAtRisk": "🔥 Heute spielen – deine Flamme bleibt",
   "home.flameRescued": "🔥 Gerettet – 1 Pausentag pro Woche",
@@ -419,6 +419,18 @@ export const de = {
   "duel.quit.title": "Duell beenden?",
   "duel.quit.message": "Der Spielstand wird nicht gespeichert.",
   "duel.quit.confirm": "Beenden",
+  "hub.campaign.title": "Kampagne",
+  "hub.campaign.subtitle": "Allein spielen, lernen und üben.",
+  "hub.campaign.bin": "Allein spielen und lernen",
+  "hub.online.title": "Online",
+  "hub.online.subtitle": "Gegen Freunde und andere spielen.",
+  "hub.online.bin": "Gegen andere spielen",
+  "hub.collection.title": "Sammlung",
+  "hub.collection.subtitle": "Alles, was du dir erspielt hast.",
+  "hub.collection.bin": "Sammelbuch und Belohnungen",
+  "hub.last": "Zuletzt",
+  "hub.duel.title": "Zu zweit an einem Handy",
+  "hub.open": "{name} öffnen",
 } as const;
 
 export type TranslationKey = keyof typeof de;

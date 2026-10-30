@@ -1,11 +1,12 @@
 // Datei: app/(tabs)/index.tsx — Titelbild-Menü
 //
-// Die Spielwelt IST das Menü: Die drei Tonnen stehen für die drei Spielmodi.
-// Ein Gegenstand schwebt davor – wirf ihn in eine Tonne (wischen wie im
-// Spiel) oder tippe auf Tonne bzw. Schild, und der Modus startet mit einem
-// echten Wurf samt Konfetti. Im Leerlauf lupfen die Tonnen nacheinander den
-// Deckel und der Gegenstand wechselt – so lernt man die Geste schon hier.
-// „Weiter“ wirft in die Tonne des zuletzt gespielten Modus.
+// Die Spielwelt IST das Menü: Die drei Tonnen sind die drei Bereiche –
+// Kampagne (allein), Online (gegen andere), Sammlung. Der Name steht direkt
+// auf der Tonne. Ein Gegenstand schwebt davor – wirf ihn in eine Tonne
+// (wischen wie im Spiel) oder tippe auf die Tonne, und der Bereich öffnet
+// sich nach einem echten Wurf samt Konfetti. Im Leerlauf lupfen die Tonnen
+// nacheinander den Deckel und der Gegenstand wechselt – so lernt man die
+// Geste schon hier.
 
 import { Feather } from "@expo/vector-icons";
 import { Canvas } from "@react-three/fiber/native";
@@ -51,30 +52,19 @@ import { AppText } from "@/components/ui/app-text";
 import { press, tapHaptic } from "@/components/ui/press";
 import { Scrim } from "@/components/ui/scrim";
 import { type Item } from "@/constants/items";
-import {
-  type GameMode,
-  getLastMode,
-  getModeConfig,
-  MENU_MODES,
-  startDaily,
-  startGame,
-} from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef, getItemsForBins, light, STANDARD_BINS } from "@/game/bins";
-import { HIGHSCORE_MODE } from "@/components/game/round-hooks";
 import { aimFromDrag, drawFromBag } from "@/game/logic";
+import { type TranslationKey } from "@/i18n";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/game/layout";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import { playMusic, refreshMusicSetting } from "@/utils/music";
 import type { FlameStatus } from "@/utils/streak";
 import {
-  type DailyResult,
   flushThrowRecords,
   getFlame,
   getBoolean,
-  setBoolean,
-  getHighscoreKey,
   getLevelProgress,
   getBinSkin,
   getNumber,
@@ -85,7 +75,6 @@ import {
 import { usableSkin } from "@/game/rewards";
 
 type IconName = ComponentProps<typeof Feather>["name"];
-type Scores = Record<GameMode, number>;
 
 const ANTIALIAS = PixelRatio.get() < 3;
 /** Leerlauf: so oft wechselt der Gegenstand bzw. lupft eine Tonne den Deckel. */
@@ -103,21 +92,29 @@ const TEXT_SHADOW = {
   textShadowRadius: 6,
 } as const;
 
-/** Farbe pro Modus – Tonne, Schild und Flugbahn (nicht nur Farbe: Icon + Text).
- *  `sign`: etwas dunklere Schild-Farbe, damit die Schrift mindestens 4,5 : 1
- *  Kontrast hat – Tonne und Flugbahn bleiben hell und freundlich. */
-const MODE_COLOR: Record<GameMode, { fill: string; sign: string; on: string }> = {
-  endless: { fill: "#2FA86E", sign: "#258356", on: "#FFFFFF" },
-  survival: { fill: "#3D82D9", sign: "#3775C3", on: "#FFFFFF" },
-  time: { fill: "#E3A92E", sign: "#E3A92E", on: "#2B1D00" }, // dunkle Schrift: hell genug
-  aim: { fill: "#D9622B", sign: "#BD5525", on: "#FFFFFF" },
+type Hub = {
+  route: "/kampagne" | "/online" | "/sammlung";
+  titleKey: TranslationKey;
+  descKey: TranslationKey;
+  icon: IconName;
+  /** Tonne und Flugbahn. */
+  fill: string;
+  /** Schrift auf dem Tonnen-Schild (mind. 4,5 : 1 auf Weiß). */
+  sign: string;
+  on: string;
 };
 
-/** Die Menü-Tonnen: echte Tonnen-Modelle in Modus-Farben, Reihenfolge wie MENU_MODES. */
-const MENU_BINS: BinDef[] = MENU_MODES.map((m, i) => {
+/** Die drei Bereiche – je eine Tonne (nicht nur Farbe: Symbol + Name). */
+const HUBS: Hub[] = [
+  { route: "/kampagne", titleKey: "hub.campaign.title", descKey: "hub.campaign.bin", icon: "map", fill: "#2FA86E", sign: "#1E7A4C", on: "#FFFFFF" },
+  { route: "/online", titleKey: "hub.online.title", descKey: "hub.online.bin", icon: "globe", fill: "#3D82D9", sign: "#245E9E", on: "#FFFFFF" },
+  { route: "/sammlung", titleKey: "hub.collection.title", descKey: "hub.collection.bin", icon: "book-open", fill: "#E3A92E", sign: "#7A5600", on: "#2B1D00" },
+];
+
+/** Die Menü-Tonnen: echte Tonnen-Modelle in Bereichs-Farben, Reihenfolge wie HUBS. */
+const MENU_BINS: BinDef[] = HUBS.map((h, i) => {
   const base = ALL_BINS[i + 1] ?? ALL_BINS[0];
-  const c = MODE_COLOR[m.mode];
-  return { ...base, color: c.fill, colorLight: light(c.fill, 0.3), onColor: c.on };
+  return { ...base, color: h.fill, colorLight: light(h.fill, 0.3), onColor: h.on };
 });
 
 const MENU_POOL: Item[] = getItemsForBins(STANDARD_BINS);
@@ -127,22 +124,20 @@ const MENU_ITEM_WIDTH = 0.22;
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { width, height, fontScale } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { colors, scheme } = useAppTheme();
   const { reduceMotion } = useAppSettings();
-  const { t, formatNumber } = useI18n();
+  const { t } = useI18n();
   // Nur zeichnen, wenn sichtbar – sonst liefen Menü- und Spiel-3D gleichzeitig.
   const focused = useIsFocused();
 
-  const [scores, setScores] = useState<Scores>({ endless: 0, survival: 0, time: 0, aim: 0 });
-  const [lastMode, setLastMode] = useState<GameMode>("endless");
   const [totalXP, setTotalXP] = useState(0);
   const [streak, setStreak] = useState(0);
   const [flame, setFlame] = useState<FlameStatus>("none");
   const [loaded, setLoaded] = useState(false);
-  const [daily, setDaily] = useState<DailyResult | null>(null);
+  /** Tagesaufgabe heute schon gespielt? Sonst Punkt an der Kampagnen-Tonne. */
+  const [dailyDone, setDailyDone] = useState(true);
   const [seenTutorial, setSeenTutorial] = useState(true);
-  const [seenDuel, setSeenDuel] = useState(true);
 
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -160,12 +155,10 @@ export default function HomeScreen() {
     if (menuTop <= 0) return base;
     // Zwischen Schildern und Menü: knapp über dem Menü, aber nie in die Schilder
     const half = (width * MENU_ITEM_WIDTH) / 2;
-    const signBottom = Math.max(...base.binRects.map((r) => r.y + r.h)) + 4 + (compact ? 56 : 72) + 6 +
-      // Große Systemschrift: Titel (und Rekord) werden höher
-      (Math.min(fontScale, 1.6) - 1) * (compact ? 17 : 31);
-    const y = Math.max(signBottom + half, menuTop - half - 10);
+    const binBottom = Math.max(...base.binRects.map((r) => r.y + r.h)) + 16;
+    const y = Math.max(binBottom + half, menuTop - half - 10);
     return computeLayout(width, height, MENU_BINS.length, { ...options, itemNdcY: 1 - (2 * y) / height });
-  }, [width, height, fontScale, compact, menuTop]);
+  }, [width, height, compact, menuTop]);
 
   /* ── Schwebender Gegenstand (die Szene liest ihn aus dem Bus) ── */
   const [bag] = useState(() => ({ current: [] as Item[] }));
@@ -184,7 +177,7 @@ export default function HomeScreen() {
 
   /* ── Start per Wurf ─────────────────────────────────────────── */
   const starting = useRef(false);
-  const pendingMode = useRef<GameMode | null>(null);
+  const pendingHub = useRef<number | null>(null);
   const throwId = useRef(0);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const later = useCallback((fn: () => void, ms: number) => {
@@ -199,51 +192,48 @@ export default function HomeScreen() {
     return () => set.forEach(clearTimeout);
   }, []);
 
-  const go = useCallback((mode: GameMode) => {
-    if (pendingMode.current !== mode) return;
-    pendingMode.current = null;
-    startGame(mode);
+  const go = useCallback((hub: number) => {
+    if (pendingHub.current !== hub) return;
+    pendingHub.current = null;
+    router.push(HUBS[hub].route);
   }, []);
 
   const launch = useCallback(
-    (mode: GameMode) => {
+    (hub: number) => {
       if (starting.current) return;
       starting.current = true;
-      pendingMode.current = mode;
+      pendingHub.current = hub;
       setAim(bus.current, null);
-      // Modi ohne Menü-Tonne (Zielwurf) starten direkt
-      const binIndex = MENU_MODES.findIndex((m) => m.mode === mode);
       const current = itemRef.current;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
 
-      if (!current || reduceMotion || binIndex < 0) {
+      if (!current || reduceMotion) {
         sfx("tap");
-        go(mode);
+        go(hub);
         return;
       }
       sfx("throw");
       queueThrow(bus.current, {
         id: ++throwId.current,
         item: current,
-        binIndex,
+        binIndex: hub,
         hit: true,
         perfect: false,
         glow: true,
       });
       advanceItem();
       // Sicherheitsnetz, falls die Szene den Wurf nicht abspielt
-      later(() => go(mode), 1400);
+      later(() => go(hub), 1400);
     },
     [advanceItem, go, later, reduceMotion],
   );
 
-  // Landung: Konfetti, Ton – dann starten
+  // Landung: Konfetti, Ton – dann öffnen
   const onLand = useRef((_id: number) => {});
   useLayoutEffect(() => {
     onLand.current = () => {
-      const mode = pendingMode.current;
-      if (!mode) return;
-      const i = MENU_MODES.findIndex((m) => m.mode === mode);
+      const i = pendingHub.current;
+      if (i === null) return;
       const bin = MENU_BINS[i];
       queueBinEvent(bus.current, i, "perfect");
       queueBurst(bus.current, {
@@ -260,7 +250,7 @@ export default function HomeScreen() {
       sfx("land");
       sfxStreak(3);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      later(() => go(mode), LAUNCH_DELAY_MS);
+      later(() => go(i), LAUNCH_DELAY_MS);
     };
   });
 
@@ -269,7 +259,7 @@ export default function HomeScreen() {
     useCallback(() => {
       let active = true;
       starting.current = false;
-      pendingMode.current = null;
+      pendingHub.current = null;
       resetBus(bus.current);
       setLandHandler(bus.current, (id) => onLand.current(id));
       refreshSfxSetting();
@@ -286,28 +276,19 @@ export default function HomeScreen() {
       flushThrowRecords()
         .then(() =>
           Promise.all([
-            getNumber(getHighscoreKey(HIGHSCORE_MODE.endless)),
-            getNumber(getHighscoreKey(HIGHSCORE_MODE.survival)),
-            getNumber(getHighscoreKey(HIGHSCORE_MODE.time)),
-            getNumber(getHighscoreKey(HIGHSCORE_MODE.aim)),
             getFlame(),
             getNumber(StorageKeys.TOTAL_XP),
-            getLastMode(),
             getTodayDaily(),
             getBoolean(StorageKeys.HAS_SEEN_TUTORIAL, false),
-            getBoolean(StorageKeys.SEEN_DUEL, false),
           ]),
         )
-        .then(([endless, survival, time, aim, flameNow, xp, mode, today, seen, duelSeen]) => {
+        .then(([flameNow, xp, today, seen]) => {
           if (!active) return;
           setSeenTutorial(seen);
-          setSeenDuel(duelSeen);
-          setDaily(today);
-          setScores({ endless, survival, time, aim });
+          setDailyDone(today !== null);
           setStreak(flameNow.count);
           setFlame(flameNow.status);
           setTotalXP(xp);
-          setLastMode(mode);
         })
         .catch((error) => console.warn("[Home] Fortschritt konnte nicht geladen werden:", error))
         .finally(() => active && setLoaded(true));
@@ -357,7 +338,7 @@ export default function HomeScreen() {
       release: (dx, dy) => {
         const aim = aimFromDrag(dx, dy, layout.binAngles);
         setAim(bus.current, null);
-        if (aim) launch(MENU_MODES[aim.binIndex].mode);
+        if (aim) launch(aim.binIndex);
       },
     };
   });
@@ -378,7 +359,6 @@ export default function HomeScreen() {
   /* eslint-enable react-hooks/refs */
 
   const { level, progress } = getLevelProgress(totalXP);
-  const lastTitle = t(getModeConfig(lastMode).titleKey);
   const firstRect = layout.binRects[0];
   // Wisch-Fläche: von den Tonnen bis unter den Gegenstand
   const swipeTop = Math.max((firstRect?.y ?? 0) - 20, insets.top + 90);
@@ -406,7 +386,7 @@ export default function HomeScreen() {
       )}
 
       <Scrim edge="top" height={insets.top + 150} maxOpacity={0.42} />
-      <Scrim edge="bottom" height={300 + insets.bottom} maxOpacity={0.8} />
+      <Scrim edge="bottom" height={200 + insets.bottom} maxOpacity={0.7} />
 
       {/* Wisch-Fläche hinter den Schildern */}
       <GestureDetector gesture={gesture}>
@@ -452,160 +432,45 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Die Tonnen = die Modi: Tipp-Fläche über jeder Tonne + Schild darunter */}
+      {/* Die Tonnen = die Bereiche: Tipp-Fläche über jeder Tonne, Name auf der Tonne */}
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none" accessibilityRole="menu" accessibilityLabel={t("home.modesLabel")}>
-        {MENU_MODES.map((m, i) => (
-          <ModeBin
-            key={m.mode}
+        {HUBS.map((h, i) => (
+          <HubBin
+            key={h.route}
             rect={layout.binRects[i]}
             bus={bus}
             index={i}
-            color={MODE_COLOR[m.mode]}
-            icon={m.icon}
-            title={t(m.titleKey)}
-            description={t(m.descKey)}
-            record={loaded && scores[m.mode] > 0 ? formatNumber(scores[m.mode]) : null}
-            recordLabel={t("home.record")}
-            last={loaded && m.mode === lastMode}
+            hub={h}
+            title={t(h.titleKey)}
+            a11y={`${t("hub.open", { name: t(h.titleKey) })}. ${t(h.descKey)}`}
+            dot={loaded && i === 0 && !dailyDone}
             compact={compact}
-            startLabel={t("home.startMode", { mode: t(m.titleKey) })}
-            onPress={() => launch(m.mode)}
+            onPress={() => launch(i)}
           />
         ))}
       </View>
 
-      {/* Unten im Daumenbereich: Hinweis, Weiter, weitere Spielarten, Nebenseiten */}
+      {/* Unten im Daumenbereich: Hinweis (Flamme) und die zwei selten gebrauchten Knöpfe */}
       <View
-        style={[styles.menu, { paddingBottom: Math.max(insets.bottom - 8, Spacing.sm) }]}
+        style={[styles.menu, { paddingBottom: Math.max(insets.bottom, Spacing.md) }]}
         pointerEvents="box-none"
         onLayout={(e) => setMenuTop(Math.round(e.nativeEvent.layout.y))}
       >
         {/* Tages-Flamme: gestern Pause → heute spielen rettet sie (1× pro Woche) */}
-        {!compact && (
-          <ThrowHint
-            text={
-              flame === "atRisk"
-                ? t("home.flameAtRisk")
-                : flame === "rescued"
-                  ? t("home.flameRescued")
-                  : t("home.throwHint")
-            }
-            calm={reduceMotion}
-            arrow={flame !== "rescued"}
-          />
-        )}
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t("home.continue")}: ${lastTitle}`}
-          onPress={() => launch(lastMode)}
-          style={({ pressed }) => [
-            styles.continue,
-            { backgroundColor: pressed ? colors.primaryPressed : colors.primary },
-            pressed && press.pressedLarge,
-          ]}
-        >
-          <View style={styles.continueIcon}>
-            <Feather name="play" size={22} color={colors.primary} />
-          </View>
-          <View style={styles.flex}>
-            <AppText variant="heading" tone="onPrimary">
-              {t("home.continue")}
-            </AppText>
-            <AppText variant="caption" tone="onPrimary">
-              {lastTitle}
-              {loaded && scores[lastMode] > 0 ? `  ·  🏆 ${formatNumber(scores[lastMode])}` : ""}
-            </AppText>
-          </View>
-          <Feather name="chevron-right" size={24} color={colors.onPrimary} />
-        </Pressable>
-
-        {/* Weitere Spielarten als eine ruhige Reihe kleiner Kacheln */}
-        <View style={styles.tiles}>
-          <SideTile
-            icon={daily ? "check" : "calendar"}
-            fill="#FFD54A"
-            on="#3A2500"
-            dot={loaded && !daily}
-            title={t("home.daily")}
-            caption={
-              daily
-                ? daily.score < 10000
-                  ? t("home.dailyDoneShort", { correct: daily.correct, total: daily.total, score: daily.score })
-                  : t("home.dailyDoneTiny", { correct: daily.correct, total: daily.total })
-                : t("home.dailyShort")
-            }
-            a11y={`${t("home.daily")}. ${
-              daily
-                ? t("home.dailyDone", { correct: daily.correct, total: daily.total, score: daily.score })
-                : t("home.dailyNew")
-            }`}
-            onPress={() => {
-              if (starting.current) return;
-              starting.current = true;
-              sfx("tap");
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-              startDaily();
-            }}
-          />
-          <SideTile
-            icon="award"
-            fill="#7C5CD6"
-            on="#FFFFFF"
-            title={t("home.tricks")}
-            caption={t("home.tricksShort")}
-            a11y={`${t("home.tricks")}. ${t("home.tricksDesc")}`}
-            onPress={() => {
-              if (starting.current) return;
-              sfx("tap");
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-              router.push("/tricks");
-            }}
-          />
-          <SideTile
-            icon="users"
-            fill="#FF8A3D"
-            on="#2A1400"
-            dot={loaded && !seenDuel}
-            title={t("home.duel")}
-            caption={t("home.duelShort")}
-            a11y={`${t("home.duel")}. ${t("home.duelDesc")}`}
-            onPress={() => {
-              if (starting.current) return;
-              starting.current = true;
-              sfx("tap");
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-              setBoolean(StorageKeys.SEEN_DUEL, true).catch(() => undefined);
-              router.push({ pathname: "/runde", params: { mode: "duel" } });
-            }}
-          />
-          <SideTile
-            icon="rewind"
-            fill="#4DA3FF"
-            on="#00213F"
-            title={t("home.ghost")}
-            caption={t("home.ghostShort")}
-            a11y={`${t("home.ghost")}. ${t("home.ghostDesc")}`}
-            onPress={() => {
-              if (starting.current) return;
-              starting.current = true;
-              sfx("tap");
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-              router.push({ pathname: "/runde", params: { mode: "ghost" } });
-            }}
-          />
-        </View>
-
-        <View style={styles.footer}>
-          <FooterLink icon="book-open" label={t("home.book")} onPress={() => router.push("/sammelbuch")} />
-          <FooterLink icon="award" label={t("home.rank")} onPress={() => router.push("/rangliste")} />
-          <FooterLink icon="gift" label={t("home.rewards")} onPress={() => router.push("/belohnungen")} />
-          {/* Selten gebraucht: klein und abgesetzt */}
-          <View style={styles.divider} />
-          <View style={styles.tools}>
-            <ToolButton icon="help-circle" label={t("home.tutorial")} dot={loaded && !seenTutorial} onPress={() => router.push("/tutorial")} />
-            <ToolButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
-          </View>
+        <ThrowHint
+          text={
+            flame === "atRisk"
+              ? t("home.flameAtRisk")
+              : flame === "rescued"
+                ? t("home.flameRescued")
+                : t("home.throwHint")
+          }
+          calm={reduceMotion}
+          arrow={flame !== "rescued"}
+        />
+        <View style={styles.tools}>
+          <ToolButton icon="help-circle" label={t("home.tutorial")} dot={loaded && !seenTutorial} onPress={() => router.push("/tutorial")} />
+          <ToolButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
         </View>
       </View>
     </View>
@@ -614,91 +479,78 @@ export default function HomeScreen() {
 
 /* ── Bausteine ─────────────────────────────────────────────── */
 
-/** Tipp-Fläche über einer Menü-Tonne + Schild mit Modus, Beschreibung, Rekord. */
-function ModeBin({
+/** Höhe der Tonnen-Beschriftung im Tonnen-Rechteck (0 = Oberkante über der
+ *  Öffnung, 1 = Boden) – dort, wo im Spiel das Tonnen-Schild sitzt. */
+const HUB_LABEL_AT = 0.47;
+
+/** Tipp-Fläche über einer Menü-Tonne + Name als Aufkleber auf der Tonne. */
+function HubBin({
   rect,
   bus,
   index,
-  color,
-  icon,
+  hub,
   title,
-  description,
-  record,
-  recordLabel,
-  last,
+  a11y,
+  dot,
   compact,
-  startLabel,
   onPress,
 }: {
   rect: ScreenRect | undefined;
   bus: BusRef;
   index: number;
-  color: { fill: string; sign: string; on: string };
-  icon: IconName;
+  hub: Hub;
   title: string;
-  description: string;
-  record: string | null;
-  recordLabel: string;
-  last: boolean;
+  a11y: string;
+  dot: boolean;
   compact: boolean;
-  startLabel: string;
   onPress: () => void;
 }) {
   const aimed = useAim(bus) === index;
   if (!rect) return null;
-  const width = Math.max(rect.w + 6, 96);
-  const left = rect.x + rect.w / 2 - width / 2;
+  const width = Math.max(rect.w * 0.92, 84);
+  const height = compact ? 50 : 58;
 
   return (
-    <>
-      {/* Unsichtbare Tipp-Fläche über der 3D-Tonne */}
-      <Pressable
-        accessible={false}
-        onPress={onPress}
-        style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
-      />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${startLabel}. ${description}${record ? `. ${recordLabel} ${record}` : ""}`}
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.modeSign,
-          {
-            left,
-            top: rect.y + rect.h + 4,
-            width,
-            backgroundColor: color.sign,
-            transform: [{ scale: aimed ? 1.1 : pressed ? 0.96 : 1 }, { translateY: aimed ? -4 : 0 }],
-          },
-          aimed && [styles.modeSignAimed, { shadowColor: color.fill }],
-        ]}
-      >
-        {last && (
-          <View style={styles.lastBadge}>
-            <Feather name="rotate-ccw" size={10} color="#1B2420" />
-          </View>
-        )}
-        <View style={styles.modeIcon}>
-          <Feather name={icon} size={13} color={color.sign} />
-        </View>
-        <AppText
-          variant="label"
-          color={color.on}
-          center
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.75}
-          style={styles.modeTitle}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      onPress={onPress}
+      style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
+    >
+      {({ pressed }) => (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.hubLabel,
+            {
+              left: rect.w / 2 - width / 2,
+              top: rect.h * HUB_LABEL_AT - height / 2,
+              width,
+              height,
+              borderColor: hub.fill,
+              transform: [{ scale: aimed ? 1.12 : pressed ? 0.95 : 1 }, { translateY: aimed ? -4 : 0 }],
+            },
+            aimed && [styles.hubLabelAimed, { shadowColor: hub.fill }],
+          ]}
         >
-          {title}
-        </AppText>
-        {!compact && (
-          <AppText variant="caption" color={color.on} center style={styles.modeRecord}>
-            {record ? `🏆 ${record}` : " "}
+          <View style={[styles.hubIcon, { backgroundColor: hub.sign }]}>
+            <Feather name={hub.icon} size={compact ? 12 : 14} color="#FFFFFF" />
+          </View>
+          <AppText
+            variant="label"
+            color={hub.sign}
+            center
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+            style={styles.hubTitle}
+          >
+            {title}
           </AppText>
-        )}
-      </Pressable>
-    </>
+          {dot && <View style={styles.tileDot} />}
+        </View>
+      )}
+    </Pressable>
   );
 }
 
@@ -820,47 +672,6 @@ function Logo({
   );
 }
 
-/** Kleine Kachel für weitere Spielarten (Symbol, Name, kurze Zeile). */
-function SideTile({
-  icon,
-  fill,
-  on,
-  dot,
-  title,
-  caption,
-  a11y,
-  onPress,
-}: {
-  icon: IconName;
-  fill: string;
-  on: string;
-  dot?: boolean;
-  title: string;
-  caption: string;
-  a11y: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={a11y}
-      onPress={onPress}
-      style={({ pressed }) => [styles.tile, dot && styles.tileNew, pressed && press.pressed]}
-    >
-      <View style={[styles.tileIcon, { backgroundColor: fill }]}>
-        <Feather name={icon} size={18} color={on} />
-        {dot && <View style={styles.tileDot} />}
-      </View>
-      <AppText variant="label" color={ON_SCENE} center numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
-        {title}
-      </AppText>
-      <AppText variant="caption" color={ON_SCENE_SOFT} center numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
-        {caption}
-      </AppText>
-    </Pressable>
-  );
-}
-
 /** Kleiner runder Knopf ohne Beschriftung (Anleitung, Einstellungen). */
 function ToolButton({
   icon,
@@ -887,37 +698,6 @@ function ToolButton({
     >
       <Feather name={icon} size={18} color="#FFFFFF" />
       {dot && <View style={[styles.tileDot, styles.toolDot]} />}
-    </Pressable>
-  );
-}
-
-/** Runder Symbol-Knopf mit kurzer Beschriftung darunter (Fußzeile). */
-function FooterLink({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={() => {
-        sfx("tap");
-        tapHaptic();
-        onPress();
-      }}
-      hitSlop={4}
-      style={({ pressed }) => [styles.footerLink, pressed && press.pressed]}
-    >
-      <View style={styles.footerIcon}>
-        <Feather name={icon} size={20} color="#FFFFFF" />
-      </View>
-      <AppText
-        variant="caption"
-        color={ON_SCENE_SOFT}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.75}
-        style={styles.footerLabel}
-      >
-        {label}
-      </AppText>
     </Pressable>
   );
 }
@@ -977,8 +757,7 @@ const styles = StyleSheet.create({
 
   // Punkt auf dem runden Knopf etwas nach innen, damit er am Kreis sitzt
   toolDot: { top: 1, right: 1 },
-  tools: { flexDirection: "row", gap: Spacing.sm, paddingTop: 3 },
-  divider: { width: 1, height: 40, marginTop: 3, marginHorizontal: 4, backgroundColor: "rgba(255,255,255,0.25)" },
+  tools: { flexDirection: "row", justifyContent: "center", gap: Spacing.lg },
   tool: {
     width: 40,
     height: 40,
@@ -1009,49 +788,32 @@ const styles = StyleSheet.create({
   },
   levelFill: { height: "100%", borderRadius: 3 },
 
-  modeSign: {
+  hubLabel: {
     position: "absolute",
     alignItems: "center",
+    justifyContent: "center",
     gap: 2,
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingHorizontal: 5,
-    borderRadius: Radius.lg,
+    paddingHorizontal: 4,
+    borderRadius: Radius.md,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.75)",
+    backgroundColor: "rgba(255,255,255,0.95)",
     ...shadow,
   },
-  modeSignAimed: {
-    borderColor: "#FFFFFF",
+  hubLabelAimed: {
     borderWidth: 3,
     shadowOpacity: 0.95,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 0 },
     elevation: 12,
   },
-  modeIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  hubIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
   },
-  modeTitle: { fontSize: 14, lineHeight: 17 },
-  modeRecord: { fontSize: 11, lineHeight: 14, opacity: 0.92 },
-  lastBadge: {
-    position: "absolute",
-    top: -7,
-    right: -7,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFD54A",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
+  hubTitle: { fontSize: 15, lineHeight: 18 },
 
   menu: {
     position: "absolute",
@@ -1059,29 +821,6 @@ const styles = StyleSheet.create({
     right: Spacing.md,
     bottom: 0,
     gap: Spacing.sm,
-  },
-  // Drei gleich breite Kacheln nebeneinander
-  tiles: { flexDirection: "row", gap: Spacing.sm },
-  tile: {
-    flex: 1,
-    alignItems: "center",
-    gap: 2,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: 4,
-    borderRadius: Radius.lg,
-    backgroundColor: "rgba(0,0,0,0.34)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.22)",
-  },
-  // Tagesaufgabe noch offen: dezent goldener Rand
-  tileNew: { borderColor: "rgba(255,213,74,0.75)" },
-  tileIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 2,
   },
   tileDot: {
     position: "absolute",
@@ -1105,39 +844,5 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     textAlign: "center",
   },
-  continue: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    minHeight: 64,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.xl,
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.5)",
-    ...shadow,
-  },
-  continueIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-
-  // Eine Reihe gleich breiter Symbol-Knöpfe (passt auch auf kleine Handys)
-  footer: { flexDirection: "row", justifyContent: "space-between", gap: 2 },
-  footerLink: { flex: 1, alignItems: "center", gap: 4, minHeight: 64 },
-  footerIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.18)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.35)",
-  },
-  footerLabel: { textAlign: "center", fontSize: 12 },
 
 });
