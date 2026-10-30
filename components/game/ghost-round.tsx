@@ -64,6 +64,8 @@ import {
   makeRun,
   parseRun,
   practiceRun,
+  roundRun,
+  trackSign,
 } from "@/game/ghost";
 import { itemMaterial } from "@/game/item-mass";
 import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
@@ -92,16 +94,17 @@ function trackFor(day: string) {
   const bins = getBinsForScene(scene, 1);
   const queue = ghostQueue(getItemsForBins(bins), day);
   const correctBins = queue.map((it) => bins.findIndex((b) => b.category === it.category));
-  return { scene, bins, queue, correctBins };
+  return { scene, bins, queue, correctBins, sign: trackSign(queue.map((it) => it.name)) };
 }
 
-/** Lauf aus einem Code – nur, wenn er zur Strecke seines Tages passt. */
-function runFromCode(text: string): { ch: Challenge; run: GhostRun } | null {
+/** Herausforderung aus einem Code – oder warum sie nicht geht: kein gültiger
+ *  Code („invalid“) oder anderer App-Stand mit anderer Strecke („update“). */
+function readCode(text: string): Challenge | "invalid" | "update" {
   const ch = decodeChallenge(text);
-  if (!ch) return null;
-  const { correctBins, bins } = trackFor(ch.day);
-  const run = challengeRun(ch, correctBins, bins.length);
-  return run ? { ch, run } : null;
+  if (!ch) return "invalid";
+  const { correctBins, bins, sign } = trackFor(ch.day);
+  if (ch.track !== sign) return "update";
+  return challengeRun(ch, correctBins, bins.length) ? ch : "update";
 }
 
 /** Hält die Herausforderung über „Revanche“ hinweg; jede Runde frisch aufgebaut. */
@@ -146,7 +149,7 @@ function GhostRace({
   }, [reduceMotion]);
   const [today] = useState(todayKey);
   const day = challenge?.day ?? today;
-  const { scene, bins, queue, correctBins } = useMemo(() => trackFor(day), [day]);
+  const { scene, bins, queue, correctBins, sign } = useMemo(() => trackFor(day), [day]);
   const binOf = useCallback((it: Item) => bins.findIndex((b) => b.category === it.category), [bins]);
   const practice = useMemo(() => practiceRun(day, correctBins, bins.length), [day, correctBins, bins.length]);
   const friendRun = useMemo(
@@ -173,14 +176,11 @@ function GhostRace({
   // Code eines Freundes eingeben
   const [entering, setEntering] = useState(false);
   const [draft, setDraft] = useState("");
-  const [invalid, setInvalid] = useState(false);
+  const [invalid, setInvalid] = useState<"invalid" | "update" | null>(null);
   const acceptCode = () => {
-    const found = runFromCode(draft);
-    if (!found) {
-      setInvalid(true);
-      return;
-    }
-    onChallenge(found.ch);
+    const found = readCode(draft);
+    if (typeof found === "string") setInvalid(found);
+    else onChallenge(found);
   };
 
   const [phase, setPhase] = useState<Phase>("ready");
@@ -269,7 +269,8 @@ function GhostRace({
     // Nur Läufe auf der heutigen Strecke können der eigene Ghost werden
     const newBest = day === today && (!best || beats(run, best));
     if (newBest) saveGhostBest(JSON.stringify(run)).catch(() => undefined);
-    setEnd({ run, result: ghostResult(run, ghost), newBest });
+    // Gegen einen Freund auf 0,1 s genau werten – wie dessen Code (gleicher Sieger auf beiden Handys)
+    setEnd({ run, result: friendRun ? ghostResult(roundRun(run), ghost) : ghostResult(run, ghost), newBest });
     setItem(null);
     setPreview(bus.current, null);
     goPhase("end");
@@ -466,7 +467,12 @@ function GhostRace({
           pointerEvents="box-none"
           style={[styles.cover, { paddingTop: insets.top + 90, paddingBottom: insets.bottom + Spacing.lg }]}
         >
-          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <ScrollView
+            style={styles.cardScroll}
+            contentContainerStyle={[styles.card, { backgroundColor: colors.surface }]}
+            keyboardShouldPersistTaps="handled"
+            bounces={false}
+          >
             <AppText variant="title" style={styles.center}>
               👻 {t("ghost.title")}
             </AppText>
@@ -500,7 +506,7 @@ function GhostRace({
                   value={draft}
                   onChangeText={(v) => {
                     setDraft(v);
-                    setInvalid(false);
+                    setInvalid(null);
                   }}
                   autoFocus
                   autoCorrect={false}
@@ -515,7 +521,7 @@ function GhostRace({
                 />
                 {invalid && (
                   <AppText variant="caption" tone="warning">
-                    {t("ghost.code.invalid")}
+                    {t(invalid === "update" ? "ghost.code.update" : "ghost.code.invalid")}
                   </AppText>
                 )}
                 <View style={styles.row}>
@@ -525,7 +531,7 @@ function GhostRace({
                     variant="secondary"
                     onPress={() => {
                       setEntering(false);
-                      setInvalid(false);
+                      setInvalid(null);
                     }}
                   />
                 </View>
@@ -540,7 +546,7 @@ function GhostRace({
                 )}
               </>
             )}
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       )}
 
@@ -558,6 +564,7 @@ function GhostRace({
           practice={!friendRun && !best}
           friend={friendRun ? ghostName : null}
           first={!best}
+          track={sign}
           queue={queue}
           sec={sec}
           onAgain={onAgain}
@@ -590,6 +597,7 @@ function GhostEnd({
   practice,
   friend,
   first,
+  track,
   queue,
   sec,
   onAgain,
@@ -603,6 +611,8 @@ function GhostEnd({
   friend: string | null;
   /** Noch kein eigener Ghost von heute (erster Lauf wird gespeichert). */
   first: boolean;
+  /** Strecken-Kennung für den Code (trackSign). */
+  track: string;
   queue: Item[];
   sec: (ms: number) => string;
   onAgain: () => void;
@@ -630,7 +640,7 @@ function GhostEnd({
             correct: run.correct,
             total: GHOST_ITEMS,
             time: sec(run.ms),
-            code: encodeRun(run, p.named ? p.name : null),
+            code: encodeRun(run, track, p.named ? p.name : null),
           }),
         }),
       )
@@ -761,6 +771,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
   },
   card: { borderRadius: Radius.xxl, padding: Spacing.lg, gap: Spacing.md },
+  cardScroll: { flexGrow: 0, borderRadius: Radius.xxl },
   pill: { borderRadius: Radius.lg, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.sm },
   input: {
     borderWidth: 1,

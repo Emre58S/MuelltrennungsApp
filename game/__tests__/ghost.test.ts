@@ -8,6 +8,8 @@ import {
   challengeRun,
   decodeChallenge,
   encodeRun,
+  roundRun,
+  trackSign,
   GHOST_ITEMS,
   ghostQueue,
   ghostResult,
@@ -91,9 +93,10 @@ describe("Herausforderung per Code", () => {
   const run = practiceRun("2026-10-30", bins, 4);
 
   test("Code hin und zurück ergibt denselben Lauf (auf 0,1 s genau)", () => {
-    const ch = decodeChallenge(encodeRun(run, "Emre K"));
+    const ch = decodeChallenge(encodeRun(run, "k3", "Emre K"));
     expect(ch?.day).toBe("2026-10-30");
     expect(ch?.name).toBe("Emre K");
+    expect(ch?.track).toBe("k3");
     const back = challengeRun(ch!, bins, 4)!;
     expect(back.correct).toBe(run.correct);
     expect(back.throws.map((t) => t.bin)).toEqual(run.throws.map((t) => t.bin));
@@ -101,13 +104,13 @@ describe("Herausforderung per Code", () => {
   });
 
   test("wird mitten in einer Nachricht gefunden, auch in Großbuchstaben, ohne Name", () => {
-    const code = encodeRun(run);
+    const code = encodeRun(run, "k3");
     expect(decodeChallenge(`👻 Ghost-Rennen! Schaffst du das? Code: ${code.toUpperCase()} – viel Glück`)?.picks).toHaveLength(10);
     expect(decodeChallenge(code)?.name).toBeNull();
   });
 
   test("Tippfehler und abgeschnittene Codes werden abgelehnt", () => {
-    const code = encodeRun(run);
+    const code = encodeRun(run, "k3");
     const typo = code.slice(0, 8) + (code[8] === "0" ? "1" : "0") + code.slice(9);
     expect(decodeChallenge(typo)).toBeNull();
     expect(decodeChallenge(code.slice(0, -2))).toBeNull();
@@ -115,7 +118,31 @@ describe("Herausforderung per Code", () => {
   });
 
   test("Tonne außerhalb der Szene → kein Lauf", () => {
-    const ch = decodeChallenge(encodeRun(run))!;
+    const ch = decodeChallenge(encodeRun(run, "k3"))!;
     expect(challengeRun(ch, bins, 2)).toBeNull();
+  });
+});
+
+describe("Herausforderung: gleiche Wertung auf beiden Handys", () => {
+  const mk = (ms: number) => makeRun("2026-10-30", [{ i: 0, ms, bin: 0, correct: true }]);
+
+  test("Zeiten auf 0,1 s: 23,02 s gegen 23,04 s ist Gleichstand", () => {
+    expect(ghostResult(roundRun(mk(23020)), roundRun(mk(23040)))).toBe("draw");
+    expect(ghostResult(roundRun(mk(23020)), roundRun(mk(23160)))).toBe("win");
+  });
+
+  test("Code-Zeit = gerundete eigene Zeit (beide Seiten vergleichen dasselbe)", () => {
+    const run = makeRun("2026-10-30", [
+      { i: 0, ms: 2049, bin: 1, correct: true },
+      { i: 1, ms: 5151, bin: 0, correct: false },
+    ]);
+    const back = challengeRun(decodeChallenge(encodeRun(run, "aa"))!, [1, 1], 4)!;
+    expect(back.ms).toBe(roundRun(run).ms);
+  });
+
+  test("Strecken-Kennung: gleich bei gleichen Gegenständen, sonst meist anders", () => {
+    expect(trackSign(["Dose", "Glas"])).toBe(trackSign(["Dose", "Glas"]));
+    expect(trackSign(["Dose", "Glas"])).not.toBe(trackSign(["Glas", "Dose"]));
+    expect(trackSign(["a"])).toMatch(/^[0-9a-z]{2}$/);
   });
 });
