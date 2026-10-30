@@ -5,10 +5,12 @@
 // mode=trick&level=N: ein Trickwurf-Level (components/game/trick-round.tsx),
 // mode=trick&daily=1: der Tages-Trick.
 // mode=ghost: Ghost-Rennen gegen den eigenen besten Lauf von heute.
+// station=2-3: eine Station der Kampagne (game/campaign.ts).
 import { DuelRound } from "@/components/game/duel-round";
 import { GameRound } from "@/components/game/game-round";
 import { GhostRound } from "@/components/game/ghost-round";
 import { TrickRound } from "@/components/game/trick-round";
+import { getStation, nextStation } from "@/game/campaign";
 import { dailyTrick, TRICK_LEVELS } from "@/game/trick-levels";
 import { type GameMode } from "@/constants/modes";
 import { useAppTheme } from "@/providers/app-settings";
@@ -33,11 +35,13 @@ export default function GameScreen() {
     daily: rawDaily,
     level: rawLevel,
     code: rawCode,
+    station: rawStation,
   } = useLocalSearchParams<{
     mode?: string;
     daily?: string;
     level?: string;
     code?: string;
+    station?: string;
   }>();
   const isTrick = rawMode === "trick";
   const isDuel = rawMode === "duel";
@@ -61,6 +65,18 @@ export default function GameScreen() {
       .then(setXp)
       .catch(() => setXp(0));
   }, []);
+  // Kampagne: „Nächste Station“ wechselt hier, ohne die Seite neu zu öffnen
+  const [stationId, setStationId] = useState(rawStation);
+  const station = stationId ? getStation(stationId) : undefined;
+  const next = station ? nextStation(station.id) : undefined;
+  const nextStationRound = useCallback(() => {
+    if (!next) return;
+    setStationId(next.id);
+    setXp(null);
+    loadXp();
+    setRound((r) => r + 1);
+    playMusic("game");
+  }, [next, loadXp]);
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => undefined);
   }, []);
@@ -150,9 +166,11 @@ export default function GameScreen() {
         // Profiler: Render-Dauer der Runde für die Hänger-Messung (nur Entwicklung)
         <Profiler id="runde" onRender={onRender}>
           <GameRound
-            key={`${round}-${level}-${mode}-${daily}`}
+            key={`${round}-${level}-${mode}-${daily}-${station?.id}`}
             mode={mode}
             daily={daily}
+            station={station}
+            onNext={next ? nextStationRound : undefined}
             level={level}
             startXp={xp}
             onAgain={playAgain}

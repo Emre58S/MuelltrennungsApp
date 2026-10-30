@@ -4,11 +4,13 @@
 // verworfen werden, und das einmalige Speichern der Runde (inklusive
 // Rangliste, utils/leaderboard.ts).
 import { type GameMode } from "@/constants/modes";
+import { type Station, starsFor } from "@/game/campaign";
 import { type Stats } from "@/game/logic";
 import { type Board, dailyBoard, submitScore } from "@/utils/leaderboard";
 import {
   flushThrowRecords,
   recordRound,
+  saveCampaignStars,
   saveDaily,
   saveHighscore,
   todayKey,
@@ -61,18 +63,28 @@ export function useCommitRound(
   liveStats: RefObject<Stats>,
   mode: GameMode,
   daily: boolean,
+  station?: Station,
 ) {
   const saved = useRef(false);
-  const latest = useRef({ mode, daily });
+  const latest = useRef({ mode, daily, station });
   useLayoutEffect(() => {
-    latest.current = { mode, daily };
+    latest.current = { mode, daily, station };
   });
   const commit = useCallback(() => {
     if (saved.current) return;
     const s = liveStats.current;
-    const { mode: m, daily: d } = latest.current;
+    const { mode: m, daily: d, station: st } = latest.current;
     if (s.throws === 0) return;
     saved.current = true;
+    if (st) {
+      // Station: Sterne (nur mehr zählen) + Statistik; kein Punkte-Rekord
+      saveCampaignStars(st.id, starsFor(st, s.correct)).catch(() => undefined);
+      recordRound(m, { maxStreak: s.maxStreak, throws: s.throws, correct: s.correct }).catch(
+        () => undefined,
+      );
+      flushThrowRecords().catch(() => undefined);
+      return;
+    }
     if (d) {
       saveDaily({
         date: todayKey(),

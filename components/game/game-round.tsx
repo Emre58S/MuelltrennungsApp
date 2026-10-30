@@ -16,6 +16,7 @@ import {
   FloatingText,
   type FloatText,
   HudButton,
+  HudPill,
   ItemCard,
   LearnCard,
   TipCard,
@@ -48,6 +49,7 @@ import {
   getUnlockAtLevel,
   STANDARD_BINS,
 } from "@/game/bins";
+import { type Station, stationBins, stationPool, stationQueue } from "@/game/campaign";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, shotLanding } from "@/game/layout";
 import {
   aimBonus,
@@ -184,16 +186,22 @@ const MATERIAL_SPARKS: Record<Material, string[]> = {
 export function GameRound({
   mode,
   daily,
+  station,
   level,
   startXp,
   onAgain,
+  onNext,
   onExit,
 }: {
   mode: GameMode;
   daily: boolean;
+  /** Kampagnen-Station: deren Tonnen und Gegenstände, feste Zahl Würfe, Sterne. */
+  station?: Station;
   level: number;
   startXp: number;
   onAgain: () => void;
+  /** Station geschafft → nächste Station (nur mit `station`). */
+  onNext?: () => void;
   onExit: () => void;
 }) {
   const insets = useSafeAreaInsets();
@@ -209,14 +217,22 @@ export function GameRound({
   // mit den Grund-Tonnen – damit sie für alle gleich ist.
   const [scene] = useState(nextScene);
   const bins = useMemo(
-    () => (daily ? STANDARD_BINS : getBinsForScene(scene, level)),
-    [daily, scene, level],
+    () =>
+      station ? stationBins(station) : daily ? STANDARD_BINS : getBinsForScene(scene, level),
+    [station, daily, scene, level],
   );
-  const pool = useMemo(() => getItemsForBins(bins), [bins]);
+  const pool = useMemo(
+    () => (station ? stationPool(station) : getItemsForBins(bins)),
+    [station, bins],
+  );
   const dailyQueue = useMemo(
     () => (daily ? dailyItems(pool, todayKey()) : []),
     [daily, pool],
   );
+  // Station: einmal gemischt, ohne Zurücklegen (siehe stationQueue)
+  const [stationList] = useState(() => (station ? stationQueue(station) : null));
+  /** Würfe, nach denen die Runde von selbst endet (Tagesaufgabe, Station). */
+  const fixedCount = station ? station.total : daily ? DAILY_COUNT : null;
   const { width: screenW, height: screenH } = useWindowDimensions();
   const layout = useMemo(
     () => computeLayout(screenW, screenH, bins.length),
@@ -230,7 +246,7 @@ export function GameRound({
   // Lernstand pro Item: oft falsch Sortiertes kommt häufiger (siehe itemWeight)
   const itemStats = useRef<ItemStats>({});
   const [picker] = useState<Picker>(() => ({ recent: [], dailyIndex: 0 }));
-  const dailyList = daily ? dailyQueue : null;
+  const dailyList = daily ? dailyQueue : stationList;
   const [currentItem, setCurrentItemState] = useState<Item | null>(() =>
     drawItem(picker, pool, dailyList, {}, 0),
   );
@@ -341,9 +357,11 @@ export function GameRound({
         if (first) setCurrentMedal(medalFor(itemStats.current[first.name]?.correct ?? 0));
       })
       .catch(() => undefined);
+    // Station: es zählen Sterne, kein Punkte-Rekord
+    if (station) return;
     if (daily) getTodayDaily().then((d) => setBestBefore(d?.score ?? 0));
     else getNumber(getHighscoreKey(HIGHSCORE_MODE[mode])).then(setBestBefore);
-  }, [mode, daily]);
+  }, [mode, daily, station]);
   const timerRunning =
     isTimed(mode) && timerStarted && !finished && !asking && timeLeft > 0;
   useEffect(() => {
@@ -386,7 +404,7 @@ export function GameRound({
       { text: t("game.quit.leave"), style: "destructive", onPress: onExit },
     ], { cancelable: true, onDismiss: () => setAsking(false) });
   };
-  const commitRound = useCommitRound(liveStats, mode, daily);
+  const commitRound = useCommitRound(liveStats, mode, daily, station);
   useEffect(() => {
     if (!showEnd) return;
     setAim(bus.current, null);
@@ -629,7 +647,7 @@ export function GameRound({
           }, 3500);
       }
     }
-    if (daily && after.throws >= DAILY_COUNT && !l.ended) {
+    if (fixedCount !== null && after.throws >= fixedCount && !l.ended) {
       l.ended = true;
       setAim(bus.current, null);
       later(() => setFinished(true), 900);
@@ -1021,7 +1039,12 @@ export function GameRound({
                   feverProgress={comboProgress(stats.streak).progress}
                   fever={fever}
                 />
-                {mode === "endless" && !daily && stats.throws > 0 ? (
+                {station ? (
+                  // Fortschritt der Station: „3/10 · Ziel 7“
+                  <HudPill
+                    label={t("campaign.progress", { n: stats.throws, total: station.total, goal: station.goal })}
+                  />
+                ) : mode === "endless" && !daily && stats.throws > 0 ? (
                   <HudButton
                     label={t("game.finish")}
                     onPress={() => setFinished(true)}
@@ -1087,12 +1110,14 @@ export function GameRound({
             startXp={startXp}
             xpEarned={xpEarned}
             daily={daily}
+            station={station}
+            onNext={onNext}
             results={results}
             newBest={newBest}
             mistakes={mistakes}
             onAgain={onAgain}
             onMenu={onExit}
-            board={boardFor(mode, daily)}
+            board={station ? undefined : boardFor(mode, daily)}
           />
         )}
       </View>

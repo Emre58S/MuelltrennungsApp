@@ -4,7 +4,7 @@
 // mit Symbol, Name, kurzer Zeile und rechts optional Rekord/Stand.
 
 import { Feather } from "@expo/vector-icons";
-import { type ReactNode } from "react";
+import { type ComponentRef, type ReactNode, type Ref } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -25,11 +25,14 @@ export function HubScreen({
   title,
   subtitle,
   emoji,
+  scrollRef,
   children,
 }: {
   title: string;
   subtitle: string;
   emoji: string;
+  /** Zum Hinscrollen, z. B. zur aktuellen Station im Lernpfad. */
+  scrollRef?: Ref<ComponentRef<typeof ScrollView>>;
   children: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
@@ -37,6 +40,7 @@ export function HubScreen({
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView
+        ref={scrollRef}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[

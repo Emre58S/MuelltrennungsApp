@@ -208,3 +208,28 @@ export function withStars(
   if ((stars[id] ?? 0) >= earned) return stars;
   return { ...stars, [id]: Math.min(3, Math.max(0, earned)) };
 }
+
+/** Die Station nach dieser (oder keine – Ende des Pfads). */
+export function nextStation(id: string): Station | undefined {
+  const i = STATIONS.findIndex((s) => s.id === id);
+  return i < 0 ? undefined : STATIONS[i + 1];
+}
+
+/** Gegenstände einer Runde: gemischt und ohne Zurücklegen gezogen – erst
+ *  wenn der Pool leer ist, wird neu gemischt (kein Gegenstand doppelt, solange
+ *  es genug gibt; nie zweimal direkt hintereinander). */
+export function stationQueue(station: Station, random: () => number = Math.random): Item[] {
+  const pool = stationPool(station);
+  const queue: Item[] = [];
+  while (pool.length > 0 && queue.length < station.total) {
+    const deck = [...pool];
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    // Übergang zwischen zwei Durchgängen: nicht derselbe Gegenstand doppelt
+    if (deck.length > 1 && deck[0] === queue[queue.length - 1]) deck.push(deck.shift()!);
+    queue.push(...deck);
+  }
+  return queue.slice(0, station.total);
+}

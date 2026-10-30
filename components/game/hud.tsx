@@ -715,6 +715,20 @@ export function HudButton({ label, onPress }: { label: string; onPress: () => vo
   );
 }
 
+/** Wie HudButton, aber nur Anzeige (z. B. Fortschritt einer Station). */
+export function HudPill({ label }: { label: string }) {
+  const { colors } = useAppTheme();
+  return (
+    <View
+      accessible
+      accessibilityLabel={label}
+      style={[styles.hudButton, { backgroundColor: colors.hud, borderColor: colors.hudBorder }]}
+    >
+      <AppText variant="label">{label}</AppText>
+    </View>
+  );
+}
+
 const shadow = {
   shadowColor: "#000",
   shadowOpacity: 0.12,

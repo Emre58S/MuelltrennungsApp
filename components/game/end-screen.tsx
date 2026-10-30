@@ -2,6 +2,7 @@
 // Rundenende nach dem Peak-End-Prinzip: zuerst das Positive (Lob, Punkte,
 // Bestwert, Level-Fortschritt), dann eine kurze Lern-Zusammenfassung (Fehler
 // antippen → Fakt), dann „Nochmal“. Tagesaufgabe: Ergebnis teilen.
+// Kampagnen-Station: Sterne nach dem Ziel der Station, „Nächste Station“.
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -16,6 +17,7 @@ import { Star } from "@/components/game/hud";
 import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
+import { type Station, starsFor } from "@/game/campaign";
 import { type HitResult, type Stats } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { type Board, fetchBoard, leaderboardReady } from "@/utils/leaderboard";
@@ -53,8 +55,10 @@ export function EndScreen({
   newBest,
   mistakes,
   daily,
+  station,
   results,
   onAgain,
+  onNext,
   onMenu,
   board,
 }: {
@@ -67,9 +71,13 @@ export function EndScreen({
   mistakes: Mistake[];
   /** Tagesaufgabe: eigener Titel + Teilen. */
   daily: boolean;
+  /** Kampagnen-Station: Sterne nach deren Ziel, Weiter zur nächsten. */
+  station?: Station;
   /** Ergebnis pro Wurf (für die Teilen-Kästchen). */
   results: HitResult[];
   onAgain: () => void;
+  /** Nächste Station (nur mit `station`, wenn es eine gibt). */
+  onNext?: () => void;
   onMenu: () => void;
   /** Rangliste dieser Runde: zeigt den eigenen Platz (falls online). */
   board?: Board;
@@ -140,10 +148,16 @@ export function EndScreen({
     stats.throws > 0 ? Math.round((stats.correct / stats.throws) * 100) : 0;
   // Sterne-Bewertung wie bei den Trickwürfen: 90 % → ★★★, 70 % → ★★, sonst ★.
   // Emoji und Überschrift folgen denselben Stufen, damit alles zusammenpasst.
-  const rating = stats.throws === 0 ? 0 : accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1;
+  // Station: Sterne nach deren Ziel (wie gespeichert), 0 = noch nicht geschafft.
+  const rating = station
+    ? starsFor(station, stats.correct)
+    : stats.throws === 0 ? 0 : accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1;
+  const canGoOn = !!station && rating >= 1 && !!onNext;
 
   // Überschrift: nie strafend – ein Stern ist „Gut gemacht!“
-  const heading = daily
+  const heading = station
+    ? t(rating >= 1 ? "campaign.end.done" : "campaign.end.almost")
+    : daily
     ? t("game.end.dailyTitle")
     : rating >= 2 || newBest
       ? t("game.end.great")
@@ -196,6 +210,13 @@ export function EndScreen({
           <AppText tone="textSecondary" center>
             {t("game.end.sorted", { n: stats.correct })}
           </AppText>
+          {station && (
+            <AppText variant="label" tone="textMuted" center>
+              {rating >= 1
+                ? t("campaign.end.goal", { goal: station.goal, total: station.total })
+                : t("campaign.end.missing", { n: station.goal - stats.correct })}
+            </AppText>
+          )}
 
           {rating > 0 && (
             <View style={styles.starRow} accessible accessibilityLabel={t("common.starsOf", { n: rating })}>
@@ -356,15 +377,25 @@ export function EndScreen({
               style={styles.fullWidth}
             />
           )}
+          {canGoOn && (
+            <Button
+              title={t("campaign.end.next")}
+              icon="arrow-right"
+              size="lg"
+              onPress={onNext}
+              style={styles.fullWidth}
+            />
+          )}
           <Button
             title={t("game.end.again")}
             icon="rotate-ccw"
-            size="lg"
+            size={canGoOn ? undefined : "lg"}
+            variant={canGoOn ? "secondary" : undefined}
             onPress={onAgain}
             style={styles.fullWidth}
           />
           <Button
-            title={t("game.end.menu")}
+            title={t(station ? "campaign.end.path" : "game.end.menu")}
             variant="ghost"
             onPress={onMenu}
             style={styles.fullWidth}

@@ -6,11 +6,13 @@ import {
   currentStation,
   introExamples,
   isUnlocked,
+  nextStation,
   type Station,
   STATIONS,
   starsFor,
   stationBins,
   stationPool,
+  stationQueue,
   withStars,
   WORLDS,
 } from "@/game/campaign";
@@ -112,5 +114,33 @@ describe("Freischalten", () => {
     expect(currentStation({ "1-1": 3, "1-2": 1 }).id).toBe("1-3");
     const all = Object.fromEntries(STATIONS.map((s) => [s.id, 1]));
     expect(currentStation(all).id).toBe(STATIONS[STATIONS.length - 1].id);
+  });
+});
+
+describe("Runde einer Station", () => {
+  test("jede Station hat genug Würfe, nur Gegenstände aus dem Pool, ohne Doppelte", () => {
+    for (const s of STATIONS) {
+      const queue = stationQueue(s);
+      const pool = new Set(stationPool(s));
+      expect(queue).toHaveLength(s.total);
+      expect(queue.every((it) => pool.has(it))).toBe(true);
+      if (pool.size >= s.total) expect(new Set(queue).size).toBe(s.total);
+      for (let i = 1; i < queue.length; i++) expect(queue[i]).not.toBe(queue[i - 1]);
+    }
+  });
+
+  test("kleiner Pool: neu mischen, nie zweimal hintereinander", () => {
+    const small: Station = { ...STATIONS[0], items: ["Zeitung", "Kaugummi"], total: 10 };
+    for (let n = 0; n < 20; n++) {
+      const queue = stationQueue(small);
+      expect(queue).toHaveLength(10);
+      for (let i = 1; i < queue.length; i++) expect(queue[i]).not.toBe(queue[i - 1]);
+    }
+  });
+
+  test("nächste Station", () => {
+    expect(nextStation("1-1")?.id).toBe("1-2");
+    expect(nextStation("1-4")?.id).toBe("2-1");
+    expect(nextStation(STATIONS[STATIONS.length - 1].id)).toBeUndefined();
   });
 });
