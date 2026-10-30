@@ -34,6 +34,8 @@ export const de = {
   "home.record": "Rekord",
   "home.modesLabel": "Spielmodus wählen",
   "home.throwHint": "Wirf in eine Tonne, um zu starten",
+  "home.flameAtRisk": "🔥 Heute spielen – deine {count} Tage bleiben",
+  "home.flameRescued": "🔥 Flamme gerettet – 1 Tag Pause pro Woche ist ok",
   "home.startMode": "{mode} starten",
   "home.book": "Sammelbuch",
   "home.daily": "Tagesaufgabe",

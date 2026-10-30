@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Storage Keys ──────────────────────────────────────────────────────
 import { goldCount } from "@/game/mastery";
+import { type FlameStatus, flameState, nextStreak } from "@/utils/streak";
 
 export const StorageKeys = {
   SOUND_ENABLED: "muell_sound_enabled",
@@ -13,6 +14,7 @@ export const StorageKeys = {
   HIGHSCORE_ZIELWURF: "muell_highscore_zielwurf",
   STREAK_COUNT: "muell_streak_count",
   STREAK_LAST_DATE: "muell_streak_last_date",
+  STREAK_RESCUE: "muell_streak_rescue",
   TOTAL_XP: "muell_total_xp",
   LEVEL: "muell_level",
   TOTAL_CORRECT: "muell_total_correct",
@@ -212,46 +214,41 @@ export function recordRound(
   });
 }
 
-// ── Streak Helpers ────────────────────────────────────────────────────
+// ── Streak Helpers (Tages-Flamme, Logik in utils/streak.ts) ──────────
 export async function getStreakData(): Promise<{
   count: number;
   lastDate: string | null;
+  lastRescue: string | null;
 }> {
-  const [count, lastDate] = await Promise.all([
+  const [count, lastDate, lastRescue] = await Promise.all([
     getNumber(StorageKeys.STREAK_COUNT),
     getItem(StorageKeys.STREAK_LAST_DATE),
+    getItem(StorageKeys.STREAK_RESCUE),
   ]);
-  return { count, lastDate };
+  return { count, lastDate, lastRescue };
 }
 
-/** Streak für die Anzeige: 0, wenn weder heute noch gestern gespielt wurde. */
-export async function getActiveStreak(): Promise<number> {
-  const { count, lastDate } = await getStreakData();
-  const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-  return lastDate === today || lastDate === yesterday ? count : 0;
+/** Flamme für die Anzeige: Tage in Folge und ob sie heute gerettet wurde/werden kann. */
+export async function getFlame(): Promise<{ count: number; status: FlameStatus }> {
+  return flameState(await getStreakData(), todayKey());
 }
 
 export async function updateStreak(): Promise<{
   newCount: number;
   isNewDay: boolean;
 }> {
-  const today = new Date().toISOString().split("T")[0];
-  const { count, lastDate } = await getStreakData();
-
-  if (lastDate === today) {
-    return { newCount: count, isNewDay: false };
-  }
-
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-  const newCount = lastDate === yesterday ? count + 1 : 1;
+  const today = todayKey();
+  const old = await getStreakData();
+  const next = nextStreak(old, today);
+  if (next.lastDate === old.lastDate) return { newCount: next.count, isNewDay: false };
 
   await Promise.all([
-    setNumber(StorageKeys.STREAK_COUNT, newCount),
+    setNumber(StorageKeys.STREAK_COUNT, next.count),
     setItem(StorageKeys.STREAK_LAST_DATE, today),
+    next.rescued ? setItem(StorageKeys.STREAK_RESCUE, today) : Promise.resolve(),
   ]);
 
-  return { newCount, isNewDay: true };
+  return { newCount: next.count, isNewDay: true };
 }
 
 // ── XP / Level Helpers ────────────────────────────────────────────────

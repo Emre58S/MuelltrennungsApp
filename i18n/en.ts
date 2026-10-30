@@ -35,6 +35,8 @@ export const en: Translations = {
   "home.record": "Best",
   "home.modesLabel": "Choose a game mode",
   "home.throwHint": "Throw into a bin to start",
+  "home.flameAtRisk": "🔥 Play today – keep your {count} days",
+  "home.flameRescued": "🔥 Flame saved – 1 day off per week is OK",
   "home.startMode": "Start {mode}",
   "home.book": "Collection",
   "home.daily": "Daily challenge",

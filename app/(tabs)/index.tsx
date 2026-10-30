@@ -67,10 +67,11 @@ import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, type ScreenRect } from "@/gam
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { refreshSfxSetting, sfx, sfxStreak } from "@/utils/sfx";
 import { playMusic, refreshMusicSetting } from "@/utils/music";
+import type { FlameStatus } from "@/utils/streak";
 import {
   type DailyResult,
   flushThrowRecords,
-  getActiveStreak,
+  getFlame,
   getBoolean,
   setBoolean,
   getHighscoreKey,
@@ -137,6 +138,7 @@ export default function HomeScreen() {
   const [lastMode, setLastMode] = useState<GameMode>("endless");
   const [totalXP, setTotalXP] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [flame, setFlame] = useState<FlameStatus>("none");
   const [loaded, setLoaded] = useState(false);
   const [daily, setDaily] = useState<DailyResult | null>(null);
   const [seenTutorial, setSeenTutorial] = useState(true);
@@ -288,7 +290,7 @@ export default function HomeScreen() {
             getNumber(getHighscoreKey(HIGHSCORE_MODE.survival)),
             getNumber(getHighscoreKey(HIGHSCORE_MODE.time)),
             getNumber(getHighscoreKey(HIGHSCORE_MODE.aim)),
-            getActiveStreak(),
+            getFlame(),
             getNumber(StorageKeys.TOTAL_XP),
             getLastMode(),
             getTodayDaily(),
@@ -296,13 +298,14 @@ export default function HomeScreen() {
             getBoolean(StorageKeys.SEEN_DUEL, false),
           ]),
         )
-        .then(([endless, survival, time, aim, activeStreak, xp, mode, today, seen, duelSeen]) => {
+        .then(([endless, survival, time, aim, flameNow, xp, mode, today, seen, duelSeen]) => {
           if (!active) return;
           setSeenTutorial(seen);
           setSeenDuel(duelSeen);
           setDaily(today);
           setScores({ endless, survival, time, aim });
-          setStreak(activeStreak);
+          setStreak(flameNow.count);
+          setFlame(flameNow.status);
           setTotalXP(xp);
           setLastMode(mode);
         })
@@ -476,7 +479,20 @@ export default function HomeScreen() {
         pointerEvents="box-none"
         onLayout={(e) => setMenuTop(Math.round(e.nativeEvent.layout.y))}
       >
-        {!compact && <ThrowHint text={t("home.throwHint")} calm={reduceMotion} />}
+        {/* Tages-Flamme: gestern Pause → heute spielen rettet sie (1× pro Woche) */}
+        {!compact && (
+          <ThrowHint
+            text={
+              flame === "atRisk"
+                ? t("home.flameAtRisk", { count: streak })
+                : flame === "rescued"
+                  ? t("home.flameRescued")
+                  : t("home.throwHint")
+            }
+            calm={reduceMotion}
+            arrow={flame !== "rescued"}
+          />
+        )}
 
         <Pressable
           accessibilityRole="button"
@@ -686,10 +702,10 @@ function ModeBin({
 }
 
 /** „Wirf in eine Tonne …“ mit sanft hüpfendem Pfeil. */
-function ThrowHint({ text, calm }: { text: string; calm: boolean }) {
+function ThrowHint({ text, calm, arrow = true }: { text: string; calm: boolean; arrow?: boolean }) {
   const [v] = useState(() => new Animated.Value(0));
   useEffect(() => {
-    if (calm) return;
+    if (calm || !arrow) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(v, { toValue: 1, duration: 520, easing: Easing.out(Easing.quad), useNativeDriver: true }),
@@ -698,16 +714,18 @@ function ThrowHint({ text, calm }: { text: string; calm: boolean }) {
     );
     loop.start();
     return () => loop.stop();
-  }, [v, calm]);
+  }, [v, calm, arrow]);
 
   return (
     <View style={styles.hint} pointerEvents="none">
-      <Animated.View
-        style={{ transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}
-      >
-        <Feather name="arrow-up" size={16} color={ON_SCENE} />
-      </Animated.View>
-      <AppText variant="label" color={ON_SCENE} style={TEXT_SHADOW}>
+      {arrow && (
+        <Animated.View
+          style={{ transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}
+        >
+          <Feather name="arrow-up" size={16} color={ON_SCENE} />
+        </Animated.View>
+      )}
+      <AppText variant="label" color={ON_SCENE} style={[TEXT_SHADOW, styles.hintText]} numberOfLines={2}>
         {text}
       </AppText>
     </View>
@@ -1081,6 +1099,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     paddingVertical: 4,
+  },
+  hintText: {
+    flexShrink: 1,
+    textAlign: "center",
   },
   continue: {
     flexDirection: "row",

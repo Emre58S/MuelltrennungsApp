@@ -253,6 +253,7 @@ export default function EinstellungenScreen() {
                 StorageKeys.LEVEL,
                 StorageKeys.STREAK_COUNT,
                 StorageKeys.STREAK_LAST_DATE,
+                StorageKeys.STREAK_RESCUE,
                 StorageKeys.TOTAL_CORRECT,
                 StorageKeys.TOTAL_PLAYED,
               ])
