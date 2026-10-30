@@ -180,14 +180,20 @@ export async function fetchBoard(board: Board, limit = 50): Promise<BoardResult>
 
 export type DayGhost = { name: string; code: string; correct: number; ms: number; isMe: boolean };
 
+/** Zuletzt erfolgreich gesendeter Ghost-Lauf (Tag + Code) – nicht bei jedem Öffnen neu senden. */
+let sentGhost: string | null = null;
+
 /** Eigenen besten Ghost-Lauf des Tages einreichen (der Server behält nur den
  *  besten je Spieler). Still, wenn offline oder nicht eingerichtet. */
 export async function submitGhostRun(day: string, code: string, correct: number, ms: number): Promise<void> {
   if (!leaderboardReady) return;
+  const key = `${day}:${code}`;
+  if (sentGhost === key) return;
   try {
     const player = await getPlayer();
     await rpc("set_name", { p_player: player.id, p_name: player.name });
     await rpc("submit_ghost", { p_player: player.id, p_day: day, p_code: code, p_correct: correct, p_ms: Math.round(ms) });
+    sentGhost = key;
   } catch {
     // Beim nächsten Rennen wird der beste Lauf erneut gesendet
   }
