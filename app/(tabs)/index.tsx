@@ -428,7 +428,7 @@ export default function HomeScreen() {
         <View
           style={styles.levelChip}
           accessible
-          accessibilityLabel={`${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}`}
+          accessibilityLabel={`${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}${flame === "atRisk" ? `. ${t("home.flameAtRisk")}` : ""}`}
         >
           <View style={styles.levelRow}>
             <AppText variant="label" color={ON_SCENE}>
@@ -436,7 +436,8 @@ export default function HomeScreen() {
             </AppText>
             {streak > 0 && (
               <AppText variant="caption" color={ON_SCENE_SOFT}>
-                🔥 {streak}
+                {/* ⏳ = gestern Pause, heute spielen rettet die Flamme (auch auf kleinen Handys ohne Hinweiszeile) */}
+                🔥 {streak}{flame === "atRisk" ? " ⏳" : ""}
               </AppText>
             )}
           </View>
@@ -484,7 +485,7 @@ export default function HomeScreen() {
           <ThrowHint
             text={
               flame === "atRisk"
-                ? t("home.flameAtRisk", { count: streak })
+                ? t("home.flameAtRisk")
                 : flame === "rescued"
                   ? t("home.flameRescued")
                   : t("home.throwHint")
