@@ -76,12 +76,14 @@ JS-Änderungen per EAS-Update nachkommen.
 ## 4. Backlog (oben = als Nächstes)
 
 ### R1 – Startschirm aufräumen (Muss)
-- [ ] **R1a** 3 Tonnen statt 4: Kampagne / Online / Sammlung. **Name groß auf
-  der Tonne** (Schild/Aufkleber am Tonnenkörper), Felder unter den Tonnen
-  entfernen (Rekord/„zuletzt“ wandern in die jeweilige Seite).
-- [ ] **R1b** „Weiter“-Knopf und Kachel-Reihe weg; Ghost/Duell/Tagesaufgabe
-  ziehen in Online bzw. Kampagne um. Oben nur Level-Chip + Flamme (⏳ antippbar
-  erklären – F1-Idee).
+- [x] **R1a** 3 Tonnen Kampagne / Online / Sammlung, Name als Aufkleber auf der
+  Tonne, Felder darunter weg; Bereichsseiten app/kampagne|online|sammlung.tsx
+  (d71099b + b044b60, Tester 7/10 → 8/10, EAS auto + preview).
+- [x] **R1b** „Weiter“, Kachel-Reihe und Fußzeile weg (in den Bereichen).
+  Offen daraus: ⏳ antippbar erklären; Stack.Screen-Einträge für die 3 Seiten
+  in app/_layout.tsx (Animation erst ab 2. Öffnen); Tagesaufgabe erledigt →
+  Text „Morgen gibt's eine neue“ statt Einladung; Trick-Text „Durch Reifen“
+  nach R5 anpassen; „Zuletzt“ schneller erreichbar (bis R2 den Pfad bringt).
 - [ ] **R1c** Ein einziger Hinweis-Platz (Flamme-Rettung, Tagesbester,
   Herausforderung) mit Vorrang-Regel statt mehrerer Zeilen.
 - [ ] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen.
