@@ -5,7 +5,7 @@
 // die Rangliste. Später: Zeit-Sprint, Survival, Trick-Battle (ROADMAP.md, R4).
 
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
@@ -30,12 +30,16 @@ export default function OnlineScreen() {
     setDraft("");
     setInvalid(null);
   };
+  // Sperre gegen Doppeltippen (sonst zwei Rennen übereinander)
+  const lockUntil = useRef(0);
   const acceptCode = () => {
+    if (Date.now() < lockUntil.current) return;
     const found = readCode(draft);
     if (typeof found === "string") {
       setInvalid(found);
       return;
     }
+    lockUntil.current = Date.now() + 900;
     const code = draft.trim();
     closeCode();
     router.push({ pathname: "/runde", params: { mode: "ghost", code } });
@@ -69,7 +73,8 @@ export default function OnlineScreen() {
         color="#7C5CD6"
         title={t("ghost.code.enter")}
         desc={t("hub.code.desc")}
-        onPress={() => (entering ? closeCode() : setEntering(true))}
+        // Öffnet nur – zu geht es mit „Abbrechen“ (eingefügter Text bleibt sonst erhalten)
+        onPress={() => setEntering(true)}
       />
       {entering && (
         <View style={[styles.codeBox, { backgroundColor: colors.surface }]}>

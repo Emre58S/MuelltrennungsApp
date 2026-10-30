@@ -518,6 +518,11 @@ function GhostRace({
                     })}
               </AppText>
             )}
+            {!friendRun && (
+              <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                {t("ghost.codeWhere")}
+              </AppText>
+            )}
             {friendRun && day !== today && (
               <AppText variant="caption" tone="textSecondary" style={styles.center}>
                 {t("ghost.trackFrom", { date: day.split("-").reverse().join(".") })}
