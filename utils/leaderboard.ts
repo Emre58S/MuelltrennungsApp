@@ -175,3 +175,36 @@ export async function fetchBoard(board: Board, limit = 50): Promise<BoardResult>
     me: mine?.[0] ? { rank: Number(mine[0].rank), score: mine[0].score } : null,
   };
 }
+
+/* ── Ghost des Tagesbesten (supabase/ghost.sql) ──────────────── */
+
+export type DayGhost = { name: string; code: string; correct: number; ms: number; isMe: boolean };
+
+/** Eigenen besten Ghost-Lauf des Tages einreichen (der Server behält nur den
+ *  besten je Spieler). Still, wenn offline oder nicht eingerichtet. */
+export async function submitGhostRun(day: string, code: string, correct: number, ms: number): Promise<void> {
+  if (!leaderboardReady) return;
+  try {
+    const player = await getPlayer();
+    await rpc("set_name", { p_player: player.id, p_name: player.name });
+    await rpc("submit_ghost", { p_player: player.id, p_day: day, p_code: code, p_correct: correct, p_ms: Math.round(ms) });
+  } catch {
+    // Beim nächsten Rennen wird der beste Lauf erneut gesendet
+  }
+}
+
+/** Bester Lauf des Tages (oder null: keiner, offline oder nicht eingerichtet). */
+export async function fetchDayGhost(day: string): Promise<DayGhost | null> {
+  if (!leaderboardReady) return null;
+  try {
+    const player = await getPlayer();
+    const rows = await rpc<{ name: string; code: string; correct: number; ms: number; is_me: boolean }[]>(
+      "top_ghost",
+      { p_day: day, p_player: player.id },
+    );
+    const r = rows?.[0];
+    return r ? { name: r.name, code: r.code, correct: r.correct, ms: r.ms, isMe: r.is_me } : null;
+  } catch {
+    return null;
+  }
+}

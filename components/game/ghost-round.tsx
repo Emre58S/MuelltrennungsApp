@@ -9,6 +9,8 @@
 // Herausforderung: Den eigenen Lauf als Code verschicken (Teilen-Menü); der
 // Freund fügt ihn auf dem Startschirm ein und spielt gegen diesen Ghost –
 // gleiche Strecke wie am Tag des Laufs. „Revanche“ behält die Herausforderung.
+// Tagesbester: Der eigene beste Lauf geht (falls online) an den Server; der
+// beste Lauf aller Spieler von heute lässt sich als Ghost wählen.
 
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -72,7 +74,7 @@ import { itemMaterial } from "@/game/item-mass";
 import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
 import { aimFromDrag } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { getPlayer } from "@/utils/leaderboard";
+import { type DayGhost, fetchDayGhost, getPlayer, submitGhostRun } from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { getGhostBest, saveGhostBest, todayKey } from "@/utils/storage";
@@ -108,19 +110,28 @@ function readCode(text: string): Challenge | "invalid" | "update" {
   return challengeRun(ch, correctBins, bins.length) ? ch : "update";
 }
 
+/** Woher die Herausforderung kommt: Code eines Freundes oder Tagesbester. */
+type ChallengeFrom = "code" | "top";
+
+/** Eigenen besten Lauf von heute an den Server (still, falls offline). */
+function sendBest(run: GhostRun, sign: string) {
+  submitGhostRun(run.day, encodeRun(run, sign), run.correct, run.ms).catch(() => undefined);
+}
+
 /** Hält die Herausforderung über „Revanche“ hinweg; jede Runde frisch aufgebaut. */
 export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: () => void }) {
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [challenge, setChallenge] = useState<{ ch: Challenge; from: ChallengeFrom } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const restart = useCallback(() => setAttempt((a) => a + 1), []);
-  const choose = useCallback((ch: Challenge | null) => {
-    setChallenge(ch);
+  const choose = useCallback((ch: Challenge | null, from: ChallengeFrom = "code") => {
+    setChallenge(ch ? { ch, from } : null);
     setAttempt((a) => a + 1);
   }, []);
   return (
     <GhostRace
       key={attempt}
-      challenge={challenge}
+      challenge={challenge?.ch ?? null}
+      from={challenge?.from ?? "code"}
       onChallenge={choose}
       onAgain={challenge ? restart : onAgain}
       onExit={onExit}
@@ -130,12 +141,14 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
 
 function GhostRace({
   challenge,
+  from,
   onChallenge,
   onAgain,
   onExit,
 }: {
   challenge: Challenge | null;
-  onChallenge: (ch: Challenge | null) => void;
+  from: ChallengeFrom;
+  onChallenge: (ch: Challenge | null, from?: ChallengeFrom) => void;
   onAgain: () => void;
   onExit: () => void;
 }) {
@@ -170,6 +183,26 @@ function GhostRace({
       .catch(() => undefined)
       .finally(() => setLoaded(true));
   }, [today]);
+  // Tagesbester (nur beim eigenen Rennen): erst den eigenen Bestlauf senden, dann laden
+  const [top, setTop] = useState<{ ch: Challenge; info: DayGhost } | null>(null);
+  useEffect(() => {
+    if (challenge) return;
+    let alive = true;
+    getGhostBest()
+      .then(async (raw) => {
+        const own = parseRun(raw, today);
+        if (own) await submitGhostRun(today, encodeRun(own, trackFor(today).sign), own.correct, own.ms);
+        const info = await fetchDayGhost(today);
+        const ch = info ? readCode(info.code) : null;
+        if (alive && info && ch && typeof ch !== "string" && ch.day === today) {
+          setTop({ ch: { ...ch, name: info.name }, info });
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [challenge, today]);
   const ghost = friendRun ?? best ?? practice;
   const friendName = challenge ? (challenge.name ?? t("ghost.friend")) : null;
   const ghostName = friendName ?? (best ? t("ghost.name") : t("ghost.practiceName"));
@@ -269,7 +302,10 @@ function GhostRace({
     const run = makeRun(day, myThrows.current);
     // Nur Läufe auf der heutigen Strecke können der eigene Ghost werden
     const newBest = day === today && (!best || beats(run, best));
-    if (newBest) saveGhostBest(JSON.stringify(run)).catch(() => undefined);
+    if (newBest) {
+      saveGhostBest(JSON.stringify(run)).catch(() => undefined);
+      sendBest(run, sign);
+    }
     // Gegen einen Freund auf 0,1 s genau werten – wie dessen Code (gleicher Sieger auf beiden Handys)
     setEnd({ run, result: friendRun ? ghostResult(roundRun(run), ghost) : ghostResult(run, ghost), newBest });
     setItem(null);
@@ -496,6 +532,18 @@ function GhostRace({
                     : t("ghost.practice")}
               </AppText>
             </View>
+            {!friendRun && top && (
+              <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                {top.info.isMe
+                  ? t("ghost.top.me")
+                  : t("ghost.top.info", {
+                      name: top.info.name,
+                      correct: top.info.correct,
+                      total: GHOST_ITEMS,
+                      time: sec(top.info.ms),
+                    })}
+              </AppText>
+            )}
             {friendRun && day !== today && (
               <AppText variant="caption" tone="textSecondary" style={styles.center}>
                 {t("ghost.trackFrom", { date: day.split("-").reverse().join(".") })}
@@ -543,7 +591,17 @@ function GhostRace({
                 {friendRun ? (
                   <Button title={t("ghost.code.mine")} variant="secondary" onPress={() => onChallenge(null)} />
                 ) : (
-                  <Button title={t("ghost.code.enter")} icon="users" variant="secondary" onPress={() => setEntering(true)} />
+                  <>
+                    {top && !top.info.isMe && (
+                      <Button
+                        title={t("ghost.top.play", { name: top.info.name })}
+                        icon="award"
+                        variant="secondary"
+                        onPress={() => onChallenge(top.ch, "top")}
+                      />
+                    )}
+                    <Button title={t("ghost.code.enter")} icon="users" variant="secondary" onPress={() => setEntering(true)} />
+                  </>
                 )}
               </>
             )}
@@ -564,6 +622,7 @@ function GhostRace({
           ghostName={ghostName}
           practice={!friendRun && !best}
           friend={friendRun ? ghostName : null}
+          canSendBack={from === "code"}
           first={!best}
           track={sign}
           queue={queue}
@@ -597,6 +656,7 @@ function GhostEnd({
   ghostName,
   practice,
   friend,
+  canSendBack,
   first,
   track,
   queue,
@@ -610,6 +670,8 @@ function GhostEnd({
   practice: boolean;
   /** Name des Freundes bei einer Herausforderung, sonst null. */
   friend: string | null;
+  /** Lauf an den Gegner zurückschicken? (nur bei Code eines Freundes) */
+  canSendBack: boolean;
   /** Noch kein eigener Ghost von heute (erster Lauf wird gespeichert). */
   first: boolean;
   /** Strecken-Kennung für den Code (trackSign). */
@@ -738,7 +800,7 @@ function GhostEnd({
         )}
 
         <Button
-          title={friend ? t("ghost.shareBack", { name: friend }) : t("ghost.share")}
+          title={friend && canSendBack ? t("ghost.shareBack", { name: friend }) : t("ghost.share")}
           icon="share-2"
           size="lg"
           onPress={share}
