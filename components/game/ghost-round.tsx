@@ -54,6 +54,7 @@ import {
   decodeChallenge,
   encodeRun,
   GHOST_ITEMS,
+  isOtherVersionCode,
   ghostQueue,
   ghostResult,
   type GhostResult,
@@ -101,7 +102,7 @@ function trackFor(day: string) {
  *  Code („invalid“) oder anderer App-Stand mit anderer Strecke („update“). */
 function readCode(text: string): Challenge | "invalid" | "update" {
   const ch = decodeChallenge(text);
-  if (!ch) return "invalid";
+  if (!ch) return isOtherVersionCode(text) ? "update" : "invalid";
   const { correctBins, bins, sign } = trackFor(ch.day);
   if (ch.track !== sign) return "update";
   return challengeRun(ch, correctBins, bins.length) ? ch : "update";

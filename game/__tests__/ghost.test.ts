@@ -8,6 +8,7 @@ import {
   challengeRun,
   decodeChallenge,
   encodeRun,
+  isOtherVersionCode,
   roundRun,
   trackSign,
   GHOST_ITEMS,
@@ -115,6 +116,14 @@ describe("Herausforderung per Code", () => {
     expect(decodeChallenge(typo)).toBeNull();
     expect(decodeChallenge(code.slice(0, -2))).toBeNull();
     expect(decodeChallenge("Ghost ghost gh")).toBeNull();
+  });
+
+  test("Code aus einer anderen Version wird als solcher erkannt", () => {
+    const v1 = "gh1" + encodeRun(run, "k3").slice(3, -1);
+    const sums = "0123456789abcdefghijklmnopqrstuvwxyz".split("").map((c) => v1 + c);
+    expect(sums.filter(isOtherVersionCode)).toHaveLength(1);
+    expect(isOtherVersionCode(encodeRun(run, "k3"))).toBe(false);
+    expect(isOtherVersionCode("Ghost-Rennen")).toBe(false);
   });
 
   test("Tonne außerhalb der Szene → kein Lauf", () => {

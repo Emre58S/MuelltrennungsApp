@@ -375,7 +375,7 @@ export const de = {
   "ghost.code.placeholder": "Nachricht mit dem Code hier einfügen",
   "ghost.code.go": "Annehmen",
   "ghost.code.invalid": "Diesen Code finde ich nicht. Bitte die ganze Nachricht kopieren und einfügen.",
-  "ghost.code.update": "Dieser Code ist von einem anderen App-Stand. Bitte beide die App ganz schließen und neu öffnen, dann nochmal teilen.",
+  "ghost.code.update": "Dieser Code ist von einer anderen App-Version. Beide: App ganz schließen, neu öffnen, neu teilen.",
   "ghost.code.mine": "Lieber gegen meinen Ghost",
   "ghost.winFriend": "Du hast {name} geschlagen!",
   "ghost.loseFriend": "{name} war diesmal besser. Revanche?",

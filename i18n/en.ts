@@ -376,7 +376,7 @@ export const en: Translations = {
   "ghost.code.placeholder": "Paste the message with the code here",
   "ghost.code.go": "Accept",
   "ghost.code.invalid": "I can't find this code. Please copy and paste the whole message.",
-  "ghost.code.update": "This code is from a different app version. Both of you: close the app fully, open it again, then share again.",
+  "ghost.code.update": "This code is from another app version. Both: close the app fully, reopen, share again.",
   "ghost.code.mine": "Play my own ghost instead",
   "ghost.winFriend": "You beat {name}!",
   "ghost.loseFriend": "{name} was better this time. Rematch?",

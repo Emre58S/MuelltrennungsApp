@@ -179,6 +179,16 @@ export function decodeChallenge(text: string): Challenge | null {
   return null;
 }
 
+/** Gültiger Code, aber aus einem anderen App-Stand (andere Version)? */
+export function isOtherVersionCode(text: string): boolean {
+  for (const m of text.matchAll(/gh([0-9a-z]{7,})/giu)) {
+    const raw = m[1].toLowerCase();
+    const body = raw.slice(0, -1);
+    if (body[0] !== CODE_VERSION && checksum(body) === raw.slice(-1)) return true;
+  }
+  return false;
+}
+
 /** Zeit auf 0,1 s wie im Code – so werten beide Handys einen Vergleich gleich
  *  (sonst könnte bei fast gleicher Zeit auf beiden Handys ein anderer Sieger stehen). */
 export function roundRun(run: GhostRun): GhostRun {
