@@ -31,7 +31,7 @@ Expo Go.
 ## Modi (welcher gilt, sagt der Nutzer)
 **Aktuell (Nutzer, 29.10. abends): Normalmodus** – „alles immer so, dass Emre es
 bei sich spielen kann“: jede freigegebene Änderung pushen (auto-improve +
-sdk-58) und per EAS auf auto UND preview. Reihenfolge: Prall-Level → Duell →
+sdk-58) und per EAS auf auto UND preview. Reihenfolge (Nutzer, 30.10.): Ghost-Duell (G1–G4) →
 Tages-Flamme/Missionen. Lange Sitzungen trotzdem vermeiden (frisch starten).
 
 **Sparlauf (nur auf Ansage; zuletzt 29.10. nachmittags)** – Wochenlimit knapp:
@@ -66,6 +66,8 @@ wenig Deutsch, nie strafend.
 - Keine grundlegenden Mechaniken ändern (Werfen, Physik, Regeln, Wertung).
   Ausnahme (Nutzer, 2026-10-28): neue Ziele (Sondermüll-Box) und neue
   Trick-Hindernisse (Schild, Laterne, Markise, Zaun) sind erlaubt.
+  Ausnahme (Nutzer, 2026-10-30): Modus Ghost-Duell (nacheinander gegen den
+  aufgezeichneten Lauf, Herausforderung per Code, später Live-Raum).
   Ausnahme (Nutzer, 2026-10-29): Trickwürfe ohne Köder/Auswahl (direkt werfen),
   Prall-Level zwischen den Tonnen, Modus Duell (1 gegen 1 an einem
   Handy), Tages-Flamme + Tagesmissionen; Zielwurf ausgeblendet.

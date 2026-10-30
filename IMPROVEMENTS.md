@@ -7,7 +7,7 @@ ergänzen oder umsortieren – ich lese die Datei zu Beginn jedes Zyklus neu.
 Leitlinie: Das Spielgefühl soll sehr gut sein – ohne grundlegende Mechaniken
 zu ändern.
 
-## Zweig `spielspass` (Emre, 29.10. abends) – lokal, noch nicht gepusht
+## Zweig `spielspass` (Emre, 29.10. abends) – gepusht (8ac6355, auch auto-improve/sdk-58)
 
 **Trickwürfe – Spielplatz statt Hindernisse:** Level 19–24 (Schild, Laterne,
 Bauzaun, Bandenwurf) ersetzt – sie standen nur im Weg. Neu: Trampolin
@@ -46,14 +46,21 @@ neue Wurfspuren Smaragd/Lava/Diamant ab 3/10/25 Gold.
 - Ruckeln (Nutzer 29.10., Preview, dauernd im Spiel): im ausgelieferten Code keine Ursache gefunden (Modelle gecacht, nichts pro Frame neu). Erst Gerät prüfen (Expo Go neu, Stromsparmodus); ggf. lokale Commits ausliefern (Normalmodus nötig).
 - M5 Rest: Küchentuch (optional).
 
-## Als Nächstes (Nutzer, 29.10. abends) – jede Freigabe sofort auf preview
-1. [~] Prall-Level Trickwürfe (Teil 1 erledigt 5e605f7+: Level 24 Schild hinter der Lücke Mitte/rechts, Bonus „Bandenwurf“ = Schild berührt, Tester 8/10. Offen: weitere Prall-Level, z. B. gespiegelt/andere Lücke, bewegtes Brett; Tipp „Ziel in die Lücke“; Tages-Trick nimmt Level 24 automatisch auf): Hindernisse zwischen den Tonnen, je nach Treffpunkt
-   richtige oder Nachbartonne; Bonus „Bandenwurf“; jedes Level mit grünem
-   Fairness-Test (npx jest game/__tests__/tricks.test.ts).
-2. Duell (1 gegen 1 an einem Handy): 5 Runden à 3 Würfe je Spieler, gleiche
-   Mischung/Schwierigkeit, Übergabe-Bildschirm, Tauziehen-Balken, Finale ×2,
-   Siegerbildschirm + Revanche + Lernliste. Neuer Modus in game-round.tsx.
-3. Tages-Flamme (mit Rettung 1×/Woche) + 3 Tagesmissionen.
+## Als Nächstes (Nutzer, 30.10.) – jede Freigabe sofort auf preview
+1. **Ghost-Duell (1. Priorität)** – 1 gegen 1 nacheinander wie bei Trials:
+   gleiche 10 Gegenstände (fester Seed), der Lauf des Gegners fliegt als halb
+   durchsichtiger Geist zur selben Sekunde mit, Tauziehen-Balken mit Live-Stand,
+   Ergebnis + Lernliste („Beide falsch: …“) + Revanche (eigener Lauf wird Ghost).
+   Lauf = Ereignisliste (Zeit, Gegenstand, Winkel/Kraft, Tonne, richtig);
+   Flugbahn nachrechnen, Landung aus dem gespeicherten Ergebnis.
+   Schritte: **G1** Ghost des eigenen Bestwerts (lokal, ohne Server) ·
+   **G2** Herausforderung per Code/Link (Supabase-Tabelle `challenges`,
+   Teilen-Menü, Revanche) · **G3** Ghost des Tagesbesten (Tagesaufgabe) ·
+   **G4** (optional) Live-Raum über Supabase Realtime mit demselben Ereignisformat.
+   Emres Schnell-Duell (ein Handy, gleichzeitig) bleibt für „zusammen auf dem Sofa“.
+2. Tages-Flamme (mit Rettung 1×/Woche) + 3 Tagesmissionen.
+3. Prall-Level: von Emre durch Trampolin-/Deckel-Level ersetzt (Level 19–24) –
+   nur auf Ansage wieder aufnehmen.
 
 ## Ideen des Nutzers (29.10.)
 - Zielwurf ausgeblendet (Menü, Modi, Rangliste); Code bleibt.
