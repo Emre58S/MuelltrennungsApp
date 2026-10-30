@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mülltrennung – immer die neueste Version</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2a1f; background: #f6f8f4; }
+  h1 { font-size: 1.6rem; }
+  .codes { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .card { background: #fff; border-radius: 16px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.08); flex: 1 1 300px; text-align: center; }
+  .card img { width: 240px; height: 240px; }
+  .tag { display: inline-block; padding: .2rem .6rem; border-radius: 999px; background: #2e7d32; color: #fff; font-weight: 600; }
+  .tag.auto { background: #6d4c9f; }
+  ol li { margin: .4rem 0; }
+  code { background: #e8eee4; padding: .1rem .3rem; border-radius: 4px; }
+  small { color: #5a665a; }
+</style>
+</head>
+<body>
+<h1>♻️ Mülltrennung – immer die neueste Version</h1>
+<p>Die QR-Codes ändern sich nie. Nach jeder Änderung schicke ich ein Update (EAS) auf
+beide Kanäle. Scanne den Code also <b>nur einmal</b>, danach kommt der neue Stand von allein.
+Ein Laptop und <code>npx expo start</code> sind dafür nicht nötig.</p>
+
+<div class="codes">
+  <div class="card">
+    <span class="tag">preview</span>
+    <p>Spielversion (für dich und Emre)</p>
+    <img alt="QR-Code Kanal preview"
+         src="https://qr.expo.dev/eas-update?projectId=755e2547-8592-4e0b-80ed-031d1b18b3a1&amp;runtimeVersion=exposdk:58.0.0&amp;channel=preview">
+  </div>
+  <div class="card">
+    <span class="tag auto">auto</span>
+    <p>Automatisches Verbessern (gleicher Stand, eigener Kanal)</p>
+    <img alt="QR-Code Kanal auto"
+         src="https://qr.expo.dev/eas-update?projectId=755e2547-8592-4e0b-80ed-031d1b18b3a1&amp;runtimeVersion=exposdk:58.0.0&amp;channel=auto">
+  </div>
+</div>
+
+<h2>So geht's</h2>
+<ol>
+  <li>Den Code <b>einmal</b> mit der iPhone-Kamera scannen. Die App öffnet sich in Expo Go.</li>
+  <li>Danach steht das Projekt in Expo Go unter <i>Recently opened</i>. Ab jetzt einfach dort antippen.</li>
+  <li>Neuer Stand: Expo Go lädt ihn beim Öffnen im Hintergrund und zeigt ihn beim
+      <b>nächsten</b> Öffnen. Also die App ganz schließen (nach oben wischen) und neu öffnen,
+      notfalls zweimal.</li>
+</ol>
+<p><small>Funktioniert nur in Expo Go (nicht im Browser). Neue Updates gibt es, solange die App auf
+Expo SDK 58 bleibt. Bei einem SDK-Wechsel bekommt der QR-Code eine neue Laufzeit-Version.
+<code>npx expo start</code> brauchst du nur noch, wenn du live mitsehen willst, während ich
+gerade etwas ändere.</small></p>
+</body>
+</html>
