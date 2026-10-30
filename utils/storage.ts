@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Storage Keys ──────────────────────────────────────────────────────
+import { type CampaignStars, withStars } from "@/game/campaign";
 import { goldCount } from "@/game/mastery";
 import { type FlameStatus, flameState, nextStreak } from "@/utils/streak";
 
@@ -42,6 +43,8 @@ export const StorageKeys = {
   SEEN_DUEL: "muell_seen_duel",
   /** Ghost-Rennen: bester Lauf von heute (game/ghost.ts). */
   GHOST_BEST: "muell_ghost_best",
+  /** Kampagne: Sterne je Station (game/campaign.ts). */
+  CAMPAIGN_STARS: "muell_campaign_stars",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -466,6 +469,27 @@ export async function getTrickStars(): Promise<TrickStars> {
   } catch {
     return {};
   }
+}
+
+/** Kampagne: Sterne je Station (leer, wenn noch nichts gespielt). */
+export async function getCampaignStars(): Promise<CampaignStars> {
+  const raw = await getItem(StorageKeys.CAMPAIGN_STARS);
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as CampaignStars) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Kampagne: Ergebnis einer Station speichern – nur mehr Sterne zählen. */
+export function saveCampaignStars(id: string, stars: number): Promise<void> {
+  return enqueue(async () => {
+    const all = await getCampaignStars();
+    const next = withStars(all, id, stars);
+    if (next !== all) await setItem(StorageKeys.CAMPAIGN_STARS, JSON.stringify(next));
+  });
 }
 
 /** Speichert nur, wenn es mehr Sterne als bisher sind. */
