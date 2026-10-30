@@ -88,7 +88,10 @@ JS-Änderungen per EAS-Update nachkommen.
   Flamme, Tagesaufgabe, Tagesbester (Ghost). (fef2152, Tester 8/10.) Offen: eingehende
   Herausforderungen gibt es erst mit Freunden (R4e) – dann als Stufe einreihen;
   Text springt bei langsamem Netz kurz um.
-- [ ] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen.
+- [x] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen
+  (a06f16c + a5494c2, Tester 5/10 → 8/10): Karte 🔑 in Online, Code geprüft →
+  direkt ins Ghost-Rennen; Teilen-Text nennt Online. Offen: zweites Tippen auf 🔑
+  bei offener Eingabe fokussiert nicht; Verweis auf der Ghost-Karte auch aus Online.
 
 ### R2 – Kampagne als Lernpfad (Muss)
 Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.

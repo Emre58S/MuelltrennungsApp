@@ -134,3 +134,6 @@ wenig Deutsch, nie strafend.
 - Verworfene Zyklen lokal auf Nebenzweige sichern (`verworfen-…`), nicht löschen.
 - Shell: Edits per Node-Skript (CRLF beachten), mehrere Heredocs in einem
   Bash-Aufruf schlagen fehl.
+- EAS-Update: beide Kanäle in getrennten Aufrufen (verkettet kam Exit 4, unklar
+  welcher Kanal ankam). Teilen-Texte enthalten Wegbeschreibungen – beim
+  Verlegen von Knöpfen mit anpassen.
