@@ -62,7 +62,13 @@ neue Wurfspuren Smaragd/Lava/Diamant ab 3/10/25 Gold.
    (auch für alte gh1-Codes), Startkarte scrollbar, Kachel „Rekord & Freunde“. Bewusst weggelassen:
    Knopf „Einfügen“ (bräuchte expo-clipboard); Namen sind durch cleanName ohnehin ohne Apostroph/Emoji.
    Ideen: `\b` vor „gh“ in isOtherVersionCode; „neu teilen“ klarer („Code nochmal schicken lassen“);
-   bei Gleichstand nach Rundung „gleich schnell (0,1 s)“; im Eingabemodus scrollToEnd. · **G3** Ghost des Tagesbesten (Tagesaufgabe) ·
+   bei Gleichstand nach Rundung „gleich schnell (0,1 s)“; im Eingabemodus scrollToEnd.
+   [x] **G3** Ghost des Tagesbesten (8358f5f + 48ce65d, Tester 8/10 + 7/10): eigener Bestlauf als Code an
+   Supabase (supabase/ghost.sql – **Nutzer muss es einmal im SQL Editor ausführen**), Startschirm
+   „👑 Bester Lauf heute“ + Knopf „Gegen {Name} (Bester heute)“; ohne Tabelle/offline unsichtbar.
+   Offen: Server gleicht Treffer/Zeit nicht mit dem Code ab (Sortierung nach Server-Zahlen; nur mit
+   manipuliertem Client ausnutzbar) → Platz nach Code-Werten oder nächstbesten laden, wenn Code unlesbar;
+   ungültiges Datum (2026-13-45) gibt allgemeinen Fehler; Bestlauf nicht bei jedem Öffnen neu senden. ·
    **G4** (optional) Live-Raum über Supabase Realtime mit demselben Ereignisformat.
    Emres Schnell-Duell (ein Handy, gleichzeitig) bleibt für „zusammen auf dem Sofa“.
 2. Tages-Flamme (mit Rettung 1×/Woche) + 3 Tagesmissionen.
