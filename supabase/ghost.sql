@@ -36,6 +36,13 @@ begin
   if not exists (select 1 from players where id = p_player) then
     raise exception 'unbekannter Spieler';
   end if;
+  -- 10 Würfe unter 3 s schafft niemand; nur heute (±1 Tag wegen Zeitzonen)
+  if p_ms < 3000 then
+    raise exception 'unmögliche Zeit';
+  end if;
+  if p_day !~ '^\d{4}-\d{2}-\d{2}$' or p_day::date not between current_date - 1 and current_date + 1 then
+    raise exception 'falscher Tag';
+  end if;
   insert into ghost_runs (day, player, code, correct, ms)
   values (p_day, p_player, lower(p_code), p_correct, p_ms)
   on conflict (day, player) do update

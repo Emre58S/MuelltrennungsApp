@@ -184,7 +184,8 @@ function GhostRace({
       .finally(() => setLoaded(true));
   }, [today]);
   // Tagesbester (nur beim eigenen Rennen): erst den eigenen Bestlauf senden, dann laden
-  const [top, setTop] = useState<{ ch: Challenge; info: DayGhost } | null>(null);
+  // Treffer und Zeit aus dem geprüften Code (run), nicht aus den Server-Zahlen
+  const [top, setTop] = useState<{ ch: Challenge; info: DayGhost; run: GhostRun } | null>(null);
   useEffect(() => {
     if (challenge) return;
     let alive = true;
@@ -194,9 +195,10 @@ function GhostRace({
         if (own) await submitGhostRun(today, encodeRun(own, trackFor(today).sign), own.correct, own.ms);
         const info = await fetchDayGhost(today);
         const ch = info ? readCode(info.code) : null;
-        if (alive && info && ch && typeof ch !== "string" && ch.day === today) {
-          setTop({ ch: { ...ch, name: info.name }, info });
-        }
+        if (!alive || !info || !ch || typeof ch === "string" || ch.day !== today) return;
+        const { correctBins, bins: trackBins } = trackFor(today);
+        const run = challengeRun(ch, correctBins, trackBins.length);
+        if (run) setTop({ ch: { ...ch, name: info.name }, info, run });
       })
       .catch(() => undefined);
     return () => {
@@ -521,7 +523,7 @@ function GhostRace({
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
               <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
                 {friendRun
-                  ? t("ghost.challenge", {
+                  ? t(from === "top" ? "ghost.top.info" : "ghost.challenge", {
                       name: ghostName,
                       correct: friendRun.correct,
                       total: GHOST_ITEMS,
@@ -538,9 +540,9 @@ function GhostRace({
                   ? t("ghost.top.me")
                   : t("ghost.top.info", {
                       name: top.info.name,
-                      correct: top.info.correct,
+                      correct: top.run.correct,
                       total: GHOST_ITEMS,
-                      time: sec(top.info.ms),
+                      time: sec(top.run.ms),
                     })}
               </AppText>
             )}
