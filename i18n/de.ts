@@ -37,7 +37,7 @@ export const de = {
   "home.flameAtRisk": "🔥 Heute spielen – deine Flamme bleibt",
   "home.flameRescued": "🔥 Gerettet – 1 Pausentag pro Woche",
   "home.hintDaily": "📅 Neue Tagesaufgabe – in der Kampagne",
-  "home.hintDayBest": "👻 Heute vorn: {name} – schlag den Lauf unter Online",
+  "home.hintDayBest": "👻 Heute vorn: {name} – Online → Rekord & Freunde",
   "home.hintDayBestMe": "👑 Du bist heute vorn im Ghost-Rennen",
   "home.startMode": "{mode} starten",
   "home.book": "Sammelbuch",

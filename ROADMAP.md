@@ -84,8 +84,10 @@ JS-Änderungen per EAS-Update nachkommen.
   in app/_layout.tsx (Animation erst ab 2. Öffnen); Tagesaufgabe erledigt →
   Text „Morgen gibt's eine neue“ statt Einladung; Trick-Text „Durch Reifen“
   nach R5 anpassen; „Zuletzt“ schneller erreichbar (bis R2 den Pfad bringt).
-- [ ] **R1c** Ein einziger Hinweis-Platz (Flamme-Rettung, Tagesbester,
-  Herausforderung) mit Vorrang-Regel statt mehrerer Zeilen.
+- [x] **R1c** Ein Hinweis-Platz mit Vorrang-Regel (game/home-hint.ts): neu → Start-Hinweis,
+  Flamme, Tagesaufgabe, Tagesbester (Ghost). (fef2152, Tester 8/10.) Offen: eingehende
+  Herausforderungen gibt es erst mit Freunden (R4e) – dann als Stufe einreihen;
+  Text springt bei langsamem Netz kurz um.
 - [ ] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen.
 
 ### R2 – Kampagne als Lernpfad (Muss)

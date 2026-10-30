@@ -38,7 +38,7 @@ export const en: Translations = {
   "home.flameAtRisk": "🔥 Play today to keep your flame",
   "home.flameRescued": "🔥 Saved – 1 day off per week",
   "home.hintDaily": "📅 New daily challenge – in Campaign",
-  "home.hintDayBest": "👻 Today's best: {name} – beat the run in Online",
+  "home.hintDayBest": "👻 Today's best: {name} – Online → Record & friends",
   "home.hintDayBestMe": "👑 You have today's best ghost run",
   "home.startMode": "Start {mode}",
   "home.book": "Collection",

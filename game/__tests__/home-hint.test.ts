@@ -33,6 +33,11 @@ describe("homeHint", () => {
     expect(homeHint({ ...base, dayBest: { name: "Ich", isMe: true } }).key).toBe("home.hintDayBestMe");
   });
 
+  test("Lange Namen werden gekürzt", () => {
+    const h = homeHint({ ...base, dayBest: { name: "Maximilian-Alexander", isMe: false } });
+    expect(h.key === "home.hintDayBest" && h.name).toBe("Maximilian-…");
+  });
+
   test("Sonst der Start-Hinweis", () => {
     expect(homeHint(base).key).toBe("home.throwHint");
   });
