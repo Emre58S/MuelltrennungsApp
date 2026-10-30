@@ -110,10 +110,10 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   (d76abbe, Tester 8/10, EAS auto + preview): Welt-Köpfe mit Tonnen + „Neu: …“,
   Stations-Runde (`/runde?station=…`, Liste ohne Zurücklegen, 10 Würfe, HUD
   „3/10 · Ziel 7“, Sterne gespeichert, „Nächste Station“); alte Spielarten als
-  Chips oben. Offen (R2c-Rest): in Stationen kein „🎁 Neue Tonne“-Hinweis beim
-  Level-Aufstieg; Überschrift bei wenig richtig nicht „Fast geschafft!“ (erst ab
-  Ziel−2); Tagesaufgaben-Chip mit Punkt/„erledigt“; Scrollen zur Station nach
-  „Zum Pfad“ auf dem Gerät prüfen; 2-Tonnen-Welt auf dem Gerät prüfen.
+  Chips oben. Nachgezogen (29ecc97, Tester 8/10): kein „🎁 Neue Tonne“ in
+  Stationen, „Gut geübt!“ weit unter dem Ziel, Tagesaufgaben-Chip mit Punkt/Ergebnis.
+  Offen: auf dem Gerät prüfen – Scrollen nach „Zum Pfad“, 2-Tonnen-Welt, roter
+  Chip-Punkt (ragt 3 px heraus); VoiceOver-Text „noch offen“ für den Punkt.
 - [ ] **R2d** Stations-Arten: normal · **Zeit** (Gegen die Zeit) · **Ohne Fehler**
   · **Trick** (Trick-Level 1–24 als Seitenstationen) · **Boss**. Damit leben die
   bisherigen Modi im Pfad weiter.
