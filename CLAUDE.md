@@ -41,12 +41,12 @@ erlaubt. Lange Sitzungen trotzdem vermeiden (frisch starten).
   **nichts pushen, nichts per EAS ausliefern**. Keine neuen Abhängigkeiten.
 - Struktur nur einmal erkunden, sonst gezielt greppen; nichts erneut lesen;
   Ausgaben kürzen. Eine lange Sitzung ist teuer → lieber frische Sitzung
-  starten: Regeln und Backlog stehen in dieser Datei und IMPROVEMENTS.md.
+  starten: Regeln und Backlog stehen in dieser Datei und ROADMAP.md.
 - Pro Zyklus ein unabhängiger Tester (Modell haiku; bekommt nur Startweg +
   ENG gefassten Bereich, nicht die Änderung; ≤ 15 Zeilen, Bewertung 1–10,
   FREIGABE ja/nein). Bei „nein“: einmal nachbessern, einmal neu testen, sonst
-  zurücknehmen (auf Nebenzweig `verworfen-…` sichern) und in IMPROVEMENTS.md
-  notieren. Am Ende „Letzter Lauf“ in IMPROVEMENTS.md, dann stoppen.
+  zurücknehmen (auf Nebenzweig `verworfen-…` sichern) und in ROADMAP.md
+  notieren. Am Ende „Letzter Lauf“ in ROADMAP.md, dann stoppen.
 - Bevorzugt: Bugs, fachliche Richtigkeit, Verständlichkeit, Lernen, Spielspaß –
   keine reine Kosmetik. Start der App: `npx expo start` + Expo Go (Gerät nötig).
 
@@ -127,7 +127,7 @@ wenig Deutsch, nie strafend.
 - Test sichert: jedes Emoji nur einmal, jede Begründung ≤ 4 Wörter DE/EN.
 - Tester-Bereich ENG fassen („Anzeige des Multiplikators“ statt „Texte rund um
   Serien“): breite Bereiche liefern jedes Mal neue ältere Fehler → „nein“ ohne
-  Bezug zur Änderung. Ältere Funde lieber in IMPROVEMENTS.md sammeln und als
+  Bezug zur Änderung. Ältere Funde lieber in ROADMAP.md (R10) sammeln und als
   eigenen Zyklus bündeln.
 - Shell: In `node -e "…"` führt die Shell Backticks aus (es lief versehentlich
   `npx expo start`). Skripte mit Backticks per Write-Datei, nicht inline.

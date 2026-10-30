@@ -6,7 +6,9 @@ Für alle verständlich (auch mit wenig Deutsch), nie strafend.
 
 Arbeitsweise: Die Zyklen (CLAUDE.md) nehmen ab jetzt die **oberste offene Aufgabe
 in diesem Dokument** (Abschnitt „Backlog“). Erledigtes mit `[x]` + Commit-Kürzel.
-Alte Punkte aus IMPROVEMENTS.md sind hier eingeordnet (Kennung in Klammern).
+Dies ist die **einzige** Roadmap + Backlog. Alte Punkte aus IMPROVEMENTS.md
+sind hier eingeordnet (Kennung in Klammern); deren Verlauf steht in
+IMPROVEMENTS-ARCHIV.md.
 
 ---
 
@@ -20,6 +22,21 @@ Alte Punkte aus IMPROVEMENTS.md sind hier eingeordnet (Kennung in Klammern).
 | **Fortschritt** | XP, Medaillen, Flamme | Sterne je Station, Boss-Stationen, Flamme + 3 Tagesmissionen, Belohnungen im Pfad |
 | **Gefühl („Crunch“)** | Partikel, Töne, Serien | Bananen platschen, Glas splittert, Dose knautscht, Aufprall-Partikel in Spurfarbe, kurzer Treffer-Stopp |
 | **Teilen** | Code per Teilen-Menü | Ergebnis-Bild zum Teilen, Herausforderungs-Link, später WhatsApp-Sticker |
+
+### Mehrspieler-Modi im Überblick
+| Modus | Ablauf | Länge | Sieg |
+|---|---|---|---|
+| **Zeit-Sprint** (R4a) | gleiche Gegenstände im gleichen Takt, Tauziehen-Balken | 30 s | mehr richtig |
+| **Survival** (R4b) | ohne Fehler, Tempo steigt bis Höchsttempo | max. ~30 s | länger fehlerfrei |
+| **Trick-Battle** (R4c) | gleicher Parcours, wechselnde Gegenstände – sortieren + tricksen | 20–30 s | Punkte: falsch 0 · richtig 1 · Trick 3 · Swish +1 |
+| **Zu zweit an einem Handy** (R4h) | Emres Schnell-Duell, gleichzeitig wischen | kurz | erster richtiger Wurf |
+| **Live-Duell** (R4g, 1.1) | zwei Handys gleichzeitig, wer zuerst richtig trifft | 25–30 s | mehr Punkte |
+
+Die ersten drei jeweils gegen **Zufallsgegner**, **Freund** (Freundes-Code)
+oder um die **Rangliste** (Woche/Allzeit). Gegner zum Start = **Ghost**
+(aufgezeichneter Lauf eines echten Spielers, fliegt zur selben Sekunde mit).
+Aus dem heutigen Ghost-Duell wird „Freund herausfordern“, aus „Bester Lauf
+heute“ der Tagesgegner.
 
 ## 2. Entscheidungen (Nutzer, 30.10. abends)
 
