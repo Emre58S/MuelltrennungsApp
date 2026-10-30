@@ -437,4 +437,5 @@ export const en: Translations = {
   "hub.open": "Open {name}",
   "hub.book.title": "Item book",
   "hub.duel.desc": "Who sorts correctly faster?",
+  "hub.code.desc": "Paste a code from friends and race their run",
 };

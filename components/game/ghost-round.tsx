@@ -22,7 +22,6 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -42,34 +41,29 @@ import {
   setPreview,
   type ThrowSpec,
 } from "@/components/game/scene-bus";
-import { type SceneKind } from "@/components/game/stage";
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
-import { getBinByCategory, getBinsForScene, getItemsForBins } from "@/game/bins";
+import { getBinByCategory } from "@/game/bins";
 import {
   beats,
   type Challenge,
   challengeRun,
-  decodeChallenge,
   encodeRun,
   GHOST_ITEMS,
-  isOtherVersionCode,
-  ghostQueue,
   ghostResult,
   type GhostResult,
   type GhostRun,
-  ghostSeed,
   type GhostThrow,
   ghostTug,
   makeRun,
   parseRun,
   practiceRun,
   roundRun,
-  trackSign,
 } from "@/game/ghost";
+import { readCode, trackFor } from "@/game/ghost-track";
 import { itemMaterial } from "@/game/item-mass";
 import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
 import { aimFromDrag } from "@/game/logic";
@@ -83,32 +77,10 @@ import { useLater } from "./round-hooks";
 
 type Phase = "ready" | "countdown" | "play" | "end";
 
-/** Die Szene der Strecke steht mit dem Tag fest (gleiche Tonnen für alle). */
-const SCENES: SceneKind[] = ["haus", "ziegel", "garten"];
-
 /** Nach dem letzten Wurf: so lange fliegt er noch, dann das Ergebnis (ms). */
 const END_MS = 1100;
 
 type EndInfo = { run: GhostRun; result: GhostResult; newBest: boolean };
-
-/** Strecke eines Tages: Szene, Tonnen, 10 Gegenstände und je die richtige Tonne. */
-function trackFor(day: string) {
-  const scene = SCENES[ghostSeed(day) % SCENES.length];
-  const bins = getBinsForScene(scene, 1);
-  const queue = ghostQueue(getItemsForBins(bins), day);
-  const correctBins = queue.map((it) => bins.findIndex((b) => b.category === it.category));
-  return { scene, bins, queue, correctBins, sign: trackSign(queue.map((it) => it.name)) };
-}
-
-/** Herausforderung aus einem Code – oder warum sie nicht geht: kein gültiger
- *  Code („invalid“) oder anderer App-Stand mit anderer Strecke („update“). */
-function readCode(text: string): Challenge | "invalid" | "update" {
-  const ch = decodeChallenge(text);
-  if (!ch) return isOtherVersionCode(text) ? "update" : "invalid";
-  const { correctBins, bins, sign } = trackFor(ch.day);
-  if (ch.track !== sign) return "update";
-  return challengeRun(ch, correctBins, bins.length) ? ch : "update";
-}
 
 /** Woher die Herausforderung kommt: Code eines Freundes oder Tagesbester. */
 type ChallengeFrom = "code" | "top";
@@ -119,8 +91,20 @@ function sendBest(run: GhostRun, sign: string) {
 }
 
 /** Hält die Herausforderung über „Revanche“ hinweg; jede Runde frisch aufgebaut. */
-export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: () => void }) {
-  const [challenge, setChallenge] = useState<{ ch: Challenge; from: ChallengeFrom } | null>(null);
+export function GhostRound({
+  code,
+  onAgain,
+  onExit,
+}: {
+  /** Code eines Freundes (aus dem Online-Bereich, dort schon geprüft). */
+  code?: string;
+  onAgain: () => void;
+  onExit: () => void;
+}) {
+  const [challenge, setChallenge] = useState<{ ch: Challenge; from: ChallengeFrom } | null>(() => {
+    const found = code ? readCode(code) : null;
+    return found && typeof found !== "string" ? { ch: found, from: "code" } : null;
+  });
   const [attempt, setAttempt] = useState(0);
   const restart = useCallback(() => setAttempt((a) => a + 1), []);
   const choose = useCallback((ch: Challenge | null, from: ChallengeFrom = "code") => {
@@ -208,16 +192,6 @@ function GhostRace({
   const ghost = friendRun ?? best ?? practice;
   const friendName = challenge ? (challenge.name ?? t("ghost.friend")) : null;
   const ghostName = friendName ?? (best ? t("ghost.name") : t("ghost.practiceName"));
-
-  // Code eines Freundes eingeben
-  const [entering, setEntering] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [invalid, setInvalid] = useState<"invalid" | "update" | null>(null);
-  const acceptCode = () => {
-    const found = readCode(draft);
-    if (typeof found === "string") setInvalid(found);
-    else onChallenge(found);
-  };
 
   const [phase, setPhase] = useState<Phase>("ready");
   const phaseRef = useRef<Phase>("ready");
@@ -515,11 +489,9 @@ function GhostRace({
             <AppText variant="title" style={styles.center}>
               👻 {t("ghost.title")}
             </AppText>
-            {!entering && (
-              <AppText variant="body" tone="textSecondary" style={styles.center}>
-                {friendRun ? t("ghost.rulesFriend", { name: ghostName }) : t("ghost.rules")}
-              </AppText>
-            )}
+            <AppText variant="body" tone="textSecondary" style={styles.center}>
+              {friendRun ? t("ghost.rulesFriend", { name: ghostName }) : t("ghost.rules")}
+            </AppText>
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
               <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
                 {friendRun
@@ -551,61 +523,19 @@ function GhostRace({
                 {t("ghost.trackFrom", { date: day.split("-").reverse().join(".") })}
               </AppText>
             )}
-            {entering ? (
-              <>
-                <TextInput
-                  value={draft}
-                  onChangeText={(v) => {
-                    setDraft(v);
-                    setInvalid(null);
-                  }}
-                  autoFocus
-                  autoCorrect={false}
-                  autoCapitalize="none"
-                  multiline
-                  maxLength={600}
-                  placeholder={t("ghost.code.placeholder")}
-                  placeholderTextColor={colors.textMuted}
-                  keyboardAppearance={scheme}
-                  accessibilityLabel={t("ghost.code.enter")}
-                  style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
-                />
-                {invalid && (
-                  <AppText variant="caption" tone="warning">
-                    {t(invalid === "update" ? "ghost.code.update" : "ghost.code.invalid")}
-                  </AppText>
-                )}
-                <View style={styles.row}>
-                  <Button title={t("ghost.code.go")} icon="check" onPress={acceptCode} disabled={!draft.trim()} />
-                  <Button
-                    title={t("common.cancel")}
-                    variant="secondary"
-                    onPress={() => {
-                      setEntering(false);
-                      setInvalid(null);
-                    }}
-                  />
-                </View>
-              </>
+            <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
+            {friendRun ? (
+              <Button title={t("ghost.code.mine")} variant="secondary" onPress={() => onChallenge(null)} />
             ) : (
-              <>
-                <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
-                {friendRun ? (
-                  <Button title={t("ghost.code.mine")} variant="secondary" onPress={() => onChallenge(null)} />
-                ) : (
-                  <>
-                    {top && !top.info.isMe && (
-                      <Button
-                        title={t("ghost.top.play", { name: top.info.name })}
-                        icon="award"
-                        variant="secondary"
-                        onPress={() => onChallenge(top.ch, "top")}
-                      />
-                    )}
-                    <Button title={t("ghost.code.enter")} icon="users" variant="secondary" onPress={() => setEntering(true)} />
-                  </>
-                )}
-              </>
+              top &&
+              !top.info.isMe && (
+                <Button
+                  title={t("ghost.top.play", { name: top.info.name })}
+                  icon="award"
+                  variant="secondary"
+                  onPress={() => onChallenge(top.ch, "top")}
+                />
+              )
             )}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -838,16 +768,6 @@ const styles = StyleSheet.create({
   card: { borderRadius: Radius.xxl, padding: Spacing.lg, gap: Spacing.md },
   cardScroll: { flexGrow: 0, borderRadius: Radius.xxl },
   pill: { borderRadius: Radius.lg, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.sm },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 16,
-    minHeight: 64,
-    maxHeight: 120,
-    textAlignVertical: "top",
-  },
   row: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
   countWrap: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   endRoot: { ...StyleSheet.absoluteFill },

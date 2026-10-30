@@ -37,6 +37,8 @@ export function HubScreen({
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
         contentContainerStyle={[
           styles.content,
           {

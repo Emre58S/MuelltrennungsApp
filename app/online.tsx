@@ -6,14 +6,40 @@
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
+import { StyleSheet, TextInput, View } from "react-native";
 
+import { AppText } from "@/components/ui/app-text";
+import { Button } from "@/components/ui/button";
 import { HubCard, HubScreen } from "@/components/ui/hub";
-import { useI18n } from "@/providers/app-settings";
+import { Radius, Spacing } from "@/constants/theme";
+import { readCode } from "@/game/ghost-track";
+import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { getBoolean, setBoolean, StorageKeys } from "@/utils/storage";
 
 export default function OnlineScreen() {
   const { t } = useI18n();
+  const { scheme, colors } = useAppTheme();
   const [seenDuel, setSeenDuel] = useState(true);
+
+  // Code eines Freundes: hier prüfen, dann direkt ins Rennen gegen den Lauf
+  const [entering, setEntering] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [invalid, setInvalid] = useState<"invalid" | "update" | null>(null);
+  const closeCode = () => {
+    setEntering(false);
+    setDraft("");
+    setInvalid(null);
+  };
+  const acceptCode = () => {
+    const found = readCode(draft);
+    if (typeof found === "string") {
+      setInvalid(found);
+      return;
+    }
+    const code = draft.trim();
+    closeCode();
+    router.push({ pathname: "/runde", params: { mode: "ghost", code } });
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -39,6 +65,44 @@ export default function OnlineScreen() {
       />
       <HubCard
         index={1}
+        emoji="🔑"
+        color="#7C5CD6"
+        title={t("ghost.code.enter")}
+        desc={t("hub.code.desc")}
+        onPress={() => (entering ? closeCode() : setEntering(true))}
+      />
+      {entering && (
+        <View style={[styles.codeBox, { backgroundColor: colors.surface }]}>
+          <TextInput
+            value={draft}
+            onChangeText={(v) => {
+              setDraft(v);
+              setInvalid(null);
+            }}
+            autoFocus
+            autoCorrect={false}
+            autoCapitalize="none"
+            multiline
+            maxLength={600}
+            placeholder={t("ghost.code.placeholder")}
+            placeholderTextColor={colors.textMuted}
+            keyboardAppearance={scheme}
+            accessibilityLabel={t("ghost.code.enter")}
+            style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
+          />
+          {invalid && (
+            <AppText variant="caption" tone="warning">
+              {t(invalid === "update" ? "ghost.code.update" : "ghost.code.invalid")}
+            </AppText>
+          )}
+          <View style={styles.row}>
+            <Button title={t("ghost.code.go")} icon="check" onPress={acceptCode} disabled={!draft.trim()} />
+            <Button title={t("common.cancel")} variant="secondary" onPress={closeCode} />
+          </View>
+        </View>
+      )}
+      <HubCard
+        index={2}
         emoji="🤝"
         color="#FF8A3D"
         title={t("hub.duel.title")}
@@ -50,7 +114,7 @@ export default function OnlineScreen() {
         }}
       />
       <HubCard
-        index={2}
+        index={3}
         emoji="🏆"
         color="#E3A92E"
         title={t("home.rank")}
@@ -60,3 +124,18 @@ export default function OnlineScreen() {
     </HubScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  codeBox: { borderRadius: Radius.xl, padding: Spacing.md, gap: Spacing.sm },
+  input: {
+    borderWidth: 1,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: 16,
+    minHeight: 64,
+    maxHeight: 120,
+    textAlignVertical: "top",
+  },
+  row: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
+});

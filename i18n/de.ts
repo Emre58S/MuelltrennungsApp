@@ -436,6 +436,7 @@ export const de = {
   "hub.open": "{name} öffnen",
   "hub.book.title": "Sammelbuch",
   "hub.duel.desc": "Wer sortiert schneller richtig?",
+  "hub.code.desc": "Code von Freunden einfügen und gegen den Lauf spielen",
 } as const;
 
 export type TranslationKey = keyof typeof de;

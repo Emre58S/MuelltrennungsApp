@@ -32,10 +32,12 @@ export default function GameScreen() {
     mode: rawMode,
     daily: rawDaily,
     level: rawLevel,
+    code: rawCode,
   } = useLocalSearchParams<{
     mode?: string;
     daily?: string;
     level?: string;
+    code?: string;
   }>();
   const isTrick = rawMode === "trick";
   const isDuel = rawMode === "duel";
@@ -135,7 +137,15 @@ export default function GameScreen() {
         </View>
       )}
       {isDuel && <DuelRound key={`${round}-duel`} onAgain={retryTrick} onExit={goBack} />}
-      {isGhost && <GhostRound key={`${round}-ghost`} onAgain={retryTrick} onExit={goBack} />}
+      {isGhost && (
+        <GhostRound
+          key={`${round}-ghost`}
+          // Code eines Freundes nur für die erste Runde (danach eigene Wahl)
+          code={round === 0 ? rawCode : undefined}
+          onAgain={retryTrick}
+          onExit={goBack}
+        />
+      )}
       {!isTrick && !isDuel && !isGhost && xp !== null && level !== null && (
         // Profiler: Render-Dauer der Runde für die Hänger-Messung (nur Entwicklung)
         <Profiler id="runde" onRender={onRender}>
