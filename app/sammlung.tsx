@@ -16,7 +16,7 @@ export default function SammlungScreen() {
         index={0}
         emoji="📖"
         color="#2FA86E"
-        title={t("home.book")}
+        title={t("hub.book.title")}
         desc={t("book.subtitle")}
         onPress={() => router.push("/sammelbuch")}
       />

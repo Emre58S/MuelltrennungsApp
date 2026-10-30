@@ -431,6 +431,8 @@ export const de = {
   "hub.last": "Zuletzt",
   "hub.duel.title": "Zu zweit an einem Handy",
   "hub.open": "{name} öffnen",
+  "hub.book.title": "Sammelbuch",
+  "hub.duel.desc": "Wer sortiert schneller richtig?",
 } as const;
 
 export type TranslationKey = keyof typeof de;

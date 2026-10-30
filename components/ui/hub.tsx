@@ -16,6 +16,11 @@ import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
+/** Sperre gegen Doppeltippen: Ein schneller zweiter Tipp würde sonst z. B.
+ *  zwei Runden übereinander öffnen. */
+const TAP_LOCK_MS = 900;
+let lockedUntil = 0;
+
 export function HubScreen({
   title,
   subtitle,
@@ -80,6 +85,9 @@ export function HubCard({
         accessibilityRole="button"
         accessibilityLabel={[title, desc, info].filter(Boolean).join(". ")}
         onPress={() => {
+          const now = Date.now();
+          if (now < lockedUntil) return;
+          lockedUntil = now + TAP_LOCK_MS;
           sfx("tap");
           tapHaptic();
           onPress();

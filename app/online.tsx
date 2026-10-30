@@ -42,7 +42,7 @@ export default function OnlineScreen() {
         emoji="🤝"
         color="#FF8A3D"
         title={t("hub.duel.title")}
-        desc={t("home.duelDesc")}
+        desc={t("hub.duel.desc")}
         dot={!seenDuel}
         onPress={() => {
           setBoolean(StorageKeys.SEEN_DUEL, true).catch(() => undefined);

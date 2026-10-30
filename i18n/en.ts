@@ -432,4 +432,6 @@ export const en: Translations = {
   "hub.last": "Last played",
   "hub.duel.title": "Two players, one phone",
   "hub.open": "Open {name}",
+  "hub.book.title": "Item book",
+  "hub.duel.desc": "Who sorts correctly faster?",
 };
