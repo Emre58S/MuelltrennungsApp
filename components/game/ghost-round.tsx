@@ -111,6 +111,8 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
   const [me, setMe] = useState(0);
   const [ghostScore, setGhostScore] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
+  /** Zeitpunkt des letzten eigenen Wurfs – die Uhr bleibt dort stehen. */
+  const [stoppedAt, setStoppedAt] = useState<number | null>(null);
   const startRef = useRef(0);
   const myThrows = useRef<GhostThrow[]>([]);
   const ids = useRef(0);
@@ -200,7 +202,8 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
     if (!aim) return;
     const current = item;
     const correct = bins[aim.binIndex].category === current.category;
-    myThrows.current.push({ i: index, ms: Date.now() - startRef.current, bin: aim.binIndex, correct });
+    const now = Date.now();
+    myThrows.current.push({ i: index, ms: now - startRef.current, bin: aim.binIndex, correct });
     const spec: ThrowSpec = {
       id: ++ids.current,
       item: current,
@@ -231,6 +234,9 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
       setItem(null);
       setPreview(bus.current, null);
       phaseRef.current = "end";
+      // Fertig: Uhr anhalten, beim Ghost gleich seinen Endstand zeigen (wie im Ergebnis)
+      setStoppedAt(now);
+      setGhostScore(ghost.correct);
       later(finish, END_MS);
     }
   };
@@ -350,7 +356,7 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
             <AppText variant="label" color="#FFFFFF" style={styles.shadow}>
               {phase === "play" || phase === "end" ? `${Math.min(index + 1, GHOST_ITEMS)}/${GHOST_ITEMS}` : "VS"}
             </AppText>
-            {phase === "play" && <Clock since={startedAt} format={sec} />}
+            {phase === "play" && <Clock since={startedAt} stop={stoppedAt} format={sec} />}
           </View>
           <ScoreChip p={1} points={ghostScore} hot={false} label={`👻 ${ghostName}`} calm={reduceMotion} />
         </View>
@@ -416,15 +422,16 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
 }
 
 /** Laufende Zeit – eigene kleine Anzeige, damit nicht die ganze Runde neu zeichnet. */
-function Clock({ since, format }: { since: number; format: (ms: number) => string }) {
+function Clock({ since, stop, format }: { since: number; stop: number | null; format: (ms: number) => string }) {
   const [now, setNow] = useState(since);
   useEffect(() => {
+    if (stop !== null) return;
     const id = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(id);
-  }, []);
+  }, [stop]);
   return (
     <AppText variant="caption" color="#FFFFFF" style={styles.shadow}>
-      {format(Math.max(0, now - since))}
+      {format(Math.max(0, (stop ?? now) - since))}
     </AppText>
   );
 }
@@ -484,7 +491,7 @@ function GhostEnd({
         {newBest && (
           <View style={[styles.highlight, { backgroundColor: colors.goldSoft }]}>
             <AppText variant="body" color={colors.onGoldSoft} style={styles.center}>
-              ⭐ {t("ghost.newBest")}
+              ⭐ {t(practice ? "ghost.firstSaved" : "ghost.newBest")}
             </AppText>
           </View>
         )}

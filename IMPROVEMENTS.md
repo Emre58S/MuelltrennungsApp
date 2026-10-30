@@ -53,7 +53,7 @@ neue Wurfspuren Smaragd/Lava/Diamant ab 3/10/25 Gold.
    Ergebnis + Lernliste („Beide falsch: …“) + Revanche (eigener Lauf wird Ghost).
    Lauf = Ereignisliste (Zeit, Gegenstand, Winkel/Kraft, Tonne, richtig);
    Flugbahn nachrechnen, Landung aus dem gespeicherten Ergebnis.
-   Schritte: **G1** Ghost des eigenen Bestwerts (lokal, ohne Server) ·
+   Schritte: [x] **G1** Ghost des eigenen Bestwerts (lokal, ohne Server; 94a1977+, Tester 7/10 – Tages-Strecke, Übungs-Ghost beim 1. Lauf, Kachel „Ghost“; Ideen: Ghost-Würfe nach eigenem Ende noch fliegen lassen) ·
    **G2** Herausforderung per Code/Link (Supabase-Tabelle `challenges`,
    Teilen-Menü, Revanche) · **G3** Ghost des Tagesbesten (Tagesaufgabe) ·
    **G4** (optional) Live-Raum über Supabase Realtime mit demselben Ereignisformat.
