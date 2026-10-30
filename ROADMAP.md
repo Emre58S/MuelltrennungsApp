@@ -100,10 +100,11 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   Ziel/mehr/alles; frei ab 1 Stern; Speicher getCampaignStars/saveCampaignStars
   (8ee8d09 + Nachbesserung, Tester 7/10). Offen für die UI (R2c): bei 0 Sternen
   freundlicher Hinweis statt Sackgasse.
-- [ ] **R2b** Welten (Vorschlag): 1 Papier vs. Rest · 2 + Gelber Sack ·
-  3 + Glas · 4 + Bio · 5 + Sondermüll · 6 „Knifflige Fälle“ (Kassenbon,
-  Pizzakarton, Spiegel …). Je Welt 4–6 Stationen. Neue Tonne = kurze Einführung
-  (was gehört rein, 3 Beispiele) – Lernkarte.
+- [x] **R2b** Welten 1–5 (je 1 neue Tonne) + Welt 6 „Knifflige Fälle“ mit festen
+  Fallen-Listen (Papier/Glas-Doppelgänger · Verpackung vs. Sondermüll · Küche/Bad ·
+  alles); Test: keine Tonne allein reicht fürs Ziel. Lernkarte = introExamples
+  (3 Beispiele) + bin.<key>.examples (90b64e7 + Nachbesserung, Tester 7/10).
+  Für R2c: Runde mit fester Liste ohne Zurücklegen ziehen.
 - [ ] **R2c** Pfad-Bildschirm: Stationen, Sterne, aktuelle Station hüpft, Tonnen-
   Symbol an Weltgrenzen. Start = 1 Tipp („Weiter“ ist damit der Pfad selbst).
 - [ ] **R2d** Stations-Arten: normal · **Zeit** (Gegen die Zeit) · **Ohne Fehler**
@@ -232,6 +233,8 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [ ] Meldung beim 10. Treffer zeigt ×6, gezählt ×2 – prüfen.
 - [ ] Tagesaufgabe: Endbildschirm überdeckt im letzten Wurf die Fehlerrückmeldung.
 - [ ] „Ohne Fehler“: Lernkarte länger sichtbar.
+- [ ] „Abgelaufene Medikamente“ steht als Sondermüll – meist Restmüll (UBA), Apotheke
+  freiwillig. Kategorie/Fakt prüfen (in Kampagne vorerst ausgelassen).
 - [ ] Ghost-Ideen: Gleichstand „gleich schnell (0,1 s)“, `\b` in isOtherVersionCode.
 
 ---

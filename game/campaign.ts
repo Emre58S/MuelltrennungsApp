@@ -86,6 +86,10 @@ const TRICKY: string[][] = [
     "Tapeten",
     "Eierkarton",
     "Toilettenpapier-Rolle",
+    // echte Papier-/Glas-Gegenstücke, damit „alles in Rest“ nicht reicht
+    "Zeitung",
+    "Marmeladenglas",
+    "Weinflasche",
   ],
   // Verpackung oder Sondermüll?
   [
@@ -99,7 +103,6 @@ const TRICKY: string[][] = [
     "Energiesparlampe",
     "Nagellackentferner",
     "Fieberthermometer (Quecksilber)",
-    "Abgelaufene Medikamente",
     "Druckerpatronen",
     "Alte CD",
     "Einwegrasierer",
@@ -159,12 +162,15 @@ export function stationPool(station: Station): Item[] {
   );
 }
 
+/** Je nach Kommune verschieden – nicht als eindeutiges Beispiel zeigen. */
+const UNCLEAR = new Set(["Abgelaufene Medikamente"]);
+
 /** Lernkarte für eine neue Tonne: 3 typische Beispiele, leichte zuerst. */
 export function introExamples(bin: BinKey): Item[] {
   const def = ALL_BINS.find((b) => b.key === bin);
   if (!def) return [];
   return ITEMS.filter(
-    (it) => it.category === def.category && it.difficulty !== "schwer",
+    (it) => it.category === def.category && it.difficulty !== "schwer" && !UNCLEAR.has(it.name),
   )
     .sort((a, b) => ORDER.indexOf(a.difficulty) - ORDER.indexOf(b.difficulty))
     .slice(0, 3);

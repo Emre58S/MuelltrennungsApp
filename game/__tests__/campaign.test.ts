@@ -36,6 +36,16 @@ describe("Welten und Stationen", () => {
     }
   });
 
+  test("Keine Tonne allein reicht fürs Ziel (Stationen mit fester Liste)", () => {
+    for (const s of STATIONS.filter((st) => st.items)) {
+      const pool = stationPool(s);
+      const counts = new Map<string, number>();
+      for (const it of pool) counts.set(it.category, (counts.get(it.category) ?? 0) + 1);
+      const most = Math.max(...counts.values());
+      expect((most / pool.length) * s.total).toBeLessThan(s.goal);
+    }
+  });
+
   test("Lernkarte: 3 Beispiele für jede neue Tonne", () => {
     for (const w of WORLDS) {
       for (const b of w.newBins) expect(introExamples(b)).toHaveLength(3);
