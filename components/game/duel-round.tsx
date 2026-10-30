@@ -72,7 +72,7 @@ import { nextScene } from "./stage";
 
 /** Spielerfarben: kräftig, auf Himmel und Pflaster gut zu unterscheiden
  *  (auch bei Rot-Grün-Schwäche: Orange gegen Blau). Text darauf dunkel. */
-const PLAYER = [
+export const PLAYER = [
   { color: "#FF8A3D", on: "#2A1400" },
   { color: "#4DA3FF", on: "#00213F" },
 ] as const;
@@ -494,7 +494,7 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
 
 const nameKey = (p: Player) => (p === 0 ? "duel.p1" : "duel.p2");
 
-function ScoreChip({
+export function ScoreChip({
   p,
   points,
   hot,
@@ -531,7 +531,7 @@ function ScoreChip({
 }
 
 /** Tauziehen-Balken: Mitte = Gleichstand; die Farbe des Führenden wächst. */
-function Tug({ value, calm }: { value: number; calm: boolean }) {
+export function Tug({ value, calm }: { value: number; calm: boolean }) {
   const [v] = useState(() => new Animated.Value(0));
   useEffect(() => {
     Animated.timing(v, {
@@ -561,7 +561,7 @@ function RulePill({ p, text }: { p: Player; text: string }) {
   );
 }
 
-function Countdown({ n, calm }: { n: number; calm: boolean }) {
+export function Countdown({ n, calm }: { n: number; calm: boolean }) {
   const [s] = useState(() => new Animated.Value(calm ? 1 : 1.8));
   useEffect(() => {
     if (!calm) Animated.spring(s, { toValue: 1, useNativeDriver: true, friction: 5 }).start();

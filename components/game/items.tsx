@@ -402,6 +402,17 @@ const TRAIL = 10;
 /** Gleichzeitig sichtbare Würfe. Ein Fehlwurf (Abprallen) belegt seinen
  *  Platz ~1,5 s – 10 Plätze reichen auch für sehr schnelles Werfen. */
 const SLOTS = 10;
+
+/** Ghost-Rennen: ein gemeinsames, halb durchsichtiges Material für alle
+ *  Ghost-Würfe (einmal beim Abwurf gesetzt – die Vorlage bleibt unberührt). */
+const GHOST_MAT = new THREE.MeshLambertMaterial({
+  color: "#D6ECFF",
+  emissive: "#4DA3FF",
+  emissiveIntensity: 0.35,
+  transparent: true,
+  opacity: 0.5,
+  depthWrite: false,
+});
 const TRAIL_GEO = new THREE.SphereGeometry(1, 8, 6);
 const WHITE = new THREE.Color("#FFFFFF");
 const KONFETTI = ["#FF5A5F", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"].map((c) => new THREE.Color(c));
@@ -634,6 +645,10 @@ export const ThrowLayer = memo(function ThrowLayer({
     const s = slots[i];
     if (s.model) g.remove(s.model);
     s.model = cloneModel(spec.item.name);
+    if (spec.ghost)
+      s.model.traverse((o) => {
+        if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = GHOST_MAT;
+      });
     g.add(s.model);
 
     s.active = true;
@@ -654,7 +669,7 @@ export const ThrowLayer = memo(function ThrowLayer({
     if (trail) trail.visible = true;
     // Orange = „On Fire“ (Serie im Zielwurf), Gold = Perfekt/Fieber – sonst die
     // gewählte Wurfspur (Belohnungen)
-    s.style = spec.fire ? "fire" : spec.glow ? "glow" : bus.current.trail;
+    s.style = spec.ghost ? "standard" : spec.fire ? "fire" : spec.glow ? "glow" : bus.current.trail;
 
     g.position.copy(start);
     g.scale.setScalar(startScale);

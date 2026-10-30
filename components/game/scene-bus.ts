@@ -53,6 +53,8 @@ export type ThrowSpec = {
   fire?: boolean;
   /** Wischstärke 0.8…1.3: höher = kräftiger, flacherer Wurf (Standard 1). */
   power?: number;
+  /** Ghost-Rennen: Wurf des Ghosts – durchsichtig, schlichte Spur. */
+  ghost?: boolean;
   /** Zielwurf: eigene Landestelle (Welt x/z auf Höhe der Öffnungen). */
   land?: { x: number; z: number };
   /** Zielwurf: Kraft 0…1 aus der Zuglänge – derselbe Bogen wie die Vorschau. */

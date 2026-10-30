@@ -562,6 +562,21 @@ export default function HomeScreen() {
               router.push({ pathname: "/runde", params: { mode: "duel" } });
             }}
           />
+          <SideTile
+            icon="rewind"
+            fill="#4DA3FF"
+            on="#00213F"
+            title={t("home.ghost")}
+            caption={t("home.ghostShort")}
+            a11y={`${t("home.ghost")}. ${t("home.ghostDesc")}`}
+            onPress={() => {
+              if (starting.current) return;
+              starting.current = true;
+              sfx("tap");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+              router.push({ pathname: "/runde", params: { mode: "ghost" } });
+            }}
+          />
         </View>
 
         <View style={styles.footer}>

@@ -38,6 +38,8 @@ export const StorageKeys = {
   DAILY_RESULT: "muell_daily_result",
   /** Schnell-Duell schon einmal geöffnet (sonst „Neu“-Punkt im Menü). */
   SEEN_DUEL: "muell_seen_duel",
+  /** Ghost-Rennen: bester Lauf von heute (game/ghost.ts). */
+  GHOST_BEST: "muell_ghost_best",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -557,4 +559,16 @@ export function saveTrickDaily(stars: number): Promise<void> {
     if ((await getTrickDaily()) >= stars) return;
     await setItem(StorageKeys.TRICK_DAILY, JSON.stringify({ date: todayKey(), stars }));
   });
+}
+
+// ── Ghost-Rennen: bester Lauf von heute ─────────────────────────────
+
+/** Bester Lauf von heute als Text (game/ghost.ts parseRun prüft ihn). */
+export function getGhostBest(): Promise<string | null> {
+  return getItem(StorageKeys.GHOST_BEST);
+}
+
+/** Speichert den Lauf als neuen Ghost (die Runde prüft vorher, ob er besser ist). */
+export function saveGhostBest(run: string): Promise<void> {
+  return enqueue(() => setItem(StorageKeys.GHOST_BEST, run));
 }
