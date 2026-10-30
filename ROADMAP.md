@@ -1,6 +1,6 @@
 # Roadmap bis zum Release (Stand 30.10.2026)
 
-**Ziel:** Veröffentlichung im App Store (und Google Play) **Fr 6.11.2026**.
+**Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 Für alle verständlich (auch mit wenig Deutsch), nie strafend.
 
@@ -21,19 +21,16 @@ Alte Punkte aus IMPROVEMENTS.md sind hier eingeordnet (Kennung in Klammern).
 | **Gefühl („Crunch“)** | Partikel, Töne, Serien | Bananen platschen, Glas splittert, Dose knautscht, Aufprall-Partikel in Spurfarbe, kurzer Treffer-Stopp |
 | **Teilen** | Code per Teilen-Menü | Ergebnis-Bild zum Teilen, Herausforderungs-Link, später WhatsApp-Sticker |
 
-## 2. Entscheidungen, die noch offen sind (Nutzer)
+## 2. Entscheidungen (Nutzer, 30.10. abends)
 
-1. **Dritte Tonne:** Vorschlag **„Sammlung“** (Sammelbuch, Medaillen, Wurfspuren,
-   Belohnungen, später Sticker) – das ist der Ort, an dem man sieht, was man
-   sich erspielt hat (Motivation). Alternative: „Spielplatz“ (Trick-Level solo +
-   Sofa-Duell).
-2. **Konten:** Für Freundesliste reicht **Name + Freundes-Code pro Gerät**
-   (kein Passwort). Die heutigen Seiten Login/Register sind nur lokal – zum
-   Release ausblenden oder durch „Name wählen“ ersetzen?
-3. **Store:** Apple-Developer-Konto (99 €/Jahr) vorhanden? Google Play (25 €
-   einmalig) auch zum Start? App-Name im Store?
-4. **Rechtliches:** Datenschutzerklärung + Impressum (Pflicht in DE, da Namen
-   und Läufe an Supabase gehen) – wer stellt sie online?
+1. **Dritte Tonne = „Sammlung“** (Sammelbuch, Medaillen, Wurfspuren,
+   Belohnungen, später Sticker). ✅
+2. **Konten:** Name + Freundes-Code pro Gerät reicht erst mal; richtige Konten
+   am Ende. ✅
+3. **Erst Inhalte, dann Release:** Store, App-Name und Rechtliches
+   (Datenschutz/Impressum) erst, wenn die App so gut wie fertig ist (R7 ans Ende). ✅
+4. **Trickwürfe neu als Parcours** (R5): echte Dinge statt Ringe, Hindernis
+   verrät die Tonne nicht, Gegenstände wechseln → Sortieren bleibt drin. ✅
 
 ## 3. Zeitplan (realistisch)
 
@@ -42,20 +39,20 @@ Apples Prüfung dauert meist **1–2 Tage**. Danach kommen reine JS-Änderungen
 weiter per **EAS-Update** aufs Handy – Szenen, Effekte und Feinschliff können
 also auch **nach dem Einreichen** folgen.
 
-| Tag | Schwerpunkt |
-|---|---|
-| **Fr 30.10.** | Roadmap, Entscheidungen; R1 Menü-Umbau beginnen |
-| **Sa 31.10.** | R1 Menü fertig · R2 Kampagne Grundgerüst (Pfad, Stationen, Freischalten) |
-| **So 1.11.** | R2 Boss-Stationen, Sterne · R3 Flamme + Missionen im Pfad |
-| **Mo 2.11.** | R4 Online-Bereich: Zeit-Sprint 30 s + Survival gegen Zufallsgegner (Ghost) + Rangliste |
-| **Di 3.11.** | R4 Trick-Battle, Freunde per Code · R5 Trick-Ringe gleich · R6 Crunch (erste Effekte) |
-| **Mi 4.11.** | **Feature-Freeze.** R7 Release: App-Symbol, Startbild, EAS-Build, TestFlight, Store-Texte, Datenschutz → **einreichen** |
-| **Do 5.11.** | Fehler aus TestFlight beheben (per EAS-Update) · R6/R8 Feinschliff |
-| **Fr 6.11.** | **Veröffentlichen** · Teilen-Bild, Tages-Herausforderung bewerben |
-| **ab 7.11.** | Version 1.1: Live-Duell gleichzeitig, Passanten/Autos, neue Szenen, Sticker |
+**Geändert (Nutzer, 30.10. abends): erst alle Inhalte, Release-Arbeit (R7)
+ganz am Ende.** Reihenfolge der Inhalte:
 
-Faustregel: Was bis Mi 4.11. nicht freigegeben ist, kommt per Update nach dem Start.
-Lieber weniger, dafür rund.
+| Etappe | Schwerpunkt |
+|---|---|
+| **1** | R1 Startschirm mit 3 Tonnen |
+| **2** | R2 Kampagne/Lernpfad inkl. Boss · R3 Missionen + Tagesbelohnung |
+| **3** | R4a/b Online: Zeit-Sprint + Survival gegen Zufallsgegner, Freunde, Rangliste |
+| **4** | R5 Trick-Parcours (Reifenschaukel, Torwand) → R4c Trick-Battle |
+| **5** | R6 Crunch · R8 Teilen · R9 Szenen/Passanten · R10 Restfehler |
+| **6** | R7 Release (App-Symbol, Build, TestFlight, Store, Rechtliches, Konten) |
+
+Merke für Etappe 6: Apple prüft meist 1–2 Tage; nach dem Start können reine
+JS-Änderungen per EAS-Update nachkommen.
 
 ---
 
@@ -112,8 +109,11 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   Tauziehen-Balken. Wer mehr richtig hat, gewinnt.
 - [ ] **R4b** Survival: Ohne Fehler, aber Tempo steigt – nach max. ~30 s
   Höchsttempo; wer länger durchhält, gewinnt.
-- [ ] **R4c** Trick-Battle: 3 zufällige Trick-Level, je **eigene Zeit**
-  (z. B. 8 / 10 / 12 s), Punkte nach Trick-Güte.
+- [ ] **R4c** Trick-Battle (braucht R5): beide spielen denselben Parcours mit
+  denselben Gegenständen (Seed), Zeit je Parcours 20–30 s, Punkte wie in R5
+  (falsch 0 · richtig 1 · Trick 3 · Swish +1) – Sortieren entscheidet mit.
+  Gegner fliegt als Ghost mit; da die Hindernisse nur an der Rundenzeit hängen,
+  schwingt die Reifenschaukel bei beiden gleich.
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
@@ -129,14 +129,41 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
 - [ ] **R4h** Sofa-Duell (Emres Schnell-Duell, 1 Handy) als 4. Karte „Zu zweit
   an einem Handy“ behalten.
 
-### R5 – Trickwürfe fairer und realistischer (Soll)
-- [ ] **R5a** **Gleiche Ringe/Hindernisse über allen Tonnen**, damit das
-  Hindernis nicht verrät, welche Tonne gemeint ist – man muss weiterhin
-  zuordnen UND tricksen. Fairness-Test für alle Tonnen.
-- [ ] **R5b** Unterschiedliche Zeitlimits je Trick-Level (leicht kurz, schwer länger).
-- [ ] **R5c** Realistischere Trick-Kulisse: Trampolin federt sichtbar nach,
-  Deckel klappert, Ring schwingt aus. (Neue Level T1–T6 aus IMPROVEMENTS.md
-  erst nach dem Release.)
+### R5 – Trick-Parcours: sortieren UND tricksen (Muss, Grundlage für R4c)
+**Problem heute:** Jedes Level hat eine feste Zieltonne (`target` in
+game/trick-levels.ts), das Hindernis steht genau davor → es verrät die Tonne,
+Sortieren spielt keine Rolle. Ringe machen Spaß, wirken aber unecht.
+
+**Neues Prinzip „Parcours“:** Gegenstände wechseln (mal Gelb, mal Rest, mal
+Bio …), die Zieltonne ergibt sich **aus dem Gegenstand**. Der Parcours ist für
+alle 3 Tonnen gleich schwer – entweder **symmetrisch** (gleiches Hindernis vor
+jeder Tonne) oder **ein bewegtes Hindernis, das über alle Tonnen wandert**
+(Timing: werfen, wenn es vor DEINER Tonne ist). Wertung: falsche Tonne = 0 +
+Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
+
+**Echte Dinge statt Ringe** (Poly-Look, bewegen sich wirklich):
+| Element | Was man macht | Art |
+|---|---|---|
+| **Reifenschaukel** (Autoreifen am Seil an einem Ast) | schwingt links ↔ rechts – durchwerfen, wenn er vor der richtigen Tonne ist | wandernd (ersetzt den gleitenden Ring) |
+| **Torwand** (wie beim Fußball, 3 Löcher) | steht vor den Tonnen, je Tonne ein Loch | symmetrisch (ersetzt feste Ringe) |
+| **Basketballkorb an der Hauswand** | Bandenwurf übers Brett, Korb mündet in Rutsche zur Tonne | wandernd (Brett fährt) oder 3 Körbe |
+| **Wäscheleine mit Tüchern** | Tücher wehen, zwischen ihnen durch | symmetrisch, bewegt |
+| **Laubbläser / Rasensprenger** | schiebt den Wurf seitlich (wie Ventilator) | wirkt auf alle Spuren |
+| **Lieferwagen / Radfahrer** fährt quer durchs Bild | Lücke abpassen (passt zu R9b Passanten) | wandernd |
+| **Trampolin, Klappdeckel** (gibt es) | bleiben – auf alle Tonnen ausweiten | symmetrisch |
+
+- [ ] **R5a** Datenmodell: Level ohne feste Zieltonne (`lanes: "all"`),
+  Pflicht-Element je Spur bzw. „durch das wandernde Element“. Fairness-Test
+  prüft jede der 3 Tonnen (Test dauert ~3× so lang → Level einzeln testen).
+- [ ] **R5b** Reifenschaukel (Modell + Pendel-Bewegung + Kollision) als erstes
+  Parcours-Element; gleitender Ring wird dadurch ersetzt.
+- [ ] **R5c** Torwand mit 3 Löchern; Trampolin + Klappdeckel auf alle Spuren.
+- [ ] **R5d** Parcours-Runde: Gegenstände aus dem Tages-Seed, eigene Zeit je
+  Parcours (20 / 25 / 30 s), Punkte wie oben. Bewegung hängt nur an der
+  Rundenzeit → Ghost des Gegners sieht exakt denselben Parcours.
+- [ ] **R5e** Bisherige Level 1–24 werden „Trick-Schule“ (Seitenpfad der
+  Kampagne, je ein Element erklären, feste Tonne ok). Wäscheleine, Basketball,
+  Laubbläser, Lieferwagen nach und nach (Kann).
 
 ### R6 – Crunch & Belohnungsgefühl (Soll, viel per EAS-Update nachlieferbar)
 - [ ] **R6a** Aufprall-Partikel in der **Farbe der Wurfspur** beim Treffer.
@@ -148,7 +175,7 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
 - [ ] **R6d** Belohnungs-Momente: Truhe öffnen, Stern-Animation im Pfad,
   „Neue Tonne freigeschaltet!“. Hot-Path-Regel beachten (keine Objekte pro Frame).
 
-### R7 – Release-Vorbereitung (Muss, Mi 4.11.)
+### R7 – Release-Vorbereitung (ganz am Ende, wenn die Inhalte stehen)
 - [ ] **R7a** App-Symbol + Startbild (eigene Tonne mit Gesicht o. ä.).
 - [ ] **R7b** `eas build` iOS (+ Android), TestFlight an Emre & Freunde.
 - [ ] **R7c** Store-Eintrag: Name, Untertitel, Beschreibung DE/EN, 5 Bildschirmfotos,
