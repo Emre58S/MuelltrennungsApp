@@ -10,7 +10,7 @@ import { DuelRound } from "@/components/game/duel-round";
 import { GameRound } from "@/components/game/game-round";
 import { GhostRound } from "@/components/game/ghost-round";
 import { TrickRound } from "@/components/game/trick-round";
-import { getStation, nextStation } from "@/game/campaign";
+import { getStation, nextStation, stationMode } from "@/game/campaign";
 import { dailyTrick, TRICK_LEVELS } from "@/game/trick-levels";
 import { type GameMode } from "@/constants/modes";
 import { useAppTheme } from "@/providers/app-settings";
@@ -68,15 +68,15 @@ export default function GameScreen() {
   // Kampagne: „Nächste Station“ wechselt hier, ohne die Seite neu zu öffnen
   const [stationId, setStationId] = useState(rawStation);
   const station = stationId ? getStation(stationId) : undefined;
-  const next = station ? nextStation(station.id) : undefined;
-  const nextStationRound = useCallback(() => {
-    if (!next) return;
-    setStationId(next.id);
+  const nextId = station ? nextStation(station.id)?.id : undefined;
+  const nextStationRound = () => {
+    if (!nextId) return;
+    setStationId(nextId);
     setXp(null);
     loadXp();
     setRound((r) => r + 1);
     playMusic("game");
-  }, [next, loadXp]);
+  };
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => undefined);
   }, []);
@@ -167,10 +167,10 @@ export default function GameScreen() {
         <Profiler id="runde" onRender={onRender}>
           <GameRound
             key={`${round}-${level}-${mode}-${daily}-${station?.id}`}
-            mode={mode}
+            mode={station ? stationMode(station) : mode}
             daily={daily}
             station={station}
-            onNext={next ? nextStationRound : undefined}
+            onNext={nextId ? nextStationRound : undefined}
             level={level}
             startXp={xp}
             onAgain={playAgain}

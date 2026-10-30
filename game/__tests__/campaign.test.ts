@@ -7,6 +7,7 @@ import {
   introExamples,
   isUnlocked,
   nextStation,
+  stationMode,
   type Station,
   STATIONS,
   starsFor,
@@ -105,7 +106,7 @@ describe("Freischalten", () => {
     expect(isUnlocked({}, "1-1")).toBe(true);
     expect(isUnlocked({}, "1-2")).toBe(false);
     expect(isUnlocked({ "1-1": 1 }, "1-2")).toBe(true);
-    expect(isUnlocked({ "1-4": 1 }, "2-1")).toBe(true);
+    expect(isUnlocked({ "1-6": 1 }, "2-1")).toBe(true);
     expect(isUnlocked({}, "9-9")).toBe(false);
   });
 
@@ -140,7 +141,26 @@ describe("Runde einer Station", () => {
 
   test("nächste Station", () => {
     expect(nextStation("1-1")?.id).toBe("1-2");
-    expect(nextStation("1-4")?.id).toBe("2-1");
+    expect(nextStation("1-6")?.id).toBe("2-1");
     expect(nextStation(STATIONS[STATIONS.length - 1].id)).toBeUndefined();
+  });
+});
+
+describe("Stations-Arten", () => {
+  test("jede Lern-Welt: einmal Ohne Fehler, einmal Zeit, Start und Ende normal", () => {
+    for (const w of WORLDS.filter((wo) => wo.newBins.length > 0)) {
+      const kinds = w.stations.map((s) => s.kind);
+      expect(kinds.filter((k) => k === "survival")).toHaveLength(1);
+      expect(kinds.filter((k) => k === "time")).toHaveLength(1);
+      expect(kinds[0]).toBeUndefined();
+      expect(kinds[kinds.length - 1]).toBeUndefined();
+    }
+  });
+
+  test("Spielart der Runde folgt der Art", () => {
+    const of = (kind?: string) => STATIONS.find((s) => s.kind === kind)!;
+    expect(stationMode(of(undefined))).toBe("endless");
+    expect(stationMode(of("survival"))).toBe("survival");
+    expect(stationMode(of("time"))).toBe("time");
   });
 });

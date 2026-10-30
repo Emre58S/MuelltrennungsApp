@@ -219,7 +219,14 @@ export function EndScreen({
           {station && (
             <AppText variant="label" tone="textMuted" center>
               {rating >= 1
-                ? t("campaign.end.goal", { goal: station.goal, total: station.total })
+                ? t(
+                    station.kind === "time"
+                      ? "campaign.end.goalTime"
+                      : station.kind === "survival"
+                        ? "campaign.end.goalSurvival"
+                        : "campaign.end.goal",
+                    { goal: station.goal, total: station.total },
+                  )
                 : t("campaign.end.missing", { n: station.goal - stats.correct })}
             </AppText>
           )}

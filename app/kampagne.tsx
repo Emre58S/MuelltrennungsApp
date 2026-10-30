@@ -37,6 +37,8 @@ const MODE_LOOK: Partial<Record<GameMode, string>> = {
 /** Zickzack des Pfads: seitlicher Versatz je Station (in px). */
 const ZIGZAG = [-56, 0, 56, 0];
 const DOT = 64;
+/** Kennzeichen der Stations-Arten (klein am Kreis). */
+const KIND_EMOJI = { survival: "🛡️", time: "⏱️" } as const;
 /** Farbe der „Knifflige Fälle“-Welt (ohne eigene Tonne). */
 const TRICKY_COLOR = "#7C5CD6";
 
@@ -261,9 +263,16 @@ function StationDot({
     };
   }, [isCurrent, reduceMotion, hop]);
 
+  const kind = station.kind ? `, ${t(`campaign.kind.${station.kind}`)}` : "";
   const label = unlocked
-    ? `${t("campaign.station", { id: station.id })}, ${t("common.starsOf", { n: stars })}`
-    : `${t("campaign.station", { id: station.id })}, ${t("campaign.locked")}`;
+    ? `${t("campaign.station", { id: station.id })}${kind}, ${t("common.starsOf", { n: stars })}`
+    : `${t("campaign.station", { id: station.id })}${kind}, ${t("campaign.locked")}`;
+  const goal =
+    station.kind === "time"
+      ? t("campaign.goalTime", { goal: station.goal })
+      : station.kind === "survival"
+        ? t("campaign.goalSurvival", { goal: station.goal })
+        : t("campaign.goal", { goal: station.goal, total: station.total });
   return (
     <View
       style={[styles.stationWrap, { transform: [{ translateX: offset }] }]}
@@ -299,6 +308,11 @@ function StationDot({
             {unlocked ? station.id : "🔒"}
           </AppText>
         </Pressable>
+        {station.kind && (
+          <View pointerEvents="none" style={[styles.kind, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <AppText style={styles.kindEmoji}>{KIND_EMOJI[station.kind]}</AppText>
+          </View>
+        )}
       </Animated.View>
       {unlocked && stars > 0 && (
         <AppText variant="label" style={styles.stars}>
@@ -311,7 +325,7 @@ function StationDot({
       {isCurrent && (
         <View style={[styles.goal, { backgroundColor: colors.goldSoft }]}>
           <AppText variant="caption" tone="onGoldSoft">
-            {t("campaign.goal", { goal: station.goal, total: station.total })}
+            {goal}
           </AppText>
         </View>
       )}
@@ -368,6 +382,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dotCurrent: { width: DOT + 12, height: DOT + 12, borderRadius: (DOT + 12) / 2, borderWidth: 4 },
+  kind: {
+    position: "absolute",
+    top: -4,
+    right: -6,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  kindEmoji: { fontSize: 15, lineHeight: 19 },
   stars: { marginTop: 2, color: "#FFB300", letterSpacing: 2 },
   goal: {
     marginTop: Spacing.xs,

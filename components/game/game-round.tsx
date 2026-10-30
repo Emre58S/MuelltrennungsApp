@@ -230,9 +230,11 @@ export function GameRound({
     [daily, pool],
   );
   // Station: einmal gemischt, ohne Zurücklegen (siehe stationQueue)
-  const [stationList] = useState(() => (station ? stationQueue(station) : null));
+  // „Zeit“-Station: so viele Würfe wie die Uhr erlaubt → lernend gewichtet ziehen
+  const counted = !!station && station.kind !== "time";
+  const [stationList] = useState(() => (station && counted ? stationQueue(station) : null));
   /** Würfe, nach denen die Runde von selbst endet (Tagesaufgabe, Station). */
-  const fixedCount = station ? station.total : daily ? DAILY_COUNT : null;
+  const fixedCount = station && counted ? station.total : daily ? DAILY_COUNT : null;
   const { width: screenW, height: screenH } = useWindowDimensions();
   const layout = useMemo(
     () => computeLayout(screenW, screenH, bins.length),
@@ -1043,7 +1045,11 @@ export function GameRound({
                 {station ? (
                   // Fortschritt der Station: „3/10 · Ziel 7“
                   <HudPill
-                    label={t("campaign.progress", { n: stats.throws, total: station.total, goal: station.goal })}
+                    label={
+                      counted
+                        ? t("campaign.progress", { n: stats.throws, total: station.total, goal: station.goal })
+                        : t("campaign.progressTime", { n: stats.correct, goal: station.goal })
+                    }
                   />
                 ) : mode === "endless" && !daily && stats.throws > 0 ? (
                   <HudButton
