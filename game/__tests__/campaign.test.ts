@@ -4,6 +4,7 @@ import { describe, expect, test } from "@jest/globals";
 
 import {
   currentStation,
+  introExamples,
   isUnlocked,
   type Station,
   STATIONS,
@@ -15,11 +16,29 @@ import {
 } from "@/game/campaign";
 
 describe("Welten und Stationen", () => {
-  test("Jede Welt bringt genau eine neue Tonne (Welt 1: Papier vs. Rest)", () => {
+  test("Welt 1 Papier vs. Rest, dann je eine neue Tonne, zuletzt Knifflige Fälle", () => {
     expect(WORLDS[0].bins).toEqual(["papier", "rest"]);
+    expect(WORLDS[0].newBins).toEqual(["papier", "rest"]);
     for (let w = 1; w < WORLDS.length; w++) {
       const added = WORLDS[w].bins.filter((b) => !WORLDS[w - 1].bins.includes(b));
-      expect(added).toEqual([WORLDS[w].newBin]);
+      expect(added).toEqual(WORLDS[w].newBins);
+    }
+    const last = WORLDS[WORLDS.length - 1];
+    expect(last.newBins).toEqual([]);
+    expect(last.bins.length).toBe(6);
+  });
+
+  test("Knifflige Fälle: jeder Name gibt es wirklich, mehrere Tonnen je Station", () => {
+    for (const s of WORLDS[WORLDS.length - 1].stations) {
+      expect(s.items).toBeDefined();
+      expect(stationPool(s).length).toBe(s.items?.length);
+      expect(new Set(stationPool(s).map((it) => it.category)).size).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  test("Lernkarte: 3 Beispiele für jede neue Tonne", () => {
+    for (const w of WORLDS) {
+      for (const b of w.newBins) expect(introExamples(b)).toHaveLength(3);
     }
   });
 
@@ -36,7 +55,7 @@ describe("Welten und Stationen", () => {
   });
 
   test("Pool hat Gegenstände für jede Tonne der Station – und nur für diese", () => {
-    for (const s of STATIONS) {
+    for (const s of STATIONS.filter((st) => !st.items)) {
       const pool = stationPool(s);
       const cats = new Set(stationBins(s).map((b) => b.category));
       expect(pool.length).toBeGreaterThanOrEqual(4);
@@ -45,8 +64,8 @@ describe("Welten und Stationen", () => {
     }
   });
 
-  test("Erste Station einer Welt nur leichte Gegenstände", () => {
-    for (const w of WORLDS) {
+  test("Erste Station einer Lern-Welt nur leichte Gegenstände", () => {
+    for (const w of WORLDS.filter((wo) => wo.newBins.length > 0)) {
       expect(stationPool(w.stations[0]).every((it) => it.difficulty === "leicht")).toBe(true);
     }
   });

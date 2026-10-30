@@ -5,10 +5,11 @@
 // und ein Ziel („7 von 10 richtig“). Ergebnis: 0–3 Sterne. Die nächste
 // Station ist ab 1 Stern auf der vorigen frei.
 //
-// Inhalte der Welten (Welt 6 „Knifflige Fälle“, Lernkarten) folgen mit R2b,
-// Stations-Arten (Zeit, Ohne Fehler, Trick, Boss) mit R2d/R2e.
+// Welt 6 „Knifflige Fälle“: alle Tonnen, Stationen mit festen Fallen-Listen.
+// Neue Tonne = Lernkarte (introExamples + Text bin.<key>.examples).
+// Stations-Arten (Zeit, Ohne Fehler, Trick, Boss) folgen mit R2d/R2e.
 
-import { type Item } from "@/constants/items";
+import { type Item, ITEMS } from "@/constants/items";
 import { type BinKey } from "@/constants/theme";
 import { ALL_BINS, type BinDef, getItemsForBins } from "@/game/bins";
 
@@ -20,6 +21,8 @@ export type Station = {
   bins: BinKey[];
   /** Gegenstände bis zu dieser Schwierigkeit (leicht < mittel < schwer). */
   upTo: Difficulty;
+  /** Feste Liste (Namen) statt Schwierigkeit – für „Knifflige Fälle“. */
+  items?: string[];
   /** Würfe pro Runde. */
   total: number;
   /** So viele richtig = geschafft (1 Stern). */
@@ -29,8 +32,8 @@ export type Station = {
 export type World = {
   index: number;
   bins: BinKey[];
-  /** Die Tonne, die in dieser Welt neu dazukommt (Welt 1: beide neu). */
-  newBin: BinKey;
+  /** Tonnen, die in dieser Welt neu sind (Lernkarte; Welt 1: beide, Welt 6: keine). */
+  newBins: BinKey[];
   stations: Station[];
 };
 
@@ -56,12 +59,81 @@ const WORLD_BINS: BinKey[][] = [
   ["papier", "bio", "gelb", "rest", "glas", "sonder"],
 ];
 
-export const WORLDS: World[] = WORLD_BINS.map((bins, w) => ({
+const LEARN_WORLDS: World[] = WORLD_BINS.map((bins, w) => ({
   index: w + 1,
   bins,
-  newBin: w === 0 ? "papier" : (bins.find((b) => !WORLD_BINS[w - 1].includes(b)) as BinKey),
-  stations: STEPS.map((step, s) => ({ id: `${w + 1}-${s + 1}`, bins, upTo: step.upTo, total: 10, goal: step.goal })),
+  newBins: w === 0 ? bins : bins.filter((b) => !WORLD_BINS[w - 1].includes(b)),
+  stations: STEPS.map((step, s) => ({
+    id: `${w + 1}-${s + 1}`,
+    bins,
+    upTo: step.upTo,
+    total: 10,
+    goal: step.goal,
+  })),
 }));
+
+/** Welt 6: Fallen – richtige und falsche „Doppelgänger“ gemischt. */
+const TRICKY: string[][] = [
+  // Sieht aus wie Papier oder Glas
+  [
+    "Kassenzettel",
+    "Geschenkpapier (mit Folie)",
+    "Geschenkpapier (ohne Folie)",
+    "Zerbrochener Spiegel",
+    "Trinkglas",
+    "Parfümflasche",
+    "Pizzakarton (fettig)",
+    "Tapeten",
+    "Eierkarton",
+    "Toilettenpapier-Rolle",
+  ],
+  // Verpackung oder Sondermüll?
+  [
+    "Deckel (Metall)",
+    "Kaffeekapsel (Alu)",
+    "Tablettenblister (leer)",
+    "Spraydose (leer)",
+    "Kronkorken",
+    "Alufolie",
+    "Ladekabel",
+    "Energiesparlampe",
+    "Nagellackentferner",
+    "Fieberthermometer (Quecksilber)",
+    "Abgelaufene Medikamente",
+    "Druckerpatronen",
+    "Alte CD",
+    "Einwegrasierer",
+  ],
+  // Küche und Bad
+  [
+    "Teebeutel",
+    "Kaffeefilter",
+    "Küchenrolle (unbeschichtet)",
+    "Backpapier",
+    "Kaugummi",
+    "Wattestäbchen",
+    "Alte Zahnbürste",
+    "Zahnpastatube",
+    "Butterverpackung",
+    "Kerzenreste",
+  ],
+];
+const ALL_KEYS: BinKey[] = WORLD_BINS[WORLD_BINS.length - 1];
+const TRICKY_WORLD: World = {
+  index: WORLD_BINS.length + 1,
+  bins: ALL_KEYS,
+  newBins: [],
+  stations: [...TRICKY, TRICKY.flat()].map((items, s) => ({
+    id: `${WORLD_BINS.length + 1}-${s + 1}`,
+    bins: ALL_KEYS,
+    upTo: "schwer",
+    items,
+    total: 10,
+    goal: s < TRICKY.length ? 6 : 7,
+  })),
+};
+
+export const WORLDS: World[] = [...LEARN_WORLDS, TRICKY_WORLD];
 
 /** Alle Stationen in Pfad-Reihenfolge. */
 export const STATIONS: Station[] = WORLDS.flatMap((w) => w.stations);
@@ -77,8 +149,25 @@ export function stationBins(station: Station): BinDef[] {
 
 /** Gegenstände, die in dieser Station vorkommen können. */
 export function stationPool(station: Station): Item[] {
+  if (station.items) {
+    const names = new Set(station.items);
+    return ITEMS.filter((it) => names.has(it.name));
+  }
   const max = ORDER.indexOf(station.upTo);
-  return getItemsForBins(stationBins(station)).filter((it) => ORDER.indexOf(it.difficulty) <= max);
+  return getItemsForBins(stationBins(station)).filter(
+    (it) => ORDER.indexOf(it.difficulty) <= max,
+  );
+}
+
+/** Lernkarte für eine neue Tonne: 3 typische Beispiele, leichte zuerst. */
+export function introExamples(bin: BinKey): Item[] {
+  const def = ALL_BINS.find((b) => b.key === bin);
+  if (!def) return [];
+  return ITEMS.filter(
+    (it) => it.category === def.category && it.difficulty !== "schwer",
+  )
+    .sort((a, b) => ORDER.indexOf(a.difficulty) - ORDER.indexOf(b.difficulty))
+    .slice(0, 3);
 }
 
 /** Sterne für ein Ergebnis: Ziel = 1, mehr als das Ziel = 2, alles richtig = 3. */
@@ -98,11 +187,18 @@ export function isUnlocked(stars: CampaignStars, id: string): boolean {
 
 /** Die Station, mit der es weitergeht: die erste freie ohne Stern (sonst die letzte). */
 export function currentStation(stars: CampaignStars): Station {
-  return STATIONS.find((s) => (stars[s.id] ?? 0) < 1) ?? STATIONS[STATIONS.length - 1];
+  return (
+    STATIONS.find((s) => (stars[s.id] ?? 0) < 1) ??
+    STATIONS[STATIONS.length - 1]
+  );
 }
 
 /** Neues Ergebnis eintragen – nur mehr Sterne zählen (nie weniger). */
-export function withStars(stars: CampaignStars, id: string, earned: number): CampaignStars {
+export function withStars(
+  stars: CampaignStars,
+  id: string,
+  earned: number,
+): CampaignStars {
   if ((stars[id] ?? 0) >= earned) return stars;
   return { ...stars, [id]: Math.min(3, Math.max(0, earned)) };
 }
