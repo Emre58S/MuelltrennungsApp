@@ -1,5 +1,9 @@
 # Backlog – automatisches Verbessern
 
+> **Ab 30.10.2026 gilt `ROADMAP.md` (Release Fr 6.11.).** Oberste offene Aufgabe
+> dort nehmen (R1 → R2 → …). Diese Datei bleibt Archiv/Notizen; ihre offenen
+> Punkte sind in der Roadmap eingeordnet.
+
 Oben = als Nächstes. Jede Aufgabe in kleine, fertige Abschnitte zerlegen.
 Erledigtes mit `[x]` und Commit-Kürzel abhaken. Du kannst hier jederzeit
 ergänzen oder umsortieren – ich lese die Datei zu Beginn jedes Zyklus neu.

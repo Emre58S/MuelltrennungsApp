@@ -10,7 +10,7 @@ Deutschkenntnisse – klar, freundlich, nie strafend. Gespielt auf iPhone in
 Expo Go.
 
 ## Ablauf eines Zyklus (höchstens 3 pro Lauf)
-1. `IMPROVEMENTS.md` lesen, die oberste offene Aufgabe nehmen. Ist sie zu groß,
+1. `ROADMAP.md` (Backlog R1…) lesen, die oberste offene Aufgabe nehmen. Ist sie zu groß,
    in einen kleinen, in sich fertigen Abschnitt zerlegen (der Rest bleibt offen).
 2. Umsetzen – klein und abgeschlossen, keine halben Sachen.
 3. Prüfen: `npx tsc --noEmit -p .`, `npx eslint .` (0 Fehler),
@@ -24,15 +24,17 @@ Expo Go.
    nachziehen (`git fetch . auto-improve:sdk-58`) und ebenfalls pushen. Danach
    EAS-Update auf **beide** Kanäle, `auto` und `preview`:
    `npx --yes eas-cli@latest update --channel … --environment preview --message "…" --non-interactive`.
-6. Aufgabe in `IMPROVEMENTS.md` abhaken (mit Commit-Kürzel), Gelerntes unten
+6. Aufgabe in `ROADMAP.md` abhaken (mit Commit-Kürzel), Gelerntes unten
    unter „Gelernt“ notieren.
 7. Kurze Meldung „✅ Zyklus N fertig: …“ – dann Pause (Eingreifen möglich).
 
 ## Modi (welcher gilt, sagt der Nutzer)
 **Aktuell (Nutzer, 29.10. abends): Normalmodus** – „alles immer so, dass Emre es
 bei sich spielen kann“: jede freigegebene Änderung pushen (auto-improve +
-sdk-58) und per EAS auf auto UND preview. Reihenfolge (Nutzer, 30.10.): Ghost-Duell (G1–G4) →
-Tages-Flamme/Missionen. Lange Sitzungen trotzdem vermeiden (frisch starten).
+sdk-58) und per EAS auf auto UND preview. Reihenfolge (Nutzer, 30.10. abends):
+ROADMAP.md – Release Fr 6.11.; Umbau zu Startschirm mit 3 Tonnen, Kampagne als
+Lernpfad, Online-Bereich (Zeit/Survival/Tricks, max. 30 s) ist ausdrücklich
+erlaubt. Lange Sitzungen trotzdem vermeiden (frisch starten).
 
 **Sparlauf (nur auf Ansage; zuletzt 29.10. nachmittags)** – Wochenlimit knapp:
 - Höchstens 3 Zyklen pro Lauf. Nur lokal auf `auto-improve` committen –
@@ -68,6 +70,9 @@ wenig Deutsch, nie strafend.
   Trick-Hindernisse (Schild, Laterne, Markise, Zaun) sind erlaubt.
   Ausnahme (Nutzer, 2026-10-30): Modus Ghost-Duell (nacheinander gegen den
   aufgezeichneten Lauf, Herausforderung per Code, später Live-Raum).
+  Ausnahme (Nutzer, 2026-10-30 abends): alles aus ROADMAP.md – Menü-Umbau,
+  Kampagne/Lernpfad mit Boss (Tonnen tauschen Plätze), Online-Modi mit
+  Rangliste und Freunden, gleiche Ringe über allen Tonnen, Material-Effekte.
   Ausnahme (Nutzer, 2026-10-29): Trickwürfe ohne Köder/Auswahl (direkt werfen),
   Prall-Level zwischen den Tonnen, Modus Duell (1 gegen 1 an einem
   Handy), Tages-Flamme + Tagesmissionen; Zielwurf ausgeblendet.
