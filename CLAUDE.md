@@ -119,6 +119,10 @@ wenig Deutsch, nie strafend.
   tönen. Details (Glanz, Flecken, Etiketten) per Rechnung auf/vor die Fläche
   setzen – der Tester rechnet nach, schwebende oder versteckte Teile fallen auf.
 - Lange Edit-Skripte mit Write in den Scratchpad schreiben (Heredoc bricht ab).
+- React-Compiler: useCallback, dessen Abhängigkeit auch an eine Funktion
+  übergeben wird, meldet „preserve-manual-memoization“ – useCallback weglassen.
+- EAS-Update gab einmal gar nichts aus (Exit 0): Ausgabe in Datei umleiten
+  und Dashboard-Zeile prüfen, sonst ist unklar, ob es ankam.
 - Teile an runden Körpern (Rolle, Dose): Abstand zur Achse > Radius rechnen –
   Geschenkband-Enden steckten unsichtbar in der Rolle. Gestapelte Ringe lesen
   sich nicht als Kräuselband (verworfen).

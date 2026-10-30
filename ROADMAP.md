@@ -117,6 +117,12 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
 - [ ] **R2d** Stations-Arten: normal · **Zeit** (Gegen die Zeit) · **Ohne Fehler**
   · **Trick** (Trick-Level 1–24 als Seitenstationen) · **Boss**. Damit leben die
   bisherigen Modi im Pfad weiter.
+  - [x] Teil 1 (920bab2, Tester 7/10, EAS auto + preview): Lern-Welten haben 6
+    Stationen – 3 = 🛡️ Ohne Fehler (4 in Folge), 5 = ⏱️ Zeit (60 s, 10/16 richtig).
+    Offen: Trick-Seitenstationen; alte Stände (4 Stationen/Welt) – 2-1 wieder
+    gesperrt, wer nur bis 1-4 kam (ggf. Umzug der Sterne); „Noch N mehr richtig“
+    bei 🛡️ → „… in Folge“; Zeit-Ziel 16 für 3 Sterne auf dem Gerät prüfen (ggf. 14);
+    Stations-Runden zählen in Statistik von Ohne Fehler/Zeit.
 - [ ] **R2e** **Boss** am Ende jeder Welt: 10 Treffer in Folge; zwischendurch
   **tauschen Tonnen die Plätze/Farben** (z. B. Rest ↔ Gelb) – mit klarer
   Ankündigung („Achtung, Tonnen tauschen!“) und Animation. Sieg = Truhe.
