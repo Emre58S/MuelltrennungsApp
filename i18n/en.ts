@@ -437,6 +437,7 @@ export const en: Translations = {
   "campaign.progress": "{n}/{total} · goal {goal}",
   "campaign.end.done": "You did it!",
   "campaign.end.almost": "Almost there!",
+  "campaign.end.practice": "Good practice!",
   "campaign.end.goal": "Goal was {goal} of {total} ✓",
   "campaign.end.missing": "{n} more right for your first star.",
   "campaign.end.next": "Next stage",

@@ -25,7 +25,7 @@ import {
   WORLDS,
 } from "@/game/campaign";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { getCampaignStars } from "@/utils/storage";
+import { type DailyResult, getCampaignStars, getTodayDaily } from "@/utils/storage";
 import { sfx } from "@/utils/sfx";
 
 const MODE_LOOK: Partial<Record<GameMode, string>> = {
@@ -56,6 +56,8 @@ export default function KampagneScreen() {
   const { t } = useI18n();
   const { height } = useWindowDimensions();
   const [stars, setStars] = useState<CampaignStars | null>(null);
+  /** Tagesaufgabe von heute (undefined = noch nicht geladen, null = offen). */
+  const [daily, setDaily] = useState<DailyResult | null | undefined>(undefined);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
   const worldY = useRef<Record<number, number>>({});
@@ -70,6 +72,9 @@ export default function KampagneScreen() {
       getCampaignStars()
         .then((s) => active && setStars(s))
         .catch(() => active && setStars({}));
+      getTodayDaily()
+        .then((d) => active && setDaily(d))
+        .catch(() => undefined);
       return () => {
         active = false;
       };
@@ -99,7 +104,12 @@ export default function KampagneScreen() {
         {MENU_MODES.map((m) => (
           <Chip key={m.mode} emoji={MODE_LOOK[m.mode] ?? "🎮"} label={t(m.titleKey)} onPress={() => startGame(m.mode)} />
         ))}
-        <Chip emoji="📅" label={t("home.daily")} onPress={startDaily} />
+        <Chip
+          emoji="📅"
+          label={daily ? `${t("home.daily")} ${t("home.dailyDoneTiny", { correct: daily.correct, total: daily.total })}` : t("home.daily")}
+          dot={daily === null}
+          onPress={startDaily}
+        />
         <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
       </View>
 
@@ -135,7 +145,18 @@ export default function KampagneScreen() {
   );
 }
 
-function Chip({ emoji, label, onPress }: { emoji: string; label: string; onPress: () => void }) {
+function Chip({
+  emoji,
+  label,
+  dot,
+  onPress,
+}: {
+  emoji: string;
+  label: string;
+  /** Roter Punkt: hier wartet etwas (z. B. Tagesaufgabe noch offen). */
+  dot?: boolean;
+  onPress: () => void;
+}) {
   const { colors } = useAppTheme();
   return (
     <Pressable
@@ -155,6 +176,7 @@ function Chip({ emoji, label, onPress }: { emoji: string; label: string; onPress
       <AppText variant="label">
         {emoji} {label}
       </AppText>
+      {dot && <View style={styles.chipDot} />}
     </Pressable>
   );
 }
@@ -304,6 +326,17 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1.5,
+  },
+  chipDot: {
+    position: "absolute",
+    top: -3,
+    right: -3,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#FF4D4D",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
   world: {
     marginTop: Spacing.md,

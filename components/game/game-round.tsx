@@ -817,7 +817,8 @@ export function GameRound({
       levelNow.current = newLevel;
       sfx("levelup");
       showBanner(`⬆ ${t("game.levelUp", { level: newLevel })}`);
-      const unlocked = getUnlockAtLevel(newLevel);
+      // In Stationen gelten deren Tonnen – dort keine „Neue Tonne“ melden
+      const unlocked = station ? undefined : getUnlockAtLevel(newLevel);
       if (unlocked)
         later(() => {
           showBanner(

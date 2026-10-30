@@ -436,6 +436,7 @@ export const de = {
   "campaign.progress": "{n}/{total} · Ziel {goal}",
   "campaign.end.done": "Geschafft!",
   "campaign.end.almost": "Fast geschafft!",
+  "campaign.end.practice": "Gut geübt!",
   "campaign.end.goal": "Ziel war {goal} von {total} ✓",
   "campaign.end.missing": "Noch {n} mehr richtig für den ersten Stern.",
   "campaign.end.next": "Nächste Station",

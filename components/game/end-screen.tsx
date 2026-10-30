@@ -156,7 +156,13 @@ export function EndScreen({
 
   // Überschrift: nie strafend – ein Stern ist „Gut gemacht!“
   const heading = station
-    ? t(rating >= 1 ? "campaign.end.done" : "campaign.end.almost")
+    ? t(
+        rating >= 1
+          ? "campaign.end.done"
+          : stats.correct >= station.goal - 2
+            ? "campaign.end.almost"
+            : "campaign.end.practice",
+      )
     : daily
     ? t("game.end.dailyTitle")
     : rating >= 2 || newBest
