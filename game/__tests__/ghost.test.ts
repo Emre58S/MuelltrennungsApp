@@ -5,6 +5,9 @@ import { describe, expect, test } from "@jest/globals";
 
 import {
   beats,
+  challengeRun,
+  decodeChallenge,
+  encodeRun,
   GHOST_ITEMS,
   ghostQueue,
   ghostResult,
@@ -80,5 +83,39 @@ describe("Speichern", () => {
     expect(parseRun(JSON.stringify(r), "2026-10-31")).toBeNull();
     expect(parseRun("kaputt", "2026-10-30")).toBeNull();
     expect(parseRun(null, "2026-10-30")).toBeNull();
+  });
+});
+
+describe("Herausforderung per Code", () => {
+  const bins = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1];
+  const run = practiceRun("2026-10-30", bins, 4);
+
+  test("Code hin und zurück ergibt denselben Lauf (auf 0,1 s genau)", () => {
+    const ch = decodeChallenge(encodeRun(run, "Emre K"));
+    expect(ch?.day).toBe("2026-10-30");
+    expect(ch?.name).toBe("Emre K");
+    const back = challengeRun(ch!, bins, 4)!;
+    expect(back.correct).toBe(run.correct);
+    expect(back.throws.map((t) => t.bin)).toEqual(run.throws.map((t) => t.bin));
+    back.throws.forEach((t, i) => expect(Math.abs(t.ms - run.throws[i].ms)).toBeLessThanOrEqual(50));
+  });
+
+  test("wird mitten in einer Nachricht gefunden, auch in Großbuchstaben, ohne Name", () => {
+    const code = encodeRun(run);
+    expect(decodeChallenge(`👻 Ghost-Rennen! Schaffst du das? Code: ${code.toUpperCase()} – viel Glück`)?.picks).toHaveLength(10);
+    expect(decodeChallenge(code)?.name).toBeNull();
+  });
+
+  test("Tippfehler und abgeschnittene Codes werden abgelehnt", () => {
+    const code = encodeRun(run);
+    const typo = code.slice(0, 8) + (code[8] === "0" ? "1" : "0") + code.slice(9);
+    expect(decodeChallenge(typo)).toBeNull();
+    expect(decodeChallenge(code.slice(0, -2))).toBeNull();
+    expect(decodeChallenge("Ghost ghost gh")).toBeNull();
+  });
+
+  test("Tonne außerhalb der Szene → kein Lauf", () => {
+    const ch = decodeChallenge(encodeRun(run))!;
+    expect(challengeRun(ch, bins, 2)).toBeNull();
   });
 });

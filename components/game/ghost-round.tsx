@@ -6,10 +6,24 @@
 // Geister-Fahrer im Rennspiel. Oben zeigen Punkte und Tauziehen den Live-Stand.
 // Noch kein Lauf heute? Dann wirft ein Übungs-Ghost mit. Ist der neue Lauf
 // besser, wird er der neue Ghost. Regeln und Wertung: game/ghost.ts.
+// Herausforderung: Den eigenen Lauf als Code verschicken (Teilen-Menü); der
+// Freund fügt ihn auf dem Startschirm ein und spielt gegen diesen Ghost –
+// gleiche Strecke wie am Tag des Laufs. „Revanche“ behält die Herausforderung.
 
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Alert, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  AccessibilityInfo,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Share,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -35,6 +49,10 @@ import { Radius, Spacing } from "@/constants/theme";
 import { getBinByCategory, getBinsForScene, getItemsForBins } from "@/game/bins";
 import {
   beats,
+  type Challenge,
+  challengeRun,
+  decodeChallenge,
+  encodeRun,
   GHOST_ITEMS,
   ghostQueue,
   ghostResult,
@@ -51,6 +69,7 @@ import { itemMaterial } from "@/game/item-mass";
 import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
 import { aimFromDrag } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { getPlayer } from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { getGhostBest, saveGhostBest, todayKey } from "@/utils/storage";
@@ -67,7 +86,55 @@ const END_MS = 1100;
 
 type EndInfo = { run: GhostRun; result: GhostResult; newBest: boolean };
 
+/** Strecke eines Tages: Szene, Tonnen, 10 Gegenstände und je die richtige Tonne. */
+function trackFor(day: string) {
+  const scene = SCENES[ghostSeed(day) % SCENES.length];
+  const bins = getBinsForScene(scene, 1);
+  const queue = ghostQueue(getItemsForBins(bins), day);
+  const correctBins = queue.map((it) => bins.findIndex((b) => b.category === it.category));
+  return { scene, bins, queue, correctBins };
+}
+
+/** Lauf aus einem Code – nur, wenn er zur Strecke seines Tages passt. */
+function runFromCode(text: string): { ch: Challenge; run: GhostRun } | null {
+  const ch = decodeChallenge(text);
+  if (!ch) return null;
+  const { correctBins, bins } = trackFor(ch.day);
+  const run = challengeRun(ch, correctBins, bins.length);
+  return run ? { ch, run } : null;
+}
+
+/** Hält die Herausforderung über „Revanche“ hinweg; jede Runde frisch aufgebaut. */
 export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: () => void }) {
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const restart = useCallback(() => setAttempt((a) => a + 1), []);
+  const choose = useCallback((ch: Challenge | null) => {
+    setChallenge(ch);
+    setAttempt((a) => a + 1);
+  }, []);
+  return (
+    <GhostRace
+      key={attempt}
+      challenge={challenge}
+      onChallenge={choose}
+      onAgain={challenge ? restart : onAgain}
+      onExit={onExit}
+    />
+  );
+}
+
+function GhostRace({
+  challenge,
+  onChallenge,
+  onAgain,
+  onExit,
+}: {
+  challenge: Challenge | null;
+  onChallenge: (ch: Challenge | null) => void;
+  onAgain: () => void;
+  onExit: () => void;
+}) {
   const insets = useSafeAreaInsets();
   const { scheme, colors } = useAppTheme();
   const { t, lang, itemName, formatNumber } = useI18n();
@@ -77,27 +144,44 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
   useEffect(() => {
     fx.current.calm = reduceMotion;
   }, [reduceMotion]);
-  const [day] = useState(todayKey);
-  const scene = SCENES[ghostSeed(day) % SCENES.length];
-  const bins = useMemo(() => getBinsForScene(scene, 1), [scene]);
-  const queue = useMemo(() => ghostQueue(getItemsForBins(bins), day), [bins, day]);
+  const [today] = useState(todayKey);
+  const day = challenge?.day ?? today;
+  const { scene, bins, queue, correctBins } = useMemo(() => trackFor(day), [day]);
   const binOf = useCallback((it: Item) => bins.findIndex((b) => b.category === it.category), [bins]);
-  const practice = useMemo(() => practiceRun(day, queue.map(binOf), bins.length), [day, queue, binOf, bins.length]);
+  const practice = useMemo(() => practiceRun(day, correctBins, bins.length), [day, correctBins, bins.length]);
+  const friendRun = useMemo(
+    () => (challenge ? challengeRun(challenge, correctBins, bins.length) : null),
+    [challenge, correctBins, bins.length],
+  );
   const { width: screenW, height: screenH } = useWindowDimensions();
   const layout = useMemo(() => computeLayout(screenW, screenH, bins.length), [screenW, screenH, bins.length]);
   const later = useLater();
 
-  // Bester Lauf von heute (oder null → Übungs-Ghost)
+  // Bester eigener Lauf von heute (oder null → Übungs-Ghost)
   const [best, setBest] = useState<GhostRun | null>(null);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     getGhostBest()
-      .then((raw) => setBest(parseRun(raw, day)))
+      .then((raw) => setBest(parseRun(raw, today)))
       .catch(() => undefined)
       .finally(() => setLoaded(true));
-  }, [day]);
-  const ghost = best ?? practice;
-  const ghostName = best ? t("ghost.name") : t("ghost.practiceName");
+  }, [today]);
+  const ghost = friendRun ?? best ?? practice;
+  const friendName = challenge ? (challenge.name ?? t("ghost.friend")) : null;
+  const ghostName = friendName ?? (best ? t("ghost.name") : t("ghost.practiceName"));
+
+  // Code eines Freundes eingeben
+  const [entering, setEntering] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [invalid, setInvalid] = useState(false);
+  const acceptCode = () => {
+    const found = runFromCode(draft);
+    if (!found) {
+      setInvalid(true);
+      return;
+    }
+    onChallenge(found.ch);
+  };
 
   const [phase, setPhase] = useState<Phase>("ready");
   const phaseRef = useRef<Phase>("ready");
@@ -182,7 +266,8 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
 
   const finish = () => {
     const run = makeRun(day, myThrows.current);
-    const newBest = !best || beats(run, best);
+    // Nur Läufe auf der heutigen Strecke können der eigene Ghost werden
+    const newBest = day === today && (!best || beats(run, best));
     if (newBest) saveGhostBest(JSON.stringify(run)).catch(() => undefined);
     setEnd({ run, result: ghostResult(run, ghost), newBest });
     setItem(null);
@@ -376,7 +461,8 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
       )}
 
       {phase === "ready" && (
-        <View
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           pointerEvents="box-none"
           style={[styles.cover, { paddingTop: insets.top + 90, paddingBottom: insets.bottom + Spacing.lg }]}
         >
@@ -384,19 +470,78 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
             <AppText variant="title" style={styles.center}>
               👻 {t("ghost.title")}
             </AppText>
-            <AppText variant="body" tone="textSecondary" style={styles.center}>
-              {t("ghost.rules")}
-            </AppText>
+            {!entering && (
+              <AppText variant="body" tone="textSecondary" style={styles.center}>
+                {friendRun ? t("ghost.rulesFriend", { name: ghostName }) : t("ghost.rules")}
+              </AppText>
+            )}
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
               <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
-                {best
-                  ? t("ghost.best", { correct: best.correct, total: GHOST_ITEMS, time: sec(best.ms) })
-                  : t("ghost.practice")}
+                {friendRun
+                  ? t("ghost.challenge", {
+                      name: ghostName,
+                      correct: friendRun.correct,
+                      total: GHOST_ITEMS,
+                      time: sec(friendRun.ms),
+                    })
+                  : best
+                    ? t("ghost.best", { correct: best.correct, total: GHOST_ITEMS, time: sec(best.ms) })
+                    : t("ghost.practice")}
               </AppText>
             </View>
-            <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
+            {friendRun && day !== today && (
+              <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                {t("ghost.trackFrom", { date: day.split("-").reverse().join(".") })}
+              </AppText>
+            )}
+            {entering ? (
+              <>
+                <TextInput
+                  value={draft}
+                  onChangeText={(v) => {
+                    setDraft(v);
+                    setInvalid(false);
+                  }}
+                  autoFocus
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  multiline
+                  maxLength={600}
+                  placeholder={t("ghost.code.placeholder")}
+                  placeholderTextColor={colors.textMuted}
+                  keyboardAppearance={scheme}
+                  accessibilityLabel={t("ghost.code.enter")}
+                  style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
+                />
+                {invalid && (
+                  <AppText variant="caption" tone="warning">
+                    {t("ghost.code.invalid")}
+                  </AppText>
+                )}
+                <View style={styles.row}>
+                  <Button title={t("ghost.code.go")} icon="check" onPress={acceptCode} disabled={!draft.trim()} />
+                  <Button
+                    title={t("common.cancel")}
+                    variant="secondary"
+                    onPress={() => {
+                      setEntering(false);
+                      setInvalid(false);
+                    }}
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
+                {friendRun ? (
+                  <Button title={t("ghost.code.mine")} variant="secondary" onPress={() => onChallenge(null)} />
+                ) : (
+                  <Button title={t("ghost.code.enter")} icon="users" variant="secondary" onPress={() => setEntering(true)} />
+                )}
+              </>
+            )}
           </View>
-        </View>
+        </KeyboardAvoidingView>
       )}
 
       {phase === "countdown" && (
@@ -410,7 +555,9 @@ export function GhostRound({ onAgain, onExit }: { onAgain: () => void; onExit: (
           end={end}
           ghost={ghost}
           ghostName={ghostName}
-          practice={!best}
+          practice={!friendRun && !best}
+          friend={friendRun ? ghostName : null}
+          first={!best}
           queue={queue}
           sec={sec}
           onAgain={onAgain}
@@ -441,6 +588,8 @@ function GhostEnd({
   ghost,
   ghostName,
   practice,
+  friend,
+  first,
   queue,
   sec,
   onAgain,
@@ -450,6 +599,10 @@ function GhostEnd({
   ghost: GhostRun;
   ghostName: string;
   practice: boolean;
+  /** Name des Freundes bei einer Herausforderung, sonst null. */
+  friend: string | null;
+  /** Noch kein eigener Ghost von heute (erster Lauf wird gespeichert). */
+  first: boolean;
   queue: Item[];
   sec: (ms: number) => string;
   onAgain: () => void;
@@ -459,8 +612,30 @@ function GhostEnd({
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { run, result, newBest } = end;
-  const title =
-    result === "win" ? t(practice ? "ghost.winPractice" : "ghost.win") : result === "lose" ? t("ghost.lose") : t("ghost.draw");
+  const title = friend
+    ? t(result === "win" ? "ghost.winFriend" : result === "lose" ? "ghost.loseFriend" : "ghost.drawFriend", {
+        name: friend,
+      })
+    : result === "win"
+      ? t(practice ? "ghost.winPractice" : "ghost.win")
+      : result === "lose"
+        ? t("ghost.lose")
+        : t("ghost.draw");
+  // Eigenen Lauf als Code verschicken (bei einer Herausforderung = zurückschicken)
+  const share = () => {
+    getPlayer()
+      .then((p) =>
+        Share.share({
+          message: t("ghost.shareText", {
+            correct: run.correct,
+            total: GHOST_ITEMS,
+            time: sec(run.ms),
+            code: encodeRun(run, p.named ? p.name : null),
+          }),
+        }),
+      )
+      .catch(() => undefined);
+  };
   const learn = run.throws
     .filter((x) => !x.correct)
     .map((x) => queue[x.i])
@@ -491,7 +666,7 @@ function GhostEnd({
         {newBest && (
           <View style={[styles.highlight, { backgroundColor: colors.goldSoft }]}>
             <AppText variant="body" color={colors.onGoldSoft} style={styles.center}>
-              ⭐ {t(practice ? "ghost.firstSaved" : "ghost.newBest")}
+              ⭐ {t(first ? "ghost.firstSaved" : "ghost.newBest")}
             </AppText>
           </View>
         )}
@@ -551,7 +726,18 @@ function GhostEnd({
           </View>
         )}
 
-        <Button title={t("ghost.again")} icon="refresh-cw" size="lg" onPress={onAgain} />
+        <Button
+          title={friend ? t("ghost.shareBack", { name: friend }) : t("ghost.share")}
+          icon="share-2"
+          size="lg"
+          onPress={share}
+        />
+        <Button
+          title={friend ? t("ghost.rematch") : t("ghost.again")}
+          icon="refresh-cw"
+          variant="secondary"
+          onPress={onAgain}
+        />
         <Button title={t("duel.menu")} variant="secondary" onPress={onMenu} />
       </ScrollView>
     </View>
@@ -576,6 +762,17 @@ const styles = StyleSheet.create({
   },
   card: { borderRadius: Radius.xxl, padding: Spacing.lg, gap: Spacing.md },
   pill: { borderRadius: Radius.lg, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.sm },
+  input: {
+    borderWidth: 1,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: 16,
+    minHeight: 64,
+    maxHeight: 120,
+    textAlignVertical: "top",
+  },
+  row: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
   countWrap: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   endRoot: { ...StyleSheet.absoluteFill },
   endContent: { paddingHorizontal: Spacing.md, gap: Spacing.md },

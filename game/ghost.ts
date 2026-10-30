@@ -102,3 +102,75 @@ export function parseRun(raw: string | null, day: string): GhostRun | null {
     return null;
   }
 }
+
+/* ── Herausforderung per Code (ohne Server) ─────────────────────
+ * Der ganze Lauf steckt im Code: „gh“ + Version + Tag + je Wurf Tonne und
+ * Zeitabstand (in 0,1 s) + Prüfzeichen, dahinter optional „.Name“.
+ * Beispiel: gh1a3207k1093… .Emre – der Freund fügt die ganze Nachricht ein,
+ * der Code wird darin gefunden. Richtig/falsch rechnet das Spiel selbst nach. */
+
+const CODE_VERSION = "1";
+const DAY0 = Date.UTC(2026, 0, 1);
+const DAY_MS = 86_400_000;
+const B36 = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+function checksum(body: string): string {
+  let sum = 0;
+  for (let k = 0; k < body.length; k++) sum = (sum * 7 + B36.indexOf(body[k]) + k) % 36;
+  return B36[sum];
+}
+
+const pad2 = (n: number) => n.toString(36).padStart(2, "0");
+
+/** Code für einen Lauf (Name optional, Leerzeichen werden zu „_“). */
+export function encodeRun(run: GhostRun, name?: string | null): string {
+  const [y, m, d] = run.day.split("-").map(Number);
+  const dayNo = Math.round((Date.UTC(y, m - 1, d) - DAY0) / DAY_MS);
+  let body = CODE_VERSION + pad2(Math.min(Math.max(dayNo, 0), 1295));
+  let prev = 0;
+  for (const t of run.throws.slice(0, GHOST_ITEMS)) {
+    // Zeiten gerundet weiterzählen – so wächst kein Rundungsfehler an
+    const at = Math.max(prev, Math.round(t.ms / 100));
+    body += String(Math.min(Math.max(t.bin, 0), 9)) + pad2(Math.min(at - prev, 1295));
+    prev = at;
+  }
+  const code = `gh${body}${checksum(body)}`;
+  const clean = name?.trim().replace(/\s+/g, "_");
+  return clean ? `${code}.${clean}` : code;
+}
+
+/** Aus dem Code gelesene Herausforderung: Tag, Name und je Wurf Tonne + Zeit. */
+export type Challenge = { day: string; name: string | null; picks: { bin: number; ms: number }[] };
+
+/** Sucht einen gültigen Code im Text (auch mitten in einer Nachricht). */
+export function decodeChallenge(text: string): Challenge | null {
+  for (const m of text.matchAll(/gh([0-9a-z]{7,})(?:\.([\p{L}\p{N}_.-]{2,16}))?/giu)) {
+    const raw = m[1].toLowerCase();
+    const body = raw.slice(0, -1);
+    if (body[0] !== CODE_VERSION || checksum(body) !== raw.slice(-1)) continue;
+    const rest = body.slice(3);
+    if (rest.length % 3 !== 0 || rest.length / 3 > GHOST_ITEMS) continue;
+    const date = new Date(DAY0 + parseInt(body.slice(1, 3), 36) * DAY_MS);
+    const day = date.toISOString().slice(0, 10);
+    const picks: Challenge["picks"] = [];
+    let ms = 0;
+    for (let k = 0; k < rest.length; k += 3) {
+      ms += parseInt(rest.slice(k + 1, k + 3), 36) * 100;
+      picks.push({ bin: Number(rest[k]), ms });
+    }
+    const name = m[2]?.replace(/_/g, " ").trim() || null;
+    return { day, name, picks };
+  }
+  return null;
+}
+
+/** Lauf aus einer Herausforderung – richtig/falsch nach den Tonnen der Strecke.
+ *  `null`, wenn eine Tonne nicht passt (z. B. Code aus einer anderen Version). */
+export function challengeRun(ch: Challenge, correctBins: number[], binCount: number): GhostRun | null {
+  if (ch.picks.length === 0 || ch.picks.length > correctBins.length) return null;
+  if (ch.picks.some((p) => p.bin >= binCount)) return null;
+  return makeRun(
+    ch.day,
+    ch.picks.map((p, i) => ({ i, ms: p.ms, bin: p.bin, correct: p.bin === correctBins[i] })),
+  );
+}
