@@ -71,7 +71,10 @@ import {
   getRewardProgress,
   getTodayDaily,
   StorageKeys,
+  todayKey,
 } from "@/utils/storage";
+import { type DayGhost, fetchDayGhost } from "@/utils/leaderboard";
+import { homeHint } from "@/game/home-hint";
 import { usableSkin } from "@/game/rewards";
 
 type IconName = ComponentProps<typeof Feather>["name"];
@@ -138,6 +141,8 @@ export default function HomeScreen() {
   /** Tagesaufgabe heute schon gespielt? Sonst Punkt an der Kampagnen-Tonne. */
   const [dailyDone, setDailyDone] = useState(true);
   const [seenTutorial, setSeenTutorial] = useState(true);
+  /** Tagesbester im Ghost-Rennen (Server) – für den einen Hinweis unten. */
+  const [dayBest, setDayBest] = useState<DayGhost | null>(null);
 
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -292,6 +297,10 @@ export default function HomeScreen() {
         })
         .catch((error) => console.warn("[Home] Fortschritt konnte nicht geladen werden:", error))
         .finally(() => active && setLoaded(true));
+      // Tagesbester (still, falls offline oder nicht eingerichtet)
+      fetchDayGhost(todayKey())
+        .then((best) => active && setDayBest(best))
+        .catch(() => undefined);
 
       return () => {
         active = false;
@@ -359,6 +368,8 @@ export default function HomeScreen() {
   /* eslint-enable react-hooks/refs */
 
   const { level, progress } = getLevelProgress(totalXP);
+  const hint = homeHint({ totalXP, flame, dailyDone, dayBest });
+  const hintText = hint.key === "home.hintDayBest" ? t(hint.key, { name: hint.name }) : t(hint.key);
   const firstRect = layout.binRects[0];
   // Wisch-Fläche: von den Tonnen bis unter den Gegenstand
   const swipeTop = Math.max((firstRect?.y ?? 0) - 20, insets.top + 90);
@@ -456,18 +467,8 @@ export default function HomeScreen() {
         pointerEvents="box-none"
         onLayout={(e) => setMenuTop(Math.round(e.nativeEvent.layout.y))}
       >
-        {/* Tages-Flamme: gestern Pause → heute spielen rettet sie (1× pro Woche) */}
-        <ThrowHint
-          text={
-            flame === "atRisk"
-              ? t("home.flameAtRisk")
-              : flame === "rescued"
-                ? t("home.flameRescued")
-                : t("home.throwHint")
-          }
-          calm={reduceMotion}
-          arrow={flame !== "rescued"}
-        />
+        {/* Ein einziger Hinweis mit Vorrang-Regel (game/home-hint.ts) */}
+        <ThrowHint text={hintText} calm={reduceMotion} arrow={hint.arrow} />
         <View style={styles.tools}>
           <ToolButton icon="help-circle" label={t("home.tutorial")} dot={loaded && !seenTutorial} onPress={() => router.push("/tutorial")} />
           <ToolButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
