@@ -650,11 +650,15 @@ export function GameRound({
       }
     }
     // Boss: 10 in Folge → sofort geschafft (sonst nach der festen Zahl Würfe)
-    const bossWon = station?.kind === "boss" && after.streak >= station.goal;
-    if (((fixedCount !== null && after.throws >= fixedCount) || bossWon) && !l.ended) {
+    const isBoss = station?.kind === "boss";
+    const bossWon = isBoss && after.streak >= station.goal;
+    // … oder nicht mehr zu schaffen (zu wenig Würfe übrig) → nicht sinnlos weiterwerfen
+    const bossLost = isBoss && !bossWon && after.streak + (station.total - after.throws) < station.goal;
+    if (((fixedCount !== null && after.throws >= fixedCount) || bossWon || bossLost) && !l.ended) {
       l.ended = true;
       setAim(bus.current, null);
-      later(() => setFinished(true), 900);
+      // Nach einem Fehler erst die Lernkarte lesen lassen (wie bei „Ohne Fehler“)
+      later(() => setFinished(true), bossLost ? (learnReason ? 2600 : 1900) : 900);
     }
     queueBinEvent(
       bus.current,
