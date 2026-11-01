@@ -2,7 +2,8 @@
 //
 // Hinter der grünen Menü-Tonne: der Lernpfad (ROADMAP.md, R2c) – Welten mit
 // Stationen (game/campaign.ts), Sterne darunter, die aktuelle Station hüpft
-// und ist mit 1 Tipp gestartet. Oben eine schmale Reihe mit den bisherigen
+// und ist mit 1 Tipp gestartet. Je Welt eine Seitenstation „Trick-Schule“
+// (4 der Trick-Level, sperrt nichts). Oben eine schmale Reihe mit den bisherigen
 // Spielarten (Üben, Ohne Fehler, Zeit, Tagesaufgabe, Tricks), bis sie mit
 // R2d als Stationen im Pfad leben.
 
@@ -21,11 +22,19 @@ import {
   currentStation,
   isUnlocked,
   type Station,
+  trickTarget,
   type World,
+  worldTricks,
   WORLDS,
 } from "@/game/campaign";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { type DailyResult, getCampaignStars, getTodayDaily } from "@/utils/storage";
+import {
+  type DailyResult,
+  getCampaignStars,
+  getTodayDaily,
+  getTrickStars,
+  type TrickStars,
+} from "@/utils/storage";
 import { sfx } from "@/utils/sfx";
 
 const MODE_LOOK: Partial<Record<GameMode, string>> = {
@@ -39,6 +48,8 @@ const ZIGZAG = [-56, 0, 56, 0];
 const DOT = 64;
 /** Kennzeichen der Stations-Arten (klein am Kreis). */
 const KIND_EMOJI = { survival: "🛡️", time: "⏱️" } as const;
+/** Farbe der Trick-Schule (wie die Trickwürfe). */
+const TRICK_COLOR = "#7C5CD6";
 /** Farbe der „Knifflige Fälle“-Welt (ohne eigene Tonne). */
 const TRICKY_COLOR = "#7C5CD6";
 
@@ -60,6 +71,7 @@ export default function KampagneScreen() {
   const [stars, setStars] = useState<CampaignStars | null>(null);
   /** Tagesaufgabe von heute (undefined = noch nicht geladen, null = offen). */
   const [daily, setDaily] = useState<DailyResult | null | undefined>(undefined);
+  const [trickStars, setTrickStars] = useState<TrickStars>({});
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
   const worldY = useRef<Record<number, number>>({});
@@ -76,6 +88,9 @@ export default function KampagneScreen() {
         .catch(() => active && setStars({}));
       getTodayDaily()
         .then((d) => active && setDaily(d))
+        .catch(() => undefined);
+      getTrickStars()
+        .then((s) => active && setTrickStars(s))
         .catch(() => undefined);
       return () => {
         active = false;
@@ -141,6 +156,11 @@ export default function KampagneScreen() {
                 }}
               />
             ))}
+            <TrickSchool
+              world={world}
+              reached={isUnlocked(stars, world.stations[0].id)}
+              trickStars={trickStars}
+            />
           </View>
         ))}
     </HubScreen>
@@ -222,6 +242,66 @@ function WorldHeader({ world }: { world: World }) {
         </AppText>
       )}
     </View>
+  );
+}
+
+/** Seitenstation „Trick-Schule“ einer Welt: 4 Trick-Level, 1 Tipp startet das nächste. */
+function TrickSchool({
+  world,
+  reached,
+  trickStars,
+}: {
+  world: World;
+  /** Welt erreicht (erste Station frei)? */
+  reached: boolean;
+  trickStars: TrickStars;
+}) {
+  const { t } = useI18n();
+  const { colors } = useAppTheme();
+  const levels = worldTricks(world);
+  const got = levels.reduce((sum, l) => sum + (trickStars[l] ?? 0), 0);
+  const target = trickTarget(world, trickStars);
+  const open = reached && !target.locked;
+  const range = t("campaign.trickLevels", { from: levels[0], to: levels[levels.length - 1] });
+  const status = !reached
+    ? t("campaign.trickReach", { id: world.stations[0].id })
+    : target.locked
+      ? t("campaign.trickBefore")
+      : t("campaign.trickNext", { n: target.level });
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${t("campaign.trick")}, ${range}, ${t("campaign.trickStars", { n: got, max: levels.length * 3 })}, ${status}`}
+      accessibilityState={{ disabled: !open }}
+      disabled={!open}
+      onPress={() => {
+        sfx("tap");
+        tapHaptic();
+        router.push({ pathname: "/runde", params: { mode: "trick", level: String(target.level) } });
+      }}
+      style={({ pressed }) => [
+        styles.trick,
+        {
+          backgroundColor: colors.surface,
+          borderColor: open ? TRICK_COLOR : colors.border,
+          opacity: open ? 1 : 0.7,
+        },
+        pressed && press.pressed,
+      ]}
+    >
+      <AppText style={styles.trickEmoji}>{open ? "🎯" : "🔒"}</AppText>
+      <View style={styles.flex}>
+        <AppText variant="label">
+          {t("campaign.trick")} · {range}
+        </AppText>
+        <AppText variant="caption" tone="textSecondary">
+          {status}
+        </AppText>
+      </View>
+      <AppText variant="label" style={styles.trickStars}>
+        ★ {got}/{levels.length * 3}
+      </AppText>
+    </Pressable>
   );
 }
 
@@ -371,6 +451,20 @@ const styles = StyleSheet.create({
   binNew: { opacity: 1, borderWidth: 2, borderColor: "#FFD54A" },
   binIcon: { fontSize: 18, lineHeight: 22 },
   stationWrap: { alignItems: "center", paddingTop: Spacing.xs },
+  flex: { flex: 1 },
+  trick: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md - 4,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+  },
+  trickEmoji: { fontSize: 22, lineHeight: 28 },
+  trickStars: { color: "#F5B800" },
   trail: { alignItems: "center", gap: 5, marginBottom: 6 },
   trailDot: { width: 6, height: 6, borderRadius: 3, opacity: 0.6 },
   dot: {

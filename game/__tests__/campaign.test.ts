@@ -2,12 +2,17 @@
 
 import { describe, expect, test } from "@jest/globals";
 
+import { TRICK_LEVELS } from "@/game/trick-levels";
+
 import {
   currentStation,
   introExamples,
   isUnlocked,
   nextStation,
   stationMode,
+  trickTarget,
+  TRICKS_PER_WORLD,
+  worldTricks,
   type Station,
   STATIONS,
   starsFor,
@@ -162,5 +167,23 @@ describe("Stations-Arten", () => {
     expect(stationMode(of(undefined))).toBe("endless");
     expect(stationMode(of("survival"))).toBe("survival");
     expect(stationMode(of("time"))).toBe("time");
+  });
+});
+
+describe("Trick-Schule", () => {
+  test("alle 24 Trick-Level verteilt, je Welt 4, keines doppelt", () => {
+    const all = WORLDS.flatMap((w) => worldTricks(w));
+    expect(WORLDS.length * TRICKS_PER_WORLD).toBe(TRICK_LEVELS.length);
+    expect(new Set(all).size).toBe(TRICK_LEVELS.length);
+    expect(all.every((id) => TRICK_LEVELS.some((l) => l.id === id))).toBe(true);
+  });
+
+  test("startet das erste offene Level; gesperrt, solange das davor fehlt", () => {
+    expect(trickTarget(WORLDS[0], {})).toEqual({ level: 1, locked: false });
+    expect(trickTarget(WORLDS[0], { 1: 2, 2: 1 })).toEqual({ level: 3, locked: false });
+    expect(trickTarget(WORLDS[1], {})).toEqual({ level: 5, locked: true });
+    expect(trickTarget(WORLDS[1], { 4: 1 })).toEqual({ level: 5, locked: false });
+    // alles mit Stern: das mit den wenigsten
+    expect(trickTarget(WORLDS[0], { 1: 3, 2: 1, 3: 3, 4: 2 }).level).toBe(2);
   });
 });

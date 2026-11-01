@@ -247,3 +247,28 @@ export function stationQueue(station: Station, random: () => number = Math.rando
   }
   return queue.slice(0, station.total);
 }
+
+/** Trick-Schule: je Welt eine Seitenstation mit 4 Trick-Leveln (1–4, 5–8 …).
+ *  Nicht Teil der Pfad-Kette – sie sperrt nichts. */
+export const TRICKS_PER_WORLD = 4;
+
+/** Trick-Level (IDs) der Seitenstation einer Welt. */
+export function worldTricks(world: World): number[] {
+  const from = (world.index - 1) * TRICKS_PER_WORLD + 1;
+  return Array.from({ length: TRICKS_PER_WORLD }, (_, k) => from + k);
+}
+
+/** Welches Level die Seitenstation startet: das erste ohne Stern, sonst das
+ *  mit den wenigsten. `locked`: das Level davor (Trick-Regel: ab 1 Stern auf
+ *  dem vorigen) fehlt noch – erst die Trick-Schule davor. */
+export function trickTarget(
+  world: World,
+  trickStars: Record<number, number>,
+): { level: number; locked: boolean } {
+  const levels = worldTricks(world);
+  const open = levels.find((l) => (trickStars[l] ?? 0) < 1);
+  const level =
+    open ?? levels.reduce((a, b) => ((trickStars[b] ?? 0) < (trickStars[a] ?? 0) ? b : a));
+  const locked = level > 1 && (trickStars[level - 1] ?? 0) < 1;
+  return { level, locked };
+}
