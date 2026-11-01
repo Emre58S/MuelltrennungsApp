@@ -649,7 +649,9 @@ export function GameRound({
           }, 3500);
       }
     }
-    if (fixedCount !== null && after.throws >= fixedCount && !l.ended) {
+    // Boss: 10 in Folge → sofort geschafft (sonst nach der festen Zahl Würfe)
+    const bossWon = station?.kind === "boss" && after.streak >= station.goal;
+    if (((fixedCount !== null && after.throws >= fixedCount) || bossWon) && !l.ended) {
       l.ended = true;
       setAim(bus.current, null);
       later(() => setFinished(true), 900);
@@ -1046,9 +1048,11 @@ export function GameRound({
                   // Fortschritt der Station: „3/10 · Ziel 7“
                   <HudPill
                     label={
-                      counted
-                        ? t("campaign.progress", { n: stats.throws, total: station.total, goal: station.goal })
-                        : t("campaign.progressTime", { n: stats.correct, goal: station.goal })
+                      station.kind === "boss"
+                        ? t("campaign.progressBoss", { n: stats.streak, goal: station.goal, left: station.total - stats.throws })
+                        : counted
+                          ? t("campaign.progress", { n: stats.throws, total: station.total, goal: station.goal })
+                          : t("campaign.progressTime", { n: stats.correct, goal: station.goal })
                     }
                   />
                 ) : mode === "endless" && !daily && stats.throws > 0 ? (

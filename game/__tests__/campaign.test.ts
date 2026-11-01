@@ -10,6 +10,7 @@ import {
   isUnlocked,
   nextStation,
   stationMode,
+  stationStars,
   trickTarget,
   TRICKS_PER_WORLD,
   worldTricks,
@@ -111,7 +112,10 @@ describe("Freischalten", () => {
     expect(isUnlocked({}, "1-1")).toBe(true);
     expect(isUnlocked({}, "1-2")).toBe(false);
     expect(isUnlocked({ "1-1": 1 }, "1-2")).toBe(true);
-    expect(isUnlocked({ "1-6": 1 }, "2-1")).toBe(true);
+    expect(isUnlocked({ "1-7": 1 }, "2-1")).toBe(true);
+    // schon gespielt bleibt frei, auch wenn davor eine Station dazukam
+    expect(isUnlocked({ "1-6": 1, "2-1": 2 }, "2-1")).toBe(true);
+    expect(isUnlocked({ "1-6": 1 }, "2-1")).toBe(false);
     expect(isUnlocked({}, "9-9")).toBe(false);
   });
 
@@ -146,19 +150,19 @@ describe("Runde einer Station", () => {
 
   test("nächste Station", () => {
     expect(nextStation("1-1")?.id).toBe("1-2");
-    expect(nextStation("1-6")?.id).toBe("2-1");
+    expect(nextStation("1-7")?.id).toBe("2-1");
     expect(nextStation(STATIONS[STATIONS.length - 1].id)).toBeUndefined();
   });
 });
 
 describe("Stations-Arten", () => {
-  test("jede Lern-Welt: einmal Ohne Fehler, einmal Zeit, Start und Ende normal", () => {
+  test("jede Lern-Welt: einmal Ohne Fehler, einmal Zeit, Start normal, vor dem Boss normal", () => {
     for (const w of WORLDS.filter((wo) => wo.newBins.length > 0)) {
       const kinds = w.stations.map((s) => s.kind);
       expect(kinds.filter((k) => k === "survival")).toHaveLength(1);
       expect(kinds.filter((k) => k === "time")).toHaveLength(1);
       expect(kinds[0]).toBeUndefined();
-      expect(kinds[kinds.length - 1]).toBeUndefined();
+      expect(kinds[kinds.length - 2]).toBeUndefined();
     }
   });
 
@@ -185,5 +189,34 @@ describe("Trick-Schule", () => {
     expect(trickTarget(WORLDS[1], { 4: 1 })).toEqual({ level: 5, locked: false });
     // alles mit Stern: das mit den wenigsten
     expect(trickTarget(WORLDS[0], { 1: 3, 2: 1, 3: 3, 4: 2 }).level).toBe(2);
+  });
+});
+
+describe("Boss", () => {
+  test("jede Welt endet mit genau einem Boss: 10 in Folge, höchstens 20 Würfe, Runde wie Üben", () => {
+    for (const w of WORLDS) {
+      const bosses = w.stations.filter((st) => st.kind === "boss");
+      expect(bosses).toHaveLength(1);
+      expect(w.stations[w.stations.length - 1]).toBe(bosses[0]);
+      expect(bosses[0].goal).toBe(10);
+      expect(bosses[0].total).toBe(20);
+      expect(stationMode(bosses[0])).toBe("endless");
+      expect(stationPool(bosses[0]).length).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  test("Sterne: Serie zählt, Fehler entscheiden über 2 und 3", () => {
+    const boss = STATIONS.find((st) => st.kind === "boss")!;
+    expect(stationStars(boss, { correct: 9, throws: 9, maxStreak: 9 })).toBe(0);
+    expect(stationStars(boss, { correct: 10, throws: 10, maxStreak: 10 })).toBe(3);
+    expect(stationStars(boss, { correct: 12, throws: 15, maxStreak: 10 })).toBe(2);
+    expect(stationStars(boss, { correct: 14, throws: 20, maxStreak: 10 })).toBe(1);
+    // ohne 10 in Folge: kein Stern, auch bei vielen richtigen
+    expect(stationStars(boss, { correct: 18, throws: 20, maxStreak: 8 })).toBe(0);
+  });
+
+  test("andere Stationen: Sterne wie bisher", () => {
+    const s0 = STATIONS[0];
+    expect(stationStars(s0, { correct: 7, throws: 10, maxStreak: 3 })).toBe(starsFor(s0, 7));
   });
 });

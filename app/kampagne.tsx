@@ -47,7 +47,7 @@ const MODE_LOOK: Partial<Record<GameMode, string>> = {
 const ZIGZAG = [-56, 0, 56, 0];
 const DOT = 64;
 /** Kennzeichen der Stations-Arten (klein am Kreis). */
-const KIND_EMOJI = { survival: "🛡️", time: "⏱️" } as const;
+const KIND_EMOJI = { survival: "🛡️", time: "⏱️", boss: "👑" } as const;
 /** Farbe der Trick-Schule (wie die Trickwürfe). */
 const TRICK_COLOR = "#7C5CD6";
 /** Farbe der „Knifflige Fälle“-Welt (ohne eigene Tonne). */
@@ -352,7 +352,9 @@ function StationDot({
       ? t("campaign.goalTime", { goal: station.goal })
       : station.kind === "survival"
         ? t("campaign.goalSurvival", { goal: station.goal })
-        : t("campaign.goal", { goal: station.goal, total: station.total });
+        : station.kind === "boss"
+          ? t("campaign.goalBoss", { goal: station.goal, total: station.total })
+          : t("campaign.goal", { goal: station.goal, total: station.total });
   return (
     <View
       style={[styles.stationWrap, { transform: [{ translateX: offset }] }]}

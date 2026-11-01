@@ -8,7 +8,8 @@
 // Welt 6 „Knifflige Fälle“: alle Tonnen, Stationen mit festen Fallen-Listen.
 // Neue Tonne = Lernkarte (introExamples + Text bin.<key>.examples).
 // Stations-Arten (R2d): normal · Ohne Fehler (endet beim ersten Fehler) ·
-// Zeit (60 s, so viele richtig wie möglich). Trick und Boss folgen (R2d/R2e).
+// Zeit (60 s, so viele richtig wie möglich) · Boss am Ende jeder Welt (R2e:
+// 10 richtig in Folge, höchstens 20 Würfe; Fehler setzen nur die Serie zurück).
 
 import { type Item, ITEMS } from "@/constants/items";
 import { type BinKey } from "@/constants/theme";
@@ -17,7 +18,7 @@ import { ALL_BINS, type BinDef, getItemsForBins } from "@/game/bins";
 export type Difficulty = Item["difficulty"];
 
 /** Art einer Station; ohne Angabe: normal (feste Zahl Würfe). */
-export type StationKind = "survival" | "time";
+export type StationKind = "survival" | "time" | "boss";
 
 export type Station = {
   /** „Welt-Nummer“ – z. B. "2-3" (Welt 2, Station 3). */
@@ -29,7 +30,7 @@ export type Station = {
   items?: string[];
   /** Würfe pro Runde – bei „Zeit“: so viele richtig = 3 Sterne. */
   total: number;
-  /** So viele richtig = geschafft (1 Stern); bei „Ohne Fehler“: in Folge. */
+  /** So viele richtig = geschafft (1 Stern); bei „Ohne Fehler“ und Boss: in Folge. */
   goal: number;
   kind?: StationKind;
 };
@@ -47,6 +48,12 @@ export type CampaignStars = Record<string, number>;
 
 const ORDER: Difficulty[] = ["leicht", "mittel", "schwer"];
 
+/** Boss: so viele richtig in Folge, in höchstens so vielen Würfen. */
+export const BOSS_STREAK = 10;
+export const BOSS_THROWS = 20;
+/** Boss mit höchstens so vielen Fehlern = 2 Sterne (fehlerfrei = 3). */
+const BOSS_FEW_MISTAKES = 3;
+
 /** Stationen einer Welt: erst leichte Gegenstände, dann alle, Ziel steigt;
  *  dazwischen „Ohne Fehler“ und „Zeit“ (die bisherigen Spielarten). */
 const STEPS: { upTo: Difficulty; goal: number; total?: number; kind?: StationKind }[] = [
@@ -56,6 +63,7 @@ const STEPS: { upTo: Difficulty; goal: number; total?: number; kind?: StationKin
   { upTo: "schwer", goal: 7 },
   { upTo: "schwer", goal: 10, total: 16, kind: "time" },
   { upTo: "schwer", goal: 8 },
+  { upTo: "schwer", goal: BOSS_STREAK, total: BOSS_THROWS, kind: "boss" },
 ];
 
 /** Reihenfolge der Tonnen: Welt 1 Papier vs. Rest, dann je eine neue. */
@@ -135,14 +143,22 @@ const TRICKY_WORLD: World = {
   index: WORLD_BINS.length + 1,
   bins: ALL_KEYS,
   newBins: [],
-  stations: [...TRICKY, TRICKY.flat()].map((items, s) => ({
+  stations: [...TRICKY, TRICKY.flat()].map((items, s): Station => ({
     id: `${WORLD_BINS.length + 1}-${s + 1}`,
     bins: ALL_KEYS,
     upTo: "schwer",
     items,
     total: 10,
     goal: s < TRICKY.length ? 6 : 7,
-  })),
+  })).concat({
+    id: `${WORLD_BINS.length + 1}-${TRICKY.length + 2}`,
+    bins: ALL_KEYS,
+    upTo: "schwer",
+    items: TRICKY.flat(),
+    total: BOSS_THROWS,
+    goal: BOSS_STREAK,
+    kind: "boss",
+  }),
 };
 
 export const WORLDS: World[] = [...LEARN_WORLDS, TRICKY_WORLD];
@@ -156,7 +172,7 @@ export function getStation(id: string): Station | undefined {
 
 /** Spielart der Runde: „Ohne Fehler“ → survival, „Zeit“ → time, sonst Üben. */
 export function stationMode(station: Station): "endless" | "survival" | "time" {
-  return station.kind ?? "endless";
+  return station.kind === "boss" ? "endless" : (station.kind ?? "endless");
 }
 
 /** Tonnen einer Station (in der Reihenfolge von ALL_BINS, wie im Spiel). */
@@ -198,11 +214,24 @@ export function starsFor(station: Station, correct: number): number {
   return 0;
 }
 
-/** Frei: die erste Station, sonst ab 1 Stern auf der vorigen. */
+/** Sterne einer Runde je Art. Boss: 10 in Folge geschafft = 1, mit höchstens
+ *  3 Fehlern = 2, fehlerfrei = 3. Sonst nach Anzahl richtig (starsFor). */
+export function stationStars(
+  station: Station,
+  run: { correct: number; throws: number; maxStreak: number },
+): number {
+  if (station.kind !== "boss") return starsFor(station, run.correct);
+  if (run.maxStreak < station.goal) return 0;
+  const mistakes = run.throws - run.correct;
+  return mistakes === 0 ? 3 : mistakes <= BOSS_FEW_MISTAKES ? 2 : 1;
+}
+
+/** Frei: die erste Station, sonst ab 1 Stern auf der vorigen. Schon gespielte
+ *  Stationen (mit Stern) bleiben frei – auch wenn davor eine neue dazukam. */
 export function isUnlocked(stars: CampaignStars, id: string): boolean {
   const i = STATIONS.findIndex((s) => s.id === id);
   if (i < 0) return false;
-  return i === 0 || (stars[STATIONS[i - 1].id] ?? 0) >= 1;
+  return i === 0 || (stars[STATIONS[i - 1].id] ?? 0) >= 1 || (stars[id] ?? 0) >= 1;
 }
 
 /** Die Station, mit der es weitergeht: die erste freie ohne Stern (sonst die letzte). */

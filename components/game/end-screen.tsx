@@ -17,7 +17,7 @@ import { Star } from "@/components/game/hud";
 import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
-import { type Station, starsFor } from "@/game/campaign";
+import { type Station, stationStars } from "@/game/campaign";
 import { type HitResult, type Stats } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { type Board, fetchBoard, leaderboardReady } from "@/utils/leaderboard";
@@ -150,16 +150,18 @@ export function EndScreen({
   // Emoji und Überschrift folgen denselben Stufen, damit alles zusammenpasst.
   // Station: Sterne nach deren Ziel (wie gespeichert), 0 = noch nicht geschafft.
   const rating = station
-    ? starsFor(station, stats.correct)
+    ? stationStars(station, stats)
     : stats.throws === 0 ? 0 : accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1;
   const canGoOn = !!station && rating >= 1 && !!onNext;
+  // Boss: es zählt die beste Serie; „Ohne Fehler“ endet beim ersten Fehler (richtig = Serie)
+  const reached = station?.kind === "boss" ? stats.maxStreak : stats.correct;
 
   // Überschrift: nie strafend – ein Stern ist „Gut gemacht!“
   const heading = station
     ? t(
         rating >= 1
           ? "campaign.end.done"
-          : stats.correct >= station.goal - 2
+          : reached >= station.goal - 2
             ? "campaign.end.almost"
             : "campaign.end.practice",
       )
@@ -222,12 +224,17 @@ export function EndScreen({
                 ? t(
                     station.kind === "time"
                       ? "campaign.end.goalTime"
-                      : station.kind === "survival"
+                      : station.kind === "survival" || station.kind === "boss"
                         ? "campaign.end.goalSurvival"
                         : "campaign.end.goal",
                     { goal: station.goal, total: station.total },
                   )
-                : t("campaign.end.missing", { n: station.goal - stats.correct })}
+                : t(
+                    station.kind === "survival" || station.kind === "boss"
+                      ? "campaign.end.missingStreak"
+                      : "campaign.end.missing",
+                    { n: station.goal - reached, best: reached },
+                  )}
             </AppText>
           )}
 

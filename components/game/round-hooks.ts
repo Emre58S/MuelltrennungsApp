@@ -4,7 +4,7 @@
 // verworfen werden, und das einmalige Speichern der Runde (inklusive
 // Rangliste, utils/leaderboard.ts).
 import { type GameMode } from "@/constants/modes";
-import { type Station, starsFor } from "@/game/campaign";
+import { type Station, stationStars } from "@/game/campaign";
 import { type Stats } from "@/game/logic";
 import { type Board, dailyBoard, submitScore } from "@/utils/leaderboard";
 import {
@@ -78,7 +78,7 @@ export function useCommitRound(
     saved.current = true;
     if (st) {
       // Station: Sterne (nur mehr zählen) + Statistik; kein Punkte-Rekord
-      saveCampaignStars(st.id, starsFor(st, s.correct)).catch(() => undefined);
+      saveCampaignStars(st.id, stationStars(st, s)).catch(() => undefined);
       recordRound(m, { maxStreak: s.maxStreak, throws: s.throws, correct: s.correct }).catch(
         () => undefined,
       );
