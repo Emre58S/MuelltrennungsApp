@@ -114,15 +114,20 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   Stationen, „Gut geübt!“ weit unter dem Ziel, Tagesaufgaben-Chip mit Punkt/Ergebnis.
   Offen: auf dem Gerät prüfen – Scrollen nach „Zum Pfad“, 2-Tonnen-Welt, roter
   Chip-Punkt (ragt 3 px heraus); VoiceOver-Text „noch offen“ für den Punkt.
-- [ ] **R2d** Stations-Arten: normal · **Zeit** (Gegen die Zeit) · **Ohne Fehler**
-  · **Trick** (Trick-Level 1–24 als Seitenstationen) · **Boss**. Damit leben die
+- [x] **R2d** Stations-Arten: normal · **Zeit** (Gegen die Zeit) · **Ohne Fehler**
+  · **Trick** (Trick-Level 1–24 als Seitenstationen) · **Boss** (→ R2e). Damit leben die
   bisherigen Modi im Pfad weiter.
   - [x] Teil 1 (920bab2, Tester 7/10, EAS auto + preview): Lern-Welten haben 6
     Stationen – 3 = 🛡️ Ohne Fehler (4 in Folge), 5 = ⏱️ Zeit (60 s, 10/16 richtig).
-    Offen: Trick-Seitenstationen; alte Stände (4 Stationen/Welt) – 2-1 wieder
-    gesperrt, wer nur bis 1-4 kam (ggf. Umzug der Sterne); „Noch N mehr richtig“
-    bei 🛡️ → „… in Folge“; Zeit-Ziel 16 für 3 Sterne auf dem Gerät prüfen (ggf. 14);
-    Stations-Runden zählen in Statistik von Ohne Fehler/Zeit.
+  - [x] Teil 2 (1df3f67, Tester 8/10, EAS auto + preview): Seitenstation 🎯
+    „Trick-Schule“ je Welt (Level 1–4 … 21–24), sperrt nichts.
+  - Alte Stände (4 Stationen/Welt) werden **nicht** umgezogen (seit 2 Tagen neues
+    Schema – Umzug würde neue Stände verfälschen).
+  - Offen (klein, bündeln): „Noch N mehr richtig“ bei 🛡️ → „… in Folge“;
+    Zeit-Ziel 16 für 3 Sterne auf dem Gerät prüfen (ggf. 14); Stations-Runden zählen
+    in Statistik von Ohne Fehler/Zeit; gesperrte Trick-Schule-Karte tippbar mit
+    Hinweis (wie tricks.tsx showLocked); EN „Finish the previous trick school
+    first“; Sternzahl #F5B800 auf Weiß schwach; Trick-Schule Welt 1 erst nach 1-1?
 - [ ] **R2e** **Boss** am Ende jeder Welt: 10 Treffer in Folge; zwischendurch
   **tauschen Tonnen die Plätze/Farben** (z. B. Rest ↔ Gelb) – mit klarer
   Ankündigung („Achtung, Tonnen tauschen!“) und Animation. Sieg = Truhe.
