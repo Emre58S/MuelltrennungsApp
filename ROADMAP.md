@@ -131,6 +131,12 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
 - [ ] **R2e** **Boss** am Ende jeder Welt: 10 Treffer in Folge; zwischendurch
   **tauschen Tonnen die Plätze/Farben** (z. B. Rest ↔ Gelb) – mit klarer
   Ankündigung („Achtung, Tonnen tauschen!“) und Animation. Sieg = Truhe.
+  - [x] Teil 1 (1e46bca, Tester 8/10, EAS auto + preview): 👑-Station am Ende jeder
+    Welt (auch Welt 6), 10 in Folge, max. 20 Würfe, Sterne nach Fehlern (0/≤3/mehr),
+    Boss schaltet nächste Welt frei; gespielte Stationen bleiben frei; „… in Folge“.
+  - Offen: Tonnen tauschen (Ankündigung + Animation); Truhe als Sieg (mit R3c);
+    Runde vorzeitig beenden/ansagen, wenn `streak + left < 10`; HUD „noch 12 Würfe“
+    statt „noch 12“; Zieltext nennt „max. 20 Würfe“.
 - [ ] **R2f** Freies Üben (bisher „Üben“) bleibt erreichbar: Knopf im Pfad
   „Freies Spiel“ mit allen freigeschalteten Tonnen.
 - [ ] **R2g** Bestandsspieler: Stationen anhand von Medaillen/XP vorab
