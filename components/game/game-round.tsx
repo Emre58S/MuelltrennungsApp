@@ -1051,9 +1051,16 @@ export function GameRound({
                 {station ? (
                   // Fortschritt der Station: „3/10 · Ziel 7“
                   <HudPill
+                    sub={
+                      station.kind === "boss"
+                        ? station.total - stats.throws === 1
+                          ? t("campaign.throwLeft")
+                          : t("campaign.throwsLeft", { n: station.total - stats.throws })
+                        : undefined
+                    }
                     label={
                       station.kind === "boss"
-                        ? t("campaign.progressBoss", { n: stats.streak, goal: station.goal, left: station.total - stats.throws })
+                        ? t("campaign.progressBoss", { n: stats.streak, goal: station.goal })
                         : counted
                           ? t("campaign.progress", { n: stats.throws, total: station.total, goal: station.goal })
                           : t("campaign.progressTime", { n: stats.correct, goal: station.goal })

@@ -716,15 +716,22 @@ export function HudButton({ label, onPress }: { label: string; onPress: () => vo
 }
 
 /** Wie HudButton, aber nur Anzeige (z. B. Fortschritt einer Station). */
-export function HudPill({ label }: { label: string }) {
+export function HudPill({ label, sub }: { label: string; /** Kleine zweite Zeile. */ sub?: string }) {
   const { colors } = useAppTheme();
   return (
     <View
       accessible
-      accessibilityLabel={label}
-      style={[styles.hudButton, { backgroundColor: colors.hud, borderColor: colors.hudBorder }]}
+      accessibilityLabel={sub ? `${label}, ${sub}` : label}
+      style={[styles.hudButton, styles.hudPill, { backgroundColor: colors.hud, borderColor: colors.hudBorder }]}
     >
-      <AppText variant="label">{label}</AppText>
+      <AppText variant="label" numberOfLines={1}>
+        {label}
+      </AppText>
+      {sub ? (
+        <AppText variant="caption" tone="textMuted" numberOfLines={1}>
+          {sub}
+        </AppText>
+      ) : null}
     </View>
   );
 }
@@ -855,4 +862,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  hudPill: { alignItems: "center", flexShrink: 1 },
 });
