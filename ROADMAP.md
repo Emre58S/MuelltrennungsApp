@@ -340,8 +340,12 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   prüft jede der 3 Tonnen (Test dauert ~3× so lang → Level einzeln testen).
   (13a80f4: `ParcoursLevel` mit `lanes[3]`, `parcoursLane()`, PARCOURS 1 =
   wandernder Reifen; `-t "Parcours"` ~50 s)
-- [ ] **R5b** Reifenschaukel (Modell + Pendel-Bewegung + Kollision) als erstes
-  Parcours-Element; gleitender Ring wird dadurch ersetzt.
+- [x] **R5b** Reifenschaukel (Modell + Pendel-Bewegung + Kollision) als erstes
+  Parcours-Element; gleitender Ring wird dadurch ersetzt. (b337dfa, 863473a:
+  Bewegung `swing` in physics.ts, Autoreifen r 0,62/Rohr 0,13 am 3,5-m-Seil,
+  ±1 m; Zeitfenster Mitte 25 %, außen 38 %. Offen für R5d: Reifenoberkante
+  auf kleinem iPhone nahe am oberen Rand – Kopfleiste darf ihn nicht
+  verdecken; Seil hat keine Kollision.)
 - [ ] **R5c** Torwand mit 3 Löchern; Trampolin + Klappdeckel auf alle Spuren.
 - [ ] **R5d** Parcours-Runde: Gegenstände aus dem Tages-Seed, eigene Zeit je
   Parcours (20 / 25 / 30 s), Punkte wie oben. Bewegung hängt nur an der
