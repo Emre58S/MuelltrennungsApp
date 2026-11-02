@@ -15,7 +15,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { MODES, startGame } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS } from "@/game/bins";
-import { FEVER_EVERY, FEVER_SECONDS } from "@/game/logic";
+import { FEVER_EVERY, FEVER_SECONDS, STREAK_TIERS } from "@/game/logic";
 import { type TranslationKey } from "@/i18n";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { setBoolean, StorageKeys } from "@/utils/storage";
@@ -27,7 +27,11 @@ const BINS_BY_LEVEL = [...ALL_BINS].sort((a, b) => a.unlockLevel - b.unlockLevel
 export default function TutorialScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
-  const { t } = useI18n();
+  const { t, formatNumber } = useI18n();
+  // Stufen aus dem Spiel selbst (game/logic.ts), nicht fest im Text
+  const tiers = STREAK_TIERS.filter((s) => s.multiplier > 1)
+    .map((s) => t("tutorial.streak.tier", { n: s.min, m: formatNumber(s.multiplier) }))
+    .join(", ");
 
   // Einmal geöffnet: der Hinweis-Punkt am „?“ im Menü verschwindet
   useEffect(() => {
@@ -82,7 +86,7 @@ export default function TutorialScreen() {
         <FadeIn delay={180}>
           <Section title={t("tutorial.points")}>
             <Card style={styles.list}>
-              <Row icon="trending-up" title={t("tutorial.streak.title")} text={t("tutorial.streak.text")} />
+              <Row icon="trending-up" title={t("tutorial.streak.title")} text={t("tutorial.streak.text", { tiers })} />
               <Row icon="star" title={t("tutorial.perfect.title")} text={t("tutorial.perfect.text")} />
               <Row
                 icon="zap"
