@@ -3,9 +3,9 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (2.11. spät, Normalmodus):** 3 Zyklen R5, alle freigegeben (8/10),
+**Letzter Lauf (2.11. spät, Normalmodus):** 4 Zyklen R5, alle freigegeben (8/10),
 auf auto + preview: R5a Parcours-Datenmodell, R5b Reifenschaukel, R5c Teil 1
-(3 Trampoline). Nächstes: R5c Rest (Torwand, Klappdeckel) → R5d Parcours-Runde
+(3 Trampoline), R5c Teil 2 (Torwand). Nächstes: R5c Rest (Klappdeckel) → R5d Parcours-Runde
 (erst damit im Spiel sichtbar).
 
 **Lauf davor (2.11., 19:17–22:50, Normalmodus):** 20 Zyklen, alle freigegeben, auf
@@ -354,8 +354,12 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [ ] **R5c** Torwand mit 3 Löchern; Trampolin + Klappdeckel auf alle Spuren.
   - [x] Teil 1: PARCOURS 2 = Trampolin vor jeder Tonne (halfW 0,52, sonst
     überlappen die Rahmen), eigener Text (d956503, dc8fe73).
-  - [ ] Offen: Torwand (neue Kollision: Tafel mit 3 Löchern), Klappdeckel auf
-    allen Tonnen. Für R5d: trifft man das Nachbar-Trampolin, sagt die Runde
+  - [x] Teil 2: Torwand = 3 Felder (`board`, je ein Loch r 0,42, z 1,5,
+    y 2,15–3,35 → auf dem Bildschirm über den Tonnen), PARCOURS 3, Holz-Ton,
+    Hinweise „Erst durchs Loch“ / „Nimm das Loch vor deiner Tonne“
+    (8a4163c, f9fba10). Pfosten ohne Kollision (außerhalb der Wurfbahnen).
+  - [ ] Offen: Klappdeckel auf allen Tonnen. Idee Tester: bei „noBoard“ das
+    richtige Loch kurz aufleuchten lassen. Für R5d: trifft man das Nachbar-Trampolin, sagt die Runde
     heute „noTrampoline“ – besser „falsches Trampolin“.
 - [ ] **R5d** Parcours-Runde: Gegenstände aus dem Tages-Seed, eigene Zeit je
   Parcours (20 / 25 / 30 s), Punkte wie oben. Bewegung hängt nur an der
