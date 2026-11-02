@@ -406,7 +406,7 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [ ] **R9d** Modelle nachschärfen: Küchentuch, Walnuss-Runzeln feiner, Kräuselband.
 
 ### R10 – Kleine offene Fehler aus IMPROVEMENTS.md (bündeln, 1 Zyklus)
-- [ ] Tutorial-Stufen aus STREAK_TIERS statt fest im Text.
+- [x] Tutorial-Stufen aus STREAK_TIERS statt fest im Text. (faabbd3 + 14d45e0, Tester 8/10)
 - [x] Meldung beim 10. Treffer zeigt ×6, gezählt ×2 – prüfen. (e30d461, Tester 8/10):
   Rechnung stimmt (×6 gilt ab dem nächsten Wurf), Text jetzt „Ab jetzt ×N!“.
 - [ ] Tagesaufgabe: Endbildschirm überdeckt im letzten Wurf die Fehlerrückmeldung.
