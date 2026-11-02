@@ -359,8 +359,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     flatternde Schnipsel (wenig Schwerkraft, viel Luftwiderstand, Pendeln); fester Pool.
   - Offen: Dose knautscht (Gegenstand beim Einwurf stauchen); Bio-Spritzer in erdigen
     Tönen statt Spurfarbe; auch in Sprint-/Trick-Runden.
-- [ ] **R6c** Kurzer Treffer-Stopp (Hit-Stop ~60 ms) + leichtes Wackeln bei
-  Serie 10/Boss; Haptik-Stufen.
+- [x] **R6c** Kurzer Treffer-Stopp (Hit-Stop ~60 ms) + leichtes Wackeln bei
+  Serie 10/Boss; Haptik-Stufen. (e7bdfea + 988d002, Tester 8/10, EAS auto + preview):
+  Serie 10/20 … → hitStop 60 ms (nicht doppelt mit Swish) + shake 0,03 beim Fieber-Start;
+  Haptik mittel, kräftig bei jeder 5er-Serie. Offen: Boss-Sieg/-Tausch mit Wackeln.
 - [ ] **R6d** Belohnungs-Momente: Truhe öffnen, Stern-Animation im Pfad,
   „Neue Tonne freigeschaltet!“. Hot-Path-Regel beachten (keine Objekte pro Frame).
 
