@@ -183,7 +183,7 @@ export const en: Translations = {
   "rank.myPlace": "Your place: {rank}",
   "rank.today": "today",
   "rank.place": "#{rank} on the leaderboard",
-  "rank.setup": "This leaderboard is being set up. Please check back later.",
+  "rank.setup": "This leaderboard is being set up. Please try again later.",
   "hub.friends.desc": "Your code, add friends, best of the week",
   "friends.title": "Friends",
   "friends.subtitle": "Add friends and compare.",

@@ -182,7 +182,7 @@ export const de = {
   "rank.myPlace": "Dein Platz: {rank}",
   "rank.today": "heute",
   "rank.place": "Platz {rank} in der Rangliste",
-  "rank.setup": "Diese Rangliste wird gerade eingerichtet. Schau später wieder vorbei.",
+  "rank.setup": "Diese Rangliste wird gerade eingerichtet. Versuch es später nochmal.",
   "hub.friends.desc": "Dein Code, Freunde hinzufügen, Beste der Woche",
   "friends.title": "Freunde",
   "friends.subtitle": "Freunde hinzufügen und vergleichen.",
