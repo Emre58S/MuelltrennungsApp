@@ -258,10 +258,14 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     Zeit-Sprint + Survival mit „Diese Woche“ (ab Montag) / „Allzeit“, gewertet „N richtig“
     (bester Lauf je Spieler, aus online_runs); SQL online_top/online_my_rank in
     supabase/online.sql (**Nutzer muss die Datei erneut ausführen**).
-  - Offen: eigener Text, wenn die SQL-Funktion fehlt (jetzt „Keine Verbindung“);
-    Sprint-Gleichstand nach Zeit?; „Survival“ neben „Ohne Fehler“ verwechselbar →
-    alte Reiter Zeit/Ohne Fehler ausblenden (Rest von R4f); Link zur Rangliste im
-    Sprint-/Survival-Endbildschirm; Tricks erst mit R4c.
+  - [x] Teil 2 (9c90613 + 84a7a0c, Tester 7/10, EAS auto + preview): Knopf „Rangliste“
+    im Sprint-/Survival-Endbildschirm öffnet den passenden Reiter (?tab=), wartet ≤ 3 s
+    auf den eben gesendeten Lauf, Doppeltipp-Sperre; fehlt das SQL (404) → „Diese
+    Rangliste wird gerade eingerichtet“ statt „Keine Verbindung“.
+  - Offen: Sprint-Gleichstand nach Zeit?; „Survival“ neben „Ohne Fehler“ verwechselbar →
+    alte Reiter Zeit/Ohne Fehler ausblenden (Rest von R4f, Modi dann nur noch als
+    Kampagnen-Station); „Erneut versuchen“ auch im Zustand „wird eingerichtet“;
+    Tricks erst mit R4c.
 - [ ] **R4g** (1.1) **Live-Duell parallel** auf zwei Handys (G4, Supabase
   Realtime): beide werfen gleichzeitig denselben Gegenstand, wer zuerst richtig
   trifft, holt den Punkt; Variante: gleiche Gegenstände, unterschiedliche
