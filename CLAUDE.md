@@ -148,5 +148,8 @@ wenig Deutsch, nie strafend.
 - Emre pusht parallel auf `auto-improve` (2.11.): vor dem Push `git fetch` +
   `git rebase origin/auto-improve`, Prüfungen erneut; danach lokalen `sdk-58`
   per `git branch -f sdk-58 auto-improve` nachziehen (nur wenn ungepusht).
+- Bash-Heredoc + `sed`: `\b`/`\n` in Ersetzungen landen als Steuerzeichen
+  (Backspace) oder echte Umbrüche in der Datei – Regex-/Escape-Texte mit dem
+  Edit-Tool setzen, danach `grep -c $'\x08'` prüfen.
 - Node-Edit-Skripte: `String.replace(a, b)` deutet `$'`/`$&` in b als Muster
   (SQL-Regex `…$'` zerstörte online.sql) – `split(a).join(b)` oder Funktion nutzen.
