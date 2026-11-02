@@ -440,6 +440,7 @@ export const de = {
   "campaign.goalBoss": "👑 Boss · {goal} in Folge · max. {total} Würfe · 🔄 Tonnen tauschen",
   "campaign.bossSwap": "Achtung, Tonnen tauschen!",
   "campaign.kind.boss": "Boss",
+  "campaign.freePlay": "Freies Spiel",
   "campaign.end.missingStreak": "Beste Serie: {best}. Noch {n} mehr in Folge für den ersten Stern.",
   "campaign.trick": "Trick-Schule",
   "campaign.trickLevels": "Level {from}–{to}",

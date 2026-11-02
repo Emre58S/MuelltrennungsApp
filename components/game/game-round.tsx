@@ -41,8 +41,9 @@ import {
 import { IconButton } from "@/components/ui/icon-button";
 import { type Item } from "@/constants/items";
 import { type GameMode, isTimed } from "@/constants/modes";
-import { Spacing } from "@/constants/theme";
+import { type BinKey, Spacing } from "@/constants/theme";
 import {
+  ALL_BINS,
   getBinByCategory,
   getBinsForScene,
   getItemsForBins,
@@ -189,6 +190,7 @@ export function GameRound({
   mode,
   daily,
   station,
+  freeBins,
   level,
   startXp,
   onAgain,
@@ -199,6 +201,8 @@ export function GameRound({
   daily: boolean;
   /** Kampagnen-Station: deren Tonnen und Gegenstände, feste Zahl Würfe, Sterne. */
   station?: Station;
+  /** Freies Spiel aus dem Pfad: genau diese Tonnen (die der aktuellen Welt). */
+  freeBins?: BinKey[];
   level: number;
   startXp: number;
   onAgain: () => void;
@@ -220,8 +224,14 @@ export function GameRound({
   const [scene] = useState(nextScene);
   const baseBins = useMemo(
     () =>
-      station ? stationBins(station) : daily ? STANDARD_BINS : getBinsForScene(scene, level),
-    [station, daily, scene, level],
+      station
+        ? stationBins(station)
+        : daily
+          ? STANDARD_BINS
+          : freeBins
+            ? ALL_BINS.filter((b) => freeBins.includes(b.key))
+            : getBinsForScene(scene, level),
+    [station, daily, freeBins, scene, level],
   );
   // Boss: Tonnen tauschen zwischendurch die Plätze (Reihenfolge der Grund-Tonnen)
   const [order, setOrder] = useState<number[] | null>(null);
@@ -871,8 +881,8 @@ export function GameRound({
       levelNow.current = newLevel;
       sfx("levelup");
       showBanner(`⬆ ${t("game.levelUp", { level: newLevel })}`);
-      // In Stationen gelten deren Tonnen – dort keine „Neue Tonne“ melden
-      const unlocked = station ? undefined : getUnlockAtLevel(newLevel);
+      // In Stationen und im Freien Spiel gelten deren Tonnen – dort keine „Neue Tonne“ melden
+      const unlocked = station || freeBins ? undefined : getUnlockAtLevel(newLevel);
       if (unlocked)
         later(() => {
           showBanner(

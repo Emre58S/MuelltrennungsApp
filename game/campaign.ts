@@ -242,6 +242,18 @@ export function currentStation(stars: CampaignStars): Station {
   );
 }
 
+/** Freies Spiel: die Tonnen der Welt, in der man gerade ist (Welt 6: alle). */
+export function freePlayBins(stars: CampaignStars): BinKey[] {
+  const at = currentStation(stars);
+  return WORLDS.find((w) => w.stations.includes(at))?.bins ?? WORLD_BINS[0];
+}
+
+/** Tonnen aus dem Link („papier,rest“) – Unbekanntes fällt weg, leer = keine. */
+export function parseFreeBins(raw: string | undefined): BinKey[] | undefined {
+  const keys = (raw ?? "").split(",").filter((k): k is BinKey => ALL_BINS.some((b) => b.key === k));
+  return keys.length >= 2 ? keys : undefined;
+}
+
 /** Neues Ergebnis eintragen – nur mehr Sterne zählen (nie weniger). */
 export function withStars(
   stars: CampaignStars,

@@ -441,6 +441,7 @@ export const en: Translations = {
   "campaign.goalBoss": "👑 Boss · {goal} in a row · max. {total} throws · 🔄 bins swap",
   "campaign.bossSwap": "Watch out, bins swap!",
   "campaign.kind.boss": "Boss",
+  "campaign.freePlay": "Free play",
   "campaign.end.missingStreak": "Best streak: {best}. {n} more in a row for your first star.",
   "campaign.trick": "Trick school",
   "campaign.trickLevels": "Levels {from}–{to}",

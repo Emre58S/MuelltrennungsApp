@@ -6,11 +6,12 @@
 // mode=trick&daily=1: der Tages-Trick.
 // mode=ghost: Ghost-Rennen gegen den eigenen besten Lauf von heute.
 // station=2-3: eine Station der Kampagne (game/campaign.ts).
+// bins=papier,rest: Freies Spiel mit genau diesen Tonnen (aus dem Pfad).
 import { DuelRound } from "@/components/game/duel-round";
 import { GameRound } from "@/components/game/game-round";
 import { GhostRound } from "@/components/game/ghost-round";
 import { TrickRound } from "@/components/game/trick-round";
-import { getStation, nextStation, stationMode } from "@/game/campaign";
+import { getStation, nextStation, parseFreeBins, stationMode } from "@/game/campaign";
 import { dailyTrick, TRICK_LEVELS } from "@/game/trick-levels";
 import { type GameMode } from "@/constants/modes";
 import { useAppTheme } from "@/providers/app-settings";
@@ -25,7 +26,7 @@ import { setAudioModeAsync } from "expo-audio";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { playMusic, refreshMusicSetting } from "@/utils/music";
 import { perfMark } from "@/utils/perf-marks";
-import { Profiler, useCallback, useEffect, useState } from "react";
+import { Profiler, useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
@@ -36,13 +37,16 @@ export default function GameScreen() {
     level: rawLevel,
     code: rawCode,
     station: rawStation,
+    bins: rawBins,
   } = useLocalSearchParams<{
     mode?: string;
     daily?: string;
     level?: string;
     code?: string;
     station?: string;
+    bins?: string;
   }>();
+  const freeBins = useMemo(() => parseFreeBins(rawBins), [rawBins]);
   const isTrick = rawMode === "trick";
   const isDuel = rawMode === "duel";
   const isGhost = rawMode === "ghost";
@@ -170,6 +174,7 @@ export default function GameScreen() {
             mode={station ? stationMode(station) : mode}
             daily={daily}
             station={station}
+            freeBins={freeBins}
             onNext={nextId ? nextStationRound : undefined}
             level={level}
             startXp={xp}

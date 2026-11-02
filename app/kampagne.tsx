@@ -4,7 +4,8 @@
 // Stationen (game/campaign.ts), Sterne darunter, die aktuelle Station hüpft
 // und ist mit 1 Tipp gestartet. Je Welt eine Seitenstation „Trick-Schule“
 // (4 der Trick-Level, sperrt nichts). Oben eine schmale Reihe mit den bisherigen
-// Spielarten (Üben, Ohne Fehler, Zeit, Tagesaufgabe, Tricks), bis sie mit
+// Spielarten (Freies Spiel mit den Tonnen der aktuellen Welt, Ohne Fehler, Zeit,
+// Tagesaufgabe, Tricks), bis sie mit
 // R2d als Stationen im Pfad leben.
 
 import { router, useFocusEffect } from "expo-router";
@@ -20,6 +21,7 @@ import { ALL_BINS, type BinDef } from "@/game/bins";
 import {
   type CampaignStars,
   currentStation,
+  freePlayBins,
   isUnlocked,
   type Station,
   trickTarget,
@@ -59,6 +61,11 @@ const binDef = (key: string): BinDef | undefined => ALL_BINS.find((b) => b.key =
 function worldColor(world: World): string {
   const key = world.newBins[world.newBins.length - 1];
   return (key && binDef(key)?.color) || TRICKY_COLOR;
+}
+
+/** Freies Spiel (früher „Üben“): ohne Ziel, mit den Tonnen der aktuellen Welt. */
+function startFreePlay(stars: CampaignStars | null) {
+  router.push({ pathname: "/runde", params: { mode: "endless", bins: freePlayBins(stars ?? {}).join(",") } });
 }
 
 function startStation(station: Station) {
@@ -118,7 +125,8 @@ export default function KampagneScreen() {
     >
       {/* Bisherige Spielarten – klein, damit der Pfad im Mittelpunkt steht */}
       <View style={styles.chips}>
-        {MENU_MODES.map((m) => (
+        <Chip emoji="🌱" label={t("campaign.freePlay")} onPress={() => startFreePlay(stars)} />
+        {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
           <Chip key={m.mode} emoji={MODE_LOOK[m.mode] ?? "🎮"} label={t(m.titleKey)} onPress={() => startGame(m.mode)} />
         ))}
         <Chip

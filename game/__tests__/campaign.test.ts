@@ -6,6 +6,8 @@ import { TRICK_LEVELS } from "@/game/trick-levels";
 
 import {
   currentStation,
+  freePlayBins,
+  parseFreeBins,
   introExamples,
   isUnlocked,
   nextStation,
@@ -124,6 +126,21 @@ describe("Freischalten", () => {
     expect(currentStation({ "1-1": 3, "1-2": 1 }).id).toBe("1-3");
     const all = Object.fromEntries(STATIONS.map((s) => [s.id, 1]));
     expect(currentStation(all).id).toBe(STATIONS[STATIONS.length - 1].id);
+  });
+
+  test("Freies Spiel: Tonnen der aktuellen Welt", () => {
+    expect(freePlayBins({})).toEqual(["papier", "rest"]);
+    const world1 = Object.fromEntries(WORLDS[0].stations.map((s) => [s.id, 1]));
+    expect(freePlayBins(world1)).toEqual(WORLDS[1].bins);
+    const all = Object.fromEntries(STATIONS.map((s) => [s.id, 1]));
+    expect(freePlayBins(all)).toHaveLength(6);
+  });
+
+  test("Freies Spiel: Tonnen aus dem Link", () => {
+    expect(parseFreeBins("papier,rest")).toEqual(["papier", "rest"]);
+    expect(parseFreeBins("papier,quatsch,glas")).toEqual(["papier", "glas"]);
+    expect(parseFreeBins("papier")).toBeUndefined();
+    expect(parseFreeBins(undefined)).toBeUndefined();
   });
 });
 
