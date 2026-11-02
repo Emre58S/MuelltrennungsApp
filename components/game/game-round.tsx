@@ -132,6 +132,8 @@ import {
 } from "./throw-input";
 
 const ROUND_SECONDS = 60;
+/** Boss: alle so viele Würfe tauschen zwei Tonnen die Plätze. */
+const BOSS_SWAP_EVERY = 4;
 /** Nach Zeitablauf: so lange dürfen fliegende Würfe noch landen. */
 const TIME_UP_GRACE_MS = 1000;
 /** Höchstens so viele „+10“ gleichzeitig. */
@@ -216,14 +218,20 @@ export function GameRound({
   // Jede Runde eine neue Szene; sie bestimmt die 3 Tonnen. Tagesaufgabe immer
   // mit den Grund-Tonnen – damit sie für alle gleich ist.
   const [scene] = useState(nextScene);
-  const bins = useMemo(
+  const baseBins = useMemo(
     () =>
       station ? stationBins(station) : daily ? STANDARD_BINS : getBinsForScene(scene, level),
     [station, daily, scene, level],
   );
+  // Boss: Tonnen tauschen zwischendurch die Plätze (Reihenfolge der Grund-Tonnen)
+  const [order, setOrder] = useState<number[] | null>(null);
+  const bins = useMemo(
+    () => (order ? order.map((k) => baseBins[k]) : baseBins),
+    [order, baseBins],
+  );
   const pool = useMemo(
-    () => (station ? stationPool(station) : getItemsForBins(bins)),
-    [station, bins],
+    () => (station ? stationPool(station) : getItemsForBins(baseBins)),
+    [station, baseBins],
   );
   const dailyQueue = useMemo(
     () => (daily ? dailyItems(pool, todayKey()) : []),
@@ -313,8 +321,12 @@ export function GameRound({
     ended: false,
     over: false,
     timeUp: false,
+    /** Boss: Tonnen tauschen gerade – solange nicht werfen. */
+    swapping: false,
     id: 0,
   });
+  /** Boss: nach so vielen Würfen tauschen die Tonnen das nächste Mal. */
+  const swapAt = useRef(BOSS_SWAP_EVERY);
   const later = useLater();
   // Einführung: Gewicht, Combo und Halten je einmal erklären (siehe tips.ts)
   /** Lernkarte steht (nur „Üben“) – der Tipp an derselben Stelle wartet. */
@@ -473,7 +485,7 @@ export function GameRound({
   ) => {
     const l = lock.current;
     const item = itemRef.current;
-    if (!item || l.ended || finished) return;
+    if (!item || l.ended || l.swapping || finished) return;
     setAim(bus.current, null);
     setShotGuide(bus.current, null);
     cancelSlowMotion(fx.current);
@@ -659,6 +671,37 @@ export function GameRound({
       setAim(bus.current, null);
       // Nach einem Fehler erst die Lernkarte lesen lassen (wie bei „Ohne Fehler“)
       later(() => setFinished(true), bossLost ? (learnReason ? 2600 : 1900) : 900);
+    }
+    // Boss: alle paar Würfe tauschen zwei Nachbar-Tonnen die Plätze – nur nach
+    // einem Treffer (keine Lernkarte offen) und wenn nichts mehr fliegt
+    if (
+      isBoss &&
+      ts.hit &&
+      !l.ended &&
+      bins.length > 1 &&
+      after.throws >= swapAt.current &&
+      throwMap.current.size === 0
+    ) {
+      swapAt.current = after.throws + BOSS_SWAP_EVERY;
+      l.swapping = true;
+      setAim(bus.current, null);
+      later(() => {
+        showBanner(`🔄 ${t("campaign.bossSwap")}`, 1700);
+        sfx("aim");
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+      }, 450);
+      later(() => {
+        const k = Math.floor(Math.random() * (bins.length - 1));
+        setOrder((o) => {
+          const next = o ? [...o] : baseBins.map((_, j) => j);
+          [next[k], next[k + 1]] = [next[k + 1], next[k]];
+          return next;
+        });
+        sfx("throw");
+      }, 1150);
+      later(() => {
+        l.swapping = false;
+      }, 1950);
     }
     queueBinEvent(
       bus.current,

@@ -10,7 +10,7 @@
 // Zustand kommt über den SceneBus (kein Re-Render pro Wurf).
 
 import { useFrame } from "@react-three/fiber/native";
-import { memo, useEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { type BinDef } from "@/game/bins";
@@ -143,6 +143,10 @@ export const TrashBin = memo(function TrashBin({
   const heartRef = useRef<THREE.Group>(null);
   const dotsRef = useRef<THREE.Group>(null);
   const anim = useRef({ hit: 0, reject: 0, lift: 0, peek: 0, shut: 0, bump: 0 });
+  // Platzwechsel (Boss: Tonnen tauschen): gleitet von `from` nach `to`, p = 0…1
+  const placeRef = useRef<THREE.Group>(null);
+  const move = useRef({ from: x, to: x, p: 1 });
+  const [start] = useState<[number, number, number]>(() => [x, 0, z]);
 
   const mats = useMemo(
     () => ({
@@ -210,6 +214,25 @@ export const TrashBin = memo(function TrashBin({
     const delta = Math.min(rawDelta, 0.05) * f.timeScale;
     const t = state.clock.elapsedTime;
     const a = anim.current;
+
+    // Neuer Platz? In ~0,7 s hingleiten; nach rechts hinten, nach links vorn
+    // herum – so laufen zwei tauschende Tonnen aneinander vorbei
+    const place = placeRef.current;
+    const m = move.current;
+    if (place) {
+      if (m.to !== x) {
+        m.from = place.position.x;
+        m.to = x;
+        m.p = f.calm ? 1 : 0;
+      }
+      if (m.p < 1) m.p = Math.min(1, m.p + Math.min(rawDelta, 0.05) / 0.7);
+      const e = m.p * m.p * (3 - 2 * m.p);
+      const arc = Math.sin(Math.PI * m.p);
+      const span = m.to - m.from;
+      place.position.x = m.from + span * e;
+      place.position.y = arc * 0.12;
+      place.position.z = z - Math.sign(span) * Math.min(0.6, Math.abs(span) * 0.5) * arc;
+    }
 
     const event = takeBinEvent(bus.current, index);
     if (event === "reject") a.reject = 1;
@@ -280,7 +303,7 @@ export const TrashBin = memo(function TrashBin({
   const stickerZ = zInset + 0.026 + (STICKER_Y - 0.68) * Math.tan(TAPER);
 
   return (
-    <group position={[x, 0, z]}>
+    <group ref={placeRef} position={start}>
       <mesh geometry={GEO.pad} material={mats.pad} position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 8]} />
       <mesh geometry={GEO.blob} material={SHARED.blob} position={[0.06, 0.016, -0.04]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 0.9, 1]} />
       <mesh
