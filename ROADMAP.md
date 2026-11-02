@@ -407,12 +407,14 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 
 ### R10 – Kleine offene Fehler aus IMPROVEMENTS.md (bündeln, 1 Zyklus)
 - [ ] Tutorial-Stufen aus STREAK_TIERS statt fest im Text.
-- [ ] Meldung beim 10. Treffer zeigt ×6, gezählt ×2 – prüfen.
+- [x] Meldung beim 10. Treffer zeigt ×6, gezählt ×2 – prüfen. (e30d461, Tester 8/10):
+  Rechnung stimmt (×6 gilt ab dem nächsten Wurf), Text jetzt „Ab jetzt ×N!“.
 - [ ] Tagesaufgabe: Endbildschirm überdeckt im letzten Wurf die Fehlerrückmeldung.
 - [ ] „Ohne Fehler“: Lernkarte länger sichtbar.
 - [ ] „Abgelaufene Medikamente“ steht als Sondermüll – meist Restmüll (UBA), Apotheke
   freiwillig. Kategorie/Fakt prüfen (in Kampagne vorerst ausgelassen).
-- [ ] „Alles zurücksetzen“ (einstellung.tsx) löscht Kampagnen-Sterne nicht.
+- [x] „Alles zurücksetzen“ (einstellung.tsx) löscht Kampagnen-Sterne nicht. (e30d461):
+  so gewollt – Text sagt jetzt „Sterne (Pfad und Tricks) bleiben“.
 - [ ] Ghost-Ideen: Gleichstand „gleich schnell (0,1 s)“, `\b` in isOtherVersionCode.
 
 ---
