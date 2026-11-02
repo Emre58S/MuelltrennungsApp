@@ -62,7 +62,8 @@ function hoop(radius: number, tube: number): THREE.Object3D {
 }
 
 /** Reifenschaukel: Autoreifen (Mitte im Ursprung), Seil vom oberen Rand bis
- *  zum Aufhängepunkt `length` darüber, Knoten am Reifen. Pendelt als Ganzes. */
+ *  zum Aufhängepunkt `length` darüber (liegt über dem Bildrand – kein Ast
+ *  nötig), Knoten am Reifen. Pendelt als Ganzes. */
 function swingTire(radius: number, tube: number, length: number): THREE.Object3D {
   const g = new THREE.Group();
   g.add(new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 8, 18), lowpoly("#2E2E33")));
@@ -90,18 +91,6 @@ function swingTire(radius: number, tube: number, length: number): THREE.Object3D
   return baked;
 }
 
-/** Ast, an dem die Schaukel hängt (ruht; Mitte am Aufhängepunkt). */
-function branch(): THREE.Object3D {
-  const g = new THREE.Group();
-  const log = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 3.2, 7), lowpoly("#7A5233"));
-  log.rotation.z = Math.PI / 2 + 0.06;
-  log.position.y = 0.08;
-  g.add(log);
-  const baked = bake(g);
-  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
-  return baked;
-}
-
 const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef }) {
   const group = useRef<THREE.Group>(null);
   const glow = useRef<THREE.Mesh>(null);
@@ -111,7 +100,6 @@ const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef
     () => (length ? swingTire(ring.radius, ring.tube, length) : hoop(ring.radius, ring.tube)),
     [ring.radius, ring.tube, length],
   );
-  const bough = useMemo(() => (length ? branch() : null), [length]);
   const glowGeo = useMemo(
     () => new THREE.TorusGeometry(ring.radius, ring.tube * (length ? 1.4 : 2.2), 8, 36),
     [ring.radius, ring.tube, length],
@@ -126,11 +114,10 @@ const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef
   useEffect(
     () => () => {
       model.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
-      bough?.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
       glowGeo.dispose();
       glowMat.dispose();
     },
-    [model, bough, glowGeo, glowMat],
+    [model, glowGeo, glowMat],
   );
 
   useFrame(() => {
@@ -151,13 +138,10 @@ const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef
   });
 
   return (
-    <>
-      <group ref={group}>
-        <primitive object={model} />
-        <mesh ref={glow} geometry={glowGeo} material={glowMat} visible={false} />
-      </group>
-      {bough && <primitive object={bough} position={[ring.x, ring.y + length, ring.z]} />}
-    </>
+    <group ref={group}>
+      <primitive object={model} />
+      <mesh ref={glow} geometry={glowGeo} material={glowMat} visible={false} />
+    </group>
   );
 });
 
