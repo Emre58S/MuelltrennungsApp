@@ -354,6 +354,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [ ] **R6b** Material-Effekte: Banane/Bio **platscht** (Spritzer), Glas
   **splittert** (Scherben-Funken), Dose **knautscht**, Papier flattert.
   Töne der Materialien bleiben erhalten (CLAUDE.md).
+  - [x] Teil 1 (64979ce + 4599002, Tester 8/10, EAS auto + preview): Burst-Stil je
+    Material (effects.tsx): Bio flache Spritzer, Glas schnelle breite Scherben, Papier
+    flatternde Schnipsel (wenig Schwerkraft, viel Luftwiderstand, Pendeln); fester Pool.
+  - Offen: Dose knautscht (Gegenstand beim Einwurf stauchen); Bio-Spritzer in erdigen
+    Tönen statt Spurfarbe; auch in Sprint-/Trick-Runden.
 - [ ] **R6c** Kurzer Treffer-Stopp (Hit-Stop ~60 ms) + leichtes Wackeln bei
   Serie 10/Boss; Haptik-Stufen.
 - [ ] **R6d** Belohnungs-Momente: Truhe öffnen, Stern-Animation im Pfad,
