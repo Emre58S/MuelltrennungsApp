@@ -555,7 +555,7 @@ export function SprintRound({
       {item && phase === "play" && (
         <View pointerEvents="none" style={[styles.overlayRow, { top: itemTagTop }]}>
           <ItemCard key={`${index}-${item.name}`} item={item} showHint={false} />
-          {survival && limit > 0 && <ItemTimer key={`t${index}`} ms={limit} color={PLAYER[0].color} />}
+          {survival && limit > 0 && <ItemTimer key={`t${index}`} ms={limit} color={PLAYER[0].color} warn={colors.danger} />}
         </View>
       )}
 
@@ -663,8 +663,10 @@ function RoundClock({
 }
 
 /** Survival: Balken unter dem Gegenstand, der in `ms` leer läuft (nativ animiert). */
-function ItemTimer({ ms, color }: { ms: number; color: string }) {
+/** Zeitbalken je Gegenstand; im letzten Drittel blendet er in Rot über (Spielerfarbe ist schon orange). */
+function ItemTimer({ ms, color, warn }: { ms: number; color: string; warn: string }) {
   const [k] = useState(() => new Animated.Value(1));
+  const [warnOpacity] = useState(() => k.interpolate({ inputRange: [0, 0.3, 0.4, 1], outputRange: [1, 1, 0, 0] }));
   useEffect(() => {
     const anim = Animated.timing(k, { toValue: 0, duration: ms, easing: Easing.linear, useNativeDriver: true });
     anim.start();
@@ -673,6 +675,13 @@ function ItemTimer({ ms, color }: { ms: number; color: string }) {
   return (
     <View style={styles.timerTrack}>
       <Animated.View style={[styles.timerFill, { backgroundColor: color, transform: [{ scaleX: k }] }]} />
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          styles.timerFill,
+          { backgroundColor: warn, opacity: warnOpacity, transform: [{ scaleX: k }] },
+        ]}
+      />
     </View>
   );
 }
