@@ -2,7 +2,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Storage Keys ──────────────────────────────────────────────────────
-import { type CampaignStars, headStartStars, withStars } from "@/game/campaign";
+import { type CampaignStars, freePlayBins, headStartStars, withStars } from "@/game/campaign";
+import {
+  addMissionCounts,
+  EMPTY_COUNTS,
+  MISSION_XP,
+  type MissionCounts,
+  type MissionDay,
+  missionDayFor,
+} from "@/game/missions";
+import { type BinKey } from "@/constants/theme";
 import { goldCount } from "@/game/mastery";
 import { type FlameStatus, flameState, nextStreak } from "@/utils/streak";
 
@@ -47,6 +56,8 @@ export const StorageKeys = {
   CAMPAIGN_STARS: "muell_campaign_stars",
   /** Kampagne: Vorsprung nach Level schon vergeben (einmalig, „1“). */
   CAMPAIGN_HEAD_START: "muell_campaign_head_start",
+  /** Tagesmissionen von heute mit Fortschritt (game/missions.ts). */
+  MISSIONS: "muell_missions",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -336,9 +347,25 @@ export function getLevelTitle(level: number): string {
 
 const pendingThrows = { played: 0, correct: 0, xp: 0 };
 const pendingItems = new Map<string, { correct: number; wrong: number }>();
+/** Fortschritt der Tagesmissionen seit dem letzten Speichern. */
+let pendingMissions: MissionCounts = { ...EMPTY_COUNTS, bins: {} };
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
-export function queueThrowRecord(params: { correct: boolean; xp: number; item?: string }) {
+export function queueThrowRecord(params: {
+  correct: boolean;
+  xp: number;
+  item?: string;
+  /** Tonne des Gegenstands (für die Tagesmissionen). */
+  bin?: BinKey;
+  /** Serie nach diesem Wurf. */
+  streak?: number;
+}) {
+  if (params.correct) {
+    const m = pendingMissions;
+    m.correct += 1;
+    if (params.bin) m.bins[params.bin] = (m.bins[params.bin] ?? 0) + 1;
+    m.maxStreak = Math.max(m.maxStreak, params.streak ?? 0);
+  }
   if (params.item) {
     const p = pendingItems.get(params.item) ?? { correct: 0, wrong: 0 };
     if (params.correct) p.correct += 1;
@@ -360,8 +387,12 @@ export function flushThrowRecords(): Promise<void> {
     clearTimeout(flushTimer);
     flushTimer = null;
   }
-  if (pendingThrows.played === 0) return enqueue(async () => undefined);
+  if (pendingThrows.played === 0 && pendingMissions.stations === 0) {
+    return enqueue(async () => undefined);
+  }
   const batch = { ...pendingThrows };
+  const missions = pendingMissions;
+  pendingMissions = { ...EMPTY_COUNTS, bins: {} };
   const items = new Map(pendingItems);
   pendingThrows.played = 0;
   pendingThrows.correct = 0;
@@ -382,6 +413,14 @@ export function flushThrowRecords(): Promise<void> {
         };
       });
       await setItem(StorageKeys.ITEM_STATS, JSON.stringify(all));
+    }
+    // Tagesmissionen: Fortschritt dazu, geschaffte bringen XP
+    const { day, newlyDone } = addMissionCounts(await loadMissionDay(), missions);
+    await setItem(StorageKeys.MISSIONS, JSON.stringify(day));
+    batch.xp += newlyDone.length * MISSION_XP;
+    if (batch.played === 0) {
+      await addXP(batch.xp);
+      return;
     }
     await updateStreak();
     const [played, correct] = await Promise.all([
@@ -494,6 +533,36 @@ export async function getCampaignStars(): Promise<CampaignStars> {
 /** Kampagne: Bestandsspieler einmalig nach Level vorab freischalten (beim
  *  ersten Öffnen des Pfads; neue Spieler bekommen nichts und werden markiert).
  *  true = gerade Stationen vorab freigeschaltet (→ einmal erklären). */
+// ── Tagesmissionen (game/missions.ts) ─────────────────────────────────
+
+/** Missionen von heute (neuer Tag → neue, mit den Tonnen der aktuellen Welt). */
+async function loadMissionDay(): Promise<MissionDay> {
+  let saved: MissionDay | null = null;
+  try {
+    const raw = await getItem(StorageKeys.MISSIONS);
+    saved = raw ? (JSON.parse(raw) as MissionDay) : null;
+  } catch {
+    saved = null;
+  }
+  const today = todayKey();
+  if (saved?.date === today) return saved;
+  return missionDayFor(saved, today, freePlayBins(await getCampaignStars()));
+}
+
+/** Für die Anzeige im Pfad – legt die Missionen des Tages fest. */
+export function getMissionDay(): Promise<MissionDay> {
+  return enqueue(async () => {
+    const day = await loadMissionDay();
+    await setItem(StorageKeys.MISSIONS, JSON.stringify(day));
+    return day;
+  });
+}
+
+/** Station mit mindestens 1 Stern gespielt (wird mit den Würfen gespeichert). */
+export function queueStationMission() {
+  pendingMissions.stations += 1;
+}
+
 export function grantCampaignHeadStart(): Promise<boolean> {
   return enqueue(async () => {
     if (await getItem(StorageKeys.CAMPAIGN_HEAD_START)) return false;

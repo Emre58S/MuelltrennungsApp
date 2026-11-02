@@ -9,6 +9,7 @@ import { type Stats } from "@/game/logic";
 import { type Board, dailyBoard, submitScore } from "@/utils/leaderboard";
 import {
   flushThrowRecords,
+  queueStationMission,
   recordRound,
   saveCampaignStars,
   saveDaily,
@@ -78,7 +79,9 @@ export function useCommitRound(
     saved.current = true;
     if (st) {
       // Station: Sterne (nur mehr zählen) + Statistik; kein Punkte-Rekord
-      saveCampaignStars(st.id, stationStars(st, s)).catch(() => undefined);
+      const won = stationStars(st, s);
+      saveCampaignStars(st.id, won).catch(() => undefined);
+      if (won >= 1) queueStationMission();
       recordRound(m, { maxStreak: s.maxStreak, throws: s.throws, correct: s.correct }).catch(
         () => undefined,
       );

@@ -864,7 +864,13 @@ export function GameRound({
     // XP + Level-Aufstieg lokal berechnen; gespeichert wird gebündelt.
     const xp = XP_PER_RESULT[result];
     setXpEarned((v) => v + xp);
-    queueThrowRecord({ correct: ts.hit, xp, item: ts.item.name });
+    queueThrowRecord({
+      correct: ts.hit,
+      xp,
+      item: ts.item.name,
+      bin: getBinByCategory(ts.item.category)?.key,
+      streak: liveStats.current.streak,
+    });
     xpTotal.current += xp;
     const newLevel = getLevelFromXP(xpTotal.current);
     if (newLevel > levelNow.current) {

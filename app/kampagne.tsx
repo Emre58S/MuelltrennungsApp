@@ -6,7 +6,7 @@
 // (4 der Trick-Level, sperrt nichts). Oben eine schmale Reihe mit den bisherigen
 // Spielarten (Freies Spiel mit den Tonnen der aktuellen Welt, Ohne Fehler, Zeit,
 // Tagesaufgabe, Tricks), bis sie mit
-// R2d als Stationen im Pfad leben.
+// R2d als Stationen im Pfad leben. Darunter die 3 Tagesmissionen (R3a).
 
 import { router, useFocusEffect } from "expo-router";
 import { type ComponentRef, useCallback, useEffect, useRef, useState } from "react";
@@ -29,10 +29,12 @@ import {
   worldTricks,
   WORLDS,
 } from "@/game/campaign";
+import { type Mission, type MissionDay, MISSION_XP, missionProgress } from "@/game/missions";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import {
   type DailyResult,
   getCampaignStars,
+  getMissionDay,
   getTodayDaily,
   grantCampaignHeadStart,
   getTrickStars,
@@ -80,6 +82,7 @@ export default function KampagneScreen() {
   /** Tagesaufgabe von heute (undefined = noch nicht geladen, null = offen). */
   const [daily, setDaily] = useState<DailyResult | null | undefined>(undefined);
   const [trickStars, setTrickStars] = useState<TrickStars>({});
+  const [missions, setMissions] = useState<MissionDay | null>(null);
   /** Gerade Vorsprung nach Level bekommen – einmal erklären (nur diese Sitzung). */
   const [headStart, setHeadStart] = useState(false);
   const { colors } = useAppTheme();
@@ -106,6 +109,9 @@ export default function KampagneScreen() {
         .catch(() => undefined);
       getTrickStars()
         .then((s) => active && setTrickStars(s))
+        .catch(() => undefined);
+      getMissionDay()
+        .then((m) => active && setMissions(m))
         .catch(() => undefined);
       return () => {
         active = false;
@@ -145,6 +151,8 @@ export default function KampagneScreen() {
         />
         <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
       </View>
+
+      {missions && <MissionCard day={missions} />}
 
       {headStart && (
         <View style={[styles.headStart, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -222,6 +230,58 @@ function Chip({
       </AppText>
       {dot && <View style={styles.chipDot} />}
     </Pressable>
+  );
+}
+
+const MISSION_EMOJI = { streak: "🔥", correct: "✅", station: "⭐" } as const;
+
+/** Die 3 Tagesmissionen mit Fortschritt (game/missions.ts). */
+function MissionCard({ day }: { day: MissionDay }) {
+  const { t } = useI18n();
+  const { colors } = useAppTheme();
+  const allDone = day.done.length >= day.missions.length;
+  const text = (m: Mission) => {
+    if (m.kind === "bin" && m.bin) return t("mission.bin", { bin: t(`bin.${m.bin}`), n: m.goal });
+    if (m.kind === "streak") return t("mission.streak", { n: m.goal });
+    if (m.kind === "correct") return t("mission.correct", { n: m.goal });
+    return t("mission.station");
+  };
+  return (
+    <View style={[styles.missions, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={styles.missionHead}>
+        <AppText variant="label" accessibilityRole="header">
+          📋 {t("mission.title")}
+        </AppText>
+        <AppText variant="caption" tone="textMuted">
+          {t("mission.reward", { xp: MISSION_XP })}
+        </AppText>
+      </View>
+      {day.missions.map((m) => {
+        const n = missionProgress(m, day.counts);
+        const done = day.done.includes(m.id);
+        const emoji = m.kind === "bin" ? (binDef(m.bin ?? "")?.icon ?? "🗑️") : MISSION_EMOJI[m.kind];
+        return (
+          <View
+            key={m.id}
+            style={styles.missionRow}
+            accessible
+            accessibilityLabel={`${text(m)}: ${done ? t("mission.doneA11y") : `${n}/${m.goal}`}`}
+          >
+            <AppText variant="caption" style={styles.missionText} tone={done ? "textMuted" : undefined}>
+              {emoji} {text(m)}
+            </AppText>
+            <AppText variant="caption" style={{ fontWeight: "700" }} tone={done ? "primary" : "textSecondary"}>
+              {done ? "✓" : `${n}/${m.goal}`}
+            </AppText>
+          </View>
+        );
+      })}
+      {allDone && (
+        <AppText variant="caption" tone="textSecondary">
+          🎉 {t("mission.allDone")}
+        </AppText>
+      )}
+    </View>
   );
 }
 
@@ -440,6 +500,10 @@ function StationDot({
 const styles = StyleSheet.create({
   chips: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
+  missions: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5, gap: 6 },
+  missionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+  missionRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  missionText: { flex: 1 },
   chip: {
     paddingHorizontal: Spacing.md - 4,
     paddingVertical: Spacing.sm,
