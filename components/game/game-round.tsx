@@ -775,7 +775,8 @@ export function GameRound({
       l.ended = true;
       setAim(bus.current, null);
       // Nach einem Fehler erst die Lernkarte lesen lassen (wie bei „Ohne Fehler“)
-      later(() => setFinished(true), bossLost ? (learnReason ? 2600 : 1900) : 900);
+      // … auch wenn der letzte Wurf falsch war (Tagesaufgabe, Stationen)
+      later(() => setFinished(true), bossLost || !ts.hit ? (learnReason ? 2600 : 1900) : 900);
     }
     // Boss: alle paar Würfe tauschen zwei Nachbar-Tonnen die Plätze – nur nach
     // einem Treffer (keine Lernkarte offen) und wenn nichts mehr fliegt
