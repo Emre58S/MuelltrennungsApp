@@ -150,8 +150,13 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   EAS auto + preview): Chip 🌱 statt „Üben“, Tonnen der aktuellen Welt.
   - Offen: zählt als „Üben“ (Bestwerte mit weniger Tonnen leichter); Welt/Tonnen am
     Chip zeigen; Bestandsspieler haben bis R2g nur die Tonnen von Welt 1.
-- [ ] **R2g** Bestandsspieler: Stationen anhand von Medaillen/XP vorab
-  freischalten, damit niemand bei null anfängt.
+- [x] **R2g** Bestandsspieler: Stationen anhand von Medaillen/XP vorab
+  freischalten, damit niemand bei null anfängt. (4433eb7 + a9924de, Tester 7/10, EAS
+  auto + preview): einmalig beim ersten Öffnen; Lern-Welten, deren Tonnen vor dem
+  jetzigen Level frei wurden, je Station 1 Stern (Lv 4 → Welt 3, Lv 6 → Welt 5, ab 8 →
+  Welt 6); einmaliger Hinweis im Pfad.
+  - Offen: übersprungene Stationen eigen markieren statt 1 Stern; Boss-Tausch
+    Bestandsspielern einmal zeigen.
 
 ### R3 – Täglich wiederkommen (Muss)
 - [ ] **R3a** (F2) 3 Tagesmissionen (z. B. „5× Glas richtig“, „Serie 8“,
@@ -270,6 +275,7 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [ ] „Ohne Fehler“: Lernkarte länger sichtbar.
 - [ ] „Abgelaufene Medikamente“ steht als Sondermüll – meist Restmüll (UBA), Apotheke
   freiwillig. Kategorie/Fakt prüfen (in Kampagne vorerst ausgelassen).
+- [ ] „Alles zurücksetzen“ (einstellung.tsx) löscht Kampagnen-Sterne nicht.
 - [ ] Ghost-Ideen: Gleichstand „gleich schnell (0,1 s)“, `\b` in isOtherVersionCode.
 
 ---
