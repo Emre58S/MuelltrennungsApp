@@ -122,6 +122,8 @@ export const de = {
   "game.belongsIn": "gehört in:",
   "game.levelUp": "Level {level}!",
   "game.newBin": "Neu: {bin} – ab jetzt in manchen Runden",
+  "campaign.newBinTitle": "Neue Tonne frei!",
+  "campaign.newBinHint": "Ab der nächsten Station ist sie dabei.",
   "game.miss": "Daneben!",
   "game.near": "Knapp daneben!",
   "trick.task.ring": "Durch den Reifen",

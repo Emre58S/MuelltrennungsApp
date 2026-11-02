@@ -50,7 +50,7 @@ import {
   getUnlockAtLevel,
   STANDARD_BINS,
 } from "@/game/bins";
-import { type Station, stationBins, stationPool, stationQueue, stationStars } from "@/game/campaign";
+import { type Station, stationBins, stationPool, stationQueue, stationStars, WORLDS } from "@/game/campaign";
 import { addMissionCounts, MISSION_XP, type MissionDay } from "@/game/missions";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, shotLanding } from "@/game/layout";
 import {
@@ -496,6 +496,12 @@ export function GameRound({
   })();
   // In dieser Runde eine Truhe verdient? (alle 3 Missionen fertig oder erster Boss-Sieg)
   const roundMissions = missionsDone + (stationMission ? 1 : 0);
+  // Erster Boss-Sieg öffnet die nächste Welt → ihre neue Tonne feiern (ROADMAP R6d)
+  const bossWon = showEnd && bossNew && station?.kind === "boss" && stationStars(station, stats) >= 1;
+  const worldAt = station ? WORLDS.findIndex((w) => w.stations.some((s) => s.id === station.id)) : -1;
+  const unlockedBins = bossWon
+    ? (WORLDS[worldAt + 1]?.newBins ?? []).flatMap((key) => ALL_BINS.filter((b) => b.key === key))
+    : [];
   const chestEarned =
     showEnd &&
     ((bossNew && station?.kind === "boss" && stationStars(station, stats) >= 1) ||
@@ -1322,6 +1328,7 @@ export function GameRound({
             xpEarned={xpEarned + (stationMission ? MISSION_XP : 0)}
             missionsDone={roundMissions}
             chestEarned={chestEarned}
+            newBins={unlockedBins}
             rewardText={starReward}
             daily={daily}
             station={station}

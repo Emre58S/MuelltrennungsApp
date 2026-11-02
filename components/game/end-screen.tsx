@@ -6,7 +6,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Animated, Easing, Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -65,6 +65,7 @@ export function EndScreen({
   onNext,
   onMenu,
   board,
+  newBins = [],
 }: {
   title: string;
   stats: Stats;
@@ -91,6 +92,8 @@ export function EndScreen({
   onMenu: () => void;
   /** Rangliste dieser Runde: zeigt den eigenen Platz (falls online). */
   board?: Board;
+  /** Gerade freigeschaltete Tonnen (erster Boss-Sieg öffnet die nächste Welt). */
+  newBins?: BinDef[];
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
@@ -342,6 +345,7 @@ export function EndScreen({
                 : t("mission.endDoneMany", { n: missionsDone, xp: missionsDone * MISSION_XP })}
             </AppText>
           )}
+          {newBins.length > 0 && <NewBinCard bins={newBins} calm={reduceMotion} />}
           {chestEarned && (
             <AppText variant="label" tone="primary" center>
               {t("chest.end")}
@@ -482,7 +486,47 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
+/** „Neue Tonne frei!“ – springt kurz auf (bei weniger Bewegung ruhig). */
+function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
+  const { t } = useI18n();
+  const { colors } = useAppTheme();
+  const [pop] = useState(() => new Animated.Value(calm ? 1 : 0.6));
+  // Vor dem Zeichnen klein setzen – sonst blitzt die Karte einen Frame groß auf
+  useLayoutEffect(() => {
+    if (calm) return;
+    Animated.spring(pop, { toValue: 1, friction: 4, delay: 500, useNativeDriver: true }).start();
+  }, [calm, pop]);
+  const names = bins.map((b) => t(b.labelKey)).join(", ");
+  return (
+    <Animated.View
+      accessible
+      accessibilityLiveRegion="polite"
+      accessibilityLabel={`${t("campaign.newBinTitle")} ${names}. ${t("campaign.newBinHint")}`}
+      style={[styles.newBin, { backgroundColor: colors.goldSoft, transform: [{ scale: pop }] }]}
+    >
+      <AppText variant="label" tone="onGoldSoft" center>
+        🎉 {t("campaign.newBinTitle")}
+      </AppText>
+      <View style={styles.newBinRow}>
+        {bins.map((b) => (
+          <View key={b.key} style={[styles.newBinTag, { backgroundColor: b.color }]}>
+            <AppText variant="bodyStrong" color={b.onColor}>
+              {b.icon} {t(b.labelKey)}
+            </AppText>
+          </View>
+        ))}
+      </View>
+      <AppText variant="caption" tone="onGoldSoft" center>
+        {t("campaign.newBinHint")}
+      </AppText>
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
+  newBin: { alignSelf: "stretch", alignItems: "center", gap: Spacing.xs, padding: Spacing.md, borderRadius: Radius.lg },
+  newBinRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: Spacing.sm },
+  newBinTag: { borderRadius: Radius.pill, paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",

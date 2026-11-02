@@ -123,6 +123,8 @@ export const en: Translations = {
   "game.belongsIn": "goes in:",
   "game.levelUp": "Level {level}!",
   "game.newBin": "New: {bin} – now in some rounds",
+  "campaign.newBinTitle": "New bin unlocked!",
+  "campaign.newBinHint": "It joins from the next stage.",
   "game.miss": "Missed!",
   "game.near": "So close!",
   "trick.task.ring": "Through the hoop",
