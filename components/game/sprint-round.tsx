@@ -103,6 +103,8 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   const myThrows = useRef<GhostThrow[]>([]);
   /** Vor diesem Zeitpunkt zählt kein neuer Wurf (THROW_GAP_MS). */
   const lockUntil = useRef(0);
+  /** „Lauf beenden?“ ist offen – läuft die Zeit dabei ab, wird nichts gespeichert. */
+  const quitting = useRef(false);
   const ids = useRef(0);
   /** Eigene Würfe und Ghost-Würfe in der Luft (für die Landung). */
   const flying = useRef(new Map<number, { hit: boolean; bin: number; item: Item; ghost: boolean }>());
@@ -147,7 +149,7 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
 
   const finish = () => {
     const run = sprintRun(day, myThrows.current);
-    const newBest = run.correct > 0 && (!best || run.correct > best.correct);
+    const newBest = !quitting.current && run.correct > 0 && (!best || run.correct > best.correct);
     if (newBest) saveSprintBest(JSON.stringify(run)).catch(() => undefined);
     setEnd({ run, result: sprintResult(run, ghost), newBest });
     goPhase("end");
@@ -204,6 +206,8 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
     const current = item;
     const correct = bins[aim.binIndex].category === current.category;
     const now = Date.now();
+    // Der Zeit-um-Timer kann ein paar ms später kommen – solche Würfe zählen nicht
+    if (now - startRef.current > SPRINT_MS) return;
     lockUntil.current = now + THROW_GAP_MS;
     myThrows.current.push({ i: index, ms: now - startRef.current, bin: aim.binIndex, correct });
     const spec: ThrowSpec = {
@@ -283,8 +287,9 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
       onExit();
       return;
     }
+    quitting.current = true;
     Alert.alert(t("ghost.quit.title"), t("ghost.quit.message"), [
-      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.cancel"), style: "cancel", onPress: () => (quitting.current = false) },
       { text: t("duel.quit.confirm"), style: "destructive", onPress: onExit },
     ]);
   };
@@ -433,7 +438,7 @@ function TimeLeft({ since, warn, label }: { since: number; warn: string; label: 
   return (
     <View accessible accessibilityLabel={label(left)}>
       <AppText variant="title" color={left <= 5 ? warn : "#FFFFFF"} style={styles.shadow}>
-        {left}
+        {left} s
       </AppText>
     </View>
   );
