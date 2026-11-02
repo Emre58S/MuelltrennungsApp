@@ -251,6 +251,14 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     während der Suche gestartet wurde; Gegner auch für das Ghost-Rennen.
 - [ ] **R4e** Freunde: eigener **Freundes-Code** (z. B. EMRE-4821), Freund
   hinzufügen per Code/Link, Liste mit „Herausfordern“ + offenen Herausforderungen.
+  - [x] Teil 1 (3d05241 + 1a9988b + 351ddc8, Tester 7/10 → 7/10, EAS auto + preview):
+    Karte 👫 Freunde im Online-Bereich (app/freunde.tsx): eigener Code (6 Zeichen,
+    z. B. K7Q-X2M, teilen), Freund per Code hinzufügen (beide Richtungen), Liste mit
+    ⏱️/🛡️-Wochenbestem, Entfernen sperrt (kein erneutes Eintragen), max. 50 je Seite;
+    supabase/freunde.sql (**Nutzer muss es ausführen**, nach online.sql).
+  - Offen: „Herausfordern“ + offene Herausforderungen (Teil 2); Link statt Code;
+    „Code neu erzeugen“; Code mit einem Tipp kopieren; Knopf „Hinzufügen“ volle Breite;
+    Grenze 50 nicht gegen gleichzeitige Aufrufe gesichert (Ausgabe gedeckelt).
 - [ ] **R4f** Ranglisten je Modus (Woche + Allzeit), eigener Platz immer sichtbar.
   Zeit/Survival/Tricks gibt es danach **nur noch online mit Rangliste**
   (solo nur als Kampagnen-Station ohne Rangliste).
