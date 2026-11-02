@@ -387,6 +387,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 ### R8 – Teilen & Viralität (Soll)
 - [ ] **R8a** Ergebnis-Bild teilen („Ich habe Emre im Zeit-Sprint geschlagen –
   schaffst du 23?“) mit Herausforderungs-Link (öffnet App/Store).
+  - [x] Teil 1 (b49031f + 5bb9254, Tester 6/10 → 8/10, EAS auto + preview): Knopf
+    „Ergebnis teilen“ im Sprint-/Survival-Endbildschirm – Text (geschlagen/Ergebnis) +
+    „Online → Freunde → Freund hinzufügen → CODE“; Code vorab geladen (nie warten).
+  - Offen: Bild statt Text (braucht view-shot o. ä.); App-Name/Store-Link im Text (R7);
+    „gleichauf mit {name}“ bei Gleichstand.
 - [ ] **R8b** Tägliche Herausforderung „Tagesbester“ teilbar.
 - [ ] **R8c** (1.1) WhatsApp-Sticker der Tonnen-Figuren (eigenes Sticker-Paket;
   iOS braucht dafür ein Zusatzmodul bzw. Sticker-App → nach dem Start).
