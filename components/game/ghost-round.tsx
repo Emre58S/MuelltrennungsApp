@@ -673,6 +673,12 @@ function GhostEnd({
         <AppText variant="title" style={styles.center}>
           {title}
         </AppText>
+        {/* Gleich viele richtig: sagen, dass die Zeit (auf 0,1 s) entscheidet */}
+        {run.correct === ghost.correct && (
+          <AppText variant="body" tone="textSecondary" style={styles.center}>
+            {t(result === "draw" ? "ghost.drawWhy" : "ghost.byTime")}
+          </AppText>
+        )}
         {newBest && (
           <View style={[styles.highlight, { backgroundColor: colors.goldSoft }]}>
             <AppText variant="body" color={colors.onGoldSoft} style={styles.center}>

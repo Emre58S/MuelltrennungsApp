@@ -429,6 +429,8 @@ export const en: Translations = {
   "ghost.winPractice": "You beat the practice ghost!",
   "ghost.lose": "The ghost was better this time. Again?",
   "ghost.draw": "Tied with the ghost!",
+  "ghost.drawWhy": "Same number correct and same time (to 0.1 s).",
+  "ghost.byTime": "Same number correct – time decided.",
   "ghost.newBest": "New ghost! It flies along next time.",
   "ghost.firstSaved": "Your first ghost is saved. It flies along next time.",
   "ghost.row.correct": "Correct",

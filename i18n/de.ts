@@ -428,6 +428,8 @@ export const de = {
   "ghost.winPractice": "Du hast den Übungs-Ghost geschlagen!",
   "ghost.lose": "Der Ghost war diesmal besser. Gleich nochmal?",
   "ghost.draw": "Gleichstand mit dem Ghost!",
+  "ghost.drawWhy": "Gleich viele richtig und gleich schnell (auf 0,1 s genau).",
+  "ghost.byTime": "Gleich viele richtig – die Zeit hat entschieden.",
   "ghost.newBest": "Neuer Ghost! Beim nächsten Lauf fliegt er mit.",
   "ghost.firstSaved": "Dein erster Ghost ist gespeichert. Beim nächsten Lauf fliegt er mit.",
   "ghost.row.correct": "Richtig",
