@@ -827,13 +827,9 @@ export function GameRound({
           Haptics.NotificationFeedbackType.Success,
         ).catch(() => undefined);
       else
-        // Haptik-Stufen: je länger die Serie, desto kräftiger
+        // Haptik-Stufen: kräftig bei jeder 5er-Serie, sonst mittel (kein Dauer-Rütteln)
         Haptics.impactAsync(
-          streakNow >= 10
-            ? Haptics.ImpactFeedbackStyle.Heavy
-            : streakNow >= 5
-              ? Haptics.ImpactFeedbackStyle.Medium
-              : Haptics.ImpactFeedbackStyle.Light,
+          streakNow % 5 === 0 ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Medium,
         ).catch(() => undefined);
       // Nur Perfekt-Treffer wackeln (dezent) – sonst zittert die Kamera im Dauerfeuer
       if (ts.perfect) shake(fx.current, thrown.free ? 0.032 : 0.022);
