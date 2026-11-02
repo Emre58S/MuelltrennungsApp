@@ -418,11 +418,12 @@ export function flushThrowRecords(): Promise<void> {
     const { day, newlyDone } = addMissionCounts(await loadMissionDay(), missions);
     await setItem(StorageKeys.MISSIONS, JSON.stringify(day));
     batch.xp += newlyDone.length * MISSION_XP;
+    // Flamme: zählt, sobald heute eine Mission geschafft oder die Tagesaufgabe gespielt ist
+    if (day.done.length > 0 || (await getTodayDaily())) await updateStreak();
     if (batch.played === 0) {
       await addXP(batch.xp);
       return;
     }
-    await updateStreak();
     const [played, correct] = await Promise.all([
       getNumber(StorageKeys.TOTAL_PLAYED),
       getNumber(StorageKeys.TOTAL_CORRECT),

@@ -273,6 +273,11 @@ function MissionCard({ day }: { day: MissionDay }) {
           </View>
         );
       })}
+      {day.done.length === 0 && (
+        <AppText variant="caption" tone="textMuted">
+          {t("mission.flame")}
+        </AppText>
+      )}
       {allDone && (
         <AppText variant="caption" tone="textSecondary">
           🎉 {t("mission.allDone")}
