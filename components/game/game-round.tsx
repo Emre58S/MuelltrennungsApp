@@ -118,6 +118,7 @@ import {
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { type BurstStyle } from "./effects";
 import { boardFor, HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
 import { nextScene } from "./stage";
 import { playMusic } from "@/utils/music";
@@ -187,6 +188,15 @@ type Learn = { id: number; item: Item; bin: Mistake["bin"] };
 
 /** Tonhöhe des Combo-Klangs je Multiplikator (steigt mit jeder Stufe). */
 const COMBO_PITCH: Record<number, number> = { 1.5: 1, 2: 1.12, 3: 1.26 };
+/** Flugart der Einwurf-Teile je Material (Bio spritzt, Glas splittert, Papier flattert). */
+const MATERIAL_BURST: Record<Material, BurstStyle> = {
+  glas: "shards",
+  papier: "flutter",
+  plastik: "confetti",
+  metall: "confetti",
+  bio: "splash",
+  rest: "confetti",
+};
 /** Einwurf-Funken je Material – passend zum Klang. */
 const MATERIAL_SPARKS: Record<Material, string[]> = {
   glas: ["#E0F7FF", "#9EE6FF", "#FFFFFF"],
@@ -836,6 +846,7 @@ export function GameRound({
         count: ts.perfect ? 30 : feverNow ? 20 : 12,
         power: ts.perfect ? 1.25 : 1,
         ring: ts.perfect,
+        style: MATERIAL_BURST[itemMaterial(ts.item)],
       });
       setFloats((f) => [
         ...f.slice(-(MAX_FLOATS - 1)),

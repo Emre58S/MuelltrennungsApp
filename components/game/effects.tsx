@@ -1,5 +1,7 @@
 // Datei: components/game/effects.tsx
 // Konfetti-Explosion (ein Draw-Call pro Burst) und goldene Schockwelle.
+// Je Material fliegen die Teile anders (ROADMAP R6b): Bio spritzt flach,
+// Glas splittert in schnelle Scherben, Papier flattert langsam herab.
 //
 // Fester Pool: alle Konfetti-Plätze sind von Anfang an aufgebaut und teilen
 // Geometrie + Material. Ein neuer Treffer belegt nur einen freien Platz –
@@ -21,7 +23,11 @@ export type Burst = {
   count: number;
   power: number;
   ring: boolean;
+  /** Flugart der Teile (fehlt = Konfetti). */
+  style?: BurstStyle;
 };
+
+export type BurstStyle = "confetti" | "splash" | "shards" | "flutter";
 
 const LIFETIME = 1.3;
 const SLOTS = 6;
@@ -44,6 +50,7 @@ type Slot = {
   started: number;
   count: number;
   ring: boolean;
+  style: BurstStyle;
   parts: Part[];
 };
 
@@ -54,6 +61,7 @@ function createSlot(): Slot {
     started: 0,
     count: 0,
     ring: false,
+    style: "confetti",
     parts: Array.from({ length: MAX_PARTS }, () => ({
       p: new THREE.Vector3(),
       v: new THREE.Vector3(),
@@ -139,11 +147,27 @@ export const BurstLayer = memo(function BurstLayer({
       s.started = now;
       s.count = Math.min(burst.count, MAX_PARTS);
       s.ring = burst.ring;
+      const style = (s.style = burst.style ?? "confetti");
       for (let k = 0; k < s.count; k++) {
         const pt = s.parts[k];
         const a = Math.random() * Math.PI * 2;
-        const up = 2.2 + Math.random() * 2.2;
-        const out = 0.6 + Math.random() * 1.6;
+        // Spritzer flach und breit, Scherben schnell, Papier sanft
+        const up =
+          style === "splash"
+            ? 1.2 + Math.random() * 1.2
+            : style === "shards"
+              ? 2.8 + Math.random() * 2.4
+              : style === "flutter"
+                ? 1.6 + Math.random() * 1.4
+                : 2.2 + Math.random() * 2.2;
+        const out =
+          style === "splash"
+            ? 1.2 + Math.random() * 1.6
+            : style === "shards"
+              ? 1 + Math.random() * 1.8
+              : style === "flutter"
+                ? 0.5 + Math.random()
+                : 0.6 + Math.random() * 1.6;
         pt.p.set(burst.x, burst.y, burst.z);
         pt.v.set(
           Math.cos(a) * out * burst.power,
@@ -151,8 +175,15 @@ export const BurstLayer = memo(function BurstLayer({
           Math.sin(a) * out * burst.power * 0.6 + 0.6,
         );
         pt.r.set(Math.random() * 6, Math.random() * 6, 0);
-        pt.spin = 6 + Math.random() * 10;
-        pt.s = 0.06 + Math.random() * 0.06;
+        pt.spin =
+          style === "shards"
+            ? 14 + Math.random() * 12
+            : style === "splash"
+              ? Math.random() * 2
+              : style === "flutter"
+                ? 2 + Math.random() * 3
+                : 6 + Math.random() * 10;
+        pt.s = (style === "flutter" ? 0.08 : 0.06) + Math.random() * 0.06;
         color.set(burst.colors[k % burst.colors.length]);
         mesh.setColorAt(k, color);
       }
@@ -185,10 +216,16 @@ export const BurstLayer = memo(function BurstLayer({
       }
 
       const shrink = life > 0.7 ? 1 - (life - 0.7) / 0.3 : 1;
+      const style = s.style;
+      // Papier: wenig Schwerkraft, viel Luftwiderstand; Spritzer fallen schwer
+      const gravity = style === "flutter" ? 3 : style === "splash" ? 9.5 : style === "shards" ? 8 : 7.5;
+      const drag = style === "flutter" ? 3 : 1.2;
       for (let k = 0; k < s.count; k++) {
         const pt = s.parts[k];
-        pt.v.y -= 7.5 * delta;
-        pt.v.multiplyScalar(1 - 1.2 * delta);
+        pt.v.y -= gravity * delta;
+        pt.v.multiplyScalar(1 - drag * delta);
+        // Schnipsel pendeln seitlich (Phase je Teil aus seinem Dreh-Tempo)
+        if (style === "flutter") pt.v.x += Math.sin(s.age * 6 + pt.spin * 3) * 2.5 * delta;
         pt.p.addScaledVector(pt.v, delta);
         if (pt.p.y < 0.03) {
           pt.p.y = 0.03;
@@ -197,7 +234,12 @@ export const BurstLayer = memo(function BurstLayer({
         pt.r.x += pt.spin * delta;
         pt.r.y += pt.spin * 0.7 * delta;
         q.setFromEuler(pt.r);
-        sv.set(pt.s, pt.s * 0.6, pt.s * 0.15).multiplyScalar(shrink);
+        // Form: Tropfen-Scheibe, schmale Scherbe, dünnes Blatt oder Konfetti
+        if (style === "splash") sv.set(pt.s, pt.s * 0.35, pt.s);
+        else if (style === "shards") sv.set(pt.s * 0.3, pt.s * 1.4, pt.s * 0.12);
+        else if (style === "flutter") sv.set(pt.s, pt.s * 0.75, pt.s * 0.05);
+        else sv.set(pt.s, pt.s * 0.6, pt.s * 0.15);
+        sv.multiplyScalar(shrink);
         m.compose(pt.p, q, sv);
         mesh.setMatrixAt(k, m);
       }
