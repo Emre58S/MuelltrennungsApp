@@ -185,13 +185,13 @@ describe("Trickwurf-Level", () => {
 
 describe("Parcours", () => {
   test("Zieltonne und Pflicht-Hindernis kommen aus der Spur", () => {
-    const p = PARCOURS[0];
-    for (const bin of [0, 1, 2] as const) {
-      const level = parcoursLane(p, bin);
-      expect(level.target).toBe(bin);
-      expect(level.requires).toEqual(p.lanes[bin]);
-      expect(level.props).toBe(p.props);
-    }
+    for (const p of PARCOURS)
+      for (const bin of [0, 1, 2] as const) {
+        const level = parcoursLane(p, bin);
+        expect(level.target).toBe(bin);
+        expect(level.requires).toEqual(p.lanes[bin]);
+        expect(level.props).toBe(p.props);
+      }
   });
 });
 

@@ -142,6 +142,7 @@ export const en: Translations = {
   "trick.task.sign": "Bounce it off the sign",
   "trick.task.bank": "Hit the bin – best off the sign",
   "trick.task.trampoline": "Short throw – onto the trampoline!",
+  "trick.task.trampolineLanes": "Onto the trampoline in front of your bin",
   "trick.task.flap": "Throw when the lid is open",
   "trick.task.trampolineRing": "Trampoline, then through the hoop",
   "trick.task.trampolineMoving": "Hit the trampoline in front of the bin",

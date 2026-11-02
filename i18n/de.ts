@@ -141,6 +141,7 @@ export const de = {
   "trick.task.sign": "Vom Schild abprallen lassen",
   "trick.task.bank": "Triff die Tonne – am besten übers Schild",
   "trick.task.trampoline": "Kurz werfen – aufs Trampolin!",
+  "trick.task.trampolineLanes": "Aufs Trampolin vor deiner Tonne",
   "trick.task.flap": "Wirf, wenn der Deckel offen ist",
   "trick.task.trampolineRing": "Aufs Trampolin, dann durch den Reifen",
   "trick.task.trampolineMoving": "Triff das Trampolin vor der Tonne",

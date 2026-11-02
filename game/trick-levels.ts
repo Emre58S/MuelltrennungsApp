@@ -557,7 +557,7 @@ export const PARCOURS: ParcoursLevel[] = [
     props: [-TRAMP_SIDE, 0, TRAMP_SIDE].map((x) => trampoline(x, undefined, 2.3, 0.52)),
     lanes: [[0], [1], [2]],
     bonus: "swish",
-    task: "trick.task.trampoline",
+    task: "trick.task.trampolineLanes",
   },
 ];
 
