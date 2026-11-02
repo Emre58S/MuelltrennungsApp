@@ -15,7 +15,7 @@ import { GhostRound } from "@/components/game/ghost-round";
 import { SprintRound } from "@/components/game/sprint-round";
 import { TrickRound } from "@/components/game/trick-round";
 import { getStation, nextStation, parseFreeBins, stationMode } from "@/game/campaign";
-import { dailyTrick, TRICK_LEVELS } from "@/game/trick-levels";
+import { dailyTrick, randomTrick, TRICK_LEVELS } from "@/game/trick-levels";
 import { type GameMode } from "@/constants/modes";
 import { useAppTheme } from "@/providers/app-settings";
 import {
@@ -41,7 +41,9 @@ export default function GameScreen() {
     code: rawCode,
     station: rawStation,
     bins: rawBins,
+    random: rawRandom,
   } = useLocalSearchParams<{
+    random?: string;
     mode?: string;
     daily?: string;
     level?: string;
@@ -56,6 +58,9 @@ export default function GameScreen() {
   const isSurvival = rawMode === "survival";
   const isSprint = rawMode === "sprint" || isSurvival;
   const [trickLevel, setTrickLevel] = useState(() => Number(rawLevel) || 1);
+  // Zufalls-Trick: bei „Weiter“ jedes Mal ein neuer (geprüft lösbarer) Trick
+  const isRandom = isTrick && rawRandom === "1";
+  const [randomSeed, setRandomSeed] = useState(() => Math.floor(Math.random() * 1e9));
   // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
   const daily = rawDaily === "1";
   const mode: GameMode = daily
@@ -114,9 +119,10 @@ export default function GameScreen() {
   }, [loadXp]);
   const level = xp !== null ? getLevelFromXP(xp) : null;
   const nextTrick = useCallback(() => {
-    setTrickLevel((n) => Math.min(n + 1, TRICK_LEVELS.length));
+    if (isRandom) setRandomSeed(Math.floor(Math.random() * 1e9));
+    else setTrickLevel((n) => Math.min(n + 1, TRICK_LEVELS.length));
     setRound((r) => r + 1);
-  }, []);
+  }, [isRandom]);
   const retryTrick = useCallback(() => {
     setRound((r) => r + 1);
     playMusic("game");
@@ -135,9 +141,11 @@ export default function GameScreen() {
 
   // Tages-Trick (für alle gleich) oder ein Level der Liste
   const [trickDay] = useState(todayKey);
-  const trick = isTrick && daily
-    ? dailyTrick(trickDay)
-    : (TRICK_LEVELS.find((l) => l.id === trickLevel) ?? TRICK_LEVELS[0]);
+  const trick = isRandom
+    ? randomTrick(randomSeed)
+    : isTrick && daily
+      ? dailyTrick(trickDay)
+      : (TRICK_LEVELS.find((l) => l.id === trickLevel) ?? TRICK_LEVELS[0]);
   return (
     <GestureHandlerRootView
       style={[styles.root, { backgroundColor: colors.bg }]}
@@ -147,9 +155,10 @@ export default function GameScreen() {
       {isTrick && (
         <Profiler id="runde" onRender={onRender}>
           <TrickRound
-            key={`${round}-trick-${daily ? trickDay : trickLevel}`}
+            key={`${round}-trick-${isRandom ? randomSeed : daily ? trickDay : trickLevel}`}
             level={trick}
             daily={daily}
+            random={isRandom}
             onExit={goBack}
             onNext={nextTrick}
             onRetry={retryTrick}

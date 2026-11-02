@@ -79,6 +79,12 @@ export default function TricksScreen() {
     });
   }
 
+  function openRandom() {
+    sfx("tap");
+    tapHaptic();
+    router.push({ pathname: "/runde", params: { mode: "trick", random: "1" } });
+  }
+
   function openDaily() {
     sfx("tap");
     tapHaptic();
@@ -136,6 +142,30 @@ export default function TricksScreen() {
             <AppText style={styles.stars}>
               {[1, 2, 3].map((n) => (n <= daily ? "★" : "☆")).join("")}
             </AppText>
+          </Pressable>
+        </FadeIn>
+
+        {/* Zufalls-Trick: immer ein neuer, geprüft lösbarer Trick */}
+        <FadeIn delay={80}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${t("tricks.random")}. ${t("tricks.randomDesc")}`}
+            onPress={openRandom}
+            style={({ pressed }) => [
+              styles.daily,
+              { backgroundColor: colors.surface, borderColor: "#7C5CD6" },
+              scheme === "light" && Shadow,
+              pressed && press.pressedLarge,
+            ]}
+          >
+            <AppText style={styles.stars}>🎲</AppText>
+            <View style={styles.flex}>
+              <AppText variant="label">{t("tricks.random")}</AppText>
+              <AppText variant="caption" tone="textSecondary">
+                {t("tricks.randomDesc")}
+              </AppText>
+            </View>
+            <Feather name="chevron-right" size={22} color={colors.textMuted} />
           </Pressable>
         </FadeIn>
 

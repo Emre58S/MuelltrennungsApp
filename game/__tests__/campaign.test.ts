@@ -204,9 +204,10 @@ describe("Stations-Arten", () => {
 });
 
 describe("Trick-Schule", () => {
-  test("alle 24 Trick-Level verteilt, je Welt 4, keines doppelt", () => {
+  test("alle Trick-Level verteilt, je Welt 4 (die letzte nimmt den Rest), keines doppelt", () => {
     const all = WORLDS.flatMap((w) => worldTricks(w));
-    expect(WORLDS.length * TRICKS_PER_WORLD).toBe(TRICK_LEVELS.length);
+    expect(all.length).toBe(TRICK_LEVELS.length);
+    for (const w of WORLDS.slice(0, -1)) expect(worldTricks(w)).toHaveLength(TRICKS_PER_WORLD);
     expect(new Set(all).size).toBe(TRICK_LEVELS.length);
     expect(all.every((id) => TRICK_LEVELS.some((l) => l.id === id))).toBe(true);
   });

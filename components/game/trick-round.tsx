@@ -93,6 +93,7 @@ export function TrickRound({
   onNext,
   onRetry,
   daily = false,
+  random = false,
 }: {
   level: TrickLevel;
   onExit: () => void;
@@ -100,8 +101,10 @@ export function TrickRound({
   onRetry: () => void;
   /** Tages-Trick: eigene Wertung, kein „Nächstes Level“. */
   daily?: boolean;
+  /** Zufalls-Trick: zählt nicht für Sterne, Belohnungen oder Rangliste. */
+  random?: boolean;
 }) {
-  const isLast = daily || level.id === TRICK_LEVELS[TRICK_LEVELS.length - 1].id;
+  const isLast = !random && (daily || level.id === TRICK_LEVELS[TRICK_LEVELS.length - 1].id);
   const insets = useSafeAreaInsets();
   const { scheme } = useAppTheme();
   const { t, lang, itemName, itemFact } = useI18n();
@@ -288,12 +291,12 @@ export function TrickRound({
     const attempts = attemptsRef.current;
     const bonus = bonusMet(level.bonus, { attempts, clean, banked });
     const stars = starsFor(attempts, bonus);
-    (daily ? saveTrickDaily(stars) : saveTrickStars(level.id, stars)).catch(() => undefined);
+    if (!random) (daily ? saveTrickDaily(stars) : saveTrickStars(level.id, stars)).catch(() => undefined);
     // Tages-Trick: Rangliste (mehr Sterne, dann weniger Versuche)
-    if (daily) submitScore(dailyBoard("tagestrick"), trickScore(stars, attempts)).catch(() => undefined);
+    if (daily && !random) submitScore(dailyBoard("tagestrick"), trickScore(stars, attempts)).catch(() => undefined);
     // Neue Belohnung (Spur/Sticker) durch die Sterne? (Tages-Trick zählt nicht)
     const before = rewardProgress.current;
-    const gained = daily ? 0 : Math.max(0, stars - levelStars.current);
+    const gained = daily || random ? 0 : Math.max(0, stars - levelStars.current);
     const unlocked = newlyUnlocked(before, { ...before, stars: before.stars + gained })[0];
     const top = layout.binTops[level.target];
     queueBinEvent(bus.current, level.target, "perfect");
@@ -503,7 +506,7 @@ export function TrickRound({
             >
               <IconButton icon="x" label={t("common.close")} onPress={onExit} />
               <TrickHud
-                title={daily ? t("tricks.daily") : t("tricks.level", { n: level.id })}
+                title={random ? t("tricks.random") : daily ? t("tricks.daily") : t("tricks.level", { n: level.id })}
                 attempt={attempt}
                 task={t(level.task)}
                 bonus={level.bonus}
@@ -532,7 +535,7 @@ export function TrickRound({
             bonusDone={result.bonus}
             unlocked={result.unlocked}
             fact={result.fact}
-            title={daily || !isLast ? t("trick.done") : t("trick.allDone")}
+            title={daily || random || !isLast ? t("trick.done") : t("trick.allDone")}
             isLast={isLast}
             onNext={onNext}
             onRetry={onRetry}

@@ -278,8 +278,8 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   Realtime): beide werfen gleichzeitig denselben Gegenstand, wer zuerst richtig
   trifft, holt den Punkt; Variante: gleiche Gegenstände, unterschiedliche
   Geschwindigkeit. Mit Freunden zuerst, Zufalls-Warteschlange danach.
-- [ ] **R4h** Sofa-Duell (Emres Schnell-Duell, 1 Handy) als 4. Karte „Zu zweit
-  an einem Handy“ behalten.
+- [x] **R4h** Sofa-Duell (Emres Schnell-Duell, 1 Handy) als 4. Karte „Zu zweit
+  an einem Handy“ behalten. (Karte „hub.duel“ in app/online.tsx – Emre, 02.11. geprüft.)
 
 ### R5 – Trick-Parcours: sortieren UND tricksen (Muss, Grundlage für R4c)
 **Problem heute:** Jedes Level hat eine feste Zieltonne (`target` in
@@ -313,6 +313,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [ ] **R5d** Parcours-Runde: Gegenstände aus dem Tages-Seed, eigene Zeit je
   Parcours (20 / 25 / 30 s), Punkte wie oben. Bewegung hängt nur an der
   Rundenzeit → Ghost des Gegners sieht exakt denselben Parcours.
+- [x] **R5-Vorlauf (Emre, 02.11.)**: Zielen genauer – Vorschau zeigt beim Halten die
+  ganze Bahn bis zur ersten Berührung + pulsierenden Aufprall-Ring; 🎲 Zufalls-Trick
+  auf der Trick-Seite (nur geprüfte Level/Vorlagen, teils gespiegelt, ohne Sterne);
+  Meister-Level 25–28 (Reifen/Windrad/Trampolin + klappender Deckel), Fairness grün;
+  Trick-Schule der letzten Welt nimmt alle Level ab 21 (worldTricks).
 - [ ] **R5e** Bisherige Level 1–24 werden „Trick-Schule“ (Seitenpfad der
   Kampagne, je ein Element erklären, feste Tonne ok). Wäscheleine, Basketball,
   Laubbläser, Lieferwagen nach und nach (Kann).

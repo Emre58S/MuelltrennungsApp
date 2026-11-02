@@ -171,6 +171,8 @@ function binColliders(openings: THREE.Vector3[], binSlide?: BinSlideSpec): BinCo
   });
 }
 const DOT_GEO = new THREE.SphereGeometry(1, 10, 8);
+/** Ziel-Ring am Ende der Vorschau: dort berührt der Wurf zuerst etwas. */
+const MARK_GEO = new THREE.RingGeometry(0.11, 0.17, 24);
 
 /** Flugbahn-Vorschau beim Halten (Zielwurf, Trickwürfe): genau die Bahn,
  *  die das Loslassen jetzt auslösen würde (dieselbe Physik wie der Wurf,
@@ -206,6 +208,7 @@ export const ShotGuideDots = memo(function ShotGuideDots({
 }) {
   const dots = useRef<THREE.InstancedMesh>(null);
   const halos = useRef<THREE.InstancedMesh>(null);
+  const mark = useRef<THREE.Mesh>(null);
   const phase = useRef(0);
   const target = useMemo(() => new THREE.Vector3(), []);
   const tmp = useMemo(() => new THREE.Vector3(), []);
@@ -265,6 +268,7 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     if (!dot || !halo) return;
     const guide = bus.current.shotGuide;
     dot.visible = halo.visible = !!guide;
+    if (mark.current) mark.current.visible = !!guide && share >= 1;
     if (!guide) return;
     // Punkte wandern Richtung Ziel (wie ein Lauflicht): zeigt die Flugrichtung
     if (!calm) phase.current = (phase.current + Math.min(delta, 0.05) * 1.5) % 1;
@@ -305,6 +309,13 @@ export const ShotGuideDots = memo(function ShotGuideDots({
     dot.instanceMatrix.needsUpdate = true;
     if (dot.instanceColor) dot.instanceColor.needsUpdate = true;
     halo.instanceMatrix.needsUpdate = true;
+    // Ganze Bahn (Trickwürfe): Ring genau dort, wo der Wurf zuerst aufkommt –
+    // so sieht man, ob er in die Öffnung, aufs Trampolin oder daneben geht
+    const end = mark.current;
+    if (end && share >= 1) {
+      end.position.copy(path[Math.max(l.count - 1, 0)]);
+      end.scale.setScalar(calm ? 1 : 1 + 0.12 * Math.sin(state.clock.elapsedTime * 6));
+    }
   });
 
   return (
@@ -321,6 +332,15 @@ export const ShotGuideDots = memo(function ShotGuideDots({
         args={[DOT_GEO, mat, GUIDE_DOTS]}
         frustumCulled={false}
         renderOrder={11}
+        visible={false}
+      />
+      <mesh
+        ref={mark}
+        geometry={MARK_GEO}
+        material={mat}
+        rotation={[-Math.PI / 2, 0, 0]}
+        frustumCulled={false}
+        renderOrder={12}
         visible={false}
       />
     </>

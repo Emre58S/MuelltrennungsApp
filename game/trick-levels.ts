@@ -362,6 +362,46 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "firstTry",
     task: "trick.task.trampolineFlap",
   },
+  // ── Meister: zwei Dinge auf einmal ──
+  // Gleitender Reifen vor der Mitte – und der Deckel klappt
+  {
+    id: 25,
+    target: 1,
+    props: [ring(0, 2.8, 1.5, 0.6, { kind: "slide", axis: "x", amp: 0.7, period: 3.2 })],
+    requires: [0],
+    binFlap: { period: 2.6 },
+    bonus: "firstTry",
+    task: "trick.task.ringFlap",
+  },
+  // Aufs Trampolin, im Sprung durch den drehenden Reifen
+  {
+    id: 26,
+    target: 1,
+    props: [trampoline(0), ring(0, 2.7, 1.0, 0.55, { kind: "spin", period: 3.4 })],
+    requires: [0, 1],
+    bonus: "firstTry",
+    task: "trick.task.trampolineSpin",
+  },
+  // Am Windrad vorbei in die klappende Tonne
+  {
+    id: 27,
+    target: 1,
+    props: [windmill(-0.95, 2.8, 1.5, 4.5)],
+    requires: [],
+    binFlap: { period: 2.6 },
+    bonus: "firstTry",
+    task: "trick.task.windmillFlap",
+  },
+  // Oben durch den Reifen in die linke Tonne, deren Deckel klappt
+  {
+    id: 28,
+    target: 0,
+    props: [ring(-0.75, 3.35, 3.3, 0.58)],
+    requires: [0],
+    binFlap: { period: 2.8 },
+    bonus: "swish",
+    task: "trick.task.ringFlap",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -461,6 +501,21 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
 export function dailyTrick(date: string): TrickLevel {
   const rand = seededRandom(hashString(`trick:${date}`));
   const pool: Omit<TrickLevel, "id">[] = [...TRICK_LEVELS.filter((l) => l.id >= 5 && l.id !== 20), ...DAILY_TEMPLATES];
+  const pick = pool[Math.floor(rand() * pool.length)];
+  const level = rand() < 0.5 ? mirrorLevel(pick) : pick;
+  return { ...level, id: 0 };
+}
+
+/** Zufalls-Trick: beliebig oft, aus allen geprüften Leveln und Tages-Vorlagen
+ *  (jede davon besteht den Fairness-Test), manchmal gespiegelt – also immer
+ *  lösbar. Leichte Level kommen seltener als die spannenden. */
+export function randomTrick(seed: number): TrickLevel {
+  const rand = seededRandom(seed);
+  const pool: Omit<TrickLevel, "id">[] = [
+    ...TRICK_LEVELS.filter((l) => l.id >= 3),
+    ...DAILY_TEMPLATES,
+    ...DAILY_TEMPLATES,
+  ];
   const pick = pool[Math.floor(rand() * pool.length)];
   const level = rand() < 0.5 ? mirrorLevel(pick) : pick;
   return { ...level, id: 0 };

@@ -263,7 +263,7 @@ export const GameScene = memo(function GameScene({
           props={trick?.colliders}
           binSlide={trick?.binSlide}
           bus={bus}
-          share={0.6}
+          share={trick ? 1 : 0.6}
           calm={calm}
         />
       )}

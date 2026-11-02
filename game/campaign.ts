@@ -14,6 +14,7 @@
 import { type Item, ITEMS } from "@/constants/items";
 import { type BinKey } from "@/constants/theme";
 import { ALL_BINS, type BinDef, getItemsForBins } from "@/game/bins";
+import { TRICK_LEVELS } from "@/game/trick-levels";
 
 export type Difficulty = Item["difficulty"];
 
@@ -307,10 +308,13 @@ export function stationQueue(station: Station, random: () => number = Math.rando
  *  Nicht Teil der Pfad-Kette – sie sperrt nichts. */
 export const TRICKS_PER_WORLD = 4;
 
-/** Trick-Level (IDs) der Seitenstation einer Welt. */
+/** Trick-Level (IDs) der Seitenstation einer Welt – je 4; die letzte Welt
+ *  nimmt alle übrigen (neue Meister-Level kommen so automatisch dazu). */
 export function worldTricks(world: World): number[] {
   const from = (world.index - 1) * TRICKS_PER_WORLD + 1;
-  return Array.from({ length: TRICKS_PER_WORLD }, (_, k) => from + k);
+  const last = world.index === WORLDS.length;
+  const length = last ? Math.max(TRICK_LEVELS.length - from + 1, TRICKS_PER_WORLD) : TRICKS_PER_WORLD;
+  return Array.from({ length }, (_, k) => from + k);
 }
 
 /** Welches Level die Seitenstation startet: das erste ohne Stern, sonst das
