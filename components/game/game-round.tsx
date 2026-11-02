@@ -1110,7 +1110,9 @@ export function GameRound({
                   // Fortschritt der Station: „3/10 · Ziel 7“
                   <HudPill
                     sub={
-                      station.kind === "boss"
+                      // Boss: Restwürfe nur, solange 10 in Folge noch gehen (sonst endet die Runde gleich)
+                      station.kind === "boss" &&
+                      stats.streak + station.total - stats.throws >= station.goal
                         ? station.total - stats.throws === 1
                           ? t("campaign.throwLeft")
                           : t("campaign.throwsLeft", { n: station.total - stats.throws })

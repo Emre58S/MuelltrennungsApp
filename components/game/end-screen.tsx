@@ -237,6 +237,12 @@ export function EndScreen({
                   )}
             </AppText>
           )}
+          {station?.kind === "boss" && rating === 0 && stats.throws < station.total && (
+            // Boss vorzeitig beendet: sagen, warum – nicht strafend
+            <AppText variant="label" tone="textMuted" center>
+              {t("campaign.end.bossEarly", { goal: station.goal })}
+            </AppText>
+          )}
 
           {rating > 0 && (
             <View style={styles.starRow} accessible accessibilityLabel={t("common.starsOf", { n: rating })}>

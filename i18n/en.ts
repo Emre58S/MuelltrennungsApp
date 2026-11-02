@@ -443,6 +443,7 @@ export const en: Translations = {
   "campaign.kind.boss": "Boss",
   "campaign.freePlay": "Free play",
   "campaign.headStart": "You already know many bins – the first worlds are open. Play them again for more stars.",
+  "campaign.end.bossEarly": "Not enough throws left for {goal} in a row – so the round ended early.",
   "campaign.end.missingStreak": "Best streak: {best}. {n} more in a row for your first star.",
   "campaign.trick": "Trick school",
   "campaign.trickLevels": "Levels {from}–{to}",
