@@ -449,7 +449,7 @@ export const en: Translations = {
   "sprint.newBest": "New best! It flies along as a ghost in your next sprint.",
   "sprint.firstSaved": "Your first sprint is saved. Next time it flies along as a ghost.",
   "survival.title": "Survival",
-  "survival.rules": "❌ No mistakes allowed\n⏳ Throw before the bar runs out – it gets faster\n👻 Whoever lasts longer wins",
+  "survival.rules": "❌ No mistakes – it gets faster\n⏳ Throw before the bar runs out\n👻 Your rival throws too – more right wins",
   "survival.practice": "No run yet today: a practice ghost throws along.",
   "survival.best": "Your best run today: {correct} correct",
   "survival.elapsed": "{n} seconds",

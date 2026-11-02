@@ -448,7 +448,7 @@ export const de = {
   "sprint.newBest": "Neuer Bestwert! Beim nächsten Sprint fliegt er als Ghost mit.",
   "sprint.firstSaved": "Dein erster Sprint ist gespeichert. Beim nächsten fliegt er als Ghost mit.",
   "survival.title": "Survival",
-  "survival.rules": "❌ Kein Fehler erlaubt\n⏳ Wirf, bevor der Balken leer ist – es wird schneller\n👻 Wer länger durchhält, gewinnt",
+  "survival.rules": "❌ Kein Fehler erlaubt – es wird schneller\n⏳ Wirf, bevor der Balken leer ist\n👻 Der Gegner wirft mit – mehr richtig gewinnt",
   "survival.practice": "Heute noch kein Lauf: Ein Übungs-Ghost wirft mit.",
   "survival.best": "Dein bester Lauf heute: {correct} richtig",
   "survival.elapsed": "{n} Sekunden",
