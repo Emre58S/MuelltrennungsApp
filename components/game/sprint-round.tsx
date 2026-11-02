@@ -605,7 +605,7 @@ export function SprintRound({
             )}
             {searching && !rival && (
               <AppText variant="caption" tone="textSecondary" style={styles.center}>
-                🌍 {t("online.searching")}
+                {friend ? `👫 ${t("friends.loading")}` : `🌍 ${t("online.searching")}`}
               </AppText>
             )}
             {rival && (

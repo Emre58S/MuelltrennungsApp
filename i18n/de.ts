@@ -204,6 +204,7 @@ export const de = {
   "friends.removeYes": "Entfernen",
   "friends.challenge": "{name} herausfordern",
   "friends.challengeInfo": "Gleiche Gegenstände für beide. Der beste Lauf von {name} von heute fliegt als Ghost mit.",
+  "friends.loading": "Lade Lauf deines Freundes …",
   "friends.runLost": "Der Lauf deines Freundes kam nicht an. Du spielst gegen den Ghost oben.",
   "friends.noRun": "{name} hat heute noch nicht gespielt. Spiel vor – dann kann {name} gegen dich antreten.",
   "rank.week": "Diese Woche",

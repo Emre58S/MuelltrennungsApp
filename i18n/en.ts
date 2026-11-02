@@ -205,6 +205,7 @@ export const en: Translations = {
   "friends.removeYes": "Remove",
   "friends.challenge": "Challenge {name}",
   "friends.challengeInfo": "Same items for both. {name}'s best run from today flies along as a ghost.",
+  "friends.loading": "Loading your friend's run …",
   "friends.runLost": "Your friend's run didn't load. You play against the ghost above.",
   "friends.noRun": "{name} hasn't played today yet. Go first – then {name} can race you.",
   "rank.week": "This week",
