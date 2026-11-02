@@ -50,7 +50,8 @@ import {
   getUnlockAtLevel,
   STANDARD_BINS,
 } from "@/game/bins";
-import { type Station, stationBins, stationPool, stationQueue } from "@/game/campaign";
+import { type Station, stationBins, stationPool, stationQueue, stationStars } from "@/game/campaign";
+import { addMissionCounts, MISSION_XP, type MissionDay } from "@/game/missions";
 import { BIN_OPENING_Y, CAMERA_FOV, computeLayout, shotLanding } from "@/game/layout";
 import {
   aimBonus,
@@ -84,6 +85,7 @@ import {
   getHighscoreKey,
   getItemStats,
   getLevelFromXP,
+  getMissionDay,
   getNumber,
   getTodayDaily,
   type ItemStats,
@@ -328,6 +330,24 @@ export function GameRound({
   const [bestBefore, setBestBefore] = useState<number | null>(null);
   const xpTotal = useRef(startXp);
   const levelNow = useRef(level);
+  // Tagesmissionen: Stand zu Rundenbeginn (Station zählt am Ende) und laufend
+  // mitgerechnet (Würfe) – nur für die Rückmeldung, gutgeschrieben wird im Speicher.
+  const [missionStart, setMissionStart] = useState<MissionDay | null>(null);
+  const missionDay = useRef<MissionDay | null>(null);
+  const [missionsDone, setMissionsDone] = useState(0);
+  useEffect(() => {
+    let active = true;
+    getMissionDay()
+      .then((d) => {
+        if (!active) return;
+        missionDay.current = d;
+        setMissionStart(d);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
   const fever = feverId !== null;
   const lock = useRef({
     ended: false,
@@ -415,6 +435,14 @@ export function GameRound({
     }
   }, [mode, timerStarted, timeLeft, later]);
   const showEnd = finished;
+  // Station mit Stern → Mission „Eine Station schaffen“ (falls heute noch offen)
+  const stationMission =
+    showEnd &&
+    !!station &&
+    !!missionStart &&
+    missionStart.missions.some((m) => m.kind === "station") &&
+    !missionStart.done.includes("station") &&
+    stationStars(station, stats) >= 1;
 
   // „X“ oben: nach den ersten Würfen erst nachfragen – ein versehentlicher
   // Tipp soll eine laufende Runde nicht vorzeitig beenden (gespeichert wird sie
@@ -864,13 +892,34 @@ export function GameRound({
     // XP + Level-Aufstieg lokal berechnen; gespeichert wird gebündelt.
     const xp = XP_PER_RESULT[result];
     setXpEarned((v) => v + xp);
+    const binKey = getBinByCategory(ts.item.category)?.key;
     queueThrowRecord({
       correct: ts.hit,
       xp,
       item: ts.item.name,
-      bin: getBinByCategory(ts.item.category)?.key,
+      bin: binKey,
       streak: liveStats.current.streak,
     });
+    // Tagesmission mit diesem Wurf geschafft? Kurz zeigen und XP mitzählen
+    if (ts.hit && missionDay.current) {
+      const m = addMissionCounts(missionDay.current, {
+        bins: binKey ? { [binKey]: 1 } : {},
+        correct: 1,
+        maxStreak: liveStats.current.streak,
+        stations: 0,
+      });
+      missionDay.current = m.day;
+      if (m.newlyDone.length > 0) {
+        const bonus = m.newlyDone.length * MISSION_XP;
+        setXpEarned((v) => v + bonus);
+        xpTotal.current += bonus;
+        setMissionsDone((n) => n + m.newlyDone.length);
+        later(() => {
+          sfx("unlock");
+          showBanner(`✓ ${t("mission.doneBanner", { xp: bonus })}`);
+        }, 1500);
+      }
+    }
     xpTotal.current += xp;
     const newLevel = getLevelFromXP(xpTotal.current);
     if (newLevel > levelNow.current) {
@@ -1196,7 +1245,8 @@ export function GameRound({
             title={endTitle}
             stats={stats}
             startXp={startXp}
-            xpEarned={xpEarned}
+            xpEarned={xpEarned + (stationMission ? MISSION_XP : 0)}
+            missionsDone={missionsDone + (stationMission ? 1 : 0)}
             daily={daily}
             station={station}
             onNext={onNext}

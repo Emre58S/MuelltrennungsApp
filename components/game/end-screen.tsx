@@ -18,6 +18,7 @@ import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
 import { type Station, stationStars } from "@/game/campaign";
+import { MISSION_XP } from "@/game/missions";
 import { type HitResult, type Stats } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { type Board, fetchBoard, leaderboardReady } from "@/utils/leaderboard";
@@ -52,6 +53,7 @@ export function EndScreen({
   stats,
   startXp,
   xpEarned,
+  missionsDone = 0,
   newBest,
   mistakes,
   daily,
@@ -67,6 +69,8 @@ export function EndScreen({
   /** XP vor der Runde (für die Level-Leiste). */
   startXp: number;
   xpEarned: number;
+  /** In dieser Runde geschaffte Tagesmissionen (je MISSION_XP, schon in xpEarned). */
+  missionsDone?: number;
   newBest: boolean;
   mistakes: Mistake[];
   /** Tagesaufgabe: eigener Titel + Teilen. */
@@ -325,6 +329,13 @@ export function EndScreen({
             />
             <Stat value={`+${xpEarned}`} label={t("common.xp")} />
           </View>
+          {missionsDone > 0 && (
+            <AppText variant="label" tone="primary" center>
+              {missionsDone === 1
+                ? t("mission.endDone", { xp: MISSION_XP })
+                : t("mission.endDoneMany", { n: missionsDone, xp: missionsDone * MISSION_XP })}
+            </AppText>
+          )}
 
           {unique.length > 0 && (
             <View style={styles.learned}>
