@@ -181,7 +181,8 @@ export function decodeChallenge(text: string): Challenge | null {
 
 /** Gültiger Code, aber aus einem anderen App-Stand (andere Version)? */
 export function isOtherVersionCode(text: string): boolean {
-  for (const m of text.matchAll(/gh([0-9a-z]{7,})/giu)) {
+  // \b: „gh“ mitten in einem Wort (z. B. „weigh…“) ist kein Code
+  for (const m of text.matchAll(/\bgh([0-9a-z]{7,})/giu)) {
     const raw = m[1].toLowerCase();
     const body = raw.slice(0, -1);
     if (body[0] !== CODE_VERSION && checksum(body) === raw.slice(-1)) return true;

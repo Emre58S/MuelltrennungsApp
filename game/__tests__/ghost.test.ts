@@ -124,6 +124,10 @@ describe("Herausforderung per Code", () => {
     expect(sums.filter(isOtherVersionCode)).toHaveLength(1);
     expect(isOtherVersionCode(encodeRun(run, "k3"))).toBe(false);
     expect(isOtherVersionCode("Ghost-Rennen")).toBe(false);
+    // Mitten in einem Wort zählt nicht
+    const other = sums.find(isOtherVersionCode)!;
+    expect(isOtherVersionCode(`x${other}`)).toBe(false);
+    expect(isOtherVersionCode(`Code: ${other}`)).toBe(true);
   });
 
   test("Tonne außerhalb der Szene → kein Lauf", () => {
