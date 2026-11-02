@@ -128,7 +128,7 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     in Statistik von Ohne Fehler/Zeit; gesperrte Trick-Schule-Karte tippbar mit
     Hinweis (wie tricks.tsx showLocked); EN „Finish the previous trick school
     first“; Sternzahl #F5B800 auf Weiß schwach; Trick-Schule Welt 1 erst nach 1-1?
-- [ ] **R2e** **Boss** am Ende jeder Welt: 10 Treffer in Folge; zwischendurch
+- [x] **R2e** **Boss** am Ende jeder Welt: 10 Treffer in Folge; zwischendurch
   **tauschen Tonnen die Plätze/Farben** (z. B. Rest ↔ Gelb) – mit klarer
   Ankündigung („Achtung, Tonnen tauschen!“) und Animation. Sieg = Truhe.
   - [x] Teil 1 (1e46bca, Tester 8/10, EAS auto + preview): 👑-Station am Ende jeder
@@ -141,9 +141,12 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     (nach Treffer, nichts in der Luft) tauschen 2 Nachbar-Tonnen; Hinweis „🔄 Achtung,
     Tonnen tauschen!“, Tonnen gleiten aneinander vorbei, Schilder solange aus, ~1,5 s
     Wurfsperre. Auf dem Gerät prüfen: Tempo/Ausweichen, Zieltext-Pille Boss (Station 7).
-  - Offen: Truhe als Sieg (mit R3c);
-    Endbildschirm erklärt frühes Ende („10 in Folge waren nicht mehr möglich“);
-    Pille zeigt bis zum Ende noch Restwürfe; numberOfLines=1 kürzt lange Stations-
+  - [x] Teil 4 (9d64d97 + e16765d, Tester 8/10, EAS auto + preview): Endbildschirm
+    erklärt frühes Ende; Pille zeigt keine Restwürfe mehr, sobald 10 in Folge nicht
+    mehr gehen.
+  - Verschoben: Truhe als Boss-Sieg → R3c (eine Truhen-Mechanik für Tagesbelohnung
+    und Boss). Offen (klein): zwei graue Zeilen beim frühen Ende evtl. zusammenfassen;
+    numberOfLines=1 kürzt lange Stations-
     Pillen („10/16 · Ziel 10“) evtl. mit „…“ – auf dem Gerät prüfen.
 - [x] **R2f** Freies Üben (bisher „Üben“) bleibt erreichbar: Knopf im Pfad
   „Freies Spiel“ mit allen freigeschalteten Tonnen. (e889c78 + 0e5816c, Tester 8/10,
@@ -164,7 +167,7 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
 - [ ] **R3b** Tagesaufgabe = besondere Station im Pfad (goldener Kreis), Flamme
   zählt bei Tagesaufgabe ODER einer Mission.
 - [ ] **R3c** Tagesbelohnung (Truhe): Spur-Farben, Tonnen-Aufkleber,
-  später Sticker. Rettungstext der Flamme nur kurz zeigen (F1-Idee).
+  später Sticker. Dieselbe Truhe auch als Boss-Sieg (aus R2e). Rettungstext der Flamme nur kurz zeigen (F1-Idee).
 
 ### R4 – Online-Bereich (Muss: asynchron · später: live)
 Ein Bildschirm „Online“ mit 3 Karten: **Zeit-Sprint**, **Survival**,
