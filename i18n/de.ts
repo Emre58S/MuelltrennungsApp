@@ -404,6 +404,15 @@ export const de = {
   "ghost.top.info": "👑 Bester Lauf heute: {name} – {correct} von {total} in {time}",
   "ghost.top.me": "👑 Du hast heute den besten Lauf von allen!",
   "ghost.top.play": "Gegen {name} (Bester heute)",
+  "sprint.title": "Zeit-Sprint",
+  "sprint.rules": "30 Sekunden: Sortiere so viele Gegenstände richtig wie möglich. Heute kommen für alle die gleichen. Dein bester Sprint fliegt als durchsichtiger Ghost (Geist) mit. Mehr richtig gewinnt.",
+  "sprint.practice": "Heute noch kein Sprint: Ein Übungs-Ghost wirft mit.",
+  "sprint.best": "Dein bester Sprint heute: {correct} richtig",
+  "sprint.timeLeft": "Noch Sekunden",
+  "sprint.timeUp": "Zeit um!",
+  "sprint.row.throws": "Würfe",
+  "sprint.newBest": "Neuer Bestwert! Beim nächsten Sprint fliegt er als Ghost mit.",
+  "sprint.firstSaved": "Dein erster Sprint ist gespeichert. Beim nächsten fliegt er als Ghost mit.",
   "ghost.shareText": "👻 Ghost-Rennen (Mülltrennung): Ich habe {correct} von {total} richtig in {time}. Schaffst du das?\nSo geht's: Spiel öffnen → Online → „Code von einem Freund eingeben“ → diese Nachricht einfügen.\n{code}",
   "duel.title": "Schnell-Duell",
   "duel.rules": "Ihr seht denselben Gegenstand. Wer ihn zuerst in die richtige Tonne wirft, bekommt den Punkt.",
@@ -500,6 +509,7 @@ export const de = {
   "hub.open": "{name} öffnen",
   "hub.book.title": "Sammelbuch",
   "hub.duel.desc": "Wer sortiert schneller richtig?",
+  "hub.sprint.desc": "30 Sekunden: Wer sortiert mehr richtig?",
   "hub.code.desc": "Code von Freunden einfügen und gegen den Lauf spielen",
 } as const;
 

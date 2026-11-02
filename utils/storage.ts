@@ -53,6 +53,7 @@ export const StorageKeys = {
   SEEN_DUEL: "muell_seen_duel",
   /** Ghost-Rennen: bester Lauf von heute (game/ghost.ts). */
   GHOST_BEST: "muell_ghost_best",
+  SPRINT_BEST: "muell_sprint_best",
   /** Kampagne: Sterne je Station (game/campaign.ts). */
   CAMPAIGN_STARS: "muell_campaign_stars",
   /** Kampagne: Vorsprung nach Level schon vergeben (einmalig, „1“). */
@@ -740,4 +741,16 @@ export function getGhostBest(): Promise<string | null> {
 /** Speichert den Lauf als neuen Ghost (die Runde prüft vorher, ob er besser ist). */
 export function saveGhostBest(run: string): Promise<void> {
   return enqueue(() => setItem(StorageKeys.GHOST_BEST, run));
+}
+
+// ── Zeit-Sprint: bester Sprint von heute ──────────────────────────
+
+/** Bester Sprint von heute als Text (game/sprint.ts parseSprint prüft ihn). */
+export function getSprintBest(): Promise<string | null> {
+  return getItem(StorageKeys.SPRINT_BEST);
+}
+
+/** Speichert den Sprint als neuen Gegner (die Runde prüft vorher, ob er besser ist). */
+export function saveSprintBest(run: string): Promise<void> {
+  return enqueue(() => setItem(StorageKeys.SPRINT_BEST, run));
 }

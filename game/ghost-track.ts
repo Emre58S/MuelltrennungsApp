@@ -14,6 +14,7 @@ import {
   isOtherVersionCode,
   trackSign,
 } from "@/game/ghost";
+import { sprintQueue } from "@/game/sprint";
 
 /** Die Szene der Strecke steht mit dem Tag fest (gleiche Tonnen für alle). */
 const SCENES: SceneKind[] = ["haus", "ziegel", "garten"];
@@ -25,6 +26,15 @@ export function trackFor(day: string) {
   const queue = ghostQueue(getItemsForBins(bins), day);
   const correctBins = queue.map((it) => bins.findIndex((b) => b.category === it.category));
   return { scene, bins, queue, correctBins, sign: trackSign(queue.map((it) => it.name)) };
+}
+
+/** Zeit-Sprint des Tages: gleiche Szene und Tonnen, eigene lange Reihenfolge. */
+export function sprintTrackFor(day: string) {
+  const scene = SCENES[ghostSeed(day) % SCENES.length];
+  const bins = getBinsForScene(scene, 1);
+  const queue = sprintQueue(getItemsForBins(bins), day);
+  const correctBins = queue.map((it) => bins.findIndex((b) => b.category === it.category));
+  return { scene, bins, queue, correctBins };
 }
 
 /** Herausforderung aus einem Code – oder warum sie nicht geht: kein gültiger

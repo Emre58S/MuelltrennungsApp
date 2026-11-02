@@ -5,11 +5,13 @@
 // mode=trick&level=N: ein Trickwurf-Level (components/game/trick-round.tsx),
 // mode=trick&daily=1: der Tages-Trick.
 // mode=ghost: Ghost-Rennen gegen den eigenen besten Lauf von heute.
+// mode=sprint: Zeit-Sprint (30 s) gegen den eigenen besten Sprint von heute.
 // station=2-3: eine Station der Kampagne (game/campaign.ts).
 // bins=papier,rest: Freies Spiel mit genau diesen Tonnen (aus dem Pfad).
 import { DuelRound } from "@/components/game/duel-round";
 import { GameRound } from "@/components/game/game-round";
 import { GhostRound } from "@/components/game/ghost-round";
+import { SprintRound } from "@/components/game/sprint-round";
 import { TrickRound } from "@/components/game/trick-round";
 import { getStation, nextStation, parseFreeBins, stationMode } from "@/game/campaign";
 import { dailyTrick, TRICK_LEVELS } from "@/game/trick-levels";
@@ -50,6 +52,7 @@ export default function GameScreen() {
   const isTrick = rawMode === "trick";
   const isDuel = rawMode === "duel";
   const isGhost = rawMode === "ghost";
+  const isSprint = rawMode === "sprint";
   const [trickLevel, setTrickLevel] = useState(() => Number(rawLevel) || 1);
   // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
   const daily = rawDaily === "1";
@@ -117,7 +120,7 @@ export default function GameScreen() {
     playMusic("game");
   }, []);
   // Ladeanzeige erst nach kurzer Zeit – meist ist alles sofort da, dann blitzt nichts
-  const loading = !isTrick && !isDuel && !isGhost && (xp === null || level === null);
+  const loading = !isTrick && !isDuel && !isGhost && !isSprint && (xp === null || level === null);
   const [slow, setSlow] = useState(false);
   useEffect(() => {
     if (!loading) return;
@@ -157,6 +160,7 @@ export default function GameScreen() {
         </View>
       )}
       {isDuel && <DuelRound key={`${round}-duel`} onAgain={retryTrick} onExit={goBack} />}
+      {isSprint && <SprintRound key={`${round}-sprint`} onAgain={retryTrick} onExit={goBack} />}
       {isGhost && (
         <GhostRound
           key={`${round}-ghost`}
@@ -166,7 +170,7 @@ export default function GameScreen() {
           onExit={goBack}
         />
       )}
-      {!isTrick && !isDuel && !isGhost && xp !== null && level !== null && (
+      {!isTrick && !isDuel && !isGhost && !isSprint && xp !== null && level !== null && (
         // Profiler: Render-Dauer der Runde für die Hänger-Messung (nur Entwicklung)
         <Profiler id="runde" onRender={onRender}>
           <GameRound
