@@ -145,8 +145,11 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     Endbildschirm erklärt frühes Ende („10 in Folge waren nicht mehr möglich“);
     Pille zeigt bis zum Ende noch Restwürfe; numberOfLines=1 kürzt lange Stations-
     Pillen („10/16 · Ziel 10“) evtl. mit „…“ – auf dem Gerät prüfen.
-- [ ] **R2f** Freies Üben (bisher „Üben“) bleibt erreichbar: Knopf im Pfad
-  „Freies Spiel“ mit allen freigeschalteten Tonnen.
+- [x] **R2f** Freies Üben (bisher „Üben“) bleibt erreichbar: Knopf im Pfad
+  „Freies Spiel“ mit allen freigeschalteten Tonnen. (e889c78 + 0e5816c, Tester 8/10,
+  EAS auto + preview): Chip 🌱 statt „Üben“, Tonnen der aktuellen Welt.
+  - Offen: zählt als „Üben“ (Bestwerte mit weniger Tonnen leichter); Welt/Tonnen am
+    Chip zeigen; Bestandsspieler haben bis R2g nur die Tonnen von Welt 1.
 - [ ] **R2g** Bestandsspieler: Stationen anhand von Medaillen/XP vorab
   freischalten, damit niemand bei null anfängt.
 
