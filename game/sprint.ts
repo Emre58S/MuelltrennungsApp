@@ -15,16 +15,17 @@ export const SPRINT_MS = 30_000;
 /** Länge der Strecke – mehr, als jemand in 30 s werfen kann. */
 export const SPRINT_ITEMS = 60;
 
-/** Startwert der Sprint-Strecke eines Tages (anders als beim Ghost-Rennen). */
-export function sprintSeed(day: string): number {
-  return hashString(`sprint:${day}`);
+/** Startwert der Strecke eines Tages (anders als beim Ghost-Rennen);
+ *  `salt` trennt Sprint und Survival. */
+export function sprintSeed(day: string, salt = "sprint"): number {
+  return hashString(`${salt}:${day}`);
 }
 
 /** Die Strecke des Tages: der Vorrat immer wieder neu gemischt hintereinander,
  *  nie derselbe Gegenstand zweimal direkt nacheinander. */
-export function sprintQueue<T>(pool: T[], day: string, length = SPRINT_ITEMS): T[] {
+export function sprintQueue<T>(pool: T[], day: string, length = SPRINT_ITEMS, salt = "sprint"): T[] {
   if (pool.length === 0) return [];
-  const rand = seededRandom(sprintSeed(day));
+  const rand = seededRandom(sprintSeed(day, salt));
   const out: T[] = [];
   while (out.length < length) {
     const a = [...pool];

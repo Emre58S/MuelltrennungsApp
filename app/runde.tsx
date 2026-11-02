@@ -6,6 +6,7 @@
 // mode=trick&daily=1: der Tages-Trick.
 // mode=ghost: Ghost-Rennen gegen den eigenen besten Lauf von heute.
 // mode=sprint: Zeit-Sprint (30 s) gegen den eigenen besten Sprint von heute.
+// mode=survival: Survival (ohne Fehler, immer schneller) – gleiche Runde, andere Art.
 // station=2-3: eine Station der Kampagne (game/campaign.ts).
 // bins=papier,rest: Freies Spiel mit genau diesen Tonnen (aus dem Pfad).
 import { DuelRound } from "@/components/game/duel-round";
@@ -52,7 +53,8 @@ export default function GameScreen() {
   const isTrick = rawMode === "trick";
   const isDuel = rawMode === "duel";
   const isGhost = rawMode === "ghost";
-  const isSprint = rawMode === "sprint";
+  const isSurvival = rawMode === "survival";
+  const isSprint = rawMode === "sprint" || isSurvival;
   const [trickLevel, setTrickLevel] = useState(() => Number(rawLevel) || 1);
   // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
   const daily = rawDaily === "1";
@@ -160,7 +162,14 @@ export default function GameScreen() {
         </View>
       )}
       {isDuel && <DuelRound key={`${round}-duel`} onAgain={retryTrick} onExit={goBack} />}
-      {isSprint && <SprintRound key={`${round}-sprint`} onAgain={retryTrick} onExit={goBack} />}
+      {isSprint && (
+        <SprintRound
+          key={`${round}-${rawMode}`}
+          kind={isSurvival ? "survival" : "sprint"}
+          onAgain={retryTrick}
+          onExit={goBack}
+        />
+      )}
       {isGhost && (
         <GhostRound
           key={`${round}-ghost`}

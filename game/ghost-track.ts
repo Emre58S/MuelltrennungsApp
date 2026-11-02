@@ -28,11 +28,11 @@ export function trackFor(day: string) {
   return { scene, bins, queue, correctBins, sign: trackSign(queue.map((it) => it.name)) };
 }
 
-/** Zeit-Sprint des Tages: gleiche Szene und Tonnen, eigene lange Reihenfolge. */
-export function sprintTrackFor(day: string) {
+/** Zeit-Sprint bzw. Survival des Tages: gleiche Szene und Tonnen, eigene lange Reihenfolge. */
+export function sprintTrackFor(day: string, kind: "sprint" | "survival" = "sprint") {
   const scene = SCENES[ghostSeed(day) % SCENES.length];
   const bins = getBinsForScene(scene, 1);
-  const queue = sprintQueue(getItemsForBins(bins), day);
+  const queue = sprintQueue(getItemsForBins(bins), day, undefined, kind);
   const correctBins = queue.map((it) => bins.findIndex((b) => b.category === it.category));
   return { scene, bins, queue, correctBins };
 }

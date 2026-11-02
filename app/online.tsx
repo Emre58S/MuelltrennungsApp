@@ -2,7 +2,7 @@
 //
 // Hinter der blauen Menü-Tonne: gegen den eigenen Rekord, den Besten von
 // heute oder Freunde per Code (Ghost), zu zweit an einem Handy (Duell) und
-// die Rangliste. Zeit-Sprint (30 s, R4a); später Survival, Trick-Battle (ROADMAP.md, R4).
+// die Rangliste. Zeit-Sprint (30 s, R4a), Survival (R4b); später Trick-Battle (ROADMAP.md, R4).
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -69,6 +69,14 @@ export default function OnlineScreen() {
       />
       <HubCard
         index={1}
+        emoji="🛡️"
+        color="#E2574C"
+        title={t("survival.title")}
+        desc={t("hub.survival.desc")}
+        onPress={() => router.push({ pathname: "/runde", params: { mode: "survival" } })}
+      />
+      <HubCard
+        index={2}
         emoji="👻"
         color="#4DA3FF"
         title={t("home.ghostShort")}
@@ -76,7 +84,7 @@ export default function OnlineScreen() {
         onPress={() => router.push({ pathname: "/runde", params: { mode: "ghost" } })}
       />
       <HubCard
-        index={2}
+        index={3}
         emoji="🔑"
         color="#7C5CD6"
         title={t("ghost.code.enter")}
@@ -115,7 +123,7 @@ export default function OnlineScreen() {
         </View>
       )}
       <HubCard
-        index={3}
+        index={4}
         emoji="🤝"
         color="#FF8A3D"
         title={t("hub.duel.title")}
@@ -127,7 +135,7 @@ export default function OnlineScreen() {
         }}
       />
       <HubCard
-        index={4}
+        index={5}
         emoji="🏆"
         color="#E3A92E"
         title={t("home.rank")}

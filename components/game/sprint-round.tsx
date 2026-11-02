@@ -1,5 +1,10 @@
-// Datei: components/game/sprint-round.tsx — Zeit-Sprint (Online-Bereich, R4a)
-// (Route: app/runde.tsx?mode=sprint)
+// Datei: components/game/sprint-round.tsx — Zeit-Sprint (R4a) und Survival (R4b)
+// (Route: app/runde.tsx?mode=sprint bzw. mode=survival)
+//
+// Survival (kind="survival"): kein Fehler erlaubt, jeder Gegenstand hat nur
+// kurz Zeit (Balken unter dem Gegenstand), das Tempo steigt bis zum
+// Höchsttempo. Falsch oder zu langsam = Runde vorbei; oben läuft die Zeit
+// hoch. Regeln: game/survival.ts. Sonst alles wie beim Zeit-Sprint:
 //
 // 30 Sekunden, so viele richtig wie möglich. Die Gegenstände kommen heute für
 // alle in derselben Reihenfolge; dein bester Sprint von heute fliegt als
@@ -10,7 +15,16 @@
 
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Alert, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  AccessibilityInfo,
+  Alert,
+  Animated,
+  Easing,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -39,10 +53,11 @@ import { itemMaterial } from "@/game/item-mass";
 import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
 import { aimFromDrag } from "@/game/logic";
 import { parseSprint, practiceSprint, SPRINT_MS, sprintResult, type SprintResult, sprintRun } from "@/game/sprint";
+import { itemLimit, practiceSurvival, SURVIVAL_MAX_MS, survivalResult, survivalRun } from "@/game/survival";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
-import { getSprintBest, saveSprintBest, todayKey } from "@/utils/storage";
+import { getSprintBest, getSurvivalBest, saveSprintBest, saveSurvivalBest, todayKey } from "@/utils/storage";
 
 import { useLater } from "./round-hooks";
 
@@ -55,9 +70,28 @@ const THROW_GAP_MS = 400;
 /** Nach einem Fehlwurf: so lange bleibt Zeit für den Lern-Hinweis (ms). */
 const WRONG_PAUSE_MS = 1500;
 
+/** Survival: nach dem Ausscheiden Zeit zum Lesen des Lern-Hinweises (ms). */
+const OUT_MS = 1800;
+
 type EndInfo = { run: GhostRun; result: SprintResult; newBest: boolean };
 
-export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: () => void }) {
+export type SprintKind = "sprint" | "survival";
+
+const KIND = {
+  sprint: { emoji: "⏱️", getBest: getSprintBest, saveBest: saveSprintBest },
+  survival: { emoji: "🛡️", getBest: getSurvivalBest, saveBest: saveSurvivalBest },
+} as const;
+
+export function SprintRound({
+  kind = "sprint",
+  onAgain,
+  onExit,
+}: {
+  kind?: SprintKind;
+  onAgain: () => void;
+  onExit: () => void;
+}) {
+  const survival = kind === "survival";
   const insets = useSafeAreaInsets();
   const { scheme, colors } = useAppTheme();
   const { t, lang, itemName } = useI18n();
@@ -68,22 +102,26 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
     fx.current.calm = reduceMotion;
   }, [reduceMotion]);
   const [day] = useState(todayKey);
-  const { scene, bins, queue, correctBins } = useMemo(() => sprintTrackFor(day), [day]);
+  const { scene, bins, queue, correctBins } = useMemo(() => sprintTrackFor(day, kind), [day, kind]);
   const binOf = useCallback((it: Item) => bins.findIndex((b) => b.category === it.category), [bins]);
-  const practice = useMemo(() => practiceSprint(day, correctBins, bins.length), [day, correctBins, bins.length]);
+  const practice = useMemo(
+    () => (survival ? practiceSurvival : practiceSprint)(day, correctBins, bins.length),
+    [survival, day, correctBins, bins.length],
+  );
   const { width: screenW, height: screenH } = useWindowDimensions();
   const layout = useMemo(() => computeLayout(screenW, screenH, bins.length), [screenW, screenH, bins.length]);
   const later = useLater();
 
-  // Bester eigener Sprint von heute (oder null → Übungs-Ghost)
+  // Bester eigener Lauf dieser Art von heute (oder null → Übungs-Ghost)
   const [best, setBest] = useState<GhostRun | null>(null);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    getSprintBest()
+    KIND[kind]
+      .getBest()
       .then((raw) => setBest(parseSprint(raw, day)))
       .catch(() => undefined)
       .finally(() => setLoaded(true));
-  }, [day]);
+  }, [day, kind]);
   const ghost = best ?? practice;
   const ghostName = best ? t("ghost.name") : t("ghost.practiceName");
 
@@ -99,6 +137,14 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   const [me, setMe] = useState(0);
   const [ghostScore, setGhostScore] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
+  /** Ende der Runde – die Uhr bleibt dort stehen. */
+  const [stoppedAt, setStoppedAt] = useState<number | null>(null);
+  /** Survival: Zeit für den aktuellen Gegenstand (Balken). */
+  const [limit, setLimit] = useState(0);
+  /** Survival: zählt jeden neuen Gegenstand – ein alter Zu-langsam-Timer greift nicht mehr. */
+  const itemSeq = useRef(0);
+  /** Survival: Zeitpunkt des Ausscheidens (ms ab Start). */
+  const outAt = useRef(0);
   const startRef = useRef(0);
   const myThrows = useRef<GhostThrow[]>([]);
   /** Vor diesem Zeitpunkt zählt kein neuer Wurf (THROW_GAP_MS). */
@@ -129,11 +175,19 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   );
 
   // Die Strecke ist lang genug – zur Sicherheit beginnt sie sonst von vorn
-  const showItem = (i: number) => {
+  /** `at` = ms seit dem Start (Survival: bestimmt die Zeit für den Gegenstand). */
+  const showItem = (i: number, at = 0) => {
     const next = queue[i % queue.length] ?? null;
     setIndex(i);
     setItem(next);
     setPreview(bus.current, next);
+    if (survival && next) {
+      // Wer zu lange wartet, scheidet aus
+      const seq = ++itemSeq.current;
+      const ms = itemLimit(at);
+      setLimit(ms);
+      later(() => itemSeq.current === seq && out("slow"), ms);
+    }
   };
 
   /** Wurf des Ghosts – genau zu seiner Zeit, nur solange der Sprint läuft. */
@@ -148,10 +202,10 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   };
 
   const finish = () => {
-    const run = sprintRun(day, myThrows.current);
+    const run = survival ? survivalRun(day, myThrows.current, outAt.current) : sprintRun(day, myThrows.current);
     const newBest = !quitting.current && run.correct > 0 && (!best || run.correct > best.correct);
-    if (newBest) saveSprintBest(JSON.stringify(run)).catch(() => undefined);
-    setEnd({ run, result: sprintResult(run, ghost), newBest });
+    if (newBest) KIND[kind].saveBest(JSON.stringify(run)).catch(() => undefined);
+    setEnd({ run, result: (survival ? survivalResult : sprintResult)(run, ghost), newBest });
     goPhase("end");
     sfx("end");
     playMusic("menu");
@@ -161,11 +215,28 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   const timeUp = () => {
     if (phaseRef.current !== "play") return;
     phaseRef.current = "end";
+    setStoppedAt(Date.now());
     setItem(null);
     setPreview(bus.current, null);
     setGhostScore(ghost.correct);
     showBanner(`⏱️ ${t("sprint.timeUp")}`, END_MS);
     later(finish, END_MS);
+  };
+
+  /** Survival vorbei: falsch (Hinweis zeigt schon handleThrow), zu langsam oder geschafft. */
+  const out = (reason: "wrong" | "slow" | "max") => {
+    if (phaseRef.current !== "play") return;
+    phaseRef.current = "end";
+    const now = Date.now();
+    outAt.current = now - startRef.current;
+    itemSeq.current += 1;
+    setStoppedAt(now);
+    setItem(null);
+    setPreview(bus.current, null);
+    setGhostScore(ghost.correct);
+    if (reason === "slow") showBanner(`⏳ ${t("survival.slow")}`, OUT_MS);
+    if (reason === "max") showBanner(`🏁 ${t("survival.max")}`, OUT_MS);
+    later(finish, OUT_MS);
   };
 
   const start = () => {
@@ -187,8 +258,15 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
       const now = Date.now();
       startRef.current = now;
       setStartedAt(now);
-      showItem(0);
+      showItem(0, 0);
       for (const g of ghost.throws) later(() => ghostThrow(g), g.ms);
+      if (survival) {
+        // Ghost raus: Bescheid geben – jeder weitere Treffer zählt fürs Ergebnis
+        if (ghost.ms < SURVIVAL_MAX_MS)
+          later(() => phaseRef.current === "play" && showBanner(`👻 ${t("survival.ghostOut", { name: ghostName })}`), ghost.ms + 300);
+        later(() => out("max"), SURVIVAL_MAX_MS);
+        return;
+      }
       // Die letzten 3 Sekunden ticken hörbar
       for (const s of [3, 2, 1]) later(() => phaseRef.current === "play" && sfx("tick"), SPRINT_MS - s * 1000);
       later(timeUp, SPRINT_MS);
@@ -207,8 +285,9 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
     const correct = bins[aim.binIndex].category === current.category;
     const now = Date.now();
     // Der Zeit-um-Timer kann ein paar ms später kommen – solche Würfe zählen nicht
-    if (now - startRef.current > SPRINT_MS) return;
+    if (!survival && now - startRef.current > SPRINT_MS) return;
     lockUntil.current = now + THROW_GAP_MS;
+    itemSeq.current += 1;
     myThrows.current.push({ i: index, ms: now - startRef.current, bin: aim.binIndex, correct });
     const spec: ThrowSpec = {
       id: ++ids.current,
@@ -232,8 +311,12 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
       const right = binOf(current);
       if (right >= 0) later(() => queueBinEvent(bus.current, right, "peek"), 250);
       const bin = getBinByCategory(current.category);
-      if (bin) showBanner(t("duel.belongsIn", { item: itemName(current), bin: t(bin.labelKey) }), 1500);
+      if (bin) showBanner(t("duel.belongsIn", { item: itemName(current), bin: t(bin.labelKey) }), survival ? OUT_MS : 1500);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+      if (survival) {
+        out("wrong");
+        return;
+      }
       // Kurz durchatmen: Hinweis lesen, dann kommt der nächste Gegenstand
       setItem(null);
       setPreview(bus.current, null);
@@ -241,7 +324,7 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
       later(() => phaseRef.current === "play" && showItem(next), WRONG_PAUSE_MS);
       return;
     }
-    showItem(index + 1);
+    showItem(index + 1, now - startRef.current);
   };
   const throwRef = useRef(handleThrow);
   useLayoutEffect(() => {
@@ -357,7 +440,13 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
           <ScoreChip p={0} points={me} hot={false} label={t("ghost.me")} calm={reduceMotion} />
           <View style={styles.counter}>
             {phase === "play" || phase === "end" ? (
-              <TimeLeft since={startedAt} warn={colors.warning} label={(n) => t("sprint.timeLeft", { n })} />
+              <RoundClock
+                since={startedAt}
+                stop={stoppedAt}
+                total={survival ? undefined : SPRINT_MS}
+                warn={colors.warning}
+                label={(n) => t(survival ? "survival.elapsed" : "sprint.timeLeft", { n })}
+              />
             ) : (
               <AppText variant="label" color="#FFFFFF" style={styles.shadow}>
                 VS
@@ -378,6 +467,7 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
       {item && phase === "play" && (
         <View pointerEvents="none" style={[styles.overlayRow, { top: itemTagTop }]}>
           <ItemCard key={`${index}-${item.name}`} item={item} showHint={false} />
+          {survival && limit > 0 && <ItemTimer key={`t${index}`} ms={limit} color={PLAYER[0].color} />}
         </View>
       )}
 
@@ -388,14 +478,14 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
         >
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <AppText variant="title" style={styles.center}>
-              ⏱️ {t("sprint.title")}
+              {KIND[kind].emoji} {t(`${kind}.title`)}
             </AppText>
             <AppText variant="body" tone="textSecondary" style={styles.center}>
-              {t("sprint.rules")}
+              {t(`${kind}.rules`)}
             </AppText>
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
               <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
-                {best ? t("sprint.best", { correct: best.correct }) : t("sprint.practice")}
+                {best ? t(`${kind}.best`, { correct: best.correct }) : t(`${kind}.practice`)}
               </AppText>
             </View>
             <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
@@ -411,6 +501,7 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
 
       {phase === "end" && end && (
         <SprintEnd
+          kind={kind}
           end={end}
           ghost={ghost}
           ghostName={ghostName}
@@ -425,26 +516,56 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   );
 }
 
-/** Restzeit in Sekunden – eigene kleine Anzeige, damit nicht die ganze Runde neu zeichnet.
- *  Die letzten 5 Sekunden in Warnfarbe. */
-function TimeLeft({ since, warn, label }: { since: number; warn: string; label: (n: number) => string }) {
+/** Uhr in Sekunden – eigene kleine Anzeige, damit nicht die ganze Runde neu zeichnet.
+ *  Mit `total`: Restzeit, die letzten 5 Sekunden in Warnfarbe; sonst laufende Zeit. */
+function RoundClock({
+  since,
+  stop,
+  total,
+  warn,
+  label,
+}: {
+  since: number;
+  stop: number | null;
+  total?: number;
+  warn: string;
+  label: (n: number) => string;
+}) {
   const [now, setNow] = useState(since);
-  const left = Math.max(0, Math.ceil((SPRINT_MS - (now - since)) / 1000));
+  const ms = Math.max(0, (stop ?? now) - since);
+  const shown = total === undefined ? Math.floor(ms / 1000) : Math.max(0, Math.ceil((total - ms) / 1000));
+  const done = stop !== null || (total !== undefined && shown === 0);
   useEffect(() => {
-    if (left === 0) return;
+    if (done) return;
     const id = setInterval(() => setNow(Date.now()), 200);
     return () => clearInterval(id);
-  }, [left]);
+  }, [done]);
   return (
-    <View accessible accessibilityLabel={label(left)}>
-      <AppText variant="title" color={left <= 5 ? warn : "#FFFFFF"} style={styles.shadow}>
-        {left} s
+    <View accessible accessibilityLabel={label(shown)}>
+      <AppText variant="title" color={total !== undefined && shown <= 5 ? warn : "#FFFFFF"} style={styles.shadow}>
+        {shown} s
       </AppText>
     </View>
   );
 }
 
+/** Survival: Balken unter dem Gegenstand, der in `ms` leer läuft (nativ animiert). */
+function ItemTimer({ ms, color }: { ms: number; color: string }) {
+  const [k] = useState(() => new Animated.Value(1));
+  useEffect(() => {
+    const anim = Animated.timing(k, { toValue: 0, duration: ms, easing: Easing.linear, useNativeDriver: true });
+    anim.start();
+    return () => anim.stop();
+  }, [k, ms]);
+  return (
+    <View style={styles.timerTrack}>
+      <Animated.View style={[styles.timerFill, { backgroundColor: color, transform: [{ scaleX: k }] }]} />
+    </View>
+  );
+}
+
 function SprintEnd({
+  kind,
   end,
   ghost,
   ghostName,
@@ -454,20 +575,22 @@ function SprintEnd({
   onAgain,
   onMenu,
 }: {
+  kind: SprintKind;
   end: EndInfo;
   ghost: GhostRun;
   ghostName: string;
   practice: boolean;
-  /** Noch kein eigener Sprint von heute (erster Lauf wird gespeichert). */
+  /** Noch kein eigener Lauf dieser Art von heute (erster Lauf wird gespeichert). */
   first: boolean;
   queue: Item[];
   onAgain: () => void;
   onMenu: () => void;
 }) {
-  const { t, itemName } = useI18n();
+  const { t, itemName, formatNumber } = useI18n();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { run, result, newBest } = end;
+  const sec = (ms: number) => `${formatNumber(Math.round(ms / 100) / 10)} s`;
   const title =
     result === "win"
       ? t(practice ? "ghost.winPractice" : "ghost.win")
@@ -484,9 +607,11 @@ function SprintEnd({
         .map((i) => [i.name, i]),
     ).values(),
   ];
-  const rows: [string, number, number][] = [
+  const rows: [string, string | number, string | number][] = [
     [t("ghost.row.correct"), run.correct, ghost.correct],
-    [t("sprint.row.throws"), run.throws.length, ghost.throws.length],
+    kind === "survival"
+      ? [t("survival.row.time"), sec(run.ms), sec(ghost.ms)]
+      : [t("sprint.row.throws"), run.throws.length, ghost.throws.length],
   ];
   const heads = [t("ghost.me"), `👻 ${ghostName}`];
   useEffect(() => {
@@ -510,7 +635,7 @@ function SprintEnd({
         {newBest && (
           <View style={[styles.highlight, { backgroundColor: colors.goldSoft }]}>
             <AppText variant="body" color={colors.onGoldSoft} style={styles.center}>
-              ⭐ {t(first ? "sprint.firstSaved" : "sprint.newBest")}
+              ⭐ {t(first ? `${kind}.firstSaved` : `${kind}.newBest`)}
             </AppText>
           </View>
         )}
@@ -606,5 +731,13 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: Radius.lg, padding: Spacing.md, gap: Spacing.xs },
   learn: { borderRadius: Radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.md, gap: Spacing.sm },
   learnRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  timerTrack: {
+    width: 120,
+    height: 6,
+    borderRadius: 3,
+    overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  timerFill: { width: "100%", height: "100%", borderRadius: 3, transformOrigin: "left" },
   binTag: { borderRadius: Radius.pill, paddingHorizontal: Spacing.sm, paddingVertical: 2 },
 });

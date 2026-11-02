@@ -54,6 +54,7 @@ export const StorageKeys = {
   /** Ghost-Rennen: bester Lauf von heute (game/ghost.ts). */
   GHOST_BEST: "muell_ghost_best",
   SPRINT_BEST: "muell_sprint_best",
+  SURVIVAL_BEST: "muell_survival_best",
   /** Kampagne: Sterne je Station (game/campaign.ts). */
   CAMPAIGN_STARS: "muell_campaign_stars",
   /** Kampagne: Vorsprung nach Level schon vergeben (einmalig, „1“). */
@@ -754,4 +755,13 @@ export function getSprintBest(): Promise<string | null> {
 /** Speichert den Sprint als neuen Gegner (die Runde prüft vorher, ob er besser ist). */
 export function saveSprintBest(run: string): Promise<void> {
   return enqueue(() => setItem(StorageKeys.SPRINT_BEST, run));
+}
+
+/** Bester Survival-Lauf von heute (wie getSprintBest). */
+export function getSurvivalBest(): Promise<string | null> {
+  return enqueue(() => getItem(StorageKeys.SURVIVAL_BEST));
+}
+
+export function saveSurvivalBest(run: string): Promise<void> {
+  return enqueue(() => setItem(StorageKeys.SURVIVAL_BEST, run));
 }
