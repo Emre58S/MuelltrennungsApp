@@ -827,9 +827,14 @@ export function GameRound({
           Haptics.NotificationFeedbackType.Success,
         ).catch(() => undefined);
       else
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
-          () => undefined,
-        );
+        // Haptik-Stufen: je länger die Serie, desto kräftiger
+        Haptics.impactAsync(
+          streakNow >= 10
+            ? Haptics.ImpactFeedbackStyle.Heavy
+            : streakNow >= 5
+              ? Haptics.ImpactFeedbackStyle.Medium
+              : Haptics.ImpactFeedbackStyle.Light,
+        ).catch(() => undefined);
       // Nur Perfekt-Treffer wackeln (dezent) – sonst zittert die Kamera im Dauerfeuer
       if (ts.perfect) shake(fx.current, thrown.free ? 0.032 : 0.022);
       const spark = TRAIL_SPARKS[trailRef.current];
@@ -914,7 +919,12 @@ export function GameRound({
           setPraise((p) => (p?.id === id ? null : p));
         }, 900);
       }
-      if (streakNow % FEVER_EVERY === 0) startFever();
+      if (streakNow % FEVER_EVERY === 0) {
+        // Serie 10, 20 …: kurzer Treffer-Stopp + leichtes Wackeln (ROADMAP R6c)
+        if (!(ts.perfect && thrown.free)) hitStop(fx.current, 60);
+        shake(fx.current, 0.03);
+        startFever();
+      }
       // Jede 5er-Serie: die anderen Tonnen hüpfen mit
       if (streakNow % 5 === 0)
         bins.forEach((_, k) => {
