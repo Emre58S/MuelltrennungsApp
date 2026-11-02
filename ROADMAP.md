@@ -3,7 +3,12 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (2.11., 19:17–22:50, Normalmodus):** 20 Zyklen, alle freigegeben, auf
+**Letzter Lauf (2.11. spät, Normalmodus):** 3 Zyklen R5, alle freigegeben (8/10),
+auf auto + preview: R5a Parcours-Datenmodell, R5b Reifenschaukel, R5c Teil 1
+(3 Trampoline). Nächstes: R5c Rest (Torwand, Klappdeckel) → R5d Parcours-Runde
+(erst damit im Spiel sichtbar).
+
+**Lauf davor (2.11., 19:17–22:50, Normalmodus):** 20 Zyklen, alle freigegeben, auf
 auto + preview: R3a Mission „1 Online-Runde“, R4a/R4b Rest, R4e Teil 2a/2b (Freund
 herausfordern, „Heute offen“ – freunde.sql ausgeführt), R4f Teil 3/4, R6a–R6d (Funken in
 Spurfarbe, Material-Effekte, Treffer-Stopp/Haptik, „Neue Tonne frei“, Stern-Animation),
@@ -347,6 +352,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   auf kleinem iPhone nahe am oberen Rand – Kopfleiste darf ihn nicht
   verdecken; Seil hat keine Kollision.)
 - [ ] **R5c** Torwand mit 3 Löchern; Trampolin + Klappdeckel auf alle Spuren.
+  - [x] Teil 1: PARCOURS 2 = Trampolin vor jeder Tonne (halfW 0,52, sonst
+    überlappen die Rahmen), eigener Text (d956503, dc8fe73).
+  - [ ] Offen: Torwand (neue Kollision: Tafel mit 3 Löchern), Klappdeckel auf
+    allen Tonnen. Für R5d: trifft man das Nachbar-Trampolin, sagt die Runde
+    heute „noTrampoline“ – besser „falsches Trampolin“.
 - [ ] **R5d** Parcours-Runde: Gegenstände aus dem Tages-Seed, eigene Zeit je
   Parcours (20 / 25 / 30 s), Punkte wie oben. Bewegung hängt nur an der
   Rundenzeit → Ghost des Gegners sieht exakt denselben Parcours.
