@@ -238,8 +238,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     1,1 s (Höchsttempo nach 30 s, Schluss nach 60 s), Balken unter dem Gegenstand,
     falsch/zu langsam = vorbei (mit Lern-Hinweis), Uhr läuft hoch, „Ghost ist raus“;
     Gegner = eigener Bestlauf von heute oder Übungs-Ghost (scheidet bei 10/11 aus).
-  - Offen: Gegner aus dem Netz/Freund/Rangliste (R4d–f); Uhr läuft hinter dem
-    Beenden-Dialog weiter (auch Sprint); Balken zum Ende in Warnfarbe.
+  - [x] Teil 2 (c1d847e→9871e74, Tester 7/10, EAS auto + preview): Zeitbalken je
+    Gegenstand blendet im letzten Drittel in festes Rot (#E53935) über (nativ animiert).
+  - Offen: Freund herausfordern (R4e Teil 2); Uhr läuft hinter dem Beenden-Dialog weiter
+    (auch Sprint); Balken im letzten Drittel evtl. dicker (Rot-Grün-Schwäche).
 - [ ] **R4c** Trick-Battle (braucht R5): beide spielen denselben Parcours mit
   denselben Gegenständen (Seed), Zeit je Parcours 20–30 s, Punkte wie in R5
   (falsch 0 · richtig 1 · Trick 3 · Swish +1) – Sortieren entscheidet mit.
