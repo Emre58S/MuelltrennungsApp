@@ -6,6 +6,11 @@
 // Höchsttempo. Falsch oder zu langsam = Runde vorbei; oben läuft die Zeit
 // hoch. Regeln: game/survival.ts. Sonst alles wie beim Zeit-Sprint:
 //
+// Zufallsgegner (R4d): Jeder fertige Lauf geht als Code an den Server
+// (supabase/online.sql). Gibt es heute einen Lauf eines anderen Spielers mit
+// ähnlich vielen Treffern, fliegt er als Gegner mit (umschaltbar auf den eigenen
+// Ghost). Ohne Netz oder Server: wie bisher gegen den eigenen Ghost.
+//
 // 30 Sekunden, so viele richtig wie möglich. Die Gegenstände kommen heute für
 // alle in derselben Reihenfolge; dein bester Sprint von heute fliegt als
 // durchsichtiger Ghost zur selben Sekunde mit (noch keiner → Übungs-Ghost).
@@ -52,9 +57,19 @@ import { sprintTrackFor } from "@/game/ghost-track";
 import { itemMaterial } from "@/game/item-mass";
 import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
 import { aimFromDrag } from "@/game/logic";
-import { parseSprint, practiceSprint, SPRINT_MS, sprintResult, type SprintResult, sprintRun } from "@/game/sprint";
+import {
+  decodeSprint,
+  encodeSprint,
+  parseSprint,
+  practiceSprint,
+  SPRINT_MS,
+  sprintResult,
+  type SprintResult,
+  sprintRun,
+} from "@/game/sprint";
 import { itemLimit, practiceSurvival, SURVIVAL_MAX_MS, survivalResult, survivalRun } from "@/game/survival";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { fetchRandomRun, submitOnlineRun } from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { getSprintBest, getSurvivalBest, saveSprintBest, saveSurvivalBest, todayKey } from "@/utils/storage";
@@ -124,8 +139,29 @@ export function SprintRound({
       .catch(() => undefined)
       .finally(() => setLoaded(true));
   }, [day, kind]);
-  const ghost = best ?? practice;
-  const ghostName = best ? t("ghost.name") : t("ghost.practiceName");
+  // Zufallsgegner: ähnlich stark wie der eigene Bestlauf (sonst wie der Übungs-Ghost)
+  const [rival, setRival] = useState<{ name: string; run: GhostRun } | null>(null);
+  const [vsOwn, setVsOwn] = useState(false);
+  useEffect(() => {
+    if (!loaded) return;
+    let alive = true;
+    fetchRandomRun(kind, day, (best ?? practice).correct)
+      .then((found) => {
+        const throws = found ? decodeSprint(found.code, correctBins, bins.length) : null;
+        if (!alive || !found || !throws) return;
+        const run = survival ? survivalRun(day, throws, found.ms) : sprintRun(day, throws);
+        if (run.throws.length > 0) setRival({ name: found.name, run });
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+    // Nur einmal nach dem Laden suchen – nicht nach jedem neuen Bestwert
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+  const vsRival = !!rival && !vsOwn;
+  const ghost = vsRival ? rival.run : (best ?? practice);
+  const ghostName = vsRival ? rival.name : best ? t("ghost.name") : t("ghost.practiceName");
 
   const [phase, setPhase] = useState<Phase>("ready");
   const phaseRef = useRef<Phase>("ready");
@@ -207,6 +243,7 @@ export function SprintRound({
     const run = survival ? survivalRun(day, myThrows.current, outAt.current) : sprintRun(day, myThrows.current);
     const newBest = !quitting.current && run.correct > 0 && (!best || run.correct > best.correct);
     if (newBest) KIND[kind].saveBest(JSON.stringify(run)).catch(() => undefined);
+    if (!quitting.current) submitOnlineRun(kind, day, encodeSprint(run), run.correct, run.ms).catch(() => undefined);
     setEnd({ run, result: (survival ? survivalResult : sprintResult)(run, ghost), newBest });
     goPhase("end");
     sfx("end");
@@ -498,9 +535,21 @@ export function SprintRound({
             </AppText>
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
               <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
-                {best ? t(`${kind}.best`, { correct: best.correct }) : t(`${kind}.practice`)}
+                {vsRival
+                  ? `🌍 ${t("online.rival", { name: rival.name, correct: rival.run.correct })}`
+                  : best
+                    ? t(`${kind}.best`, { correct: best.correct })
+                    : t(`${kind}.practice`)}
               </AppText>
             </View>
+            {rival && (
+              <Button
+                title={vsOwn ? t("online.playRival", { name: rival.name }) : t("ghost.code.mine")}
+                icon={vsOwn ? "globe" : "user"}
+                variant="secondary"
+                onPress={() => setVsOwn((v) => !v)}
+              />
+            )}
             <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
           </View>
         </View>
@@ -518,7 +567,8 @@ export function SprintRound({
           end={end}
           ghost={ghost}
           ghostName={ghostName}
-          practice={!best}
+          practice={!vsRival && !best}
+          rival={vsRival ? rival.name : null}
           first={!best}
           queue={queue}
           onAgain={onAgain}
@@ -583,12 +633,15 @@ function SprintEnd({
   ghost,
   ghostName,
   practice,
+  rival,
   first,
   queue,
   onAgain,
   onMenu,
 }: {
   kind: SprintKind;
+  /** Name des Zufallsgegners, sonst null (eigener oder Übungs-Ghost). */
+  rival: string | null;
   end: EndInfo;
   ghost: GhostRun;
   ghostName: string;
@@ -604,8 +657,11 @@ function SprintEnd({
   const insets = useSafeAreaInsets();
   const { run, result, newBest } = end;
   const sec = (ms: number) => `${formatNumber(Math.round(ms / 100) / 10)} s`;
-  const title =
-    result === "win"
+  const title = rival
+    ? t(result === "win" ? "ghost.winFriend" : result === "lose" ? "ghost.loseFriend" : "ghost.drawFriend", {
+        name: rival,
+      })
+    : result === "win"
       ? t(practice ? "ghost.winPractice" : "ghost.win")
       : result === "lose"
         ? t("ghost.lose")

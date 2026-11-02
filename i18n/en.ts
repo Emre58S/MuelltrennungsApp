@@ -425,6 +425,8 @@ export const en: Translations = {
   "survival.row.time": "Lasted",
   "survival.newBest": "New best! It flies along as a ghost in your next run.",
   "survival.firstSaved": "Your first run is saved. Next time it flies along as a ghost.",
+  "online.rival": "Opponent: {name} – {correct} correct",
+  "online.playRival": "Play against {name}",
   "ghost.shareText": "👻 Ghost race (waste sorting): I got {correct} of {total} correct in {time}. Can you beat it?\nHow: open the game → Online → “Enter a friend's code” → paste this message.\n{code}",
   "duel.title": "Quick duel",
   "duel.rules": "You both see the same item. Whoever throws it into the right bin first gets the point.",

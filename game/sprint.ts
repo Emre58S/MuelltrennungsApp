@@ -70,6 +70,45 @@ export function sprintResult(me: GhostRun, rival: GhostRun): SprintResult {
   return me.correct > rival.correct ? "win" : me.correct < rival.correct ? "lose" : "draw";
 }
 
+/* ── Lauf als Code (für Zufallsgegner, supabase/online.sql) ─────
+ * Je Wurf 3 Zeichen: Tonne (0–9) + Zeitabstand zum vorigen Wurf in 0,1 s
+ * (2 Zeichen Basis 36). Richtig/falsch steht nicht drin – das rechnet das
+ * Spiel aus der Tages-Strecke nach. */
+
+const B36_MAX = 1295;
+/** Höchstens so viele Würfe kommen in den Code (passt zur Server-Prüfung). */
+const CODE_THROWS = 100;
+
+export function encodeSprint(run: GhostRun): string {
+  let body = "";
+  let prev = 0;
+  for (const t of run.throws.slice(0, CODE_THROWS)) {
+    // Zeiten gerundet weiterzählen – so wächst kein Rundungsfehler an
+    const at = Math.max(prev, Math.round(t.ms / 100));
+    body += String(Math.min(Math.max(t.bin, 0), 9)) + Math.min(at - prev, B36_MAX).toString(36).padStart(2, "0");
+    prev = at;
+  }
+  return body;
+}
+
+/** Würfe aus einem Code – richtig/falsch nach `correctBins` (die Strecke beginnt
+ *  nach ihrem Ende von vorn, wie im Spiel). `null`, wenn der Code nicht passt
+ *  (kaputt, zu lang oder Tonne gibt es nicht). */
+export function decodeSprint(code: string, correctBins: number[], binCount: number): GhostThrow[] | null {
+  if (!code || code.length % 3 !== 0 || code.length > CODE_THROWS * 3 || !/^[0-9a-z]+$/.test(code)) return null;
+  if (correctBins.length === 0) return null;
+  const throws: GhostThrow[] = [];
+  let ms = 0;
+  for (let k = 0; k < code.length; k += 3) {
+    const i = k / 3;
+    const bin = Number(code[k]);
+    if (bin >= binCount) return null;
+    ms += parseInt(code.slice(k + 1, k + 3), 36) * 100;
+    throws.push({ i, ms, bin, correct: bin === correctBins[i % correctBins.length] });
+  }
+  return throws;
+}
+
 /** Gespeicherten Sprint prüfen (nur ein gültiger Lauf von `day` wird Gegner). */
 export function parseSprint(raw: string | null, day: string): GhostRun | null {
   if (!raw) return null;

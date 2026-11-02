@@ -214,3 +214,51 @@ export async function fetchDayGhost(day: string): Promise<DayGhost | null> {
     return null;
   }
 }
+
+/* ── Zufallsgegner für Zeit-Sprint und Survival (supabase/online.sql) ── */
+
+export type OnlineMode = "sprint" | "survival";
+export type OnlineRun = { name: string; code: string; correct: number; ms: number };
+
+/** Fertigen Lauf einreichen (der Server behält je Tag den besten). Still, wenn
+ *  offline oder nicht eingerichtet. */
+export async function submitOnlineRun(
+  mode: OnlineMode,
+  day: string,
+  code: string,
+  correct: number,
+  ms: number,
+): Promise<void> {
+  if (!leaderboardReady || correct < 1) return;
+  try {
+    const player = await getPlayer();
+    await rpc("set_name", { p_player: player.id, p_name: player.name });
+    await rpc("submit_online_run", {
+      p_player: player.id,
+      p_mode: mode,
+      p_day: day,
+      p_code: code,
+      p_correct: correct,
+      p_ms: Math.round(ms),
+    });
+  } catch {
+    // Kein Netz oder SQL noch nicht eingerichtet – dann eben ohne
+  }
+}
+
+/** Lauf eines anderen Spielers von heute mit ähnlich vielen Treffern (oder null). */
+export async function fetchRandomRun(mode: OnlineMode, day: string, correct: number): Promise<OnlineRun | null> {
+  if (!leaderboardReady) return null;
+  try {
+    const player = await getPlayer();
+    const rows = await rpc<OnlineRun[]>("random_online_run", {
+      p_mode: mode,
+      p_day: day,
+      p_player: player.id,
+      p_correct: correct,
+    });
+    return rows?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}

@@ -424,6 +424,8 @@ export const de = {
   "survival.row.time": "Durchgehalten",
   "survival.newBest": "Neuer Bestwert! Beim nächsten Lauf fliegt er als Ghost mit.",
   "survival.firstSaved": "Dein erster Lauf ist gespeichert. Beim nächsten fliegt er als Ghost mit.",
+  "online.rival": "Gegner: {name} – {correct} richtig",
+  "online.playRival": "Gegen {name} spielen",
   "ghost.shareText": "👻 Ghost-Rennen (Mülltrennung): Ich habe {correct} von {total} richtig in {time}. Schaffst du das?\nSo geht's: Spiel öffnen → Online → „Code von einem Freund eingeben“ → diese Nachricht einfügen.\n{code}",
   "duel.title": "Schnell-Duell",
   "duel.rules": "Ihr seht denselben Gegenstand. Wer ihn zuerst in die richtige Tonne wirft, bekommt den Punkt.",

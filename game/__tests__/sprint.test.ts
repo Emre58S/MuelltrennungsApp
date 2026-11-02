@@ -4,7 +4,17 @@
 import { describe, expect, test } from "@jest/globals";
 
 import { makeRun } from "../ghost";
-import { parseSprint, practiceSprint, SPRINT_ITEMS, SPRINT_MS, sprintQueue, sprintResult, sprintRun } from "../sprint";
+import {
+  decodeSprint,
+  encodeSprint,
+  parseSprint,
+  practiceSprint,
+  SPRINT_ITEMS,
+  SPRINT_MS,
+  sprintQueue,
+  sprintResult,
+  sprintRun,
+} from "../sprint";
 
 const pool = Array.from({ length: 12 }, (_, i) => `item${i}`);
 
@@ -69,5 +79,31 @@ describe("Speichern", () => {
     expect(parseSprint(JSON.stringify(run), "2026-11-03")).toBeNull();
     expect(parseSprint("kaputt", "2026-11-02")).toBeNull();
     expect(parseSprint(null, "2026-11-02")).toBeNull();
+  });
+});
+
+describe("Code für Zufallsgegner", () => {
+  const bins = Array.from({ length: SPRINT_ITEMS }, (_, i) => i % 3);
+
+  test("hin und zurück: gleiche Tonnen, Zeiten auf 0,1 s, richtig neu gerechnet", () => {
+    const run = practiceSprint("2026-11-02", bins, 3);
+    const back = decodeSprint(encodeSprint(run), bins, 3);
+    expect(back).not.toBeNull();
+    expect(back!.map((t) => t.bin)).toEqual(run.throws.map((t) => t.bin));
+    expect(back!.map((t) => t.correct)).toEqual(run.throws.map((t) => t.correct));
+    back!.forEach((t, k) => expect(Math.abs(t.ms - run.throws[k].ms)).toBeLessThanOrEqual(50));
+  });
+
+  test("kaputte oder unpassende Codes werden abgelehnt", () => {
+    expect(decodeSprint("", bins, 3)).toBeNull();
+    expect(decodeSprint("0a", bins, 3)).toBeNull();
+    expect(decodeSprint("0A1", bins, 3)).toBeNull();
+    expect(decodeSprint("30a", bins, 3)).toBeNull();
+    expect(decodeSprint("00a".repeat(101), bins, 3)).toBeNull();
+  });
+
+  test("mehr Würfe als die Strecke lang ist: beginnt von vorn", () => {
+    const back = decodeSprint("101".repeat(5), [0, 1], 3);
+    expect(back!.map((t) => t.correct)).toEqual([false, true, false, true, false]);
   });
 });
