@@ -194,9 +194,11 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     1 Truhe (CHESTS_EARNED/OPENED), Öffnen auf der Missionskarte; 1./3./6. Truhe =
     neue Wurfspur (Ozean, Kirschblüte, Neon, Progress.chests), sonst +50 XP; Hinweis
     „Noch N Truhen bis zur nächsten Wurfspur“; Banner „Alle Missionen geschafft! 🎁“.
-  - [ ] Teil 2 (als Nächstes): Boss-Sieg (erstes Mal je Boss) → Truhe; Hinweis
-    „🎁 Truhe wartet im Pfad“ im Endbildschirm (auch wenn das Banner fehlte).
-  - [ ] Teil 3: Öffnen-Animation (Wackeln/Aufspringen, „Weniger Bewegung“ beachten),
+  - [x] Teil 2 (0f3ffb1, Tester 8/10, EAS auto + preview): erster Sieg je Boss →
+    Truhe (saveCampaignStars, nicht über Vorsprung); Endbildschirm „🎁 Truhe verdient –
+    öffnen im Pfad!“. Offen (klein): 2 Truhen in einer Runde → „2 Truhen“; Grund
+    nennen („Boss besiegt – 🎁“); Pfad-Hinweis am Boss, dass er eine Truhe bringt.
+  - [ ] Teil 3 (als Nächstes): Öffnen-Animation (Wackeln/Aufspringen, „Weniger Bewegung“ beachten),
     Knopf „Jetzt auswählen“ → Belohnungen; Level-Aufstieg durch Truhen-XP zeigen;
     Truhen-Aufkleber für Tonnen; Rettungstext der Flamme nur kurz zeigen. Rettungstext der Flamme nur kurz zeigen (F1-Idee).
 
