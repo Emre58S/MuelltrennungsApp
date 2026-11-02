@@ -63,6 +63,7 @@ export const de = {
   "trick.noSign": "Erst gegen das Schild!",
   "trick.noTrampoline": "Erst aufs Trampolin!",
   "trick.noBoard": "Erst durchs Loch in der Torwand!",
+  "trick.otherHole": "Fast! Nimm das Loch vor deiner Tonne.",
   "trick.belongsIn": "Gehört in: {bin}",
   "trick.done": "Geschafft!",
   "trick.next": "Nächstes Level",

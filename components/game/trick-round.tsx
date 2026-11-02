@@ -348,7 +348,10 @@ export function TrickRound({
     if (bin === level.target) {
       // In der richtigen Tonne – aber ohne den verlangten Trick
       const needsSign = level.requires.some((i) => level.props[i]?.kind === "sign");
-      const needsBoard = level.requires.some((i) => level.props[i]?.kind === "board");
+      const passed = outcome?.props ?? [];
+      const needsBoard = level.requires.some((i) => level.props[i]?.kind === "board" && !passed.includes(i));
+      // Durch ein anderes Loch der Torwand geflogen (das einer anderen Tonne)
+      const otherHole = passed.some((i) => level.props[i]?.kind === "board" && !level.requires.includes(i));
       const needsTrampoline = level.requires.some(
         (i) => level.props[i]?.kind === "trampoline" && !(outcome?.props ?? []).includes(i),
       );
@@ -358,7 +361,9 @@ export function TrickRound({
           needsTrampoline
             ? "trick.noTrampoline"
             : needsBoard
-              ? "trick.noBoard"
+              ? otherHole
+                ? "trick.otherHole"
+                : "trick.noBoard"
               : needsSign
               ? "trick.noSign"
               : rings > 1

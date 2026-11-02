@@ -783,6 +783,8 @@ export const ThrowLayer = memo(function ThrowLayer({
           else if (e.part === "ring") sfx("rim", { volume: loud, rate: pitch * 1.25 });
           else if (e.part === "blade") sfx("lid", { volume: loud, rate: pitch * 0.7 });
           else if (e.part === "sign") sfx("lid", { volume: loud, rate: pitch * 1.1 });
+          // Torwand: dumpfer Holz-Ton
+          else if (e.part === "board") sfx("lid", { volume: loud, rate: pitch * 0.8 });
           else if (e.part === "lamp") sfx("rim", { volume: loud, rate: pitch * 0.7 });
           // Bauzaun: Gitter scheppert tief
           else if (e.part === "fence") sfx("rim", { volume: loud, rate: pitch * 0.55 });

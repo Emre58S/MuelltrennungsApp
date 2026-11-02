@@ -64,6 +64,7 @@ export const en: Translations = {
   "trick.noSign": "Bank it off the sign first!",
   "trick.noTrampoline": "Bounce on the trampoline first!",
   "trick.noBoard": "Through the hole in the goal wall first!",
+  "trick.otherHole": "Close! Use the hole in front of your bin.",
   "trick.belongsIn": "Goes in: {bin}",
   "trick.done": "Done!",
   "trick.next": "Next level",
