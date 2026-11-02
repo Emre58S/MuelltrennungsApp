@@ -521,6 +521,36 @@ export function randomTrick(seed: number): TrickLevel {
   return { ...level, id: 0 };
 }
 
+/* ── Parcours (R5) ────────────────────────────────────────── */
+
+/** Parcours: keine feste Zieltonne – sie ergibt sich aus dem Gegenstand.
+ *  Deshalb muss er für alle 3 Tonnen gleich fair sein: entweder dasselbe
+ *  Hindernis vor jeder Tonne oder eins, das über alle Tonnen wandert.
+ *  `lanes[i]` = Pflicht-Hindernisse (Index in `props`) für Tonne i. Fahrende
+ *  Tonne / klappender Deckel gelten für die Tonne des Gegenstands. */
+export type ParcoursLevel = Omit<TrickLevel, "id" | "target" | "requires"> & {
+  id: number;
+  lanes: [number[], number[], number[]];
+};
+
+/** Der Parcours für einen Gegenstand, der in Tonne `bin` gehört – als
+ *  normales Level (gleiche Physik, Wertung und Fairness-Prüfung). */
+export function parcoursLane(level: ParcoursLevel, bin: 0 | 1 | 2): TrickLevel {
+  const { lanes, ...rest } = level;
+  return { ...rest, target: bin, requires: lanes[bin] };
+}
+
+export const PARCOURS: ParcoursLevel[] = [
+  // Ein Reifen gleitet über alle Tonnen: werfen, wenn er vor DEINER Tonne ist
+  {
+    id: 1,
+    props: [ring(0, 2.8, 1.5, 0.55, { kind: "slide", axis: "x", amp: 1.0, period: 4.0 })],
+    lanes: [[0], [0], [0]],
+    bonus: "firstTry",
+    task: "trick.task.moving",
+  },
+];
+
 /* ── Physik und Wertung ───────────────────────────────────── */
 
 /** Physik-Körper eines Levels (Hindernis-id = Index in `props`). */

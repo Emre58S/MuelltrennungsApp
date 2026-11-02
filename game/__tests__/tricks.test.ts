@@ -20,6 +20,8 @@ import {
   levelPeriod,
   meetsRequirement,
   mirrorLevel,
+  PARCOURS,
+  parcoursLane,
   starsFor,
   TRICK_LEVELS,
   type TrickLevel,
@@ -92,6 +94,10 @@ function expectFair(level: Level, mass: Mass = "normal") {
 const cases: [string, Level][] = [
   ...TRICK_LEVELS.map((l): [string, Level] => [`Level ${l.id}`, l]),
   ...DAILY_TEMPLATES.map((l, i): [string, Level] => [`Tages-Vorlage ${i + 1}`, l]),
+  // Parcours: Zieltonne kommt vom Gegenstand – fair für jede der 3 Tonnen
+  ...PARCOURS.flatMap((p) =>
+    ([0, 1, 2] as const).map((bin): [string, Level] => [`Parcours ${p.id} Tonne ${bin}`, parcoursLane(p, bin)]),
+  ),
 ];
 
 describe("Trickwurf-Level", () => {
@@ -175,6 +181,18 @@ describe("Trickwurf-Level", () => {
     },
     240000,
   );
+});
+
+describe("Parcours", () => {
+  test("Zieltonne und Pflicht-Hindernis kommen aus der Spur", () => {
+    const p = PARCOURS[0];
+    for (const bin of [0, 1, 2] as const) {
+      const level = parcoursLane(p, bin);
+      expect(level.target).toBe(bin);
+      expect(level.requires).toEqual(p.lanes[bin]);
+      expect(level.props).toBe(p.props);
+    }
+  });
 });
 
 describe("Tages-Trick", () => {
