@@ -174,7 +174,9 @@ export const BurstLayer = memo(function BurstLayer({
           up * burst.power,
           Math.sin(a) * out * burst.power * 0.6 + 0.6,
         );
-        pt.r.set(Math.random() * 6, Math.random() * 6, 0);
+        // Spritzer liegen flach (kein Taumeln), alles andere startet verdreht
+        if (style === "splash") pt.r.set(0, Math.random() * 6, 0);
+        else pt.r.set(Math.random() * 6, Math.random() * 6, 0);
         pt.spin =
           style === "shards"
             ? 14 + Math.random() * 12
@@ -236,7 +238,7 @@ export const BurstLayer = memo(function BurstLayer({
         q.setFromEuler(pt.r);
         // Form: Tropfen-Scheibe, schmale Scherbe, dünnes Blatt oder Konfetti
         if (style === "splash") sv.set(pt.s, pt.s * 0.35, pt.s);
-        else if (style === "shards") sv.set(pt.s * 0.3, pt.s * 1.4, pt.s * 0.12);
+        else if (style === "shards") sv.set(pt.s * 0.5, pt.s * 1.4, pt.s * 0.2);
         else if (style === "flutter") sv.set(pt.s, pt.s * 0.75, pt.s * 0.05);
         else sv.set(pt.s, pt.s * 0.6, pt.s * 0.15);
         sv.multiplyScalar(shrink);
