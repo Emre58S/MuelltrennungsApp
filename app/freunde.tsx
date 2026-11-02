@@ -59,7 +59,8 @@ export default function FriendsScreen() {
         setState("idle");
       })
       .catch((e: unknown) => {
-        if (quiet) setNote({ text: t("rank.error"), ok: false });
+        // Leise: einen grünen Hinweis („hinzugefügt“) stehen lassen
+        if (quiet) setNote((old) => (old?.ok ? old : { text: t("rank.error"), ok: false }));
         else setState(isMissingOnServer(e) ? "setup" : "error");
       });
   }, [t]);

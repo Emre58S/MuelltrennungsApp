@@ -129,7 +129,10 @@ begin
   end if;
   delete from friends
   where (player = p_player and friend = other) or (player = other and friend = p_player);
-  insert into friend_blocks (blocker, blocked) values (p_player, other) on conflict do nothing;
+  -- Nur sperren, wenn wirklich eine Freundschaft bestand (sonst hängt eine Sperre fest)
+  if found then
+    insert into friend_blocks (blocker, blocked) values (p_player, other) on conflict do nothing;
+  end if;
 end;
 $$;
 
