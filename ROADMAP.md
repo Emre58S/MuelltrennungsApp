@@ -266,7 +266,13 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     z. B. K7Q-X2M, teilen), Freund per Code hinzufügen (beide Richtungen), Liste mit
     ⏱️/🛡️-Wochenbestem, Entfernen sperrt (kein erneutes Eintragen), max. 50 je Seite;
     supabase/freunde.sql (**Nutzer muss es ausführen**, nach online.sql).
-  - Offen: „Herausfordern“ + offene Herausforderungen (Teil 2); Link statt Code;
+  - [x] Teil 2a (9a139ac + a75b75f, Tester 8/10, EAS auto + preview): ▶ in der
+    Freundesliste → Sprint/Survival gegen den Lauf des Freundes von heute als Ghost
+    (`/runde?mode=…&friend=CODE`, SQL friend_run – **Nutzer muss freunde.sql erneut
+    ausführen**); Hinweise „hat heute noch nicht gespielt – spiel vor“ / „kam nicht an“.
+  - Offen: offene Herausforderungen (Teil 2b, „X hat dich geschlagen“); Lauf kommt nach
+    dem Start an → Hinweis; „nicht mehr befreundet“ eigener Text; nach der Runde
+    zurückfordern/teilen; Link statt Code;
     „Code neu erzeugen“; Code mit einem Tipp kopieren; Knopf „Hinzufügen“ volle Breite;
     Grenze 50 nicht gegen gleichzeitige Aufrufe gesichert (Ausgabe gedeckelt).
 - [ ] **R4f** Ranglisten je Modus (Woche + Allzeit), eigener Platz immer sichtbar.
