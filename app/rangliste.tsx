@@ -299,14 +299,10 @@ export default function LeaderboardScreen() {
           <AppText tone="textSecondary" style={styles.note}>
             {t("rank.offline")}
           </AppText>
-        ) : state === "setup" ? (
-          <AppText tone="textSecondary" style={styles.note}>
-            {t("rank.setup")}
-          </AppText>
-        ) : state === "error" ? (
+        ) : state === "setup" || state === "error" ? (
           <View style={styles.errorBox}>
             <AppText tone="textSecondary" center>
-              {t("rank.error")}
+              {t(state === "setup" ? "rank.setup" : "rank.error")}
             </AppText>
             {/* Ziehen zum Aktualisieren kennt kaum jemand – daher ein Knopf */}
             <Button title={t("common.retry")} icon="refresh-cw" variant="secondary" onPress={refresh} />
