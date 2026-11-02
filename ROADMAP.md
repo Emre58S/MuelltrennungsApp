@@ -175,14 +175,17 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     keinen Hinweis; Banner allgemein nacheinander statt verdrängend (R10).
   - Danach: „1 Online-Runde“ erst mit R4; Belohnung Truhe mit R3c; Flamme zählt
     Mission mit R3b. Randfall: Würfe kurz vor Mitternacht zählen ggf. für den neuen Tag.
-- [ ] **R3b** Tagesaufgabe = besondere Station im Pfad (goldener Kreis), Flamme
+- [x] **R3b** Tagesaufgabe = besondere Station im Pfad (goldener Kreis), Flamme
   zählt bei Tagesaufgabe ODER einer Mission.
   - [x] Teil 1 (640eaec + a3ebc7a + e27b8cf, Tester 6/10 → 8/10, EAS auto + preview):
     goldene Karte direkt unter der aktuellen Station (offen: 📅 + roter Punkt,
     erledigt: ✓ + Ergebnis + „Morgen gibt es eine neue.“); 📅-Chip oben entfällt.
-  - [ ] Teil 2 (als Nächstes): Flamme zählt nur bei Tagesaufgabe ODER geschaffter
-    Mission (heute: jeder Wurf). Vorher prüfen: Texte/Hinweise zur Flamme anpassen,
-    Rettung (utils/streak.ts) unverändert lassen; nie strafend erklären.
+  - [x] Teil 2 (1e9a18a + 848d315, Tester 7/10, EAS auto + preview): Flamme zählt
+    nur bei geschaffter Mission oder gespielter Tagesaufgabe (Prüfung im Flush,
+    Rettung unverändert); Startschirm „Heute 1 Mission schaffen (in der Kampagne)“,
+    Missionskarte „Nur 1 Mission (oder die Tagesaufgabe) hält deine Flamme.“
+    Offen: Test für die Regel (Flush ohne/mit Mission/Tagesaufgabe – braucht
+    AsyncStorage-Mock).
   - Offen (klein): erledigte Karte zurücknehmen bzw. „nochmal spielen“ zeigen;
     evtl. mittig als Kreis näher am Pfad.
 - [ ] **R3c** Tagesbelohnung (Truhe): Spur-Farben, Tonnen-Aufkleber,
