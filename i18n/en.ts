@@ -441,6 +441,7 @@ export const en: Translations = {
   "campaign.goalBoss": "👑 Boss · {goal} in a row · max. {total} throws · 🔄 bins swap",
   "campaign.bossSwap": "Watch out, bins swap!",
   "campaign.kind.boss": "Boss",
+  "campaign.dailyTomorrow": "New one tomorrow.",
   "campaign.freePlay": "Free play",
   "campaign.headStart": "You already know many bins – the first worlds are open. Play them again for more stars.",
   "mission.title": "Daily missions",

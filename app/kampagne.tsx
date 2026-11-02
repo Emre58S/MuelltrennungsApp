@@ -5,8 +5,9 @@
 // und ist mit 1 Tipp gestartet. Je Welt eine Seitenstation „Trick-Schule“
 // (4 der Trick-Level, sperrt nichts). Oben eine schmale Reihe mit den bisherigen
 // Spielarten (Freies Spiel mit den Tonnen der aktuellen Welt, Ohne Fehler, Zeit,
-// Tagesaufgabe, Tricks), bis sie mit
-// R2d als Stationen im Pfad leben. Darunter die 3 Tagesmissionen (R3a).
+// Tricks), bis sie mit
+// R2d als Stationen im Pfad leben. Darunter die 3 Tagesmissionen (R3a). Die
+// Tagesaufgabe ist ein goldener Kreis direkt unter der aktuellen Station (R3b).
 
 import { router, useFocusEffect } from "expo-router";
 import { type ComponentRef, useCallback, useEffect, useRef, useState } from "react";
@@ -55,6 +56,8 @@ const DOT = 64;
 const KIND_EMOJI = { survival: "🛡️", time: "⏱️", boss: "👑" } as const;
 /** Farbe der Trick-Schule (wie die Trickwürfe). */
 const TRICK_COLOR = "#7C5CD6";
+/** Gold der Tagesaufgaben-Station. */
+const DAILY_GOLD = "#F5B800";
 /** Farbe der „Knifflige Fälle“-Welt (ohne eigene Tonne). */
 const TRICKY_COLOR = "#7C5CD6";
 
@@ -143,12 +146,6 @@ export default function KampagneScreen() {
         {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
           <Chip key={m.mode} emoji={MODE_LOOK[m.mode] ?? "🎮"} label={t(m.titleKey)} onPress={() => startGame(m.mode)} />
         ))}
-        <Chip
-          emoji="📅"
-          label={daily ? `${t("home.daily")} ${t("home.dailyDoneTiny", { correct: daily.correct, total: daily.total })}` : t("home.daily")}
-          dot={daily === null}
-          onPress={startDaily}
-        />
         <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
       </View>
 
@@ -172,19 +169,22 @@ export default function KampagneScreen() {
           >
             <WorldHeader world={world} />
             {world.stations.map((station, i) => (
-              <StationDot
-                key={station.id}
-                station={station}
-                offset={ZIGZAG[i % ZIGZAG.length]}
-                color={worldColor(world)}
-                stars={stars[station.id] ?? 0}
-                unlocked={isUnlocked(stars, station.id)}
-                isCurrent={station.id === current.id}
-                onCurrentLayout={(y) => {
-                  currentAt.current = { world: world.index, y };
-                  scrollToCurrent();
-                }}
-              />
+              <View key={station.id}>
+                <StationDot
+                  station={station}
+                  offset={ZIGZAG[i % ZIGZAG.length]}
+                  color={worldColor(world)}
+                  stars={stars[station.id] ?? 0}
+                  unlocked={isUnlocked(stars, station.id)}
+                  isCurrent={station.id === current.id}
+                  onCurrentLayout={(y) => {
+                    currentAt.current = { world: world.index, y };
+                    scrollToCurrent();
+                  }}
+                />
+                {/* Tagesaufgabe gleich dort, wo man weiterspielt */}
+                {station.id === current.id && daily !== undefined && <DailyStation result={daily} />}
+              </View>
             ))}
             <TrickSchool
               world={world}
@@ -328,6 +328,42 @@ function WorldHeader({ world }: { world: World }) {
 }
 
 /** Seitenstation „Trick-Schule“ einer Welt: 4 Trick-Level, 1 Tipp startet das nächste. */
+/** Tagesaufgabe als goldene Station: offen → einladen, erledigt → Ergebnis + „morgen neu“. */
+function DailyStation({ result }: { result: DailyResult | null }) {
+  const { t } = useI18n();
+  const { colors } = useAppTheme();
+  const status = result
+    ? `${t("home.dailyDone", { correct: result.correct, total: result.total, score: result.score })} · ${t("campaign.dailyTomorrow")}`
+    : t("home.dailyNew");
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${t("home.daily")}, ${status}`}
+      onPress={() => {
+        sfx("tap");
+        tapHaptic();
+        startDaily();
+      }}
+      style={({ pressed }) => [
+        styles.trick,
+        styles.daily,
+        { backgroundColor: colors.surface, borderColor: DAILY_GOLD },
+        pressed && press.pressed,
+      ]}
+    >
+      <View style={[styles.dailyDot, { backgroundColor: result ? colors.goldSoft : DAILY_GOLD }]}>
+        <AppText style={styles.trickEmoji}>{result ? "✓" : "📅"}</AppText>
+      </View>
+      <View style={styles.flex}>
+        <AppText variant="label">{t("home.daily")}</AppText>
+        <AppText variant="caption" tone="textSecondary">
+          {status}
+        </AppText>
+      </View>
+    </Pressable>
+  );
+}
+
 function TrickSchool({
   world,
   reached,
@@ -500,6 +536,8 @@ function StationDot({
 const styles = StyleSheet.create({
   chips: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
+  daily: { marginTop: Spacing.sm, borderStyle: "solid", borderWidth: 2 },
+  dailyDot: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   missions: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5, gap: 6 },
   missionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
   missionRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },

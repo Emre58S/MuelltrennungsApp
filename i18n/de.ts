@@ -440,6 +440,7 @@ export const de = {
   "campaign.goalBoss": "👑 Boss · {goal} in Folge · max. {total} Würfe · 🔄 Tonnen tauschen",
   "campaign.bossSwap": "Achtung, Tonnen tauschen!",
   "campaign.kind.boss": "Boss",
+  "campaign.dailyTomorrow": "Morgen gibt es eine neue.",
   "campaign.freePlay": "Freies Spiel",
   "campaign.headStart": "Du kennst schon viele Tonnen – die ersten Welten sind frei. Nochmal spielen bringt mehr Sterne.",
   "mission.title": "Tagesmissionen",
