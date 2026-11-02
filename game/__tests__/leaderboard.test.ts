@@ -12,6 +12,7 @@ import {
   leaderboardReady,
   submitScore,
   trickScore,
+  weekStart,
 } from "../../utils/leaderboard";
 
 // jest.mock wird vor die Imports gehoben
@@ -58,6 +59,14 @@ describe("Wertung", () => {
   test("Tages-Bretter tragen das Datum", () => {
     expect(dailyBoard("tagesaufgabe")).toBe("tagesaufgabe:2026-10-27");
     expect(dailyBoard("tagestrick", "2026-12-24")).toBe("tagestrick:2026-12-24");
+  });
+
+  test("Wochen-Rangliste beginnt am Montag (auch über Monats- und Jahresgrenzen)", () => {
+    expect(weekStart()).toBe("2026-10-26");
+    expect(weekStart("2026-11-02")).toBe("2026-11-02");
+    expect(weekStart("2026-11-08")).toBe("2026-11-02");
+    expect(weekStart("2026-11-01")).toBe("2026-10-26");
+    expect(weekStart("2027-01-01")).toBe("2026-12-28");
   });
 });
 

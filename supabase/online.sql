@@ -4,8 +4,10 @@
 -- encodeSprint: Tonne + Zeitabstand je Wurf). Beim Start holt das Spiel den
 -- Lauf eines anderen Spielers von heute mit ähnlich vielen Treffern – der
 -- fliegt dann als Ghost mit. Richtig/falsch rechnet das Spiel aus der
--- Tages-Strecke selbst nach.
+-- Tages-Strecke selbst nach. Aus denselben Läufen entstehen die Ranglisten
+-- je Modus (diese Woche / Allzeit, ROADMAP R4f).
 -- Einmal im Supabase-Projekt ausführen: Dashboard → SQL Editor → einfügen → Run.
+-- Erneut ausführen ist unschädlich (neue Funktionen kommen dazu, Läufe bleiben).
 -- Setzt supabase/rangliste.sql voraus (Tabelle players, Funktion set_name).
 --
 -- Datenschutz wie bei der Rangliste: Die Geräte-ID verlässt die Datenbank nie,
@@ -80,5 +82,50 @@ as $$
   limit 1;
 $$;
 
+-- Rangliste je Modus (ROADMAP R4f): bester Lauf je Spieler ab p_since
+-- (JJJJ-MM-TT, Montag der Woche; null = Allzeit). Gewertet wird „richtig“ –
+-- wie im Rennen selbst; gleich viele = gleicher Platz.
+create or replace function public.online_top(p_mode text, p_since text, p_player uuid, p_limit integer default 50)
+returns table (rank bigint, name text, score integer, is_me boolean)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with best as (
+    select r.player, max(r.correct) as score
+    from online_runs r
+    where r.mode = p_mode and r.day >= coalesce(p_since, '0000-00-00')
+    group by r.player
+  )
+  select rank() over (order by b.score desc), p.name, b.score, b.player = p_player
+  from best b
+  join players p on p.id = b.player
+  order by b.score desc, p.name
+  limit greatest(1, least(p_limit, 100));
+$$;
+
+-- Eigener Platz (auch wenn man nicht unter den Besten steht)
+create or replace function public.online_my_rank(p_mode text, p_since text, p_player uuid)
+returns table (rank bigint, score integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with best as (
+    select r.player, max(r.correct) as score
+    from online_runs r
+    where r.mode = p_mode and r.day >= coalesce(p_since, '0000-00-00')
+    group by r.player
+  ),
+  ranked as (
+    select player, score, rank() over (order by score desc) as rank from best
+  )
+  select rank, score from ranked where player = p_player;
+$$;
+
 grant execute on function public.submit_online_run(uuid, text, text, text, integer, integer) to anon, authenticated;
 grant execute on function public.random_online_run(text, text, uuid, integer) to anon, authenticated;
+grant execute on function public.online_top(text, text, uuid, integer) to anon, authenticated;
+grant execute on function public.online_my_rank(text, text, uuid) to anon, authenticated;

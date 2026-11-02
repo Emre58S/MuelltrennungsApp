@@ -1,9 +1,10 @@
 // Datei: app/rangliste.tsx — Rangliste
 //
-// Anonyme Bestenlisten (utils/leaderboard.ts): Zielwurf, Gegen die Zeit,
-// Ohne Fehler und die heutigen Tages-Bretter (Tagesaufgabe, Tages-Trick –
-// für alle gleich). Oben der eigene Spitzname (änderbar), unten der eigene
-// Platz, falls man nicht unter den Besten steht.
+// Anonyme Bestenlisten (utils/leaderboard.ts): Zeit-Sprint und Survival
+// (Online-Bereich, diese Woche oder Allzeit), Gegen die Zeit, Ohne Fehler und
+// die heutigen Tages-Bretter (Tagesaufgabe, Tages-Trick – für alle gleich).
+// Oben der eigene Spitzname (änderbar), unten der eigene Platz, falls man
+// nicht unter den Besten steht.
 
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
@@ -31,15 +32,28 @@ import {
   dailyBoard,
   decodeTrickScore,
   fetchBoard,
+  fetchOnlineBoard,
   getPlayer,
   leaderboardReady,
+  type OnlineMode,
   setPlayerName,
 } from "@/utils/leaderboard";
 import { sfx } from "@/utils/sfx";
 
-type Tab = { key: string; label: TranslationKey; board: () => Board; daily?: boolean; trick?: boolean };
+type Tab = {
+  key: string;
+  label: TranslationKey;
+  board?: () => Board;
+  /** Online-Modus: Liste aus den Läufen (supabase/online.sql), Woche oder Allzeit */
+  online?: OnlineMode;
+  daily?: boolean;
+  trick?: boolean;
+};
+type Span = "week" | "all";
 
 const TABS: Tab[] = [
+  { key: "sprint", label: "sprint.title", online: "sprint" },
+  { key: "survival", label: "survival.title", online: "survival" },
   { key: "zeit", label: "mode.time.title", board: () => "zeit" },
   { key: "runden", label: "mode.survival.title", board: () => "runden" },
   { key: "tagesaufgabe", label: "home.daily", board: () => dailyBoard("tagesaufgabe"), daily: true },
@@ -59,21 +73,24 @@ export default function LeaderboardScreen() {
   const [invalid, setInvalid] = useState(false);
   const [result, setResult] = useState<BoardResult | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [span, setSpan] = useState<Span>("week");
 
   /** Gerade gewählte Liste – späte Antworten anderer Listen werden verworfen. */
   const shown = useRef(tab);
+  const shownSpan = useRef(span);
 
   /** Liste laden (Ergebnis kommt asynchron; „lädt“ = noch kein Ergebnis). */
-  const load = useCallback((which: Tab) => {
+  const load = useCallback((which: Tab, when: Span) => {
     if (!leaderboardReady) return;
-    fetchBoard(which.board())
+    const current = () => shown.current === which && (!which.online || shownSpan.current === when);
+    (which.online ? fetchOnlineBoard(which.online, when) : fetchBoard(which.board!()))
       .then((r) => {
-        if (shown.current !== which) return;
+        if (!current()) return;
         setResult(r);
         setState("idle");
       })
       .catch(() => {
-        if (shown.current === which) setState("error");
+        if (current()) setState("error");
       });
   }, []);
 
@@ -83,7 +100,7 @@ export default function LeaderboardScreen() {
       getPlayer()
         .then((p) => setName(p.name))
         .catch(() => undefined);
-      load(shown.current);
+      load(shown.current, shownSpan.current);
     }, [load]),
   );
 
@@ -93,12 +110,22 @@ export default function LeaderboardScreen() {
     setTab(next);
     setResult(null);
     setState("idle");
-    load(next);
+    load(next, span);
+  }
+
+  function chooseSpan(next: Span) {
+    if (next === span) return;
+    sfx("tap");
+    shownSpan.current = next;
+    setSpan(next);
+    setResult(null);
+    setState("idle");
+    load(tab, next);
   }
 
   function refresh() {
     setState("loading");
-    load(tab);
+    load(tab, span);
   }
 
 
@@ -112,11 +139,12 @@ export default function LeaderboardScreen() {
     setName(saved);
     setEditing(false);
     setInvalid(false);
-    load(tab);
+    load(tab, span);
   }
 
-  /** Punkte je Brett: Tages-Trick als Sterne + Versuche. */
+  /** Punkte je Brett: Online-Modi als „N richtig“, Tages-Trick als Sterne + Versuche. */
   const scoreText = (score: number) => {
+    if (tab.online) return t("rank.correct", { n: formatNumber(score) });
     if (!tab.trick) return formatNumber(score);
     const { stars, attempts } = decodeTrickScore(score);
     return `${"★".repeat(stars)} · ${attempts <= 1 ? t("trick.attemptsOne") : t("trick.attempts", { n: attempts })}`;
@@ -228,6 +256,40 @@ export default function LeaderboardScreen() {
             );
           })}
         </ScrollView>
+
+        {/* Online-Modi: diese Woche (ab Montag) oder Allzeit */}
+        {tab.online && (
+          <>
+            <View style={styles.row}>
+              {(["week", "all"] as const).map((item) => {
+                const active = item === span;
+                return (
+                  <Pressable
+                    key={item}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    onPress={() => chooseSpan(item)}
+                    style={[
+                      styles.tab,
+                      styles.flex,
+                      {
+                        backgroundColor: active ? colors.primarySoft : colors.surface,
+                        borderColor: active ? colors.primary : colors.border,
+                      },
+                    ]}
+                  >
+                    <AppText variant="caption" center tone={active ? "onPrimarySoft" : "text"}>
+                      {t(item === "week" ? "rank.week" : "rank.allTime")}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <AppText variant="caption" tone="textSecondary">
+              {t("rank.onlineHint")}
+            </AppText>
+          </>
+        )}
 
         {!leaderboardReady ? (
           <AppText tone="textSecondary" style={styles.note}>

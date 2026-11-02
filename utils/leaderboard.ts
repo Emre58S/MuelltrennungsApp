@@ -262,3 +262,33 @@ export async function fetchRandomRun(mode: OnlineMode, day: string, correct: num
     return null;
   }
 }
+
+/** Montag der Woche zu einem Tag (JJJJ-MM-TT) – Beginn der Wochen-Rangliste. */
+export function weekStart(day = todayKey()): string {
+  const [y, m, d] = day.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${mm}-${dd}`;
+}
+
+/** Rangliste eines Online-Modus (bester Lauf je Spieler, „richtig“ zählt):
+ *  diese Woche oder Allzeit, dazu der eigene Platz. */
+export async function fetchOnlineBoard(mode: OnlineMode, span: "week" | "all", limit = 50): Promise<BoardResult> {
+  const player = await getPlayer();
+  const since = span === "week" ? weekStart() : null;
+  const [rows, mine] = await Promise.all([
+    rpc<{ rank: number; name: string; score: number; is_me: boolean }[]>("online_top", {
+      p_mode: mode,
+      p_since: since,
+      p_player: player.id,
+      p_limit: limit,
+    }),
+    rpc<{ rank: number; score: number }[]>("online_my_rank", { p_mode: mode, p_since: since, p_player: player.id }),
+  ]);
+  return {
+    rows: (rows ?? []).map((r) => ({ rank: Number(r.rank), name: r.name, score: r.score, isMe: r.is_me })),
+    me: mine?.[0] ? { rank: Number(mine[0].rank), score: mine[0].score } : null,
+  };
+}
