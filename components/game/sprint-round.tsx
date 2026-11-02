@@ -67,6 +67,8 @@ type Phase = "ready" | "countdown" | "play" | "end";
 const END_MS = 1100;
 /** Kurze Pause nach jedem Wurf – wahlloses Dauerwischen lohnt sich nicht (ms). */
 const THROW_GAP_MS = 400;
+/** Survival: nur gegen Doppelwischen – die Zeit je Gegenstand ist ohnehin knapp (ms). */
+const SURVIVAL_GAP_MS = 150;
 /** Nach einem Fehlwurf: so lange bleibt Zeit für den Lern-Hinweis (ms). */
 const WRONG_PAUSE_MS = 1500;
 
@@ -186,7 +188,7 @@ export function SprintRound({
       const seq = ++itemSeq.current;
       const ms = itemLimit(at);
       setLimit(ms);
-      later(() => itemSeq.current === seq && out("slow"), ms);
+      later(() => itemSeq.current === seq && out("slow", next), ms);
     }
   };
 
@@ -224,7 +226,7 @@ export function SprintRound({
   };
 
   /** Survival vorbei: falsch (Hinweis zeigt schon handleThrow), zu langsam oder geschafft. */
-  const out = (reason: "wrong" | "slow" | "max") => {
+  const out = (reason: "wrong" | "slow" | "max", missed?: Item) => {
     if (phaseRef.current !== "play") return;
     phaseRef.current = "end";
     const now = Date.now();
@@ -234,7 +236,18 @@ export function SprintRound({
     setItem(null);
     setPreview(bus.current, null);
     setGhostScore(ghost.correct);
-    if (reason === "slow") showBanner(`⏳ ${t("survival.slow")}`, OUT_MS);
+    if (reason === "slow") {
+      // Auch hier lernen: wohin der Gegenstand gehört, richtige Tonne hüpft
+      const bin = missed ? getBinByCategory(missed.category) : undefined;
+      const right = missed ? binOf(missed) : -1;
+      if (right >= 0) queueBinEvent(bus.current, right, "peek");
+      showBanner(
+        `⏳ ${t("survival.slow")}${bin && missed ? ` · ${t("duel.belongsIn", { item: itemName(missed), bin: t(bin.labelKey) })}` : ""}`,
+        OUT_MS,
+      );
+      sfx("plop");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+    }
     if (reason === "max") showBanner(`🏁 ${t("survival.max")}`, OUT_MS);
     later(finish, OUT_MS);
   };
@@ -286,7 +299,7 @@ export function SprintRound({
     const now = Date.now();
     // Der Zeit-um-Timer kann ein paar ms später kommen – solche Würfe zählen nicht
     if (!survival && now - startRef.current > SPRINT_MS) return;
-    lockUntil.current = now + THROW_GAP_MS;
+    lockUntil.current = now + (survival ? SURVIVAL_GAP_MS : THROW_GAP_MS);
     itemSeq.current += 1;
     myThrows.current.push({ i: index, ms: now - startRef.current, bin: aim.binIndex, correct });
     const spec: ThrowSpec = {
