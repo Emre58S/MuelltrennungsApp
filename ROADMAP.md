@@ -294,8 +294,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 3 (7a367cf, Tester 8/10, EAS auto + preview): alte Reiter „Gegen die Zeit“/
     „Ohne Fehler“ ausgeblendet; beide Modi (Chips im Pfad) solo ohne Rangliste (BOARD nur
     noch zielwurf), kein Platz-Hinweis mehr im Endbildschirm; lokaler Bestwert bleibt.
-  - Offen: Sprint-Gleichstand nach Zeit?; „Erneut versuchen“ auch im Zustand „wird
-    eingerichtet“; Tricks erst mit R4c; Hinweis „Für die Rangliste: Zeit-Sprint“ im
+  - [x] Teil 4 (011246e + 141c478, Tester 8/10, EAS auto + preview): „Erneut versuchen“
+    auch bei „wird eingerichtet“, Text „Versuch es später nochmal“.
+  - Offen: Sprint-Gleichstand nach Zeit?; Tricks erst mit R4c; Hinweis „Für die Rangliste: Zeit-Sprint“ im
     Endbildschirm der Solo-Modi; FixedBoard zeit/runden nur noch Altdaten.
 - [ ] **R4g** (1.1) **Live-Duell parallel** auf zwei Handys (G4, Supabase
   Realtime): beide werfen gleichzeitig denselben Gegenstand, wer zuerst richtig
