@@ -335,15 +335,21 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 | **Lieferwagen / Radfahrer** fährt quer durchs Bild | Lücke abpassen (passt zu R9b Passanten) | wandernd |
 | **Trampolin, Klappdeckel** (gibt es) | bleiben – auf alle Tonnen ausweiten | symmetrisch |
 
-- [ ] **R5a** Datenmodell: Level ohne feste Zieltonne (`lanes: "all"`),
+- [x] **R5a** Datenmodell: Level ohne feste Zieltonne (`lanes: "all"`),
   Pflicht-Element je Spur bzw. „durch das wandernde Element“. Fairness-Test
   prüft jede der 3 Tonnen (Test dauert ~3× so lang → Level einzeln testen).
+  (13a80f4: `ParcoursLevel` mit `lanes[3]`, `parcoursLane()`, PARCOURS 1 =
+  wandernder Reifen; `-t "Parcours"` ~50 s)
 - [ ] **R5b** Reifenschaukel (Modell + Pendel-Bewegung + Kollision) als erstes
   Parcours-Element; gleitender Ring wird dadurch ersetzt.
 - [ ] **R5c** Torwand mit 3 Löchern; Trampolin + Klappdeckel auf alle Spuren.
 - [ ] **R5d** Parcours-Runde: Gegenstände aus dem Tages-Seed, eigene Zeit je
   Parcours (20 / 25 / 30 s), Punkte wie oben. Bewegung hängt nur an der
   Rundenzeit → Ghost des Gegners sieht exakt denselben Parcours.
+  Tester-Hinweise zu R5a: eigener Speicher-Schlüssel (`parcours-1`, sonst
+  Kollision mit Trick-Level 1); eigener Aufgabentext „Wirf, wenn es vor
+  deiner Tonne ist“ (DE/EN); `props` der Spuren teilen sich ein Array –
+  in der Runde nicht verändern.
 - [x] **R5-Vorlauf (Emre, 02.11.)**: Zielen genauer – Vorschau zeigt beim Halten die
   ganze Bahn bis zur ersten Berührung + pulsierenden Aufprall-Ring; 🎲 Zufalls-Trick
   auf der Trick-Seite (nur geprüfte Level/Vorlagen, teils gespiegelt, ohne Sterne);
