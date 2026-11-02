@@ -168,8 +168,11 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     (+Tests) – je Tag fest: „{Tonne}: 5 richtig“ (nur Tonnen der aktuellen Welt),
     abwechselnd „6 in Folge“/„20 richtig“, „Eine Station schaffen“; zählt aus allen
     Runden (queueThrowRecord), je +30 XP genau einmal; Karte oben im Pfad.
-  - [ ] Teil 2 (als Nächstes): Rückmeldung beim Schaffen – kurzer Hinweis in der
-    Runde („✓ Mission: +30 XP“) und Mission-XP im Endbildschirm mitzählen.
+  - [x] Teil 2 (1686932 + 09c32e1, Tester 7/10, EAS auto + preview): Hinweis
+    „✓ Tagesmission geschafft! +30 XP“ in der Runde (nicht nach Rundenende, nicht über
+    Level-Aufstieg), Mission-XP + Zeile im Endbildschirm (auch Station am Ende).
+    Offen (klein): Würfe vor dem Laden der Missionen (sehr schneller 1. Wurf) zeigen
+    keinen Hinweis; Banner allgemein nacheinander statt verdrängend (R10).
   - Danach: „1 Online-Runde“ erst mit R4; Belohnung Truhe mit R3c; Flamme zählt
     Mission mit R3b. Randfall: Würfe kurz vor Mitternacht zählen ggf. für den neuen Tag.
 - [ ] **R3b** Tagesaufgabe = besondere Station im Pfad (goldener Kreis), Flamme
