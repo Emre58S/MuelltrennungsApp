@@ -673,8 +673,11 @@ function GhostEnd({
         <AppText variant="title" style={styles.center}>
           {title}
         </AppText>
-        {/* Gleich viele richtig: sagen, dass die Zeit (auf 0,1 s) entscheidet */}
-        {run.correct === ghost.correct && (
+        {/* Gleich viele richtig: sagen, dass die Zeit entschieden hat – nur wenn die
+            Tabelle es zeigt (gegen den eigenen Ghost zählen genaue ms, angezeigt 0,1 s);
+            Gleichstand „auf 0,1 s genau“ gibt es nur gegen den Freund (roundRun) */}
+        {run.correct === ghost.correct &&
+          (result === "draw" ? !!friend : sec(run.ms) !== sec(ghost.ms)) && (
           <AppText variant="body" tone="textSecondary" style={styles.center}>
             {t(result === "draw" ? "ghost.drawWhy" : "ghost.byTime")}
           </AppText>
