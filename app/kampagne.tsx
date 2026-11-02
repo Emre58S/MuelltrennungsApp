@@ -7,7 +7,7 @@
 // Spielarten (Freies Spiel mit den Tonnen der aktuellen Welt, Ohne Fehler, Zeit,
 // Tricks), bis sie mit
 // R2d als Stationen im Pfad leben. Darunter die 3 Tagesmissionen (R3a). Die
-// Tagesaufgabe ist ein goldener Kreis direkt unter der aktuellen Station (R3b).
+// Tagesaufgabe ist eine goldene Karte direkt unter der aktuellen Station (R3b).
 
 import { router, useFocusEffect } from "expo-router";
 import { type ComponentRef, Fragment, useCallback, useEffect, useRef, useState } from "react";
@@ -109,7 +109,8 @@ export default function KampagneScreen() {
         .catch(() => active && setStars({}));
       getTodayDaily()
         .then((d) => active && setDaily(d))
-        .catch(() => undefined);
+        // Nicht lesbar → als offen zeigen, damit die Tagesaufgabe erreichbar bleibt
+        .catch(() => active && setDaily(null));
       getTrickStars()
         .then((s) => active && setTrickStars(s))
         .catch(() => undefined);
