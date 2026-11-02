@@ -10,6 +10,8 @@
 //  - Bauzaun: Gitterfelder mit Pfosten und Betonfüßen, durchsichtig
 //  - Straßenschild: blaues Einbahnstraßen-Schild auf einem Pfosten zwischen
 //    zwei Tonnen; der Pfeil zeigt, wohin der Abpraller geht
+//  - Torwand: grüne Felder mit je einem Loch (weißer Rand), außen Pfosten;
+//    durchworfen leuchtet der Lochrand golden auf
 //  - Trampolin: Garten-Trampolin mit blauem Polster; das Tuch federt beim
 //    Aufprall sichtbar ein, ein fahrendes rollt auf der Szenen-Uhr mit
 // Bewegung folgt der Szenen-Uhr (bus.clock) – genau wie die Physik
@@ -31,6 +33,7 @@ import {
   SIGN_THICK,
   type SignCollider,
   swingAngle,
+  type BoardCollider,
   type TrampolineCollider,
   trampolineX,
   type WindmillCollider,
@@ -340,6 +343,80 @@ const Sign = memo(function Sign({ sign, bus }: { sign: SignCollider; bus: BusRef
   );
 });
 
+/** Torwand-Feld: Tafel mit Loch (Dicke wie die Physik), weißer Lochrand auf
+ *  der Vorderseite, Pfosten außen bis zum Boden. Mitte im Ursprung. */
+function boardModel(b: BoardCollider): THREE.Object3D {
+  const g = new THREE.Group();
+  const shape = new THREE.Shape();
+  shape.moveTo(-b.halfW, -b.halfH);
+  shape.lineTo(b.halfW, -b.halfH);
+  shape.lineTo(b.halfW, b.halfH);
+  shape.lineTo(-b.halfW, b.halfH);
+  shape.closePath();
+  const hole = new THREE.Path();
+  hole.absarc(b.hole.x, b.hole.y, b.hole.r, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: SIGN_THICK * 2, bevelEnabled: false, curveSegments: 20 });
+  geo.translate(0, 0, -SIGN_THICK);
+  g.add(new THREE.Mesh(geo, lowpoly("#2F8F4E")));
+  // Weiße Kante oben und unten (Felder stoßen seitlich aneinander)
+  for (const side of [1, -1]) {
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(b.halfW * 2, 0.06, SIGN_THICK * 2 + 0.01), lowpoly("#F4F4F0"));
+    edge.position.y = side * (b.halfH - 0.03);
+    g.add(edge);
+  }
+  if (b.post) {
+    // vom Boden (y = 0) bis zur Oberkante der Tafel
+    const height = b.y + b.halfH;
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, height, 8), lowpoly("#D9DDE1"));
+    post.position.set(b.post * (b.halfW + 0.045), height / 2 - b.y, 0);
+    g.add(post);
+  }
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
+const Board = memo(function Board({ board, bus }: { board: BoardCollider; bus: BusRef }) {
+  const rim = useRef<THREE.Group>(null);
+  const glow = useRef<THREE.Mesh>(null);
+  const model = useMemo(() => boardModel(board), [board]);
+  // Lochrand: Rohr halb in der Vorderseite, innen bündig mit dem Loch
+  const rimGeo = useMemo(() => new THREE.TorusGeometry(board.hole.r + 0.03, 0.03, 6, 28), [board]);
+  const glowGeo = useMemo(() => new THREE.TorusGeometry(board.hole.r + 0.03, 0.07, 6, 28), [board]);
+  const glowMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: "#FFD54A", transparent: true, opacity: 0, depthWrite: false }),
+    [],
+  );
+  useEffect(
+    () => () => {
+      model.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      rimGeo.dispose();
+      glowGeo.dispose();
+      glowMat.dispose();
+    },
+    [model, rimGeo, glowGeo, glowMat],
+  );
+  useFrame(() => {
+    const r = rim.current;
+    if (!r) return;
+    const since = bus.current.clock - (bus.current.ringPass[board.id] ?? -99);
+    const k = since >= 0 && since < FLASH ? 1 - since / FLASH : 0;
+    r.scale.setScalar(1 + k * 0.12);
+    glowMat.opacity = k * 0.85;
+    if (glow.current) glow.current.visible = k > 0;
+  });
+  return (
+    <group position={[board.x, board.y, board.z]}>
+      <primitive object={model} />
+      <group ref={rim} position={[board.hole.x, board.hole.y, SIGN_THICK]}>
+        <mesh geometry={rimGeo} material={lowpoly("#FFFFFF")} />
+        <mesh ref={glow} geometry={glowGeo} material={glowMat} visible={false} />
+      </group>
+    </group>
+  );
+});
+
 /** Laternenmast, einmal gebaut und gebacken (steht still). */
 function lampModel(l: LampCollider): THREE.Object3D {
   const g = new THREE.Group();
@@ -525,6 +602,8 @@ export const TrickProps = memo(function TrickProps({
           <Lamp key={prop.id} lamp={prop} />
         ) : prop.kind === "trampoline" ? (
           <Trampoline key={prop.id} tramp={prop} bus={bus} />
+        ) : prop.kind === "board" ? (
+          <Board key={prop.id} board={prop} bus={bus} />
         ) : (
           <Fan key={prop.id} fan={prop} calm={calm} />
         ),

@@ -85,6 +85,17 @@ export type TrickProp =
       force: number;
     }
   | {
+      /** Torwand-Feld: Tafel mit einem Loch (game/physics.ts → BoardCollider). */
+      kind: "board";
+      x: number;
+      y: number;
+      z: number;
+      halfW: number;
+      halfH: number;
+      hole: { x: number; y: number; r: number };
+      post?: 1 | -1;
+    }
+  | {
       /** Trampolin vor einer Tonne: Sprungtuch-Mitte bei x/z, Oberkante y. */
       kind: "trampoline";
       x: number;
@@ -143,6 +154,21 @@ const ring = (x: number, y: number, z: number, radius: number, motion?: RingMoti
 /** Reifenschaukel: Autoreifen am Seil, pendelt über alle Tonnen (±1 m). */
 const tire = (period: number): TrickProp =>
   ring(0, 2.8, 1.5, 0.62, { kind: "swing", length: 3.5, amp: Math.asin(1.0 / 3.5), period });
+
+/** Torwand vor den Tonnen: 3 Felder nebeneinander, je Tonne ein Loch in der
+ *  Wurfbahn (Felder 0–2 = Tonne links, Mitte, rechts). Hoch genug, dass sie
+ *  auf dem Bildschirm über den Tonnen steht und keine verdeckt. */
+const goalWall = (r: number): TrickProp[] =>
+  ([-1, 0, 1] as const).map((side) => ({
+    kind: "board",
+    x: side * 1.0,
+    y: 2.75,
+    z: 1.5,
+    halfW: 0.5,
+    halfH: 0.6,
+    hole: { x: 0, y: 0.05, r },
+    post: side === 0 ? undefined : side,
+  }));
 
 /** Windfeld vor den Tonnen (zwischen Scheitel und Öffnung). */
 const fan = (x: number, force: number): TrickProp => ({
@@ -424,6 +450,8 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide" | "binFl
           ? "💡"
           : p.kind === "fence"
           ? "🚧"
+          : p.kind === "board"
+          ? "🥅"
           : p.kind === "windmill"
           ? "🌀"
           : p.kind === "trampoline"
@@ -487,6 +515,8 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
     if (p.kind === "sign") return { ...p, x: -p.x, yaw: -p.yaw };
     if (p.kind === "lamp") return { ...p, x: -p.x, side: (-p.side) as 1 | -1 };
     if (p.kind === "fence") return p;
+    if (p.kind === "board")
+      return { ...p, x: -p.x, hole: { ...p.hole, x: -p.hole.x }, post: p.post && ((-p.post) as 1 | -1) };
     if (p.kind === "trampoline")
       return { ...p, x: -p.x, slide: p.slide && { ...p.slide, phase: (p.slide.phase ?? 0) + Math.PI } };
     const m = p.motion;
@@ -559,6 +589,8 @@ export const PARCOURS: ParcoursLevel[] = [
     bonus: "swish",
     task: "trick.task.trampolineLanes",
   },
+  // Torwand: durchs Loch vor DEINER Tonne
+  { id: 3, props: goalWall(0.42), lanes: [[0], [1], [2]], bonus: "swish", task: "trick.task.board" },
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */

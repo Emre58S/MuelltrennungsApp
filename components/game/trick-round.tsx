@@ -209,6 +209,8 @@ export function TrickRound({
     const motion = ring?.kind === "ring" ? ring.motion : undefined;
     const id = has("trampoline")
       ? "trampoline"
+      : has("board")
+      ? "board"
       : level.binFlap
         ? "flap"
         : hasWind(level)
@@ -346,6 +348,7 @@ export function TrickRound({
     if (bin === level.target) {
       // In der richtigen Tonne – aber ohne den verlangten Trick
       const needsSign = level.requires.some((i) => level.props[i]?.kind === "sign");
+      const needsBoard = level.requires.some((i) => level.props[i]?.kind === "board");
       const needsTrampoline = level.requires.some(
         (i) => level.props[i]?.kind === "trampoline" && !(outcome?.props ?? []).includes(i),
       );
@@ -354,7 +357,9 @@ export function TrickRound({
         t(
           needsTrampoline
             ? "trick.noTrampoline"
-            : needsSign
+            : needsBoard
+              ? "trick.noBoard"
+              : needsSign
               ? "trick.noSign"
               : rings > 1
                 ? "trick.noTrickBoth"

@@ -196,7 +196,27 @@ export type PropCollider =
   | FanCollider
   | SignCollider
   | LampCollider
-  | TrampolineCollider;
+  | TrampolineCollider
+  | BoardCollider;
+
+/** Torwand-Feld: aufrechte Tafel (zeigt zur Kamera) mit einem runden Loch –
+ *  durchs Loch zählt wie ein durchflogener Reifen, die Tafel prallt ab.
+ *  Mehrere Felder nebeneinander ergeben die Torwand (je Tonne ein Loch). */
+export type BoardCollider = {
+  kind: "board";
+  id: number;
+  /** Mitte der Tafel. */
+  x: number;
+  y: number;
+  z: number;
+  halfW: number;
+  halfH: number;
+  /** Loch-Mitte relativ zur Tafel-Mitte, Radius. */
+  hole: { x: number; y: number; r: number };
+  /** Nur Aussehen: Standpfosten an dieser Seite (äußere Felder; steht neben
+   *  den Tonnen, außerhalb jeder Wurfbahn – daher ohne Kollision). */
+  post?: 1 | -1;
+};
 
 /** Radius des Laternenmasts. */
 export const LAMP_R = 0.07;
@@ -306,7 +326,7 @@ export type BallEvent =
       type: "bounce";
       bin: number | null;
       speed: number;
-      part: BinPart | "ring" | "blade" | "sign" | "fence" | "lamp" | "trampoline" | "ground";
+      part: BinPart | "ring" | "blade" | "sign" | "fence" | "lamp" | "trampoline" | "board" | "ground";
       /** Reifen (Trickwürfe), falls einer berührt wurde. */
       prop?: number;
     }
@@ -575,6 +595,43 @@ function collideSign(ball: Ball, sign: SignCollider, events: BallEvent[]) {
   if (!sign.look) events.push({ type: "pass", prop: sign.id });
 }
 
+/** Torwand-Feld: Tafel (Dicke wie ein Schild) mit rundem Loch. Im Loch ist
+ *  nur der Lochrand im Weg, sonst die Fläche bzw. ihre Kanten. */
+function collideBoard(ball: Ball, b: BoardCollider, prev: THREE.Vector3, events: BallEvent[]) {
+  const wx = ball.p.x - b.x;
+  const wy = ball.p.y - b.y;
+  const wz = ball.p.z - b.z;
+  if (Math.abs(wz) > SIGN_THICK + BALL_R + 0.05 || Math.abs(wx) > b.halfW + BALL_R || Math.abs(wy) > b.halfH + BALL_R)
+    return;
+  const hx = wx - b.hole.x;
+  const hy = wy - b.hole.y;
+  const rho = Math.hypot(hx, hy);
+  // Durchs Loch: Seite gewechselt, innen genug Platz
+  const before = prev.z - b.z;
+  if (Math.sign(before) !== Math.sign(wz) && rho < b.hole.r - BALL_R * 0.5) events.push({ type: "pass", prop: b.id });
+  const ld = wz - THREE.MathUtils.clamp(wz, -SIGN_THICK, SIGN_THICK);
+  let d: number;
+  if (rho < b.hole.r) {
+    // Im Loch: nächster fester Punkt liegt auf dem Lochrand
+    const gap = b.hole.r - rho;
+    d = Math.hypot(gap, ld);
+    if (d >= BALL_R) return;
+    if (rho < 1e-6 || d < 1e-6) return;
+    n.set((-hx / rho) * gap, (-hy / rho) * gap, ld).divideScalar(d);
+  } else {
+    const lx = wx - THREE.MathUtils.clamp(wx, -b.halfW, b.halfW);
+    const ly = wy - THREE.MathUtils.clamp(wy, -b.halfH, b.halfH);
+    d = Math.hypot(lx, ly, ld);
+    if (d >= BALL_R) return;
+    if (d < 1e-6) n.set(0, 0, Math.sign(wz) || 1);
+    else n.set(lx / d, ly / d, ld / d);
+  }
+  const speed = bounce(ball, n, BALL_R - d, SIGN_RESTITUTION);
+  if (speed <= 0.4) return;
+  ball.touched = true;
+  events.push({ type: "bounce", bin: null, speed, part: "board", prop: b.id });
+}
+
 /** Laternenmast: Mast (senkrechter Zylinder) und Ausleger (Kasten oben). */
 function collideLamp(ball: Ball, lamp: LampCollider, events: BallEvent[]) {
   const p = ball.p;
@@ -679,6 +736,7 @@ export function stepBall(
       else if (prop.kind === "sign") collideSign(ball, prop, events);
       else if (prop.kind === "lamp") collideLamp(ball, prop, events);
       else if (prop.kind === "trampoline") collideTrampoline(ball, prop, prevP, events);
+      else if (prop.kind === "board") collideBoard(ball, prop, prevP, events);
       else blowFan(ball, prop, h);
     }
 
