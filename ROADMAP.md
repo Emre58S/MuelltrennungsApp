@@ -418,8 +418,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   8/10): jetzt Restmüll, Fakt „In den meisten Orten …“, Begründung „Wird sicher verbrannt“.
 - [x] „Alles zurücksetzen“ (einstellung.tsx) löscht Kampagnen-Sterne nicht. (e30d461):
   so gewollt – Text sagt jetzt „Sterne (Pfad und Tricks) bleiben“.
-- [ ] Ghost-Ideen: Gleichstand „gleich schnell (0,1 s)“, `\b` in isOtherVersionCode.
-  - [x] `\b` (f1ae3d7, Tester 8/10, EAS auto + preview) + Test. Offen: Gleichstand-Text.
+- [x] Ghost-Ideen: Gleichstand „gleich schnell (0,1 s)“, `\b` in isOtherVersionCode.
+  - [x] `\b` (f1ae3d7, Tester 8/10, EAS auto + preview) + Test.
+  - [x] Gleichstand-Text (158e7a7 + 659d775 + 3efb96c, Tester 6/10 → 8/10): Erklärzeile
+    nur, wenn die Tabelle sie zeigt. Offen: eigener Ghost, Unterschied nur in ms → „knapp“.
 
 ---
 
