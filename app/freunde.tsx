@@ -33,6 +33,7 @@ const ERROR_TEXT: Record<FriendError, TranslationKey> = {
   unknown: "friends.err.unknown",
   self: "friends.err.self",
   full: "friends.err.full",
+  friendFull: "friends.err.friendFull",
   setup: "rank.setup",
   network: "rank.error",
 };
@@ -45,9 +46,11 @@ export default function FriendsScreen() {
   const [state, setState] = useState<"idle" | "error" | "setup">("idle");
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState<{ text: string; ok: boolean } | null>(null);
+  const [adding, setAdding] = useState(false);
   const busy = useRef(false);
 
-  const load = useCallback(() => {
+  /** Laden; `quiet`: Fehler nur als Hinweis (die Seite bleibt stehen). */
+  const load = useCallback((quiet = false) => {
     if (!leaderboardReady) return;
     Promise.all([getFriendCode(), fetchFriends()])
       .then(([mine, list]) => {
@@ -55,17 +58,22 @@ export default function FriendsScreen() {
         setFriends(list);
         setState("idle");
       })
-      .catch((e: unknown) => setState(isMissingOnServer(e) ? "setup" : "error"));
-  }, []);
+      .catch((e: unknown) => {
+        if (quiet) setNote({ text: t("rank.error"), ok: false });
+        else setState(isMissingOnServer(e) ? "setup" : "error");
+      });
+  }, [t]);
 
-  useFocusEffect(load);
+  useFocusEffect(useCallback(() => load(), [load]));
 
   const add = async () => {
     // Sperre gegen Doppeltippen
     if (busy.current) return;
     busy.current = true;
+    setAdding(true);
     const result = await addFriend(draft);
     busy.current = false;
+    setAdding(false);
     if ("error" in result) {
       setNote({ text: t(ERROR_TEXT[result.error]), ok: false });
       return;
@@ -73,18 +81,18 @@ export default function FriendsScreen() {
     sfx("tap");
     setDraft("");
     setNote({ text: t("friends.added", { name: result.name }), ok: true });
-    load();
+    load(true);
   };
 
   const askRemove = (friend: Friend) => {
-    Alert.alert(t("friends.remove", { name: friend.name }), undefined, [
+    Alert.alert(t("friends.remove", { name: friend.name }), t("friends.removeInfo", { name: friend.name }), [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("friends.removeYes"),
         style: "destructive",
         onPress: () => {
           removeFriend(friend.code)
-            .then(load)
+            .then(() => load(true))
             .catch(() => setNote({ text: t("rank.error"), ok: false }));
         },
       },
@@ -109,7 +117,7 @@ export default function FriendsScreen() {
           <AppText tone="textSecondary" center>
             {t(state === "setup" ? "rank.setup" : "rank.error")}
           </AppText>
-          <Button title={t("common.retry")} icon="refresh-cw" variant="secondary" onPress={load} />
+          <Button title={t("common.retry")} icon="refresh-cw" variant="secondary" onPress={() => load()} />
         </View>
       ) : !code || !friends ? (
         <ActivityIndicator color={colors.primary} />
@@ -154,7 +162,10 @@ export default function FriendsScreen() {
                 {note.text}
               </AppText>
             )}
-            <Button title={t("friends.addGo")} icon="user-plus" onPress={add} disabled={!draft.trim()} />
+            <View style={styles.row}>
+              <Button title={t("friends.addGo")} icon="user-plus" onPress={add} disabled={adding || !draft.trim()} />
+              {adding && <ActivityIndicator color={colors.primary} />}
+            </View>
           </View>
 
           {/* Liste */}
@@ -194,6 +205,7 @@ export default function FriendsScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { alignItems: "center", gap: Spacing.sm },
+  row: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   card: { padding: Spacing.md, borderRadius: Radius.lg, borderWidth: 1, gap: Spacing.sm },
   input: {
     borderWidth: 2,

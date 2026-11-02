@@ -307,7 +307,7 @@ export async function fetchOnlineBoard(mode: OnlineMode, span: "week" | "all", l
 /* ── Freunde (supabase/freunde.sql) ─────────────────────────── */
 
 export type Friend = { name: string; code: string; sprint: number | null; survival: number | null };
-export type FriendError = "invalid" | "unknown" | "self" | "full" | "setup" | "network";
+export type FriendError = "invalid" | "unknown" | "self" | "full" | "friendFull" | "setup" | "network";
 
 /** Freundes-Code aus einer Eingabe: 6 Zeichen ohne 0/O/1/I, Bindestrich und
  *  Leerzeichen egal, klein geschrieben geht auch (oder null). */
@@ -326,6 +326,7 @@ function friendError(e: unknown): FriendError {
   if (detail.includes("unbekannter Code")) return "unknown";
   if (detail.includes("eigener Code")) return "self";
   if (detail.includes("zu viele Freunde")) return "full";
+  if (detail.includes("Liste des Freundes voll")) return "friendFull";
   return "network";
 }
 
