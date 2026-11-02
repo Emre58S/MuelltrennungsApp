@@ -281,7 +281,8 @@ export function weekStart(day = todayKey()): string {
 /** Rangliste eines Online-Modus (bester Lauf je Spieler, „richtig“ zählt):
  *  diese Woche oder Allzeit, dazu der eigene Platz. */
 export async function fetchOnlineBoard(mode: OnlineMode, span: "week" | "all", limit = 50): Promise<BoardResult> {
-  await onlineSending;
+  // Höchstens 3 s auf den eigenen Lauf warten – bei schlechtem Netz trotzdem laden
+  await Promise.race([onlineSending, new Promise((done) => setTimeout(done, 3000))]);
   const player = await getPlayer();
   const since = span === "week" ? weekStart() : null;
   const [rows, mine] = await Promise.all([

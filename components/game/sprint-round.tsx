@@ -703,6 +703,7 @@ function SprintEnd({
       : [t("sprint.row.throws"), run.throws.length, ghost.throws.length],
   ];
   const heads = [t("ghost.me"), `👻 ${ghostName}`];
+  const rankLock = useRef(0);
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(`${title} ${run.correct} : ${ghost.correct}`);
   }, [title, run.correct, ghost.correct]);
@@ -790,7 +791,12 @@ function SprintEnd({
             title={t("home.rank")}
             icon="award"
             variant="secondary"
-            onPress={() => router.push({ pathname: "/rangliste", params: { tab: kind } })}
+            onPress={() => {
+              // Sperre gegen Doppeltippen (sonst zwei Ranglisten übereinander)
+              if (Date.now() < rankLock.current) return;
+              rankLock.current = Date.now() + 900;
+              router.push({ pathname: "/rangliste", params: { tab: kind } });
+            }}
           />
         )}
         <Button title={t("duel.menu")} variant="secondary" onPress={onMenu} />

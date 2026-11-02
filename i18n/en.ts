@@ -175,7 +175,7 @@ export const en: Translations = {
   "rank.myPlace": "Your place: {rank}",
   "rank.today": "today",
   "rank.place": "#{rank} on the leaderboard",
-  "rank.setup": "This leaderboard is being set up. Your runs are already saved.",
+  "rank.setup": "This leaderboard is being set up. Please check back later.",
   "rank.week": "This week",
   "rank.allTime": "All time",
   "rank.correct": "{n} correct",

@@ -174,7 +174,7 @@ export const de = {
   "rank.myPlace": "Dein Platz: {rank}",
   "rank.today": "heute",
   "rank.place": "Platz {rank} in der Rangliste",
-  "rank.setup": "Diese Rangliste wird gerade eingerichtet. Deine Läufe werden schon gespeichert.",
+  "rank.setup": "Diese Rangliste wird gerade eingerichtet. Schau später wieder vorbei.",
   "rank.week": "Diese Woche",
   "rank.allTime": "Allzeit",
   "rank.correct": "{n} richtig",
