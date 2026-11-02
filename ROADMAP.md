@@ -164,6 +164,14 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
 ### R3 – Täglich wiederkommen (Muss)
 - [ ] **R3a** (F2) 3 Tagesmissionen (z. B. „5× Glas richtig“, „Serie 8“,
   „1 Online-Runde“) – sichtbar oben im Pfad, Belohnung XP/Truhe.
+  - [x] Teil 1 (764ab4e + 804580e, Tester 7/10, EAS auto + preview): game/missions.ts
+    (+Tests) – je Tag fest: „{Tonne}: 5 richtig“ (nur Tonnen der aktuellen Welt),
+    abwechselnd „6 in Folge“/„20 richtig“, „Eine Station schaffen“; zählt aus allen
+    Runden (queueThrowRecord), je +30 XP genau einmal; Karte oben im Pfad.
+  - [ ] Teil 2 (als Nächstes): Rückmeldung beim Schaffen – kurzer Hinweis in der
+    Runde („✓ Mission: +30 XP“) und Mission-XP im Endbildschirm mitzählen.
+  - Danach: „1 Online-Runde“ erst mit R4; Belohnung Truhe mit R3c; Flamme zählt
+    Mission mit R3b. Randfall: Würfe kurz vor Mitternacht zählen ggf. für den neuen Tag.
 - [ ] **R3b** Tagesaufgabe = besondere Station im Pfad (goldener Kreis), Flamme
   zählt bei Tagesaufgabe ODER einer Mission.
 - [ ] **R3c** Tagesbelohnung (Truhe): Spur-Farben, Tonnen-Aufkleber,
