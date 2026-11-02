@@ -224,6 +224,14 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     11–12 oder angepasst; Startregel kürzen (wenig Deutsch); Mission „1 Online-Runde“.
 - [ ] **R4b** Survival: Ohne Fehler, aber Tempo steigt – nach max. ~30 s
   Höchsttempo; wer länger durchhält, gewinnt.
+  - [x] Teil 1 (5d2b201 + 5d0469d, Tester 8/10, EAS auto + preview): Karte 🛡️ im
+    Online-Bereich, `/runde?mode=survival` – gleiche Runde wie der Sprint
+    (sprint-round.tsx, kind="survival"; game/survival.ts +Tests): je Gegenstand 3 s →
+    1,1 s (Höchsttempo nach 30 s, Schluss nach 60 s), Balken unter dem Gegenstand,
+    falsch/zu langsam = vorbei (mit Lern-Hinweis), Uhr läuft hoch, „Ghost ist raus“;
+    Gegner = eigener Bestlauf von heute oder Übungs-Ghost (scheidet bei 10/11 aus).
+  - Offen: Gegner aus dem Netz/Freund/Rangliste (R4d–f); Uhr läuft hinter dem
+    Beenden-Dialog weiter (auch Sprint); Balken zum Ende in Warnfarbe.
 - [ ] **R4c** Trick-Battle (braucht R5): beide spielen denselben Parcours mit
   denselben Gegenständen (Seed), Zeit je Parcours 20–30 s, Punkte wie in R5
   (falsch 0 · richtig 1 · Trick 3 · Swish +1) – Sortieren entscheidet mit.
