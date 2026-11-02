@@ -254,6 +254,14 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
 - [ ] **R4f** Ranglisten je Modus (Woche + Allzeit), eigener Platz immer sichtbar.
   Zeit/Survival/Tricks gibt es danach **nur noch online mit Rangliste**
   (solo nur als Kampagnen-Station ohne Rangliste).
+  - [x] Teil 1 (10d56aa, Tester 8/10, EAS auto + preview): Rangliste hat vorn die Reiter
+    Zeit-Sprint + Survival mit „Diese Woche“ (ab Montag) / „Allzeit“, gewertet „N richtig“
+    (bester Lauf je Spieler, aus online_runs); SQL online_top/online_my_rank in
+    supabase/online.sql (**Nutzer muss die Datei erneut ausführen**).
+  - Offen: eigener Text, wenn die SQL-Funktion fehlt (jetzt „Keine Verbindung“);
+    Sprint-Gleichstand nach Zeit?; „Survival“ neben „Ohne Fehler“ verwechselbar →
+    alte Reiter Zeit/Ohne Fehler ausblenden (Rest von R4f); Link zur Rangliste im
+    Sprint-/Survival-Endbildschirm; Tricks erst mit R4c.
 - [ ] **R4g** (1.1) **Live-Duell parallel** auf zwei Handys (G4, Supabase
   Realtime): beide werfen gleichzeitig denselben Gegenstand, wer zuerst richtig
   trifft, holt den Punkt; Variante: gleiche Gegenstände, unterschiedliche
