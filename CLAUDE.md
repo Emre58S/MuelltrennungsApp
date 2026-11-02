@@ -145,5 +145,8 @@ wenig Deutsch, nie strafend.
   Verlegen von Knöpfen mit anpassen.
 - Wurf-Modi ohne Wartezeit (Sprint): wahlloses Dauerwischen schlägt Nachdenken –
   kurze Sperre nach jedem Wurf + Pause nach Fehlwurf einbauen.
+- Emre pusht parallel auf `auto-improve` (2.11.): vor dem Push `git fetch` +
+  `git rebase origin/auto-improve`, Prüfungen erneut; danach lokalen `sdk-58`
+  per `git branch -f sdk-58 auto-improve` nachziehen (nur wenn ungepusht).
 - Node-Edit-Skripte: `String.replace(a, b)` deutet `$'`/`$&` in b als Muster
   (SQL-Regex `…$'` zerstörte online.sql) – `split(a).join(b)` oder Funktion nutzen.
