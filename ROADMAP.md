@@ -291,10 +291,12 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     im Sprint-/Survival-Endbildschirm öffnet den passenden Reiter (?tab=), wartet ≤ 3 s
     auf den eben gesendeten Lauf, Doppeltipp-Sperre; fehlt das SQL (404) → „Diese
     Rangliste wird gerade eingerichtet“ statt „Keine Verbindung“.
-  - Offen: Sprint-Gleichstand nach Zeit?; „Survival“ neben „Ohne Fehler“ verwechselbar →
-    alte Reiter Zeit/Ohne Fehler ausblenden (Rest von R4f, Modi dann nur noch als
-    Kampagnen-Station); „Erneut versuchen“ auch im Zustand „wird eingerichtet“;
-    Tricks erst mit R4c.
+  - [x] Teil 3 (7a367cf, Tester 8/10, EAS auto + preview): alte Reiter „Gegen die Zeit“/
+    „Ohne Fehler“ ausgeblendet; beide Modi (Chips im Pfad) solo ohne Rangliste (BOARD nur
+    noch zielwurf), kein Platz-Hinweis mehr im Endbildschirm; lokaler Bestwert bleibt.
+  - Offen: Sprint-Gleichstand nach Zeit?; „Erneut versuchen“ auch im Zustand „wird
+    eingerichtet“; Tricks erst mit R4c; Hinweis „Für die Rangliste: Zeit-Sprint“ im
+    Endbildschirm der Solo-Modi; FixedBoard zeit/runden nur noch Altdaten.
 - [ ] **R4g** (1.1) **Live-Duell parallel** auf zwei Handys (G4, Supabase
   Realtime): beide werfen gleichzeitig denselben Gegenstand, wer zuerst richtig
   trifft, holt den Punkt; Variante: gleiche Gegenstände, unterschiedliche
