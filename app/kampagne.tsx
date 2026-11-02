@@ -260,7 +260,7 @@ function Chip({
 const MISSION_EMOJI = { streak: "🔥", correct: "✅", station: "⭐" } as const;
 
 /** Die 3 Tagesmissionen mit Fortschritt (game/missions.ts). */
-type ChestResult = { reward: TrailReward | null; xp: number; opened: number };
+type ChestResult = { reward: TrailReward | null; xp: number; opened: number; levelUp: number | null };
 
 function MissionCard({
   day,
@@ -392,6 +392,11 @@ function MissionCard({
           <AppText variant="label" tone="onGoldSoft">
             {chest.reward ? `🎉 ${t("reward.new", { name: t(chest.reward.name) })}` : `🎁 ${t("chest.xp", { xp: chest.xp })}`}
           </AppText>
+          {chest.levelUp !== null && (
+            <AppText variant="label" tone="onGoldSoft">
+              ⬆ {t("game.levelUp", { level: chest.levelUp })}
+            </AppText>
+          )}
           {chest.reward && (
             <Pressable
               accessibilityRole="button"

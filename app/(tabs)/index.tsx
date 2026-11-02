@@ -64,6 +64,7 @@ import type { FlameStatus } from "@/utils/streak";
 import {
   flushThrowRecords,
   getFlame,
+  takeRescueNotice,
   getBoolean,
   getLevelProgress,
   getBinSkin,
@@ -287,12 +288,17 @@ export default function HomeScreen() {
             getBoolean(StorageKeys.HAS_SEEN_TUTORIAL, false),
           ]),
         )
-        .then(([flameNow, xp, today, seen]) => {
+        // „Gerettet“ nur beim ersten Besuch danach zeigen, später wie normal
+        .then(async ([flameNow, xp, today, seen]) => {
+          const rescueNew = flameNow.status === "rescued" && (await takeRescueNotice());
+          return [flameNow, xp, today, seen, rescueNew] as const;
+        })
+        .then(([flameNow, xp, today, seen, rescueNew]) => {
           if (!active) return;
           setSeenTutorial(seen);
           setDailyDone(today !== null);
           setStreak(flameNow.count);
-          setFlame(flameNow.status);
+          setFlame(flameNow.status === "rescued" && !rescueNew ? "ok" : flameNow.status);
           setTotalXP(xp);
         })
         .catch((error) => console.warn("[Home] Fortschritt konnte nicht geladen werden:", error))

@@ -62,6 +62,8 @@ export const StorageKeys = {
   /** Truhen: verdient (alle 3 Missionen eines Tages) und geöffnet. */
   CHESTS_EARNED: "muell_chests_earned",
   CHESTS_OPENED: "muell_chests_opened",
+  /** Tag, an dem der Hinweis „Flamme gerettet“ schon gezeigt wurde. */
+  FLAME_RESCUE_SEEN: "muell_flame_rescue_seen",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -246,6 +248,16 @@ export async function getStreakData(): Promise<{
     getItem(StorageKeys.STREAK_RESCUE),
   ]);
   return { count, lastDate, lastRescue };
+}
+
+/** „Flamme gerettet“ nur einmal zeigen: true beim ersten Abruf des Tages (merkt ihn sich). */
+export function takeRescueNotice(): Promise<boolean> {
+  return enqueue(async () => {
+    const today = todayKey();
+    if ((await getItem(StorageKeys.FLAME_RESCUE_SEEN)) === today) return false;
+    await setItem(StorageKeys.FLAME_RESCUE_SEEN, today);
+    return true;
+  });
 }
 
 /** Flamme für die Anzeige: Tage in Folge und ob sie heute gerettet wurde/werden kann. */
@@ -574,7 +586,13 @@ export async function getChests(): Promise<{ earned: number; opened: number }> {
 }
 
 /** Eine Truhe öffnen: neue Wurfspur oder XP (null = keine Truhe da). */
-export function openChest(): Promise<{ reward: TrailReward | null; xp: number; opened: number } | null> {
+export function openChest(): Promise<{
+  reward: TrailReward | null;
+  xp: number;
+  opened: number;
+  /** Neues Level durch die Truhen-XP (sonst null). */
+  levelUp: number | null;
+} | null> {
   return enqueue(async () => {
     const { earned, opened } = await getChests();
     if (earned <= opened) return null;
@@ -582,8 +600,8 @@ export function openChest(): Promise<{ reward: TrailReward | null; xp: number; o
     await setNumber(StorageKeys.CHESTS_OPENED, n);
     const reward = chestReward(n);
     const xp = reward ? 0 : CHEST_XP;
-    if (xp > 0) await addXP(xp);
-    return { reward, xp, opened: n };
+    const after = xp > 0 ? await addXP(xp) : null;
+    return { reward, xp, opened: n, levelUp: after?.leveledUp ? after.level : null };
   });
 }
 

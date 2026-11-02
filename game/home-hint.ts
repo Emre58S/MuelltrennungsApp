@@ -3,7 +3,7 @@
 // Auf dem Startschirm steht immer nur EIN Hinweis. Vorrang (oben gewinnt):
 //  1. Ganz neu (noch keine XP) → „Wirf in eine Tonne …“ (wie man startet)
 //  2. Flamme in Gefahr → heute spielen rettet sie
-//  3. Flamme gerade gerettet
+//  3. Flamme gerade gerettet (nur beim ersten Besuch danach, siehe takeRescueNotice)
 //  4. Tagesaufgabe noch offen (liegt in der Kampagne)
 //  5. Tagesbester im Ghost-Rennen (Online) – jemand anderes oder man selbst
 //  6. sonst: „Wirf in eine Tonne …“
