@@ -442,7 +442,7 @@ export const de = {
   "campaign.kind.boss": "Boss",
   "campaign.freePlay": "Freies Spiel",
   "campaign.headStart": "Du kennst schon viele Tonnen – die ersten Welten sind frei. Nochmal spielen bringt mehr Sterne.",
-  "campaign.end.bossEarly": "Für {goal} in Folge haben die Würfe nicht mehr gereicht – darum ist früher Schluss.",
+  "campaign.end.bossEarly": "Es waren nicht mehr genug Würfe für {goal} in Folge übrig – darum ist früher Schluss.",
   "campaign.end.missingStreak": "Beste Serie: {best}. Noch {n} mehr in Folge für den ersten Stern.",
   "campaign.trick": "Trick-Schule",
   "campaign.trickLevels": "Level {from}–{to}",
