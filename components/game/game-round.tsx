@@ -840,7 +840,8 @@ export function GameRound({
         ).catch(() => undefined);
       // Nur Perfekt-Treffer wackeln (dezent) – sonst zittert die Kamera im Dauerfeuer
       if (ts.perfect) shake(fx.current, thrown.free ? 0.032 : 0.022);
-      const spark = TRAIL_SPARKS[trailRef.current];
+      // Bio-Spritzer bleiben erdig (grün/braun) – Neon-Spritzer wirken bei Essensresten falsch
+      const spark = MATERIAL_BURST[itemMaterial(ts.item)] === "splash" ? undefined : TRAIL_SPARKS[trailRef.current];
       queueBurst(bus.current, {
         id,
         x: layout.bins[i].x,
