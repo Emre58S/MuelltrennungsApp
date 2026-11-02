@@ -317,7 +317,7 @@ export const de = {
   "share.sprint.score": "Im Zeit-Sprint habe ich {n} richtig sortiert. Schaffst du mehr? ♻️",
   "share.survival.win": "Ich habe {name} in Survival geschlagen: {n} richtig ohne Fehler! Schaffst du mehr? ♻️",
   "share.survival.score": "In Survival habe ich {n} richtig ohne Fehler geschafft. Schaffst du mehr? ♻️",
-  "share.code": "Spiel gegen mich: Online → Freunde → Code {code}",
+  "share.code": "Spiel gegen mich: Online → Freunde → Freund hinzufügen → {code}",
   "game.end.shareText": "♻️ Müll-Sortieren · Tagesaufgabe {date}\n{boxes}\n{correct}/{total} richtig · {score} Punkte",
   "game.end.dailyTitle": "Tagesaufgabe geschafft!",
   "game.end.level": "Level {level}",

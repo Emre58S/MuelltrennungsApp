@@ -780,15 +780,26 @@ function SprintEnd({
   ];
   const heads = [t("ghost.me"), `👻 ${ghostName}`];
   const rankLock = useRef(0);
-  // Teilen (ROADMAP R8a): Ergebnis + eigener Freundes-Code, damit man zurückfordern kann
+  // Teilen (ROADMAP R8a): Ergebnis + eigener Freundes-Code, damit man zurückfordern kann.
+  // Code schon jetzt laden – „Teilen“ wartet nie aufs Netz (fehlt er, ohne Code)
+  const [friendCode, setFriendCode] = useState<string | null>(null);
+  useEffect(() => {
+    if (!leaderboardReady) return;
+    let alive = true;
+    getFriendCode()
+      .then((c) => alive && setFriendCode(c))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
   const shareLock = useRef(0);
-  const share = async () => {
+  const share = () => {
     if (Date.now() < shareLock.current) return;
     shareLock.current = Date.now() + 1500;
     const won = !!rival && result === "win";
     let text = t(won ? `share.${kind}.win` : `share.${kind}.score`, { name: rival ?? "", n: run.correct });
-    const code = leaderboardReady ? await getFriendCode().catch(() => null) : null;
-    if (code) text += `\n${t("share.code", { code: formatFriendCode(code) })}`;
+    if (friendCode) text += `\n${t("share.code", { code: formatFriendCode(friendCode) })}`;
     Share.share({ message: text }).catch(() => undefined);
   };
   useEffect(() => {
@@ -885,7 +896,7 @@ function SprintEnd({
 
         <Button title={t("ghost.again")} icon="refresh-cw" size="lg" onPress={onAgain} />
         {run.correct > 0 && (
-          <Button title={t("game.end.share")} icon="share" variant="secondary" onPress={() => void share()} />
+          <Button title={t("game.end.share")} icon="share" variant="secondary" onPress={share} />
         )}
         {leaderboardReady && (
           <Button

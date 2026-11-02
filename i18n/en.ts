@@ -318,7 +318,7 @@ export const en: Translations = {
   "share.sprint.score": "I sorted {n} correctly in Time Sprint. Can you do better? ♻️",
   "share.survival.win": "I beat {name} in Survival: {n} correct without a mistake! Can you do better? ♻️",
   "share.survival.score": "I got {n} correct without a mistake in Survival. Can you do better? ♻️",
-  "share.code": "Play me: Online → Friends → code {code}",
+  "share.code": "Play me: Online → Friends → Add a friend → {code}",
   "game.end.shareText": "♻️ Waste Sorting · Daily challenge {date}\n{boxes}\n{correct}/{total} correct · {score} points",
   "game.end.dailyTitle": "Daily challenge done!",
   "game.end.level": "Level {level}",
