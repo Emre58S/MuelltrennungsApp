@@ -409,8 +409,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [x] Tutorial-Stufen aus STREAK_TIERS statt fest im Text. (faabbd3 + 14d45e0, Tester 8/10)
 - [x] Meldung beim 10. Treffer zeigt ×6, gezählt ×2 – prüfen. (e30d461, Tester 8/10):
   Rechnung stimmt (×6 gilt ab dem nächsten Wurf), Text jetzt „Ab jetzt ×N!“.
-- [ ] Tagesaufgabe: Endbildschirm überdeckt im letzten Wurf die Fehlerrückmeldung.
-- [ ] „Ohne Fehler“: Lernkarte länger sichtbar.
+- [x] Tagesaufgabe: Endbildschirm überdeckt im letzten Wurf die Fehlerrückmeldung.
+  (ef4c485, Tester 8/10): falscher letzter Wurf → Ende nach 1,9/2,6 s wie „Ohne Fehler“.
+  Offen: Zeiten 1800/2300 + 1900/2600 als gemeinsame Konstante.
+- [x] „Ohne Fehler“: Lernkarte länger sichtbar. (schon so: 1,8/2,3 s, Ende 1,9/2,6 s)
 - [ ] „Abgelaufene Medikamente“ steht als Sondermüll – meist Restmüll (UBA), Apotheke
   freiwillig. Kategorie/Fakt prüfen (in Kampagne vorerst ausgelassen).
 - [x] „Alles zurücksetzen“ (einstellung.tsx) löscht Kampagnen-Sterne nicht. (e30d461):
