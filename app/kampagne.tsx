@@ -11,7 +11,7 @@
 // Alle 3 Missionen → Truhe, die man auf der Missionskarte öffnet (R3c).
 
 import { router, useFocusEffect } from "expo-router";
-import { type ComponentRef, Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { type ComponentRef, Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, type ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { HubScreen } from "@/components/ui/hub";
@@ -166,7 +166,7 @@ export default function KampagneScreen() {
           dailyDone={!!daily}
           chestsWaiting={chests.earned - chests.opened}
           chest={chest}
-          onOpenChest={() => {
+          onOpenChest={() =>
             openChest()
               .then((res) => {
                 if (!res) return;
@@ -174,8 +174,8 @@ export default function KampagneScreen() {
                 setChest(res);
                 setChests((c) => ({ ...c, opened: res.opened }));
               })
-              .catch(() => undefined);
-          }}
+              .catch(() => undefined)
+          }
         />
       )}
 
@@ -274,7 +274,7 @@ function MissionCard({
   /** Verdiente, noch nicht geöffnete Truhen. */
   chestsWaiting: number;
   chest: ChestResult | null;
-  onOpenChest: () => void;
+  onOpenChest: () => Promise<void>;
 }) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
@@ -283,23 +283,30 @@ function MissionCard({
   // Öffnen: Truhe wackelt kurz, dann springt das Ergebnis auf
   const [wobble] = useState(() => new Animated.Value(0));
   const [pop] = useState(() => new Animated.Value(1));
-  const wobbling = useRef(false);
+  /** Gesperrt, bis das Ergebnis kurz zu sehen war – sonst überdeckt ein Doppeltipp die neue Spur. */
+  const busy = useRef(false);
   const openWithWobble = () => {
-    if (wobbling.current) return;
+    if (busy.current) return;
+    busy.current = true;
     tapHaptic();
+    const open = () =>
+      onOpenChest().finally(() => {
+        setTimeout(() => {
+          busy.current = false;
+        }, 1500);
+      });
     if (reduceMotion) {
-      onOpenChest();
+      open();
       return;
     }
-    wobbling.current = true;
     const step = (to: number) => Animated.timing(wobble, { toValue: to, duration: 70, useNativeDriver: true });
     Animated.sequence([step(1), step(-1), step(1), step(-1), step(0)]).start(() => {
-      wobbling.current = false;
-      onOpenChest();
+      open();
     });
   };
   const opened = chest?.opened;
-  useEffect(() => {
+  // Vor dem Zeichnen klein setzen – sonst blitzt die Karte einen Frame groß auf
+  useLayoutEffect(() => {
     if (opened === undefined || reduceMotion) return;
     pop.setValue(0.6);
     Animated.spring(pop, { toValue: 1, friction: 4, useNativeDriver: true }).start();
@@ -682,7 +689,7 @@ const styles = StyleSheet.create({
   },
   chestResult: { padding: Spacing.sm, borderRadius: Radius.md, gap: 2 },
   chestWrap: { alignSelf: "flex-start" },
-  chestChoose: { alignSelf: "flex-start", paddingVertical: 4 },
+  chestChoose: { alignSelf: "flex-start", paddingVertical: Spacing.sm, minHeight: 44, justifyContent: "center" },
   chip: {
     paddingHorizontal: Spacing.md - 4,
     paddingVertical: Spacing.sm,
