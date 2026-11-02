@@ -225,8 +225,11 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     game/sprint.ts +Tests): Tages-Strecke (60, ohne direkte Doppelte), Gegner = eigener
     bester Sprint von heute oder Übungs-Ghost (~9), Restzeit oben, letzte 3 s ticken;
     0,4 s Sperre nach jedem Wurf, 1,5 s Lernpause nach Fehlwurf (sonst gewinnt Dauerwischen).
-  - Offen: Gegner aus dem Netz (R4d), Freund (R4e), Rangliste (R4f); Übungs-Ghost evtl.
-    11–12 oder angepasst; Startregel kürzen (wenig Deutsch); Mission „1 Online-Runde“.
+  - [x] Teil 2 (9b7a947 + 8450257, Tester 7/10, EAS auto + preview): Startregel Sprint +
+    Survival als 3 kurze Zeilen mit Symbolen; Survival „mehr richtig gewinnt“ (wie Wertung).
+    Mission „1 Online-Runde“ siehe R3a.
+  - Offen: Freund herausfordern (R4e Teil 2); Übungs-Ghost evtl. 11–12 oder angepasst;
+    Regelzeilen linksbündig (Symbole untereinander).
 - [ ] **R4b** Survival: Ohne Fehler, aber Tempo steigt – nach max. ~30 s
   Höchsttempo; wer länger durchhält, gewinnt.
   - [x] Teil 1 (5d2b201 + 5d0469d, Tester 8/10, EAS auto + preview): Karte 🛡️ im
