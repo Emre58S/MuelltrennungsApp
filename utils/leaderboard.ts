@@ -362,6 +362,26 @@ export async function removeFriend(code: string): Promise<void> {
   await rpc("remove_friend", { p_player: player.id, p_code: code });
 }
 
+export type FriendRun = { name: string; code: string | null; correct: number | null; ms: number | null };
+
+/** Herausfordern: bester Lauf eines Freundes von heute (code null = heute noch
+ *  keiner). null = kein Freund, offline oder SQL noch nicht eingerichtet. */
+export async function fetchFriendRun(friendCode: string, mode: OnlineMode, day: string): Promise<FriendRun | null> {
+  if (!leaderboardReady) return null;
+  try {
+    const player = await getPlayer();
+    const rows = await rpc<FriendRun[]>("friend_run", {
+      p_player: player.id,
+      p_code: friendCode,
+      p_mode: mode,
+      p_day: day,
+    });
+    return rows?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Freunde mit ihren besten Läufen dieser Woche (ab Montag). */
 export async function fetchFriends(): Promise<Friend[]> {
   const player = await getPlayer();

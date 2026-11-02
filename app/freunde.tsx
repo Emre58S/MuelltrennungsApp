@@ -4,7 +4,7 @@
 // Freunde mit ihrem besten Zeit-Sprint und Survival-Lauf dieser Woche.
 // Server: supabase/freunde.sql (über utils/leaderboard.ts).
 
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Share, StyleSheet, TextInput, View } from "react-native";
 
@@ -83,6 +83,17 @@ export default function FriendsScreen() {
     setDraft("");
     setNote({ text: t("friends.added", { name: result.name }), ok: true });
     load(true);
+  };
+
+  /** Herausfordern: Modus wählen, dann gegen den Lauf des Freundes von heute. */
+  const challenge = (friend: Friend) => {
+    const go = (mode: "sprint" | "survival") =>
+      router.push({ pathname: "/runde", params: { mode, friend: friend.code } });
+    Alert.alert(t("friends.challenge", { name: friend.name }), t("friends.challengeInfo", { name: friend.name }), [
+      { text: `⏱️ ${t("sprint.title")}`, onPress: () => go("sprint") },
+      { text: `🛡️ ${t("survival.title")}`, onPress: () => go("survival") },
+      { text: t("common.cancel"), style: "cancel" },
+    ]);
   };
 
   const askRemove = (friend: Friend) => {
@@ -192,6 +203,7 @@ export default function FriendsScreen() {
                   >
                     ⏱️ {best(f.sprint)} · 🛡️ {best(f.survival)}
                   </AppText>
+                  <IconButton icon="play" label={t("friends.challenge", { name: f.name })} onPress={() => challenge(f)} />
                   <IconButton icon="x" label={t("friends.remove", { name: f.name })} onPress={() => askRemove(f)} />
                 </View>
               ))}

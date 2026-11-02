@@ -25,6 +25,7 @@ import {
   StorageKeys,
   todayKey,
 } from "@/utils/storage";
+import { cleanFriendCode } from "@/utils/leaderboard";
 import { setAudioModeAsync } from "expo-audio";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { playMusic, refreshMusicSetting } from "@/utils/music";
@@ -42,8 +43,10 @@ export default function GameScreen() {
     station: rawStation,
     bins: rawBins,
     random: rawRandom,
+    friend: rawFriend,
   } = useLocalSearchParams<{
     random?: string;
+    friend?: string;
     mode?: string;
     daily?: string;
     level?: string;
@@ -175,6 +178,7 @@ export default function GameScreen() {
         <SprintRound
           key={`${round}-${rawMode}`}
           kind={isSurvival ? "survival" : "sprint"}
+          friend={rawFriend ? (cleanFriendCode(rawFriend) ?? undefined) : undefined}
           onAgain={retryTrick}
           onExit={goBack}
         />

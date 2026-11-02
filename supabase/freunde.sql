@@ -2,7 +2,8 @@
 -- Freunde im Online-Bereich (ROADMAP R4e): Jeder Spieler hat einen festen
 -- Freundes-Code (z. B. K7Q-X2M). Wer einen Code eingibt, ist mit dem anderen
 -- befreundet – in beide Richtungen, ohne Anfrage. Die Liste zeigt je Freund
--- den besten Zeit-Sprint und Survival-Lauf dieser Woche. Höchstens 50 Freunde;
+-- den besten Zeit-Sprint und Survival-Lauf dieser Woche; „Herausfordern“ holt
+-- den Lauf des Freundes von heute als Ghost. Höchstens 50 Freunde;
 -- wer jemanden entfernt, sperrt ihn (er kann sich nicht wieder eintragen).
 -- Einmal im Supabase-Projekt ausführen: Dashboard → SQL Editor → einfügen → Run.
 -- Setzt supabase/rangliste.sql (players) und supabase/online.sql (online_runs)
@@ -157,7 +158,26 @@ as $$
   limit 50;
 $$;
 
+-- Herausfordern (ROADMAP R4e Teil 2): bester Lauf eines Freundes von heute in
+-- diesem Modus. Nur unter Freunden; ohne Lauf heute kommt nur der Name (code null).
+create or replace function public.friend_run(p_player uuid, p_code text, p_mode text, p_day text)
+returns table (name text, code text, correct integer, ms integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.name, r.code, r.correct, r.ms
+  from friend_codes c
+  join friends f on f.player = p_player and f.friend = c.player
+  join players p on p.id = c.player
+  left join online_runs r on r.player = c.player and r.mode = p_mode and r.day = p_day
+  where c.code = p_code
+  limit 1;
+$$;
+
 grant execute on function public.my_friend_code(uuid) to anon, authenticated;
 grant execute on function public.add_friend(uuid, text) to anon, authenticated;
 grant execute on function public.remove_friend(uuid, text) to anon, authenticated;
 grant execute on function public.friend_list(uuid, text) to anon, authenticated;
+grant execute on function public.friend_run(uuid, text, text, text) to anon, authenticated;

@@ -71,7 +71,7 @@ import {
 import { MISSION_XP, type MissionDay } from "@/game/missions";
 import { itemLimit, practiceSurvival, SURVIVAL_MAX_MS, survivalResult, survivalRun } from "@/game/survival";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { fetchRandomRun, leaderboardReady, submitOnlineRun } from "@/utils/leaderboard";
+import { fetchFriendRun, fetchRandomRun, leaderboardReady, submitOnlineRun } from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import {
@@ -117,10 +117,13 @@ const KIND = {
 
 export function SprintRound({
   kind = "sprint",
+  friend,
   onAgain,
   onExit,
 }: {
   kind?: SprintKind;
+  /** Freundes-Code: gegen dessen Lauf von heute statt gegen einen Zufallsgegner. */
+  friend?: string;
   onAgain: () => void;
   onExit: () => void;
 }) {
@@ -165,20 +168,30 @@ export function SprintRound({
       })
       .catch(() => undefined);
   }, []);
-  // Zufallsgegner: ähnlich stark wie der eigene Bestlauf (sonst wie der Übungs-Ghost)
+  // Zufallsgegner: ähnlich stark wie der eigene Bestlauf (sonst wie der Übungs-Ghost);
+  // mit `friend` der Lauf des Freundes von heute
   const [rival, setRival] = useState<{ name: string; run: GhostRun } | null>(null);
+  /** Herausgeforderter Freund hat heute noch keinen Lauf (Name zum Anzeigen). */
+  const [friendNoRun, setFriendNoRun] = useState<string | null>(null);
+  /** Lauf des Freundes kam nicht an (kein Netz, Server nicht eingerichtet). */
+  const [friendLost, setFriendLost] = useState(false);
   const [vsOwn, setVsOwn] = useState(false);
   /** Suche läuft noch (nur mit eingerichtetem Server) – ruhiger Hinweis statt Springen. */
   const [searching, setSearching] = useState(leaderboardReady);
   useEffect(() => {
     if (!loaded) return;
     let alive = true;
-    fetchRandomRun(kind, day, (best ?? practice).correct)
+    const search = friend
+      ? fetchFriendRun(friend, kind, day)
+      : fetchRandomRun(kind, day, (best ?? practice).correct);
+    search
       .then((found) => {
-        const throws = found ? decodeSprint(found.code, correctBins, bins.length) : null;
+        if (alive && friend && found && !found.code) setFriendNoRun(found.name);
+        if (alive && friend && !found) setFriendLost(true);
+        const throws = found?.code ? decodeSprint(found.code, correctBins, bins.length) : null;
         // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
         if (!alive || !found || !throws || phaseRef.current !== "ready") return;
-        const run = survival ? survivalRun(day, throws, found.ms) : sprintRun(day, throws);
+        const run = survival ? survivalRun(day, throws, found.ms ?? 0) : sprintRun(day, throws);
         if (run.throws.length > 0) setRival({ name: found.name, run });
       })
       .catch(() => undefined)
@@ -574,12 +587,22 @@ export function SprintRound({
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
               <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
                 {vsRival
-                  ? `🌍 ${t("online.rival", { name: rival.name, correct: rival.run.correct })}`
+                  ? `${friend ? "👫" : "🌍"} ${t("online.rival", { name: rival.name, correct: rival.run.correct })}`
                   : best
                     ? t(`${kind}.best`, { correct: best.correct })
                     : t(`${kind}.practice`)}
               </AppText>
             </View>
+            {friendNoRun && (
+              <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                👫 {t("friends.noRun", { name: friendNoRun })}
+              </AppText>
+            )}
+            {friendLost && (
+              <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                👫 {t("friends.runLost")}
+              </AppText>
+            )}
             {searching && !rival && (
               <AppText variant="caption" tone="textSecondary" style={styles.center}>
                 🌍 {t("online.searching")}
