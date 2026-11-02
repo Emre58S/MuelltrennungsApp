@@ -829,10 +829,10 @@ export function GameRound({
         y: BIN_OPENING_Y + 0.15,
         z: layout.bins[i].z + 0.1,
         // Funken in der Farbe der eigenen Wurfspur + je Material (Glas glitzert,
-        // Papier Schnipsel, Bio Blättchen …); Standardspur: Tonnenfarbe
+        // Papier Schnipsel, Bio Blättchen …); die Tonnenfarbe ist immer dabei
         colors: ts.perfect
           ? ["#FFD54A", "#FFFFFF", ...(spark ?? []), ...MATERIAL_SPARKS[itemMaterial(ts.item)]]
-          : [...(spark ?? [bin.colorLight]), ...MATERIAL_SPARKS[itemMaterial(ts.item)]],
+          : [...(spark ?? []), bin.colorLight, ...MATERIAL_SPARKS[itemMaterial(ts.item)]],
         count: ts.perfect ? 30 : feverNow ? 20 : 12,
         power: ts.perfect ? 1.25 : 1,
         ring: ts.perfect,
