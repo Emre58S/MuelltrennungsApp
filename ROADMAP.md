@@ -137,7 +137,11 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   - [x] Teil 2 (176b7c1 + f24e265, Tester 6/10 → 8/10, EAS auto + preview): Runde
     endet nach der Lernkarte, sobald 10 in Folge nicht mehr gehen; HUD „🔥 3/10“ +
     klein „noch N Würfe“/„noch 1 Wurf“; Zieltext „max. 20 Würfe“.
-  - Offen: Tonnen tauschen (Ankündigung + Animation); Truhe als Sieg (mit R3c);
+  - [x] Teil 3 (5b4bad0 + 5ac1e14, Tester 7/10, EAS auto + preview): alle 4 Würfe
+    (nach Treffer, nichts in der Luft) tauschen 2 Nachbar-Tonnen; Hinweis „🔄 Achtung,
+    Tonnen tauschen!“, Tonnen gleiten aneinander vorbei, Schilder solange aus, ~1,5 s
+    Wurfsperre. Auf dem Gerät prüfen: Tempo/Ausweichen, Zieltext-Pille Boss (Station 7).
+  - Offen: Truhe als Sieg (mit R3c);
     Endbildschirm erklärt frühes Ende („10 in Folge waren nicht mehr möglich“);
     Pille zeigt bis zum Ende noch Restwürfe; numberOfLines=1 kürzt lange Stations-
     Pillen („10/16 · Ziel 10“) evtl. mit „…“ – auf dem Gerät prüfen.
