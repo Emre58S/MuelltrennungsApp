@@ -648,6 +648,21 @@ function StationDot({
     };
   }, [isCurrent, reduceMotion, hop]);
 
+  // Neue Sterne (zurück aus der Runde): Sterne springen kurz auf (ROADMAP R6d)
+  const [pop] = useState(() => new Animated.Value(1));
+  const seenStars = useRef(stars);
+  // Vor dem Zeichnen klein setzen – sonst blitzen neue Sterne einen Frame groß auf
+  useLayoutEffect(() => {
+    const more = stars > seenStars.current;
+    seenStars.current = stars;
+    if (!more || reduceMotion) return;
+    pop.setValue(0.2);
+    Animated.sequence([
+      Animated.delay(350),
+      Animated.spring(pop, { toValue: 1, friction: 3, tension: 120, useNativeDriver: true }),
+    ]).start();
+  }, [stars, reduceMotion, pop]);
+
   const kind = station.kind ? `, ${t(`campaign.kind.${station.kind}`)}` : "";
   const label = unlocked
     ? `${t("campaign.station", { id: station.id })}${kind}, ${t("common.starsOf", { n: stars })}`
@@ -702,12 +717,14 @@ function StationDot({
         )}
       </Animated.View>
       {unlocked && stars > 0 && (
-        <AppText variant="label" style={styles.stars}>
-          {"★".repeat(stars)}
-          <AppText variant="label" color={colors.border}>
-            {"★".repeat(3 - stars)}
+        <Animated.View style={{ transform: [{ scale: pop }] }}>
+          <AppText variant="label" style={styles.stars}>
+            {"★".repeat(stars)}
+            <AppText variant="label" color={colors.border}>
+              {"★".repeat(3 - stars)}
+            </AppText>
           </AppText>
-        </AppText>
+        </Animated.View>
       )}
       {isCurrent && (
         <View style={[styles.goal, { backgroundColor: colors.goldSoft }]}>
