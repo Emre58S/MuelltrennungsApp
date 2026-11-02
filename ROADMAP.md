@@ -188,7 +188,7 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     AsyncStorage-Mock).
   - Offen (klein): erledigte Karte zurücknehmen bzw. „nochmal spielen“ zeigen;
     evtl. mittig als Kreis näher am Pfad.
-- [ ] **R3c** Tagesbelohnung (Truhe): Spur-Farben, Tonnen-Aufkleber,
+- [x] **R3c** Tagesbelohnung (Truhe): Spur-Farben, Tonnen-Aufkleber,
   später Sticker. Dieselbe Truhe auch als Boss-Sieg (aus R2e).
   - [x] Teil 1 (d76b01f, Tester 8/10, EAS auto + preview): alle 3 Tagesmissionen →
     1 Truhe (CHESTS_EARNED/OPENED), Öffnen auf der Missionskarte; 1./3./6. Truhe =
@@ -201,8 +201,11 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   - [x] Teil 3a (7288785 + Nachbesserung, Tester 7/10, EAS auto + preview): Truhe
     wackelt beim Öffnen, Ergebnis springt auf (Weniger Bewegung beachtet), Doppeltipp
     gesperrt, Knopf „Jetzt auswählen ›“ → Belohnungen.
-  - [ ] Teil 3b (als Nächstes): Level-Aufstieg durch Truhen-XP zeigen; Rettungstext
-    der Flamme nur kurz zeigen; später Truhen-Aufkleber für Tonnen. Rettungstext der Flamme nur kurz zeigen (F1-Idee).
+  - [x] Teil 3b (1992a92 + 3c1708b, Tester 8/10, EAS auto + preview): „⬆ Level N!“
+    + Level-up-Ton, wenn Truhen-XP einen Aufstieg bringen; „Flamme gerettet“ nur beim
+    ersten Startschirm-Besuch danach (takeRescueNotice).
+  - Später (nach R4/R5, bei R6/R8): Truhen-Aufkleber für Tonnen, Sticker; „2 Truhen“
+    in einer Runde; Rettungshinweis erst nach dem Anzeigen als gesehen merken. Rettungstext der Flamme nur kurz zeigen (F1-Idee).
 
 ### R4 – Online-Bereich (Muss: asynchron · später: live)
 Ein Bildschirm „Online“ mit 3 Karten: **Zeit-Sprint**, **Survival**,
