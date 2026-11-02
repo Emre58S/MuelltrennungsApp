@@ -94,6 +94,18 @@ export function isUnlocked(
   return true;
 }
 
+/** Nächste Belohnung, die man mit Sternen erreicht (die mit den wenigsten
+ *  fehlenden Sternen) – fürs Ziel vor Augen am Pfad. null = alle frei. */
+export function nextStarReward(progress: Progress): { reward: TrailReward | BinSkinReward; left: number } | null {
+  let best: { reward: TrailReward | BinSkinReward; left: number } | null = null;
+  for (const r of [...TRAILS, ...BIN_SKINS] as (TrailReward | BinSkinReward)[]) {
+    if (r.stars === undefined || progress.stars >= r.stars) continue;
+    const left = r.stars - progress.stars;
+    if (!best || left < best.left) best = { reward: r, left };
+  }
+  return best;
+}
+
 /** Text der Freischalt-Meldung je Art – „Stern“ allein läse sich wie ein Wertungsstern. */
 export function unlockMessageKey(reward: TrailReward | BinSkinReward): TranslationKey {
   return (BIN_SKINS as (TrailReward | BinSkinReward)[]).includes(reward) ? "reward.newSticker" : "reward.new";

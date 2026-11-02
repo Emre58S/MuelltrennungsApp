@@ -4,7 +4,7 @@
 import { describe, expect, test } from "@jest/globals";
 
 import { goldCount, MEDAL_AT, medalFor, medalUp, nextMedal } from "../mastery";
-import { isUnlocked, newlyUnlocked, TRAILS } from "../rewards";
+import { BIN_SKINS, isUnlocked, newlyUnlocked, nextStarReward, TRAILS } from "../rewards";
 
 describe("Medaillen", () => {
   test("Stufen nach richtigen Würfen", () => {
@@ -40,5 +40,13 @@ describe("Medaillen", () => {
     expect(isUnlocked(smaragd, { stars: 0, level: 0, gold: smaragd.gold! })).toBe(true);
     const fresh = newlyUnlocked({ stars: 0, level: 0, gold: smaragd.gold! - 1 }, { stars: 0, level: 0, gold: smaragd.gold! });
     expect(fresh.map((r) => r.id)).toEqual(["smaragd"]);
+  });
+});
+
+describe("Nächste Belohnung (Ziel vor Augen)", () => {
+  test("die mit den wenigsten fehlenden Sternen, null wenn alles frei", () => {
+    const next = nextStarReward({ stars: 0, level: 1 });
+    expect(next?.left).toBe(Math.min(...[...TRAILS, ...BIN_SKINS].flatMap((r) => (r.stars ? [r.stars] : []))));
+    expect(nextStarReward({ stars: 9999, level: 1 })).toBeNull();
   });
 });

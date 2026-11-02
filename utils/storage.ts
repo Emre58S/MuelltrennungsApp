@@ -654,14 +654,17 @@ export function saveTrickStars(level: number, stars: number): Promise<void> {
 
 /** Trick-Sterne (Summe) und XP-Level – daran hängen die Belohnungen. */
 export async function getRewardProgress(): Promise<{ stars: number; level: number; gold: number; chests: number }> {
-  const [stars, xp, items, chests] = await Promise.all([
+  const [stars, campaign, xp, items, chests] = await Promise.all([
     getTrickStars(),
+    getCampaignStars(),
     getNumber(StorageKeys.TOTAL_XP),
     getItemStats(),
     getNumber(StorageKeys.CHESTS_OPENED),
   ]);
+  // Eine Sternen-Währung: Kampagne und Trickwürfe zählen zusammen
+  const sum = (o: Record<string, number>) => Object.values(o).reduce((a, n) => a + n, 0);
   return {
-    stars: Object.values(stars).reduce((sum, n) => sum + n, 0),
+    stars: sum(stars) + sum(campaign),
     level: getLevelFromXP(xp),
     gold: goldCount(items),
     chests,

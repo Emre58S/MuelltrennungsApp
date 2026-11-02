@@ -59,6 +59,9 @@ export default function OnlineScreen() {
 
   return (
     <HubScreen title={t("hub.online.title")} subtitle={t("hub.online.subtitle")} emoji="🌍">
+      <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
+        {t("hub.group.quick")}
+      </AppText>
       <HubCard
         index={0}
         emoji="⏱️"
@@ -75,13 +78,16 @@ export default function OnlineScreen() {
         desc={t("hub.survival.desc")}
         onPress={() => router.push({ pathname: "/runde", params: { mode: "survival" } })}
       />
+      <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
+        {t("hub.group.friends")}
+      </AppText>
       <HubCard
         index={2}
-        emoji="👻"
-        color="#4DA3FF"
-        title={t("home.ghostShort")}
-        desc={t("home.ghostDesc")}
-        onPress={() => router.push({ pathname: "/runde", params: { mode: "ghost" } })}
+        emoji="👫"
+        color="#2BB6A8"
+        title={t("friends.title")}
+        desc={t("hub.friends.desc")}
+        onPress={() => router.push("/freunde")}
       />
       <HubCard
         index={3}
@@ -124,6 +130,14 @@ export default function OnlineScreen() {
       )}
       <HubCard
         index={4}
+        emoji="👻"
+        color="#4DA3FF"
+        title={t("home.ghostShort")}
+        desc={t("home.ghostDesc")}
+        onPress={() => router.push({ pathname: "/runde", params: { mode: "ghost" } })}
+      />
+      <HubCard
+        index={5}
         emoji="🤝"
         color="#FF8A3D"
         title={t("hub.duel.title")}
@@ -134,14 +148,9 @@ export default function OnlineScreen() {
           router.push({ pathname: "/runde", params: { mode: "duel" } });
         }}
       />
-      <HubCard
-        index={5}
-        emoji="👫"
-        color="#2BB6A8"
-        title={t("friends.title")}
-        desc={t("hub.friends.desc")}
-        onPress={() => router.push("/freunde")}
-      />
+      <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
+        {t("hub.group.rank")}
+      </AppText>
       <HubCard
         index={6}
         emoji="🏆"
@@ -155,6 +164,8 @@ export default function OnlineScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Überschrift einer Gruppe: wenige, klare Abschnitte statt 7 gleicher Karten
+  group: { marginTop: Spacing.sm },
   codeBox: { borderRadius: Radius.xl, padding: Spacing.md, gap: Spacing.sm },
   input: {
     borderWidth: 1,

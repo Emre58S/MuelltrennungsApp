@@ -33,6 +33,8 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { currentStation } from "@/game/campaign";
+
 import { createFx, shake } from "@/components/game/fx";
 import { MenuScene } from "@/components/game/menu-scene";
 import {
@@ -73,6 +75,7 @@ import {
   getTodayDaily,
   StorageKeys,
   todayKey,
+  getCampaignStars,
 } from "@/utils/storage";
 import { type DayGhost, fetchDayGhost } from "@/utils/leaderboard";
 import { homeHint } from "@/game/home-hint";
@@ -202,6 +205,14 @@ export default function HomeScreen() {
     if (pendingHub.current !== hub) return;
     pendingHub.current = null;
     router.push(HUBS[hub].route);
+    // Kampagne: ein Wurf = gleich weiterspielen (nächste Station). Der Pfad liegt
+    // darunter – nach der Runde sieht man dort Sterne und was als Nächstes kommt.
+    if (HUBS[hub].route === "/kampagne")
+      getCampaignStars()
+        .catch(() => ({}))
+        .then((stars) =>
+          router.push({ pathname: "/runde", params: { mode: "endless", station: currentStation(stars).id } }),
+        );
   }, []);
 
   const launch = useCallback(

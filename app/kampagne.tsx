@@ -20,6 +20,7 @@ import { press, tapHaptic } from "@/components/ui/press";
 import { type GameMode, MENU_MODES, startDaily, startGame } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef } from "@/game/bins";
+import { nextStarReward } from "@/game/rewards";
 import {
   type CampaignStars,
   currentStation,
@@ -43,6 +44,7 @@ import {
   getTodayDaily,
   grantCampaignHeadStart,
   getTrickStars,
+  getRewardProgress,
   type TrickStars,
 } from "@/utils/storage";
 import { sfx } from "@/utils/sfx";
@@ -91,6 +93,8 @@ export default function KampagneScreen() {
   const [trickStars, setTrickStars] = useState<TrickStars>({});
   const [missions, setMissions] = useState<MissionDay | null>(null);
   const [chests, setChests] = useState({ earned: 0, opened: 0 });
+  /** Ziel vor Augen: nächste Belohnung über Sterne (null = alle frei / lädt). */
+  const [nextReward, setNextReward] = useState<ReturnType<typeof nextStarReward>>(null);
   /** Gerade geöffnete Truhe (nur diese Sitzung). */
   const [chest, setChest] = useState<ChestResult | null>(null);
   /** Gerade Vorsprung nach Level bekommen – einmal erklären (nur diese Sitzung). */
@@ -127,6 +131,9 @@ export default function KampagneScreen() {
       getChests()
         .then((c) => active && setChests(c))
         .catch(() => undefined);
+      getRewardProgress()
+        .then((p) => active && setNextReward(nextStarReward(p)))
+        .catch(() => undefined);
       return () => {
         active = false;
       };
@@ -159,6 +166,28 @@ export default function KampagneScreen() {
         ))}
         <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
       </View>
+
+      {nextReward && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t("reward.next", { name: t(nextReward.reward.name) })}. ${t("reward.nextLeft", { n: nextReward.left })}`}
+          onPress={() => {
+            tapHaptic();
+            router.push("/belohnungen");
+          }}
+          style={({ pressed }) => [styles.nextReward, { backgroundColor: colors.goldSoft }, pressed && press.pressed]}
+        >
+          <AppText style={styles.nextRewardEmoji}>🎁</AppText>
+          <View style={styles.flex}>
+            <AppText variant="label" color={colors.onGoldSoft}>
+              {t("reward.next", { name: t(nextReward.reward.name) })}
+            </AppText>
+            <AppText variant="caption" color={colors.onGoldSoft}>
+              {t("reward.nextLeft", { n: nextReward.left })}
+            </AppText>
+          </View>
+        </Pressable>
+      )}
 
       {missions && (
         <MissionCard
@@ -678,6 +707,15 @@ function StationDot({
 }
 
 const styles = StyleSheet.create({
+  nextReward: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+  },
+  nextRewardEmoji: { fontSize: 26, lineHeight: 32 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
   daily: { marginTop: Spacing.sm, borderStyle: "solid", borderWidth: 2 },
