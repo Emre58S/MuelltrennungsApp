@@ -1,0 +1,215 @@
+// Datei: app/freunde.tsx — Freunde (Online-Bereich, ROADMAP R4e)
+//
+// Eigener Freundes-Code (teilen), Freund per Code hinzufügen und die Liste der
+// Freunde mit ihrem besten Zeit-Sprint und Survival-Lauf dieser Woche.
+// Server: supabase/freunde.sql (über utils/leaderboard.ts).
+
+import { useFocusEffect } from "expo-router";
+import { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Share, StyleSheet, TextInput, View } from "react-native";
+
+import { AppText } from "@/components/ui/app-text";
+import { Button } from "@/components/ui/button";
+import { HubScreen } from "@/components/ui/hub";
+import { IconButton } from "@/components/ui/icon-button";
+import { Radius, Spacing } from "@/constants/theme";
+import { type TranslationKey } from "@/i18n";
+import { useAppTheme, useI18n } from "@/providers/app-settings";
+import {
+  addFriend,
+  fetchFriends,
+  type Friend,
+  type FriendError,
+  formatFriendCode,
+  getFriendCode,
+  isMissingOnServer,
+  leaderboardReady,
+  removeFriend,
+} from "@/utils/leaderboard";
+import { sfx } from "@/utils/sfx";
+
+const ERROR_TEXT: Record<FriendError, TranslationKey> = {
+  invalid: "friends.err.invalid",
+  unknown: "friends.err.unknown",
+  self: "friends.err.self",
+  full: "friends.err.full",
+  setup: "rank.setup",
+  network: "rank.error",
+};
+
+export default function FriendsScreen() {
+  const { t } = useI18n();
+  const { scheme, colors } = useAppTheme();
+  const [code, setCode] = useState<string | null>(null);
+  const [friends, setFriends] = useState<Friend[] | null>(null);
+  const [state, setState] = useState<"idle" | "error" | "setup">("idle");
+  const [draft, setDraft] = useState("");
+  const [note, setNote] = useState<{ text: string; ok: boolean } | null>(null);
+  const busy = useRef(false);
+
+  const load = useCallback(() => {
+    if (!leaderboardReady) return;
+    Promise.all([getFriendCode(), fetchFriends()])
+      .then(([mine, list]) => {
+        setCode(mine);
+        setFriends(list);
+        setState("idle");
+      })
+      .catch((e: unknown) => setState(isMissingOnServer(e) ? "setup" : "error"));
+  }, []);
+
+  useFocusEffect(load);
+
+  const add = async () => {
+    // Sperre gegen Doppeltippen
+    if (busy.current) return;
+    busy.current = true;
+    const result = await addFriend(draft);
+    busy.current = false;
+    if ("error" in result) {
+      setNote({ text: t(ERROR_TEXT[result.error]), ok: false });
+      return;
+    }
+    sfx("tap");
+    setDraft("");
+    setNote({ text: t("friends.added", { name: result.name }), ok: true });
+    load();
+  };
+
+  const askRemove = (friend: Friend) => {
+    Alert.alert(t("friends.remove", { name: friend.name }), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("friends.removeYes"),
+        style: "destructive",
+        onPress: () => {
+          removeFriend(friend.code)
+            .then(load)
+            .catch(() => setNote({ text: t("rank.error"), ok: false }));
+        },
+      },
+    ]);
+  };
+
+  const share = () => {
+    if (!code) return;
+    Share.share({ message: t("friends.shareText", { code: formatFriendCode(code) }) }).catch(() => undefined);
+  };
+
+  const best = (n: number | null) => (n == null ? "–" : String(n));
+
+  return (
+    <HubScreen title={t("friends.title")} subtitle={t("friends.subtitle")} emoji="👫">
+      {!leaderboardReady ? (
+        <AppText tone="textSecondary" center>
+          {t("friends.offline")}
+        </AppText>
+      ) : state !== "idle" ? (
+        <View style={styles.center}>
+          <AppText tone="textSecondary" center>
+            {t(state === "setup" ? "rank.setup" : "rank.error")}
+          </AppText>
+          <Button title={t("common.retry")} icon="refresh-cw" variant="secondary" onPress={load} />
+        </View>
+      ) : !code || !friends ? (
+        <ActivityIndicator color={colors.primary} />
+      ) : (
+        <>
+          {/* Eigener Code */}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <AppText variant="caption" tone="textSecondary">
+              {t("friends.myCode")}
+            </AppText>
+            <AppText variant="title" selectable accessibilityLabel={code.split("").join(" ")}>
+              {formatFriendCode(code)}
+            </AppText>
+            <Button title={t("friends.share")} icon="share" variant="secondary" onPress={share} />
+          </View>
+
+          {/* Freund hinzufügen */}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <AppText variant="label">{t("friends.add")}</AppText>
+            <TextInput
+              value={draft}
+              onChangeText={(v) => {
+                setDraft(v);
+                setNote(null);
+              }}
+              autoCorrect={false}
+              autoCapitalize="characters"
+              maxLength={12}
+              returnKeyType="done"
+              onSubmitEditing={add}
+              placeholder={t("friends.placeholder")}
+              placeholderTextColor={colors.textMuted}
+              keyboardAppearance={scheme}
+              accessibilityLabel={t("friends.add")}
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: note && !note.ok ? colors.warning : colors.border },
+              ]}
+            />
+            {note && (
+              <AppText variant="caption" tone={note.ok ? "primary" : "warning"}>
+                {note.text}
+              </AppText>
+            )}
+            <Button title={t("friends.addGo")} icon="user-plus" onPress={add} disabled={!draft.trim()} />
+          </View>
+
+          {/* Liste */}
+          <AppText variant="label">{t("friends.week")}</AppText>
+          {friends.length === 0 ? (
+            <AppText tone="textSecondary">{t("friends.empty")}</AppText>
+          ) : (
+            <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              {friends.map((f, i) => (
+                <View
+                  key={f.code}
+                  style={[
+                    styles.entry,
+                    i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+                  ]}
+                >
+                  <AppText variant="label" style={styles.flex} numberOfLines={1}>
+                    {f.name}
+                  </AppText>
+                  <AppText
+                    variant="body"
+                    accessibilityLabel={`${t("sprint.title")} ${best(f.sprint)}, ${t("survival.title")} ${best(f.survival)}`}
+                  >
+                    ⏱️ {best(f.sprint)} · 🛡️ {best(f.survival)}
+                  </AppText>
+                  <IconButton icon="x" label={t("friends.remove", { name: f.name })} onPress={() => askRemove(f)} />
+                </View>
+              ))}
+            </View>
+          )}
+        </>
+      )}
+    </HubScreen>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  center: { alignItems: "center", gap: Spacing.sm },
+  card: { padding: Spacing.md, borderRadius: Radius.lg, borderWidth: 1, gap: Spacing.sm },
+  input: {
+    borderWidth: 2,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: 17,
+  },
+  list: { borderRadius: Radius.lg, borderWidth: 1, overflow: "hidden" },
+  entry: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingLeft: Spacing.md,
+    paddingRight: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    minHeight: 52,
+  },
+});

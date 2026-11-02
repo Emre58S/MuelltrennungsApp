@@ -93,7 +93,11 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
       body: JSON.stringify(args),
       signal: abort.signal,
     });
-    if (!res.ok) throw Object.assign(new Error(`Rangliste: ${res.status}`), { status: res.status });
+    // Fehlertext des Servers mitgeben (z. B. „unbekannter Code“ aus supabase/freunde.sql)
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw Object.assign(new Error(`Rangliste: ${res.status}`), { status: res.status, detail });
+    }
     const text = await res.text();
     return (text ? JSON.parse(text) : null) as T;
   } finally {
@@ -298,4 +302,68 @@ export async function fetchOnlineBoard(mode: OnlineMode, span: "week" | "all", l
     rows: (rows ?? []).map((r) => ({ rank: Number(r.rank), name: r.name, score: r.score, isMe: r.is_me })),
     me: mine?.[0] ? { rank: Number(mine[0].rank), score: mine[0].score } : null,
   };
+}
+
+/* ── Freunde (supabase/freunde.sql) ─────────────────────────── */
+
+export type Friend = { name: string; code: string; sprint: number | null; survival: number | null };
+export type FriendError = "invalid" | "unknown" | "self" | "full" | "setup" | "network";
+
+/** Freundes-Code aus einer Eingabe: 6 Zeichen ohne 0/O/1/I, Bindestrich und
+ *  Leerzeichen egal, klein geschrieben geht auch (oder null). */
+export function cleanFriendCode(raw: string): string | null {
+  const code = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return /^[A-HJ-NP-Z2-9]{6}$/.test(code) ? code : null;
+}
+
+/** Zum Anzeigen und Teilen: „K7QX2M“ → „K7Q-X2M“. */
+export const formatFriendCode = (code: string): string => `${code.slice(0, 3)}-${code.slice(3)}`;
+
+/** Grund eines Fehlers beim Hinzufügen (Texte aus add_friend in freunde.sql). */
+function friendError(e: unknown): FriendError {
+  if (isMissingOnServer(e)) return "setup";
+  const detail = String((e as { detail?: unknown } | null)?.detail ?? "");
+  if (detail.includes("unbekannter Code")) return "unknown";
+  if (detail.includes("eigener Code")) return "self";
+  if (detail.includes("zu viele Freunde")) return "full";
+  return "network";
+}
+
+let myFriendCode: string | null = null;
+
+/** Eigener Freundes-Code (legt Spieler und Code beim ersten Mal an). */
+export async function getFriendCode(): Promise<string> {
+  if (myFriendCode) return myFriendCode;
+  const player = await getPlayer();
+  await rpc("set_name", { p_player: player.id, p_name: player.name });
+  const code = await rpc<string>("my_friend_code", { p_player: player.id });
+  if (!code) throw new Error("kein Code");
+  myFriendCode = code;
+  return code;
+}
+
+/** Freund per Code hinzufügen – beide sind danach befreundet. */
+export async function addFriend(raw: string): Promise<{ name: string } | { error: FriendError }> {
+  const code = cleanFriendCode(raw);
+  if (!code) return { error: "invalid" };
+  try {
+    await getFriendCode();
+    const player = await getPlayer();
+    const name = await rpc<string>("add_friend", { p_player: player.id, p_code: code });
+    return { name };
+  } catch (e) {
+    return { error: friendError(e) };
+  }
+}
+
+export async function removeFriend(code: string): Promise<void> {
+  const player = await getPlayer();
+  await rpc("remove_friend", { p_player: player.id, p_code: code });
+}
+
+/** Freunde mit ihren besten Läufen dieser Woche (ab Montag). */
+export async function fetchFriends(): Promise<Friend[]> {
+  const player = await getPlayer();
+  const rows = await rpc<Friend[]>("friend_list", { p_player: player.id, p_since: weekStart() });
+  return rows ?? [];
 }

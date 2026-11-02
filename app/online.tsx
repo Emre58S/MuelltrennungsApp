@@ -1,8 +1,8 @@
 // Datei: app/online.tsx — Bereich „Online“ (Mehrspieler)
 //
 // Hinter der blauen Menü-Tonne: gegen den eigenen Rekord, den Besten von
-// heute oder Freunde per Code (Ghost), zu zweit an einem Handy (Duell) und
-// die Rangliste. Zeit-Sprint (30 s, R4a), Survival (R4b); später Trick-Battle (ROADMAP.md, R4).
+// heute oder Freunde per Code (Ghost), zu zweit an einem Handy (Duell),
+// Freunde (Freundes-Code, R4e) und die Rangliste. Zeit-Sprint (30 s, R4a), Survival (R4b); später Trick-Battle (ROADMAP.md, R4).
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -136,6 +136,14 @@ export default function OnlineScreen() {
       />
       <HubCard
         index={5}
+        emoji="👫"
+        color="#2BB6A8"
+        title={t("friends.title")}
+        desc={t("hub.friends.desc")}
+        onPress={() => router.push("/freunde")}
+      />
+      <HubCard
+        index={6}
         emoji="🏆"
         color="#E3A92E"
         title={t("home.rank")}

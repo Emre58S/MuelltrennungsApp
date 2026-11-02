@@ -5,9 +5,11 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 
 import {
+  cleanFriendCode,
   cleanName,
   dailyBoard,
   decodeTrickScore,
+  formatFriendCode,
   getPlayer,
   isMissingOnServer,
   leaderboardReady,
@@ -68,6 +70,16 @@ describe("Wertung", () => {
     expect(weekStart("2026-11-08")).toBe("2026-11-02");
     expect(weekStart("2026-11-01")).toBe("2026-10-26");
     expect(weekStart("2027-01-01")).toBe("2026-12-28");
+  });
+
+  test("Freundes-Code: 6 Zeichen ohne 0/O/1/I, Bindestrich und Kleinschreibung egal", () => {
+    expect(cleanFriendCode("k7q-x2m")).toBe("K7QX2M");
+    expect(cleanFriendCode(" K7Q X2M ")).toBe("K7QX2M");
+    expect(cleanFriendCode("K7QX2")).toBeNull();
+    expect(cleanFriendCode("K7QX2MM")).toBeNull();
+    expect(cleanFriendCode("K0QX2M")).toBeNull();
+    expect(cleanFriendCode("KIQX2M")).toBeNull();
+    expect(formatFriendCode("K7QX2M")).toBe("K7Q-X2M");
   });
 
   test("Fehlende SQL-Funktion (404) ist kein Verbindungsfehler", () => {
