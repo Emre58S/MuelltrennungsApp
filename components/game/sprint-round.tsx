@@ -19,6 +19,7 @@
 // (ghost-round.tsx); Zufallsgegner, Freunde und Rangliste folgen (R4d–f).
 
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -784,6 +785,14 @@ function SprintEnd({
         )}
 
         <Button title={t("ghost.again")} icon="refresh-cw" size="lg" onPress={onAgain} />
+        {leaderboardReady && (
+          <Button
+            title={t("home.rank")}
+            icon="award"
+            variant="secondary"
+            onPress={() => router.push({ pathname: "/rangliste", params: { tab: kind } })}
+          />
+        )}
         <Button title={t("duel.menu")} variant="secondary" onPress={onMenu} />
       </ScrollView>
     </View>

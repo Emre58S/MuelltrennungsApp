@@ -7,7 +7,7 @@
 // nicht unter den Besten steht.
 
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -34,6 +34,7 @@ import {
   fetchBoard,
   fetchOnlineBoard,
   getPlayer,
+  isMissingOnServer,
   leaderboardReady,
   type OnlineMode,
   setPlayerName,
@@ -66,13 +67,16 @@ export default function LeaderboardScreen() {
   const insets = useSafeAreaInsets();
   const { colors, scheme } = useAppTheme();
   const { t, formatNumber } = useI18n();
-  const [tab, setTab] = useState(TABS[0]);
+  // ?tab=sprint|survival: aus dem Endbildschirm direkt zur passenden Liste
+  const { tab: startTab } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState(() => TABS.find((x) => x.key === startTab) ?? TABS[0]);
   const [name, setName] = useState("");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [invalid, setInvalid] = useState(false);
   const [result, setResult] = useState<BoardResult | null>(null);
-  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  // „setup“: Verbindung steht, aber die Online-Liste ist auf dem Server noch nicht eingerichtet
+  const [state, setState] = useState<"idle" | "loading" | "error" | "setup">("idle");
   const [span, setSpan] = useState<Span>("week");
 
   /** Gerade gewählte Liste – späte Antworten anderer Listen werden verworfen. */
@@ -89,8 +93,8 @@ export default function LeaderboardScreen() {
         setResult(r);
         setState("idle");
       })
-      .catch(() => {
-        if (current()) setState("error");
+      .catch((e: unknown) => {
+        if (current()) setState(isMissingOnServer(e) ? "setup" : "error");
       });
   }, []);
 
@@ -294,6 +298,10 @@ export default function LeaderboardScreen() {
         {!leaderboardReady ? (
           <AppText tone="textSecondary" style={styles.note}>
             {t("rank.offline")}
+          </AppText>
+        ) : state === "setup" ? (
+          <AppText tone="textSecondary" style={styles.note}>
+            {t("rank.setup")}
           </AppText>
         ) : state === "error" ? (
           <View style={styles.errorBox}>

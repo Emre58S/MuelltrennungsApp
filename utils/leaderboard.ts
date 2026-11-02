@@ -72,6 +72,10 @@ export async function getPlayer(): Promise<Player> {
 
 /* ── Server ──────────────────────────────────────────────────── */
 
+/** Verbindung steht, aber die SQL-Funktion fehlt noch (Datei in supabase/ nicht
+ *  ausgeführt) – der Server antwortet dann mit 404. */
+export const isMissingOnServer = (e: unknown): boolean => (e as { status?: unknown } | null)?.status === 404;
+
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   if (!URL || !KEY) throw new Error("Rangliste nicht eingerichtet");
   const abort = new AbortController();
@@ -89,7 +93,7 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
       body: JSON.stringify(args),
       signal: abort.signal,
     });
-    if (!res.ok) throw new Error(`Rangliste: ${res.status}`);
+    if (!res.ok) throw Object.assign(new Error(`Rangliste: ${res.status}`), { status: res.status });
     const text = await res.text();
     return (text ? JSON.parse(text) : null) as T;
   } finally {
@@ -220,30 +224,31 @@ export async function fetchDayGhost(day: string): Promise<DayGhost | null> {
 export type OnlineMode = "sprint" | "survival";
 export type OnlineRun = { name: string; code: string; correct: number; ms: number };
 
+/** Zuletzt gestarteter Versand – die Rangliste wartet darauf, damit der eben
+ *  gespielte Lauf schon drinsteht (schlägt nie fehl). */
+let onlineSending: Promise<void> = Promise.resolve();
+
 /** Fertigen Lauf einreichen (der Server behält je Tag den besten). Still, wenn
  *  offline oder nicht eingerichtet. */
-export async function submitOnlineRun(
-  mode: OnlineMode,
-  day: string,
-  code: string,
-  correct: number,
-  ms: number,
-): Promise<void> {
-  if (!leaderboardReady || correct < 1) return;
-  try {
-    const player = await getPlayer();
-    await rpc("set_name", { p_player: player.id, p_name: player.name });
-    await rpc("submit_online_run", {
-      p_player: player.id,
-      p_mode: mode,
-      p_day: day,
-      p_code: code,
-      p_correct: correct,
-      p_ms: Math.round(ms),
-    });
-  } catch {
-    // Kein Netz oder SQL noch nicht eingerichtet – dann eben ohne
-  }
+export function submitOnlineRun(mode: OnlineMode, day: string, code: string, correct: number, ms: number): Promise<void> {
+  if (!leaderboardReady || correct < 1) return Promise.resolve();
+  onlineSending = (async () => {
+    try {
+      const player = await getPlayer();
+      await rpc("set_name", { p_player: player.id, p_name: player.name });
+      await rpc("submit_online_run", {
+        p_player: player.id,
+        p_mode: mode,
+        p_day: day,
+        p_code: code,
+        p_correct: correct,
+        p_ms: Math.round(ms),
+      });
+    } catch {
+      // Kein Netz oder SQL noch nicht eingerichtet – dann eben ohne
+    }
+  })();
+  return onlineSending;
 }
 
 /** Lauf eines anderen Spielers von heute mit ähnlich vielen Treffern (oder null). */
@@ -276,6 +281,7 @@ export function weekStart(day = todayKey()): string {
 /** Rangliste eines Online-Modus (bester Lauf je Spieler, „richtig“ zählt):
  *  diese Woche oder Allzeit, dazu der eigene Platz. */
 export async function fetchOnlineBoard(mode: OnlineMode, span: "week" | "all", limit = 50): Promise<BoardResult> {
+  await onlineSending;
   const player = await getPlayer();
   const since = span === "week" ? weekStart() : null;
   const [rows, mine] = await Promise.all([

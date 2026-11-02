@@ -9,6 +9,7 @@ import {
   dailyBoard,
   decodeTrickScore,
   getPlayer,
+  isMissingOnServer,
   leaderboardReady,
   submitScore,
   trickScore,
@@ -67,6 +68,13 @@ describe("Wertung", () => {
     expect(weekStart("2026-11-08")).toBe("2026-11-02");
     expect(weekStart("2026-11-01")).toBe("2026-10-26");
     expect(weekStart("2027-01-01")).toBe("2026-12-28");
+  });
+
+  test("Fehlende SQL-Funktion (404) ist kein Verbindungsfehler", () => {
+    expect(isMissingOnServer(Object.assign(new Error("x"), { status: 404 }))).toBe(true);
+    expect(isMissingOnServer(Object.assign(new Error("x"), { status: 500 }))).toBe(false);
+    expect(isMissingOnServer(new Error("Netzwerk"))).toBe(false);
+    expect(isMissingOnServer(null)).toBe(false);
   });
 });
 
