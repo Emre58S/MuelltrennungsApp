@@ -150,7 +150,7 @@ export default function KampagneScreen() {
         <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
       </View>
 
-      {missions && <MissionCard day={missions} />}
+      {missions && <MissionCard day={missions} dailyDone={!!daily} />}
 
       {headStart && (
         <View style={[styles.headStart, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -233,7 +233,7 @@ function Chip({
 const MISSION_EMOJI = { streak: "🔥", correct: "✅", station: "⭐" } as const;
 
 /** Die 3 Tagesmissionen mit Fortschritt (game/missions.ts). */
-function MissionCard({ day }: { day: MissionDay }) {
+function MissionCard({ day, dailyDone }: { day: MissionDay; dailyDone: boolean }) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
   const allDone = day.done.length >= day.missions.length;
@@ -273,7 +273,8 @@ function MissionCard({ day }: { day: MissionDay }) {
           </View>
         );
       })}
-      {day.done.length === 0 && (
+      {/* Flamme heute noch nicht sicher → erklären, was sie hält */}
+      {day.done.length === 0 && !dailyDone && (
         <AppText variant="caption" tone="textMuted">
           {t("mission.flame")}
         </AppText>

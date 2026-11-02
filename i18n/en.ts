@@ -35,7 +35,7 @@ export const en: Translations = {
   "home.record": "Best",
   "home.modesLabel": "Choose an area",
   "home.throwHint": "Throw into a bin to start",
-  "home.flameAtRisk": "🔥 Finish 1 mission today to keep your flame",
+  "home.flameAtRisk": "🔥 Finish 1 mission today (in Campaign) to keep your flame",
   "home.flameRescued": "🔥 Saved – 1 day off per week",
   "home.hintDaily": "📅 New daily challenge – in Campaign",
   "home.hintDayBest": "👻 Today's best: {name} – Online → Record & friends",
