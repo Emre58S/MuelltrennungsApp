@@ -656,10 +656,10 @@ function StationDot({
     const more = stars > seenStars.current;
     seenStars.current = stars;
     if (!more || reduceMotion) return;
-    pop.setValue(0.2);
+    pop.setValue(0);
     Animated.sequence([
       Animated.delay(350),
-      Animated.spring(pop, { toValue: 1, friction: 3, tension: 120, useNativeDriver: true }),
+      Animated.spring(pop, { toValue: 1, friction: 4, tension: 120, useNativeDriver: true }),
     ]).start();
   }, [stars, reduceMotion, pop]);
 
@@ -717,7 +717,7 @@ function StationDot({
         )}
       </Animated.View>
       {unlocked && stars > 0 && (
-        <Animated.View style={{ transform: [{ scale: pop }] }}>
+        <Animated.View style={{ opacity: pop, transform: [{ scale: pop }] }}>
           <AppText variant="label" style={styles.stars}>
             {"★".repeat(stars)}
             <AppText variant="label" color={colors.border}>
