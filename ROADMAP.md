@@ -82,7 +82,7 @@ JS-Änderungen per EAS-Update nachkommen.
 - [x] **R1b** „Weiter“, Kachel-Reihe und Fußzeile weg (in den Bereichen).
   Offen daraus: ⏳ antippbar erklären; Stack.Screen-Einträge für die 3 Seiten
   in app/_layout.tsx (Animation erst ab 2. Öffnen); Tagesaufgabe erledigt →
-  Text „Morgen gibt's eine neue“ statt Einladung; Trick-Text „Durch Reifen“
+  Text „Morgen gibt's eine neue“ statt Einladung (✓ mit R3b); Trick-Text „Durch Reifen“
   nach R5 anpassen; „Zuletzt“ schneller erreichbar (bis R2 den Pfad bringt).
 - [x] **R1c** Ein Hinweis-Platz mit Vorrang-Regel (game/home-hint.ts): neu → Start-Hinweis,
   Flamme, Tagesaufgabe, Tagesbester (Ghost). (fef2152, Tester 8/10.) Offen: eingehende
@@ -177,6 +177,14 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     Mission mit R3b. Randfall: Würfe kurz vor Mitternacht zählen ggf. für den neuen Tag.
 - [ ] **R3b** Tagesaufgabe = besondere Station im Pfad (goldener Kreis), Flamme
   zählt bei Tagesaufgabe ODER einer Mission.
+  - [x] Teil 1 (640eaec + a3ebc7a + e27b8cf, Tester 6/10 → 8/10, EAS auto + preview):
+    goldene Karte direkt unter der aktuellen Station (offen: 📅 + roter Punkt,
+    erledigt: ✓ + Ergebnis + „Morgen gibt es eine neue.“); 📅-Chip oben entfällt.
+  - [ ] Teil 2 (als Nächstes): Flamme zählt nur bei Tagesaufgabe ODER geschaffter
+    Mission (heute: jeder Wurf). Vorher prüfen: Texte/Hinweise zur Flamme anpassen,
+    Rettung (utils/streak.ts) unverändert lassen; nie strafend erklären.
+  - Offen (klein): erledigte Karte zurücknehmen bzw. „nochmal spielen“ zeigen;
+    evtl. mittig als Kreis näher am Pfad.
 - [ ] **R3c** Tagesbelohnung (Truhe): Spur-Farben, Tonnen-Aufkleber,
   später Sticker. Dieselbe Truhe auch als Boss-Sieg (aus R2e). Rettungstext der Flamme nur kurz zeigen (F1-Idee).
 
