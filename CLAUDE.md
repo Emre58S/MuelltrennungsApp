@@ -143,3 +143,5 @@ wenig Deutsch, nie strafend.
 - EAS-Update: beide Kanäle in getrennten Aufrufen (verkettet kam Exit 4, unklar
   welcher Kanal ankam). Teilen-Texte enthalten Wegbeschreibungen – beim
   Verlegen von Knöpfen mit anpassen.
+- Wurf-Modi ohne Wartezeit (Sprint): wahlloses Dauerwischen schlägt Nachdenken –
+  kurze Sperre nach jedem Wurf + Pause nach Fehlwurf einbauen.

@@ -215,6 +215,13 @@ Spieler über Supabase) – das funktioniert sofort, auch wenn wenige online sin
 und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederverwenden.
 - [ ] **R4a** Zeit-Sprint: 30 s, gleiche Gegenstände in gleichem Takt für beide,
   Tauziehen-Balken. Wer mehr richtig hat, gewinnt.
+  - [x] Teil 1 (fd73059 + d6500ee + 73849a1, Tester 5/10 → 8/10, EAS auto + preview):
+    Karte ⏱️ oben im Online-Bereich, `/runde?mode=sprint` (components/game/sprint-round.tsx,
+    game/sprint.ts +Tests): Tages-Strecke (60, ohne direkte Doppelte), Gegner = eigener
+    bester Sprint von heute oder Übungs-Ghost (~9), Restzeit oben, letzte 3 s ticken;
+    0,4 s Sperre nach jedem Wurf, 1,5 s Lernpause nach Fehlwurf (sonst gewinnt Dauerwischen).
+  - Offen: Gegner aus dem Netz (R4d), Freund (R4e), Rangliste (R4f); Übungs-Ghost evtl.
+    11–12 oder angepasst; Startregel kürzen (wenig Deutsch); Mission „1 Online-Runde“.
 - [ ] **R4b** Survival: Ohne Fehler, aber Tempo steigt – nach max. ~30 s
   Höchsttempo; wer länger durchhält, gewinnt.
 - [ ] **R4c** Trick-Battle (braucht R5): beide spielen denselben Parcours mit
