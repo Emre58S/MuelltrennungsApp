@@ -464,9 +464,12 @@ export const ITEMS: Item[] = [
   {
     emoji: "💊",
     name: "Abgelaufene Medikamente",
-    category: "Sondermüll",
+    // Umweltbundesamt: in den meisten Orten Restmüll (wird verbrannt); manche
+    // Apotheken/Schadstoffmobile nehmen sie freiwillig – daher in der Kampagne
+    // nicht als Lern-Beispiel (game/campaign.ts UNCLEAR)
+    category: "Restmüll",
     difficulty: "mittel",
-    fact: "Am besten zurück in die Apotheke oder zur Sammelstelle – nie in die Toilette!",
+    fact: "In den meisten Orten in den Restmüll. Manche Apotheken nehmen sie zurück – nie in Toilette oder Waschbecken!",
   },
   {
     emoji: "🎨",

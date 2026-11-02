@@ -95,7 +95,7 @@ export const ITEM_REASONS: Record<string, { de: string; en: string }> = {
   // Sondermüll
   Batterie: { de: "Giftige Stoffe", en: "Toxic contents" },
   "Altes Smartphone": { de: "Elektroschrott, Akku", en: "E-waste, battery" },
-  "Abgelaufene Medikamente": { de: "Wirkstoffe schaden Wasser", en: "Medicine harms water" },
+  "Abgelaufene Medikamente": { de: "Wird sicher verbrannt", en: "Safely burned" },
   Farbreste: { de: "Chemikalien", en: "Chemicals" },
   Druckerpatronen: { de: "Rückgabe, Wiederverwertung", en: "Returned and recycled" },
   "Alter Laptop": { de: "Elektroschrott, Akku", en: "E-waste, battery" },
