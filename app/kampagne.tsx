@@ -10,7 +10,7 @@
 // Tagesaufgabe ist ein goldener Kreis direkt unter der aktuellen Station (R3b).
 
 import { router, useFocusEffect } from "expo-router";
-import { type ComponentRef, useCallback, useEffect, useRef, useState } from "react";
+import { type ComponentRef, Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, type ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { HubScreen } from "@/components/ui/hub";
@@ -169,7 +169,7 @@ export default function KampagneScreen() {
           >
             <WorldHeader world={world} />
             {world.stations.map((station, i) => (
-              <View key={station.id}>
+              <Fragment key={station.id}>
                 <StationDot
                   station={station}
                   offset={ZIGZAG[i % ZIGZAG.length]}
@@ -184,7 +184,7 @@ export default function KampagneScreen() {
                 />
                 {/* Tagesaufgabe gleich dort, wo man weiterspielt */}
                 {station.id === current.id && daily !== undefined && <DailyStation result={daily} />}
-              </View>
+              </Fragment>
             ))}
             <TrickSchool
               world={world}
@@ -200,13 +200,10 @@ export default function KampagneScreen() {
 function Chip({
   emoji,
   label,
-  dot,
   onPress,
 }: {
   emoji: string;
   label: string;
-  /** Roter Punkt: hier wartet etwas (z. B. Tagesaufgabe noch offen). */
-  dot?: boolean;
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
@@ -228,7 +225,6 @@ function Chip({
       <AppText variant="label">
         {emoji} {label}
       </AppText>
-      {dot && <View style={styles.chipDot} />}
     </Pressable>
   );
 }
@@ -327,18 +323,17 @@ function WorldHeader({ world }: { world: World }) {
   );
 }
 
-/** Seitenstation „Trick-Schule“ einer Welt: 4 Trick-Level, 1 Tipp startet das nächste. */
 /** Tagesaufgabe als goldene Station: offen → einladen, erledigt → Ergebnis + „morgen neu“. */
 function DailyStation({ result }: { result: DailyResult | null }) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
   const status = result
-    ? `${t("home.dailyDone", { correct: result.correct, total: result.total, score: result.score })} · ${t("campaign.dailyTomorrow")}`
+    ? t("home.dailyDone", { correct: result.correct, total: result.total, score: result.score })
     : t("home.dailyNew");
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${t("home.daily")}, ${status}`}
+      accessibilityLabel={`${t("home.daily")}, ${status}${result ? `, ${t("campaign.dailyTomorrow")}` : ""}`}
       onPress={() => {
         sfx("tap");
         tapHaptic();
@@ -353,17 +348,24 @@ function DailyStation({ result }: { result: DailyResult | null }) {
     >
       <View style={[styles.dailyDot, { backgroundColor: result ? colors.goldSoft : DAILY_GOLD }]}>
         <AppText style={styles.trickEmoji}>{result ? "✓" : "📅"}</AppText>
+        {!result && <View style={styles.chipDot} />}
       </View>
       <View style={styles.flex}>
         <AppText variant="label">{t("home.daily")}</AppText>
         <AppText variant="caption" tone="textSecondary">
           {status}
         </AppText>
+        {result && (
+          <AppText variant="caption" tone="textMuted">
+            {t("campaign.dailyTomorrow")}
+          </AppText>
+        )}
       </View>
     </Pressable>
   );
 }
 
+/** Seitenstation „Trick-Schule“ einer Welt: 4 Trick-Level, 1 Tipp startet das nächste. */
 function TrickSchool({
   world,
   reached,
@@ -548,6 +550,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     borderWidth: 1.5,
   },
+  /** Roter Punkt „hier wartet etwas“ (Tagesaufgabe offen). */
   chipDot: {
     position: "absolute",
     top: -3,
