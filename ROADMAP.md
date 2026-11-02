@@ -413,8 +413,9 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   (ef4c485, Tester 8/10): falscher letzter Wurf → Ende nach 1,9/2,6 s wie „Ohne Fehler“.
   Offen: Zeiten 1800/2300 + 1900/2600 als gemeinsame Konstante.
 - [x] „Ohne Fehler“: Lernkarte länger sichtbar. (schon so: 1,8/2,3 s, Ende 1,9/2,6 s)
-- [ ] „Abgelaufene Medikamente“ steht als Sondermüll – meist Restmüll (UBA), Apotheke
-  freiwillig. Kategorie/Fakt prüfen (in Kampagne vorerst ausgelassen).
+- [x] „Abgelaufene Medikamente“ steht als Sondermüll – meist Restmüll (UBA), Apotheke
+  freiwillig. Kategorie/Fakt prüfen (in Kampagne vorerst ausgelassen). (02ce44d, Tester
+  8/10): jetzt Restmüll, Fakt „In den meisten Orten …“, Begründung „Wird sicher verbrannt“.
 - [x] „Alles zurücksetzen“ (einstellung.tsx) löscht Kampagnen-Sterne nicht. (e30d461):
   so gewollt – Text sagt jetzt „Sterne (Pfad und Tricks) bleiben“.
 - [ ] Ghost-Ideen: Gleichstand „gleich schnell (0,1 s)“, `\b` in isOtherVersionCode.
