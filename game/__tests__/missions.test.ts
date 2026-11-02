@@ -22,14 +22,14 @@ describe("Tagesmissionen", () => {
     }
   });
 
-  test("gleicher Tag → gleiche Missionen, beide Arten kommen vor", () => {
+  test("gleicher Tag → gleiche Missionen, alle Arten kommen vor", () => {
     expect(dailyMissions("2026-11-02", ["bio", "gelb", "rest"])).toEqual(
       dailyMissions("2026-11-02", ["bio", "gelb", "rest"]),
     );
     const kinds = new Set(
       Array.from({ length: 10 }, (_, i) => dailyMissions(`2026-12-1${i}`, ["rest"])[1].kind),
     );
-    expect(kinds).toEqual(new Set(["streak", "correct"]));
+    expect(kinds).toEqual(new Set(["streak", "correct", "online"]));
   });
 
   test("Tag bleibt bis Mitternacht, danach neu", () => {
@@ -49,7 +49,7 @@ describe("Tagesmissionen", () => {
     expect(b.newlyDone.map((m) => m.id)).toEqual(["bin-papier", "station"]);
     expect(missionProgress(day.missions[0], b.day.counts)).toBe(5);
     expect(b.day.counts.maxStreak).toBe(3);
-    const c = addMissionCounts(b.day, { bins: { papier: 9 }, correct: 20, maxStreak: 9, stations: 1 });
+    const c = addMissionCounts(b.day, { bins: { papier: 9 }, correct: 20, maxStreak: 9, stations: 1, online: 1 });
     expect(c.newlyDone.map((m) => m.id)).toEqual([day.missions[1].id]);
     expect(c.day.done).toHaveLength(3);
   });

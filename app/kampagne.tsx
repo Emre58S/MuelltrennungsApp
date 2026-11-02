@@ -286,7 +286,7 @@ function Chip({
   );
 }
 
-const MISSION_EMOJI = { streak: "🔥", correct: "✅", station: "⭐" } as const;
+const MISSION_EMOJI = { streak: "🔥", correct: "✅", online: "🌍", station: "⭐" } as const;
 
 /** Die 3 Tagesmissionen mit Fortschritt (game/missions.ts). */
 type ChestResult = { reward: TrailReward | null; xp: number; opened: number; levelUp: number | null };
@@ -345,6 +345,7 @@ function MissionCard({
     if (m.kind === "bin" && m.bin) return t("mission.bin", { bin: t(`bin.${m.bin}`), n: m.goal });
     if (m.kind === "streak") return t("mission.streak", { n: m.goal });
     if (m.kind === "correct") return t("mission.correct", { n: m.goal });
+    if (m.kind === "online") return t("mission.online");
     return t("mission.station");
   };
   return (
@@ -361,20 +362,25 @@ function MissionCard({
         const n = missionProgress(m, day.counts);
         const done = day.done.includes(m.id);
         const emoji = m.kind === "bin" ? (binDef(m.bin ?? "")?.icon ?? "🗑️") : MISSION_EMOJI[m.kind];
+        // Online-Runde: direkt in den Online-Bereich springen
+        const go = m.kind === "online" && !done;
         return (
-          <View
+          <Pressable
             key={m.id}
             style={styles.missionRow}
+            disabled={!go}
+            onPress={() => router.push("/online")}
             accessible
+            accessibilityRole={go ? "button" : undefined}
             accessibilityLabel={`${text(m)}: ${done ? t("mission.doneA11y") : `${n}/${m.goal}`}`}
           >
-            <AppText variant="caption" style={styles.missionText} tone={done ? "textMuted" : undefined}>
-              {emoji} {text(m)}
+            <AppText variant="caption" style={styles.missionText} tone={done ? "textMuted" : go ? "primary" : undefined}>
+              {emoji} {text(m)}{go ? " ›" : ""}
             </AppText>
             <AppText variant="caption" style={{ fontWeight: "700" }} tone={done ? "primary" : "textSecondary"}>
               {done ? "✓" : `${n}/${m.goal}`}
             </AppText>
-          </View>
+          </Pressable>
         );
       })}
       {/* Flamme heute noch nicht sicher → erklären, was sie hält */}

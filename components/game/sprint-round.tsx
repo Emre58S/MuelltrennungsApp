@@ -68,12 +68,21 @@ import {
   type SprintResult,
   sprintRun,
 } from "@/game/sprint";
+import { MISSION_XP, type MissionDay } from "@/game/missions";
 import { itemLimit, practiceSurvival, SURVIVAL_MAX_MS, survivalResult, survivalRun } from "@/game/survival";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { fetchRandomRun, leaderboardReady, submitOnlineRun } from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
-import { getSprintBest, getSurvivalBest, saveSprintBest, saveSurvivalBest, todayKey } from "@/utils/storage";
+import {
+  getMissionDay,
+  getSprintBest,
+  getSurvivalBest,
+  queueOnlineMission,
+  saveSprintBest,
+  saveSurvivalBest,
+  todayKey,
+} from "@/utils/storage";
 
 import { useLater } from "./round-hooks";
 
@@ -91,7 +100,13 @@ const WRONG_PAUSE_MS = 1500;
 /** Survival: nach dem Ausscheiden Zeit zum Lesen des Lern-Hinweises (ms). */
 const OUT_MS = 1800;
 
-type EndInfo = { run: GhostRun; result: SprintResult; newBest: boolean };
+type EndInfo = {
+  run: GhostRun;
+  result: SprintResult;
+  newBest: boolean;
+  /** Tagesmission „1 Online-Runde“ mit diesem Lauf geschafft ("chest": war die letzte). */
+  mission: "done" | "chest" | null;
+};
 
 export type SprintKind = "sprint" | "survival";
 
@@ -141,6 +156,15 @@ export function SprintRound({
       .finally(() => setLoaded(true));
   }, [day, kind]);
   const phaseRef = useRef<Phase>("ready");
+  // Tagesmissionen: ist „1 Online-Runde“ heute noch offen? (fürs Ende)
+  const missionDay = useRef<MissionDay | null>(null);
+  useEffect(() => {
+    getMissionDay()
+      .then((d) => {
+        missionDay.current = d;
+      })
+      .catch(() => undefined);
+  }, []);
   // Zufallsgegner: ähnlich stark wie der eigene Bestlauf (sonst wie der Übungs-Ghost)
   const [rival, setRival] = useState<{ name: string; run: GhostRun } | null>(null);
   const [vsOwn, setVsOwn] = useState(false);
@@ -248,8 +272,17 @@ export function SprintRound({
     const run = survival ? survivalRun(day, myThrows.current, outAt.current) : sprintRun(day, myThrows.current);
     const newBest = !quitting.current && run.correct > 0 && (!best || run.correct > best.correct);
     if (newBest) KIND[kind].saveBest(JSON.stringify(run)).catch(() => undefined);
-    if (!quitting.current) submitOnlineRun(kind, day, encodeSprint(run), run.correct, run.ms).catch(() => undefined);
-    setEnd({ run, result: (survival ? survivalResult : sprintResult)(run, ghost), newBest });
+    let mission: EndInfo["mission"] = null;
+    if (!quitting.current) {
+      submitOnlineRun(kind, day, encodeSprint(run), run.correct, run.ms).catch(() => undefined);
+      queueOnlineMission().catch(() => undefined);
+      const d = missionDay.current;
+      if (d && d.missions.some((m) => m.id === "online") && !d.done.includes("online")) {
+        mission = d.done.length + 1 >= d.missions.length ? "chest" : "done";
+        missionDay.current = { ...d, done: [...d.done, "online"] };
+      }
+    }
+    setEnd({ run, result: (survival ? survivalResult : sprintResult)(run, ghost), newBest, mission });
     goPhase("end");
     sfx("end");
     playMusic("menu");
@@ -675,7 +708,7 @@ function SprintEnd({
   const { t, itemName, formatNumber } = useI18n();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const { run, result, newBest } = end;
+  const { run, result, newBest, mission } = end;
   const sec = (ms: number) => `${formatNumber(Math.round(ms / 100) / 10)} s`;
   const title = rival
     ? t(result === "win" ? "ghost.winFriend" : result === "lose" ? "ghost.loseFriend" : "ghost.drawFriend", {
@@ -728,6 +761,17 @@ function SprintEnd({
               ⭐ {t(vsOther ? "online.newBest" : first ? `${kind}.firstSaved` : `${kind}.newBest`)}
             </AppText>
           </View>
+        )}
+
+        {mission && (
+          <AppText variant="label" tone="primary" center>
+            {t("mission.endDone", { xp: MISSION_XP })}
+          </AppText>
+        )}
+        {mission === "chest" && (
+          <AppText variant="label" tone="primary" center>
+            {t("chest.end")}
+          </AppText>
         )}
 
         <View style={[styles.table, { backgroundColor: colors.surface, borderColor: colors.border }]}>

@@ -523,6 +523,7 @@ export const en: Translations = {
   "mission.bin": "{bin}: {n} right",
   "mission.streak": "{n} right in a row",
   "mission.correct": "Sort {n} right",
+  "mission.online": "Play 1 online round",
   "mission.station": "Clear one stage",
   "mission.doneA11y": "done",
   "mission.doneBanner": "Daily mission done! +{xp} XP",

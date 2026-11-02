@@ -405,7 +405,7 @@ export function flushThrowRecords(): Promise<void> {
     clearTimeout(flushTimer);
     flushTimer = null;
   }
-  if (pendingThrows.played === 0 && pendingMissions.stations === 0) {
+  if (pendingThrows.played === 0 && pendingMissions.stations === 0 && !pendingMissions.online) {
     return enqueue(async () => undefined);
   }
   const batch = { ...pendingThrows };
@@ -605,6 +605,12 @@ export function openChest(): Promise<{
     const after = xp > 0 ? await addXP(xp) : null;
     return { reward, xp, opened: n, levelUp: after?.leveledUp ? after.level : null };
   });
+}
+
+/** Online-Runde (Sprint/Survival) zu Ende gespielt – gleich speichern. */
+export function queueOnlineMission(): Promise<void> {
+  pendingMissions.online = (pendingMissions.online ?? 0) + 1;
+  return flushThrowRecords();
 }
 
 /** Station mit mindestens 1 Stern gespielt (wird mit den Würfen gespeichert). */

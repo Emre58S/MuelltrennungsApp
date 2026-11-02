@@ -523,6 +523,7 @@ export const de = {
   "mission.streak": "{n} richtig in Folge",
   "mission.correct": "{n} richtig sortieren",
   "mission.station": "Eine Station schaffen",
+  "mission.online": "1 Online-Runde spielen",
   "mission.doneA11y": "geschafft",
   "mission.doneBanner": "Tagesmission geschafft! +{xp} XP",
   "mission.endDone": "✓ Tagesmission geschafft (+{xp} XP)",

@@ -2,13 +2,13 @@
 //
 // Jeden Tag 3 kleine Aufgaben, für alle Runden gleich (Pfad, Freies Spiel,
 // Modi, Tagesaufgabe): eine Tonne aus der aktuellen Welt (nur Bekanntes),
-// abwechselnd Serie oder Menge, und eine Station im Pfad. Die Missionen
+// reihum Serie, Menge oder eine Online-Runde, und eine Station im Pfad. Die Missionen
 // stehen ab dem ersten Abruf des Tages fest; der Fortschritt zählt mit.
 // Reine Logik – gespeichert wird in utils/storage.ts.
 
 import { type BinKey } from "@/constants/theme";
 
-export type MissionKind = "bin" | "streak" | "correct" | "station";
+export type MissionKind = "bin" | "streak" | "correct" | "online" | "station";
 
 export type Mission = {
   id: string;
@@ -27,6 +27,8 @@ export type MissionCounts = {
   maxStreak: number;
   /** Stationen mit mindestens 1 Stern (auch nochmal gespielte). */
   stations: number;
+  /** Fertig gespielte Online-Runden (Sprint/Survival); fehlt in älteren Ständen. */
+  online?: number;
 };
 
 export type MissionDay = {
@@ -40,7 +42,7 @@ export type MissionDay = {
 /** XP je geschaffter Mission. */
 export const MISSION_XP = 30;
 
-export const EMPTY_COUNTS: MissionCounts = { bins: {}, correct: 0, maxStreak: 0, stations: 0 };
+export const EMPTY_COUNTS: MissionCounts = { bins: {}, correct: 0, maxStreak: 0, stations: 0, online: 0 };
 
 /** Kleine, feste Zahl aus dem Datum – alle Geräte bekommen am selben Tag dieselbe Wahl. */
 function daySeed(date: string): number {
@@ -54,9 +56,11 @@ export function dailyMissions(date: string, bins: BinKey[]): Mission[] {
   const seed = daySeed(date);
   const bin = bins.length > 0 ? bins[seed % bins.length] : "rest";
   const second: Mission =
-    seed % 2 === 0
+    seed % 3 === 0
       ? { id: "streak", kind: "streak", goal: 6 }
-      : { id: "correct", kind: "correct", goal: 20 };
+      : seed % 3 === 1
+        ? { id: "correct", kind: "correct", goal: 20 }
+        : { id: "online", kind: "online", goal: 1 };
   return [
     { id: `bin-${bin}`, kind: "bin", goal: 5, bin },
     second,
@@ -73,7 +77,9 @@ export function missionProgress(m: Mission, c: MissionCounts): number {
         ? c.maxStreak
         : m.kind === "correct"
           ? c.correct
-          : c.stations;
+          : m.kind === "online"
+            ? (c.online ?? 0)
+            : c.stations;
   return Math.min(n, m.goal);
 }
 
@@ -97,6 +103,7 @@ export function addMissionCounts(
     correct: day.counts.correct + delta.correct,
     maxStreak: Math.max(day.counts.maxStreak, delta.maxStreak),
     stations: day.counts.stations + delta.stations,
+    online: (day.counts.online ?? 0) + (delta.online ?? 0),
   };
   const newlyDone = day.missions.filter(
     (m) => !day.done.includes(m.id) && missionProgress(m, counts) >= m.goal,
