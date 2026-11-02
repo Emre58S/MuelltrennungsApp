@@ -606,6 +606,7 @@ export function TrickResult({
   unlocked,
   fact,
   isLast,
+  nextLabel,
   onNext,
   onRetry,
   onLevels,
@@ -620,6 +621,8 @@ export function TrickResult({
   /** „Wusstest du?“ zum geworfenen Gegenstand. */
   fact?: { name: string; text: string };
   isLast: boolean;
+  /** Eigener Text für „Weiter“ (z. B. Zufalls-Trick: „Neuer Trick“). */
+  nextLabel?: string;
   onNext: () => void;
   onRetry: () => void;
   onLevels: () => void;
@@ -682,7 +685,7 @@ export function TrickResult({
         </ScrollView>
         {/* Knöpfe immer sichtbar unten in der Karte */}
         <View style={[styles.resultButtons, styles.resultFooter]}>
-          <Button title={isLast ? t("trick.levels") : t("trick.next")} icon="arrow-right" iconPosition="end" onPress={isLast ? onLevels : onNext} />
+          <Button title={isLast ? t("trick.levels") : (nextLabel ?? t("trick.next"))} icon="arrow-right" iconPosition="end" onPress={isLast ? onLevels : onNext} />
           <Button title={t("trick.retry")} variant="secondary" icon="rotate-ccw" onPress={onRetry} />
           {!isLast && <Button title={t("trick.levels")} variant="ghost" onPress={onLevels} />}
         </View>

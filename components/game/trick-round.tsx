@@ -537,6 +537,7 @@ export function TrickRound({
             fact={result.fact}
             title={daily || random || !isLast ? t("trick.done") : t("trick.allDone")}
             isLast={isLast}
+            nextLabel={random ? t("tricks.randomNext") : undefined}
             onNext={onNext}
             onRetry={onRetry}
             onLevels={onExit}
