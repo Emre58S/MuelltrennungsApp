@@ -346,7 +346,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   Laubbläser, Lieferwagen nach und nach (Kann).
 
 ### R6 – Crunch & Belohnungsgefühl (Soll, viel per EAS-Update nachlieferbar)
-- [ ] **R6a** Aufprall-Partikel in der **Farbe der Wurfspur** beim Treffer.
+- [x] **R6a** Aufprall-Partikel in der **Farbe der Wurfspur** beim Treffer.
+  (a033f2c + 2164cc3, Tester 8/10, EAS auto + preview): TRAIL_SPARKS je Spur in
+  game/rewards.ts (+Test), Treffer-Funken = Spur + Tonnenfarbe + Material; Standard
+  unverändert. Offen: Gold-Spur – Perfekt-Treffer stärker weiß; auch Trick-/Sprint-Runden.
+  Hinweis: R5 vorerst übersprungen – Emre arbeitet am 02.11. selbst an den Trick-Dateien.
 - [ ] **R6b** Material-Effekte: Banane/Bio **platscht** (Spritzer), Glas
   **splittert** (Scherben-Funken), Dose **knautscht**, Papier flattert.
   Töne der Materialien bleiben erhalten (CLAUDE.md).
