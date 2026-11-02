@@ -278,7 +278,32 @@ function MissionCard({
 }) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
+  const { reduceMotion } = useAppSettings();
   const next = chest ? nextChestTrail(chest.opened) : null;
+  // Öffnen: Truhe wackelt kurz, dann springt das Ergebnis auf
+  const [wobble] = useState(() => new Animated.Value(0));
+  const [pop] = useState(() => new Animated.Value(1));
+  const wobbling = useRef(false);
+  const openWithWobble = () => {
+    if (wobbling.current) return;
+    tapHaptic();
+    if (reduceMotion) {
+      onOpenChest();
+      return;
+    }
+    wobbling.current = true;
+    const step = (to: number) => Animated.timing(wobble, { toValue: to, duration: 70, useNativeDriver: true });
+    Animated.sequence([step(1), step(-1), step(1), step(-1), step(0)]).start(() => {
+      wobbling.current = false;
+      onOpenChest();
+    });
+  };
+  const opened = chest?.opened;
+  useEffect(() => {
+    if (opened === undefined || reduceMotion) return;
+    pop.setValue(0.6);
+    Animated.spring(pop, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+  }, [opened, reduceMotion, pop]);
   const allDone = day.done.length >= day.missions.length;
   const text = (m: Mission) => {
     if (m.kind === "bin" && m.bin) return t("mission.bin", { bin: t(`bin.${m.bin}`), n: m.goal });
@@ -333,37 +358,54 @@ function MissionCard({
         </AppText>
       )}
       {chestsWaiting > 0 && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("chest.open")}
-          onPress={() => {
-            tapHaptic();
-            onOpenChest();
-          }}
-          style={({ pressed }) => [styles.chestBtn, pressed && press.pressed]}
+        <Animated.View
+          style={[
+            styles.chestWrap,
+            { transform: [{ rotate: wobble.interpolate({ inputRange: [-1, 1], outputRange: ["-8deg", "8deg"] }) }] },
+          ]}
         >
-          <AppText variant="label" color="#3A2A00">
-            {t("chest.open")}
-            {chestsWaiting > 1 ? ` (${chestsWaiting})` : ""}
-          </AppText>
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("chest.open")}
+            onPress={openWithWobble}
+            style={({ pressed }) => [styles.chestBtn, pressed && press.pressed]}
+          >
+            <AppText variant="label" color="#3A2A00">
+              {t("chest.open")}
+              {chestsWaiting > 1 ? ` (${chestsWaiting})` : ""}
+            </AppText>
+          </Pressable>
+        </Animated.View>
       )}
       {chest && (
-        <View style={[styles.chestResult, { backgroundColor: colors.goldSoft }]} accessibilityLiveRegion="polite">
+        <Animated.View
+          style={[styles.chestResult, { backgroundColor: colors.goldSoft, transform: [{ scale: pop }] }]}
+          accessibilityLiveRegion="polite"
+        >
           <AppText variant="label" tone="onGoldSoft">
             {chest.reward ? `🎉 ${t("reward.new", { name: t(chest.reward.name) })}` : `🎁 ${t("chest.xp", { xp: chest.xp })}`}
           </AppText>
           {chest.reward && (
-            <AppText variant="caption" tone="onGoldSoft">
-              {t("chest.where")}
-            </AppText>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                sfx("tap");
+                tapHaptic();
+                router.push("/belohnungen");
+              }}
+              style={({ pressed }) => [styles.chestChoose, pressed && press.pressed]}
+            >
+              <AppText variant="label" tone="onGoldSoft">
+                {t("chest.choose")} ›
+              </AppText>
+            </Pressable>
           )}
           {next && (
             <AppText variant="caption" tone="onGoldSoft">
               {next.left === 1 ? t("chest.nextOne") : t("chest.next", { n: next.left })}
             </AppText>
           )}
-        </View>
+        </Animated.View>
       )}
     </View>
   );
@@ -633,13 +675,14 @@ const styles = StyleSheet.create({
   missionRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   missionText: { flex: 1 },
   chestBtn: {
-    alignSelf: "flex-start",
     backgroundColor: DAILY_GOLD,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
   },
   chestResult: { padding: Spacing.sm, borderRadius: Radius.md, gap: 2 },
+  chestWrap: { alignSelf: "flex-start" },
+  chestChoose: { alignSelf: "flex-start", paddingVertical: 4 },
   chip: {
     paddingHorizontal: Spacing.md - 4,
     paddingVertical: Spacing.sm,

@@ -209,7 +209,7 @@ export const de = {
   "chest.goal": "Alle 3 schaffen → 🎁 Truhe",
   "chest.open": "🎁 Truhe öffnen",
   "chest.xp": "+{xp} XP",
-  "chest.where": "Auswählen in der Sammlung → Belohnungen.",
+  "chest.choose": "Jetzt auswählen",
   "chest.next": "Noch {n} Truhen bis zur nächsten Wurfspur.",
   "chest.nextOne": "Noch 1 Truhe bis zur nächsten Wurfspur.",
   "chest.end": "🎁 Truhe verdient – öffnen im Pfad!",

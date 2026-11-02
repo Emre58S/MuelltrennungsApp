@@ -209,7 +209,7 @@ export const en: Translations = {
   "chest.goal": "Finish all 3 → 🎁 chest",
   "chest.open": "🎁 Open chest",
   "chest.xp": "+{xp} XP",
-  "chest.where": "Pick it in Collection → Rewards.",
+  "chest.choose": "Choose now",
   "chest.next": "{n} more chests to the next trail.",
   "chest.nextOne": "1 more chest to the next trail.",
   "chest.end": "🎁 Chest earned – open it on your path!",
