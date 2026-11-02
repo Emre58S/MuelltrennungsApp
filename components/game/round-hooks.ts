@@ -33,7 +33,8 @@ export const HIGHSCORE_MODE = {
 } as const;
 
 /** Rangliste je Modus (Üben/Endlos hat keine). */
-const BOARD: Partial<Record<GameMode, Board>> = { aim: "zielwurf", time: "zeit", survival: "runden" };
+// Zeit/Ohne Fehler gibt es mit Rangliste nur noch online (Sprint/Survival, ROADMAP R4f)
+const BOARD: Partial<Record<GameMode, Board>> = { aim: "zielwurf" };
 
 /** Rangliste einer Runde (Tagesaufgabe: die von heute) – oder keine. */
 export function boardFor(mode: GameMode, daily: boolean): Board | undefined {

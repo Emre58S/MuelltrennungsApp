@@ -55,8 +55,8 @@ type Span = "week" | "all";
 const TABS: Tab[] = [
   { key: "sprint", label: "sprint.title", online: "sprint" },
   { key: "survival", label: "survival.title", online: "survival" },
-  { key: "zeit", label: "mode.time.title", board: () => "zeit" },
-  { key: "runden", label: "mode.survival.title", board: () => "runden" },
+  // „Gegen die Zeit“/„Ohne Fehler“ solo ohne Rangliste (ROADMAP R4f) – sonst
+  // verwechselbar mit Zeit-Sprint/Survival
   { key: "tagesaufgabe", label: "home.daily", board: () => dailyBoard("tagesaufgabe"), daily: true },
   { key: "tagestrick", label: "tricks.daily", board: () => dailyBoard("tagestrick"), daily: true, trick: true },
 ];
