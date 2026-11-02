@@ -13,6 +13,7 @@ import {
   getPlayer,
   isMissingOnServer,
   leaderboardReady,
+  openChallenges,
   submitScore,
   trickScore,
   weekStart,
@@ -96,5 +97,21 @@ describe("Ohne Server", () => {
     await submitScore("zielwurf", 420);
     await submitScore("zeit", 0); // 0 Punkte zählen nicht
     expect(JSON.parse(mockMemory.get("pending") ?? "[]")).toEqual([{ board: "zielwurf", score: 420 }]);
+  });
+});
+
+describe("Offene Herausforderungen (Freunde)", () => {
+  test("offen, solange der Freund heute mindestens so viele hat wie ich", () => {
+    const rows = [
+      { name: "Anna", code: "AAAAAA", sprint: 12, survival: null },
+      { name: "Ben", code: "BBBBBB", sprint: 8, survival: 5 },
+    ];
+    expect(openChallenges(rows, { sprint: 10, survival: 5 })).toEqual([
+      { name: "Anna", code: "AAAAAA", mode: "sprint", correct: 12 },
+      { name: "Ben", code: "BBBBBB", mode: "survival", correct: 5 },
+    ]);
+    // Noch nicht gespielt (0) → alles offen; alles geschlagen → nichts
+    expect(openChallenges(rows, { sprint: 0, survival: 0 })).toHaveLength(3);
+    expect(openChallenges(rows, { sprint: 13, survival: 6 })).toEqual([]);
   });
 });

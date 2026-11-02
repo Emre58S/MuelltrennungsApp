@@ -176,8 +176,33 @@ as $$
   limit 1;
 $$;
 
+-- Offene Herausforderungen (ROADMAP R4e Teil 2b): Freunde, die heute schon
+-- gespielt haben, mit ihrem besten Sprint/Survival von heute (null = Modus nicht
+-- gespielt). Ob man sie schon geschlagen hat, rechnet die App selbst aus.
+create or replace function public.friend_today(p_player uuid, p_day text)
+returns table (name text, code text, sprint integer, survival integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.name, c.code,
+    (select r.correct from online_runs r
+      where r.player = f.friend and r.mode = 'sprint' and r.day = p_day),
+    (select r.correct from online_runs r
+      where r.player = f.friend and r.mode = 'survival' and r.day = p_day)
+  from friends f
+  join players p on p.id = f.friend
+  join friend_codes c on c.player = f.friend
+  where f.player = p_player
+    and exists (select 1 from online_runs r where r.player = f.friend and r.day = p_day)
+  order by p.name
+  limit 50;
+$$;
+
 grant execute on function public.my_friend_code(uuid) to anon, authenticated;
 grant execute on function public.add_friend(uuid, text) to anon, authenticated;
 grant execute on function public.remove_friend(uuid, text) to anon, authenticated;
 grant execute on function public.friend_list(uuid, text) to anon, authenticated;
 grant execute on function public.friend_run(uuid, text, text, text) to anon, authenticated;
+grant execute on function public.friend_today(uuid, text) to anon, authenticated;

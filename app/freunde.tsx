@@ -18,8 +18,10 @@ import { useAppTheme, useI18n } from "@/providers/app-settings";
 import {
   addFriend,
   fetchFriends,
+  fetchOpenChallenges,
   type Friend,
   type FriendError,
+  type OpenChallenge,
   formatFriendCode,
   getFriendCode,
   isMissingOnServer,
@@ -43,6 +45,8 @@ export default function FriendsScreen() {
   const { scheme, colors } = useAppTheme();
   const [code, setCode] = useState<string | null>(null);
   const [friends, setFriends] = useState<Friend[] | null>(null);
+  /** Freunde, die heute mehr (oder gleich viel) geschafft haben als ich. */
+  const [open, setOpen] = useState<OpenChallenge[]>([]);
   const [state, setState] = useState<"idle" | "error" | "setup">("idle");
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState<{ text: string; ok: boolean } | null>(null);
@@ -52,6 +56,7 @@ export default function FriendsScreen() {
   /** Laden; `quiet`: Fehler nur als Hinweis (die Seite bleibt stehen). */
   const load = useCallback((quiet = false) => {
     if (!leaderboardReady) return;
+    fetchOpenChallenges().then(setOpen, () => undefined);
     Promise.all([getFriendCode(), fetchFriends()])
       .then(([mine, list]) => {
         setCode(mine);
@@ -85,10 +90,13 @@ export default function FriendsScreen() {
     load(true);
   };
 
+  /** Gegen den Lauf eines Freundes von heute antreten. */
+  const race = (mode: "sprint" | "survival", friendCode: string) =>
+    router.push({ pathname: "/runde", params: { mode, friend: friendCode } });
+
   /** Herausfordern: Modus wählen, dann gegen den Lauf des Freundes von heute. */
   const challenge = (friend: Friend) => {
-    const go = (mode: "sprint" | "survival") =>
-      router.push({ pathname: "/runde", params: { mode, friend: friend.code } });
+    const go = (mode: "sprint" | "survival") => race(mode, friend.code);
     Alert.alert(t("friends.challenge", { name: friend.name }), t("friends.challengeInfo", { name: friend.name }), [
       { text: `⏱️ ${t("sprint.title")}`, onPress: () => go("sprint") },
       { text: `🛡️ ${t("survival.title")}`, onPress: () => go("survival") },
@@ -145,6 +153,23 @@ export default function FriendsScreen() {
             </AppText>
             <Button title={t("friends.share")} icon="share" variant="secondary" onPress={share} />
           </View>
+
+          {/* Offene Herausforderungen: Freunde, die heute vorgelegt haben */}
+          {open.length > 0 && (
+            <View style={[styles.card, { backgroundColor: colors.goldSoft, borderColor: colors.border }]}>
+              <AppText variant="label" color={colors.onGoldSoft}>
+                ⚔️ {t("friends.open")}
+              </AppText>
+              {open.map((c) => (
+                <View key={`${c.code}-${c.mode}`} style={styles.row}>
+                  <AppText variant="body" color={colors.onGoldSoft} style={styles.flex} numberOfLines={1}>
+                    {c.mode === "sprint" ? "⏱️" : "🛡️"} {t("friends.openRow", { name: c.name, n: c.correct })}
+                  </AppText>
+                  <Button title={t("friends.go")} icon="play" onPress={() => race(c.mode, c.code)} />
+                </View>
+              ))}
+            </View>
+          )}
 
           {/* Freund hinzufügen */}
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>

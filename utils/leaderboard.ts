@@ -8,7 +8,8 @@
 // Fehlt er, läuft alles weiter: Ergebnisse werden gemerkt und später
 // nachgereicht, die Ranglisten-Seite zeigt einen Hinweis.
 
-import { getItem, setItem, StorageKeys, todayKey } from "@/utils/storage";
+import { parseSprint } from "@/game/sprint";
+import { getItem, getSprintBest, getSurvivalBest, setItem, StorageKeys, todayKey } from "@/utils/storage";
 
 const URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -379,6 +380,41 @@ export async function fetchFriendRun(friendCode: string, mode: OnlineMode, day: 
     return rows?.[0] ?? null;
   } catch {
     return null;
+  }
+}
+
+export type OpenChallenge = { name: string; code: string; mode: OnlineMode; correct: number };
+
+/** Offen = Freund hat heute mindestens so viele richtig wie mein Bestes von heute
+ *  (noch nicht gespielt zählt als 0). */
+export function openChallenges(rows: Friend[], mine: Record<OnlineMode, number>): OpenChallenge[] {
+  const out: OpenChallenge[] = [];
+  for (const f of rows) {
+    for (const mode of ["sprint", "survival"] as const) {
+      const n = f[mode];
+      if (n != null && n >= mine[mode]) out.push({ name: f.name, code: f.code, mode, correct: n });
+    }
+  }
+  return out;
+}
+
+/** Offene Herausforderungen von heute (leer, wenn offline oder SQL fehlt). */
+export async function fetchOpenChallenges(): Promise<OpenChallenge[]> {
+  if (!leaderboardReady) return [];
+  try {
+    const day = todayKey();
+    const player = await getPlayer();
+    const [rows, sprint, survival] = await Promise.all([
+      rpc<Friend[]>("friend_today", { p_player: player.id, p_day: day }),
+      getSprintBest(),
+      getSurvivalBest(),
+    ]);
+    return openChallenges(rows ?? [], {
+      sprint: parseSprint(sprint, day)?.correct ?? 0,
+      survival: parseSprint(survival, day)?.correct ?? 0,
+    });
+  } catch {
+    return [];
   }
 }
 
