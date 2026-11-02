@@ -162,7 +162,7 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     Bestandsspielern einmal zeigen.
 
 ### R3 – Täglich wiederkommen (Muss)
-- [ ] **R3a** (F2) 3 Tagesmissionen (z. B. „5× Glas richtig“, „Serie 8“,
+- [x] **R3a** (F2) 3 Tagesmissionen (z. B. „5× Glas richtig“, „Serie 8“,
   „1 Online-Runde“) – sichtbar oben im Pfad, Belohnung XP/Truhe.
   - [x] Teil 1 (764ab4e + 804580e, Tester 7/10, EAS auto + preview): game/missions.ts
     (+Tests) – je Tag fest: „{Tonne}: 5 richtig“ (nur Tonnen der aktuellen Welt),
@@ -173,7 +173,12 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     Level-Aufstieg), Mission-XP + Zeile im Endbildschirm (auch Station am Ende).
     Offen (klein): Würfe vor dem Laden der Missionen (sehr schneller 1. Wurf) zeigen
     keinen Hinweis; Banner allgemein nacheinander statt verdrängend (R10).
-  - Danach: „1 Online-Runde“ erst mit R4; Belohnung Truhe mit R3c; Flamme zählt
+  - [x] Teil 3 (f70f353→9d80117 nach Rebase, Tester 8/10, EAS auto + preview): Mission
+    „1 Online-Runde spielen“ reihum mit Serie/Menge (Tag-Seed % 3), zählt fertig gespielte
+    Sprint-/Survival-Läufe (nicht abgebrochene, auch offline/Übungs-Ghost), Zeile 🌍 im Pfad
+    öffnet den Online-Bereich, Endbildschirm „✓ Tagesmission geschafft“ (+ Truhe).
+    Offen (klein): Mitternacht während der Runde → Anzeige bezieht sich auf alten Tag.
+  - Danach (erledigt bzw. bei R3c): Belohnung Truhe mit R3c; Flamme zählt
     Mission mit R3b. Randfall: Würfe kurz vor Mitternacht zählen ggf. für den neuen Tag.
 - [x] **R3b** Tagesaufgabe = besondere Station im Pfad (goldener Kreis), Flamme
   zählt bei Tagesaufgabe ODER einer Mission.
