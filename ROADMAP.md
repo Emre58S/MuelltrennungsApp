@@ -240,6 +240,15 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
+  - [x] Teil 1 (75ee285 + db69df8, Tester 6/10 → 8/10, EAS auto + preview): Sprint +
+    Survival senden jeden fertigen Lauf als Code (encodeSprint: Tonne + Zeitabstand,
+    3 Zeichen/Wurf) an supabase/online.sql (**Nutzer muss es ausführen**); Start holt
+    einen Lauf eines anderen Spielers von heute mit ähnlich vielen Treffern (unter den
+    5 nächsten zufällig), richtig/falsch rechnet die App nach; Startkarte „🌍 Gegner: …“,
+    umschaltbar auf eigenen/Übungs-Ghost, „Suche Gegner …“; nur vor dem Start übernommen.
+  - Offen: Seed der Woche statt Tag (mehr Gegner); Server rechnet `correct` nicht nach
+    (nur Auswahl betroffen); Startkarte springt kurz nach der Suche; Hinweis, wenn
+    während der Suche gestartet wurde; Gegner auch für das Ghost-Rennen.
 - [ ] **R4e** Freunde: eigener **Freundes-Code** (z. B. EMRE-4821), Freund
   hinzufügen per Code/Link, Liste mit „Herausfordern“ + offenen Herausforderungen.
 - [ ] **R4f** Ranglisten je Modus (Woche + Allzeit), eigener Platz immer sichtbar.

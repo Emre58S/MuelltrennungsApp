@@ -145,3 +145,5 @@ wenig Deutsch, nie strafend.
   Verlegen von Knöpfen mit anpassen.
 - Wurf-Modi ohne Wartezeit (Sprint): wahlloses Dauerwischen schlägt Nachdenken –
   kurze Sperre nach jedem Wurf + Pause nach Fehlwurf einbauen.
+- Node-Edit-Skripte: `String.replace(a, b)` deutet `$'`/`$&` in b als Muster
+  (SQL-Regex `…$'` zerstörte online.sql) – `split(a).join(b)` oder Funktion nutzen.
