@@ -34,6 +34,7 @@ import {
   type DailyResult,
   getCampaignStars,
   getTodayDaily,
+  grantCampaignHeadStart,
   getTrickStars,
   type TrickStars,
 } from "@/utils/storage";
@@ -90,7 +91,10 @@ export default function KampagneScreen() {
     useCallback(() => {
       let active = true;
       scrolled.current = false;
-      getCampaignStars()
+      // Bestandsspieler: einmalig Welten nach Level vorab freischalten
+      grantCampaignHeadStart()
+        .catch(() => undefined)
+        .then(getCampaignStars)
         .then((s) => active && setStars(s))
         .catch(() => active && setStars({}));
       getTodayDaily()

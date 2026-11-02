@@ -242,6 +242,20 @@ export function currentStation(stars: CampaignStars): Station {
   );
 }
 
+/** Vorsprung für Bestandsspieler: Lern-Welten, deren Tonnen man über das Level
+ *  schon länger kennt (freigeschaltet vor dem jetzigen Level), gelten als
+ *  geschafft – je Station 1 Stern. Level 4 → ab Welt 3, Level 6 → ab Welt 5,
+ *  ab Level 8 → Welt 6. „Knifflige Fälle“ werden nie übersprungen. */
+export function headStartStars(level: number): CampaignStars {
+  const stars: CampaignStars = {};
+  for (const world of LEARN_WORLDS) {
+    const known = world.bins.every((key) => (ALL_BINS.find((b) => b.key === key)?.unlockLevel ?? Infinity) < level);
+    if (!known) break;
+    for (const s of world.stations) stars[s.id] = 1;
+  }
+  return stars;
+}
+
 /** Freies Spiel: die Tonnen der Welt, in der man gerade ist (Welt 6: alle). */
 export function freePlayBins(stars: CampaignStars): BinKey[] {
   const at = currentStation(stars);

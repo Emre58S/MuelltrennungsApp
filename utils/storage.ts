@@ -2,7 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Storage Keys ──────────────────────────────────────────────────────
-import { type CampaignStars, withStars } from "@/game/campaign";
+import { type CampaignStars, headStartStars, withStars } from "@/game/campaign";
 import { goldCount } from "@/game/mastery";
 import { type FlameStatus, flameState, nextStreak } from "@/utils/streak";
 
@@ -45,6 +45,8 @@ export const StorageKeys = {
   GHOST_BEST: "muell_ghost_best",
   /** Kampagne: Sterne je Station (game/campaign.ts). */
   CAMPAIGN_STARS: "muell_campaign_stars",
+  /** Kampagne: Vorsprung nach Level schon vergeben (einmalig, „1“). */
+  CAMPAIGN_HEAD_START: "muell_campaign_head_start",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -487,6 +489,19 @@ export async function getCampaignStars(): Promise<CampaignStars> {
   } catch {
     return {};
   }
+}
+
+/** Kampagne: Bestandsspieler einmalig nach Level vorab freischalten (beim
+ *  ersten Öffnen des Pfads; neue Spieler bekommen nichts und werden markiert). */
+export function grantCampaignHeadStart(): Promise<void> {
+  return enqueue(async () => {
+    if (await getItem(StorageKeys.CAMPAIGN_HEAD_START)) return;
+    const head = headStartStars(getLevelFromXP(await getNumber(StorageKeys.TOTAL_XP)));
+    const before = await getCampaignStars();
+    const next = Object.entries(head).reduce((all, [id, n]) => withStars(all, id, n), before);
+    if (next !== before) await setItem(StorageKeys.CAMPAIGN_STARS, JSON.stringify(next));
+    await setItem(StorageKeys.CAMPAIGN_HEAD_START, "1");
+  });
 }
 
 /** Kampagne: Ergebnis einer Station speichern – nur mehr Sterne zählen. */

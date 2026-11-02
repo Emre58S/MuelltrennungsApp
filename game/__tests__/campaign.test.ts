@@ -7,6 +7,7 @@ import { TRICK_LEVELS } from "@/game/trick-levels";
 import {
   currentStation,
   freePlayBins,
+  headStartStars,
   parseFreeBins,
   introExamples,
   isUnlocked,
@@ -134,6 +135,17 @@ describe("Freischalten", () => {
     expect(freePlayBins(world1)).toEqual(WORLDS[1].bins);
     const all = Object.fromEntries(STATIONS.map((s) => [s.id, 1]));
     expect(freePlayBins(all)).toHaveLength(6);
+  });
+
+  test("Vorsprung nach Level: bekannte Welten gelten als geschafft", () => {
+    expect(headStartStars(1)).toEqual({});
+    // Papier kommt mit Level 3 – erst ab Level 4 „schon länger bekannt“
+    expect(headStartStars(3)).toEqual({});
+    expect(currentStation(headStartStars(4)).id).toBe("3-1");
+    expect(currentStation(headStartStars(6)).id).toBe("5-1");
+    expect(currentStation(headStartStars(8)).id).toBe("6-1");
+    expect(currentStation(headStartStars(99)).id).toBe("6-1");
+    expect(Object.values(headStartStars(99)).every((n) => n === 1)).toBe(true);
   });
 
   test("Freies Spiel: Tonnen aus dem Link", () => {
