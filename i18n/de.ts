@@ -212,6 +212,7 @@ export const de = {
   "chest.where": "Auswählen in der Sammlung → Belohnungen.",
   "chest.next": "Noch {n} Truhen bis zur nächsten Wurfspur.",
   "chest.nextOne": "Noch 1 Truhe bis zur nächsten Wurfspur.",
+  "chest.end": "🎁 Truhe verdient – öffnen im Pfad!",
   "chest.banner": "Alle Missionen geschafft! 🎁 Truhe im Pfad",
   "reward.needGold": "Ab {n} 🥇 Gold-Gegenständen (Sammelbuch)",
   "home.rewards": "Belohnungen",

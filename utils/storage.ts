@@ -2,7 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ── Storage Keys ──────────────────────────────────────────────────────
-import { type CampaignStars, freePlayBins, headStartStars, withStars } from "@/game/campaign";
+import { type CampaignStars, freePlayBins, getStation, headStartStars, withStars } from "@/game/campaign";
 import {
   addMissionCounts,
   EMPTY_COUNTS,
@@ -607,12 +607,16 @@ export function grantCampaignHeadStart(): Promise<boolean> {
   });
 }
 
-/** Kampagne: Ergebnis einer Station speichern – nur mehr Sterne zählen. */
+/** Kampagne: Ergebnis einer Station speichern – nur mehr Sterne zählen.
+ *  Boss zum ersten Mal besiegt → eine Truhe (öffnen im Pfad). */
 export function saveCampaignStars(id: string, stars: number): Promise<void> {
   return enqueue(async () => {
     const all = await getCampaignStars();
     const next = withStars(all, id, stars);
     if (next !== all) await setItem(StorageKeys.CAMPAIGN_STARS, JSON.stringify(next));
+    if (getStation(id)?.kind === "boss" && stars >= 1 && !((all[id] ?? 0) >= 1)) {
+      await setNumber(StorageKeys.CHESTS_EARNED, (await getNumber(StorageKeys.CHESTS_EARNED)) + 1);
+    }
   });
 }
 

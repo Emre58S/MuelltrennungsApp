@@ -83,6 +83,7 @@ import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxStreak } from "@/ut
 import {
   EMPTY_ITEM_STAT,
   getHighscoreKey,
+  getCampaignStars,
   getItemStats,
   getLevelFromXP,
   getMissionDay,
@@ -348,6 +349,18 @@ export function GameRound({
       active = false;
     };
   }, []);
+  // Boss: noch nie besiegt? Dann bringt der Sieg eine Truhe (Speicher: saveCampaignStars)
+  const [bossNew, setBossNew] = useState(false);
+  useEffect(() => {
+    if (station?.kind !== "boss") return;
+    let active = true;
+    getCampaignStars()
+      .then((s) => active && setBossNew(!((s[station.id] ?? 0) >= 1)))
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [station]);
   const fever = feverId !== null;
   const lock = useRef({
     ended: false,
@@ -443,6 +456,14 @@ export function GameRound({
     missionStart.missions.some((m) => m.kind === "station") &&
     !missionStart.done.includes("station") &&
     stationStars(station, stats) >= 1;
+  // In dieser Runde eine Truhe verdient? (alle 3 Missionen fertig oder erster Boss-Sieg)
+  const roundMissions = missionsDone + (stationMission ? 1 : 0);
+  const chestEarned =
+    showEnd &&
+    ((bossNew && station?.kind === "boss" && stationStars(station, stats) >= 1) ||
+      (!!missionStart &&
+        roundMissions > 0 &&
+        missionStart.done.length + roundMissions >= missionStart.missions.length));
 
   // „X“ oben: nach den ersten Würfen erst nachfragen – ein versehentlicher
   // Tipp soll eine laufende Runde nicht vorzeitig beenden (gespeichert wird sie
@@ -1252,7 +1273,8 @@ export function GameRound({
             stats={stats}
             startXp={startXp}
             xpEarned={xpEarned + (stationMission ? MISSION_XP : 0)}
-            missionsDone={missionsDone + (stationMission ? 1 : 0)}
+            missionsDone={roundMissions}
+            chestEarned={chestEarned}
             daily={daily}
             station={station}
             onNext={onNext}

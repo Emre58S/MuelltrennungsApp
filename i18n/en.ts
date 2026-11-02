@@ -212,6 +212,7 @@ export const en: Translations = {
   "chest.where": "Pick it in Collection → Rewards.",
   "chest.next": "{n} more chests to the next trail.",
   "chest.nextOne": "1 more chest to the next trail.",
+  "chest.end": "🎁 Chest earned – open it on your path!",
   "chest.banner": "All missions done! 🎁 Chest on your path",
   "reward.needGold": "From {n} 🥇 gold items (collection)",
   "reward.trail.sternenstaub": "Stardust",

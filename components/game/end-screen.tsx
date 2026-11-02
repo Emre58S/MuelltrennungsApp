@@ -54,6 +54,7 @@ export function EndScreen({
   startXp,
   xpEarned,
   missionsDone = 0,
+  chestEarned = false,
   newBest,
   mistakes,
   daily,
@@ -71,6 +72,8 @@ export function EndScreen({
   xpEarned: number;
   /** In dieser Runde geschaffte Tagesmissionen (je MISSION_XP, schon in xpEarned). */
   missionsDone?: number;
+  /** In dieser Runde eine Truhe verdient (öffnen im Pfad). */
+  chestEarned?: boolean;
   newBest: boolean;
   mistakes: Mistake[];
   /** Tagesaufgabe: eigener Titel + Teilen. */
@@ -334,6 +337,11 @@ export function EndScreen({
               {missionsDone === 1
                 ? t("mission.endDone", { xp: MISSION_XP })
                 : t("mission.endDoneMany", { n: missionsDone, xp: missionsDone * MISSION_XP })}
+            </AppText>
+          )}
+          {chestEarned && (
+            <AppText variant="label" tone="primary" center>
+              {t("chest.end")}
             </AppText>
           )}
 
