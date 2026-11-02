@@ -69,7 +69,7 @@ import {
 } from "@/game/sprint";
 import { itemLimit, practiceSurvival, SURVIVAL_MAX_MS, survivalResult, survivalRun } from "@/game/survival";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { fetchRandomRun, submitOnlineRun } from "@/utils/leaderboard";
+import { fetchRandomRun, leaderboardReady, submitOnlineRun } from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { getSprintBest, getSurvivalBest, saveSprintBest, saveSurvivalBest, todayKey } from "@/utils/storage";
@@ -139,20 +139,25 @@ export function SprintRound({
       .catch(() => undefined)
       .finally(() => setLoaded(true));
   }, [day, kind]);
+  const phaseRef = useRef<Phase>("ready");
   // Zufallsgegner: ähnlich stark wie der eigene Bestlauf (sonst wie der Übungs-Ghost)
   const [rival, setRival] = useState<{ name: string; run: GhostRun } | null>(null);
   const [vsOwn, setVsOwn] = useState(false);
+  /** Suche läuft noch (nur mit eingerichtetem Server) – ruhiger Hinweis statt Springen. */
+  const [searching, setSearching] = useState(leaderboardReady);
   useEffect(() => {
     if (!loaded) return;
     let alive = true;
     fetchRandomRun(kind, day, (best ?? practice).correct)
       .then((found) => {
         const throws = found ? decodeSprint(found.code, correctBins, bins.length) : null;
-        if (!alive || !found || !throws) return;
+        // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
+        if (!alive || !found || !throws || phaseRef.current !== "ready") return;
         const run = survival ? survivalRun(day, throws, found.ms) : sprintRun(day, throws);
         if (run.throws.length > 0) setRival({ name: found.name, run });
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => alive && setSearching(false));
     return () => {
       alive = false;
     };
@@ -164,7 +169,6 @@ export function SprintRound({
   const ghostName = vsRival ? rival.name : best ? t("ghost.name") : t("ghost.practiceName");
 
   const [phase, setPhase] = useState<Phase>("ready");
-  const phaseRef = useRef<Phase>("ready");
   const goPhase = useCallback((p: Phase) => {
     phaseRef.current = p;
     setPhase(p);
@@ -542,9 +546,20 @@ export function SprintRound({
                     : t(`${kind}.practice`)}
               </AppText>
             </View>
+            {searching && !rival && (
+              <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                🌍 {t("online.searching")}
+              </AppText>
+            )}
             {rival && (
               <Button
-                title={vsOwn ? t("online.playRival", { name: rival.name }) : t("ghost.code.mine")}
+                title={
+                  vsOwn
+                    ? t("online.playRival", { name: rival.name })
+                    : best
+                      ? t("ghost.code.mine")
+                      : t("online.vsPractice")
+                }
                 icon={vsOwn ? "globe" : "user"}
                 variant="secondary"
                 onPress={() => setVsOwn((v) => !v)}
@@ -570,6 +585,7 @@ export function SprintRound({
           practice={!vsRival && !best}
           rival={vsRival ? rival.name : null}
           first={!best}
+          vsOther={vsRival}
           queue={queue}
           onAgain={onAgain}
           onMenu={onExit}
@@ -635,6 +651,7 @@ function SprintEnd({
   practice,
   rival,
   first,
+  vsOther,
   queue,
   onAgain,
   onMenu,
@@ -648,6 +665,8 @@ function SprintEnd({
   practice: boolean;
   /** Noch kein eigener Lauf dieser Art von heute (erster Lauf wird gespeichert). */
   first: boolean;
+  /** Gegen einen Zufallsgegner gespielt – dann kommt beim nächsten Mal wieder einer. */
+  vsOther: boolean;
   queue: Item[];
   onAgain: () => void;
   onMenu: () => void;
@@ -704,7 +723,7 @@ function SprintEnd({
         {newBest && (
           <View style={[styles.highlight, { backgroundColor: colors.goldSoft }]}>
             <AppText variant="body" color={colors.onGoldSoft} style={styles.center}>
-              ⭐ {t(first ? `${kind}.firstSaved` : `${kind}.newBest`)}
+              ⭐ {t(vsOther ? "online.newBest" : first ? `${kind}.firstSaved` : `${kind}.newBest`)}
             </AppText>
           </View>
         )}

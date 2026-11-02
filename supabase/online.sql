@@ -15,7 +15,7 @@ create table if not exists public.online_runs (
   mode text not null check (mode in ('sprint', 'survival')),
   day text not null check (day ~ '^\d{4}-\d{2}-\d{2}$'),
   player uuid not null references public.players (id) on delete cascade,
-  code text not null check (code ~ '^[0-9a-z]{3,300}$'),
+  code text not null check (code ~ '^([0-9][0-9a-z]{2}){1,100}$'),
   correct integer not null check (correct between 1 and 100),
   ms integer not null check (ms between 1 and 70000),
   created_at timestamptz not null default now(),

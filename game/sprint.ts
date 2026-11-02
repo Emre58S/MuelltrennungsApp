@@ -95,7 +95,8 @@ export function encodeSprint(run: GhostRun): string {
  *  nach ihrem Ende von vorn, wie im Spiel). `null`, wenn der Code nicht passt
  *  (kaputt, zu lang oder Tonne gibt es nicht). */
 export function decodeSprint(code: string, correctBins: number[], binCount: number): GhostThrow[] | null {
-  if (!code || code.length % 3 !== 0 || code.length > CODE_THROWS * 3 || !/^[0-9a-z]+$/.test(code)) return null;
+  // Je Wurf: Ziffer (Tonne) + 2 Zeichen Zeit
+  if (!code || code.length > CODE_THROWS * 3 || !/^([0-9][0-9a-z]{2})+$/.test(code)) return null;
   if (correctBins.length === 0) return null;
   const throws: GhostThrow[] = [];
   let ms = 0;

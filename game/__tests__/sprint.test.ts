@@ -99,6 +99,7 @@ describe("Code für Zufallsgegner", () => {
     expect(decodeSprint("0a", bins, 3)).toBeNull();
     expect(decodeSprint("0A1", bins, 3)).toBeNull();
     expect(decodeSprint("30a", bins, 3)).toBeNull();
+    expect(decodeSprint("a01", bins, 3)).toBeNull();
     expect(decodeSprint("00a".repeat(101), bins, 3)).toBeNull();
   });
 
