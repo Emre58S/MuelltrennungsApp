@@ -365,6 +365,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   Haptik mittel, kräftig bei jeder 5er-Serie. Offen: Boss-Sieg/-Tausch mit Wackeln.
 - [ ] **R6d** Belohnungs-Momente: Truhe öffnen, Stern-Animation im Pfad,
   „Neue Tonne freigeschaltet!“. Hot-Path-Regel beachten (keine Objekte pro Frame).
+  - [x] Teil 1 (589e924, Tester 8/10, EAS auto + preview): erster Boss-Sieg → Karte
+    „🎉 Neue Tonne frei!“ mit Tonnen-Etikett(en) der nächsten Welt im Endbildschirm
+    (federt auf, ruhig bei „Weniger Bewegung“); nicht nach der letzten Lern-Welt.
+  - Offen: Stern-Animation im Pfad (neue Sterne der eben gespielten Station);
+    Karte antippbar (was gehört rein?); kurzer Erfolgston; Truhe öffnen ist schon da (R3c).
 
 ### R7 – Release-Vorbereitung (ganz am Ende, wenn die Inhalte stehen)
 - [ ] **R7a** App-Symbol + Startbild (eigene Tonne mit Gesicht o. ä.).
