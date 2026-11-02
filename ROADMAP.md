@@ -198,9 +198,11 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     Truhe (saveCampaignStars, nicht über Vorsprung); Endbildschirm „🎁 Truhe verdient –
     öffnen im Pfad!“. Offen (klein): 2 Truhen in einer Runde → „2 Truhen“; Grund
     nennen („Boss besiegt – 🎁“); Pfad-Hinweis am Boss, dass er eine Truhe bringt.
-  - [ ] Teil 3 (als Nächstes): Öffnen-Animation (Wackeln/Aufspringen, „Weniger Bewegung“ beachten),
-    Knopf „Jetzt auswählen“ → Belohnungen; Level-Aufstieg durch Truhen-XP zeigen;
-    Truhen-Aufkleber für Tonnen; Rettungstext der Flamme nur kurz zeigen. Rettungstext der Flamme nur kurz zeigen (F1-Idee).
+  - [x] Teil 3a (7288785 + Nachbesserung, Tester 7/10, EAS auto + preview): Truhe
+    wackelt beim Öffnen, Ergebnis springt auf (Weniger Bewegung beachtet), Doppeltipp
+    gesperrt, Knopf „Jetzt auswählen ›“ → Belohnungen.
+  - [ ] Teil 3b (als Nächstes): Level-Aufstieg durch Truhen-XP zeigen; Rettungstext
+    der Flamme nur kurz zeigen; später Truhen-Aufkleber für Tonnen. Rettungstext der Flamme nur kurz zeigen (F1-Idee).
 
 ### R4 – Online-Bereich (Muss: asynchron · später: live)
 Ein Bildschirm „Online“ mit 3 Karten: **Zeit-Sprint**, **Survival**,
