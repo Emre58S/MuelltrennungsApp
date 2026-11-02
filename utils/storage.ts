@@ -746,8 +746,9 @@ export function saveGhostBest(run: string): Promise<void> {
 // ── Zeit-Sprint: bester Sprint von heute ──────────────────────────
 
 /** Bester Sprint von heute als Text (game/sprint.ts parseSprint prüft ihn). */
+// Über die Schreib-Warteschlange: „Nochmal“ direkt nach dem Speichern liest schon den neuen Bestwert
 export function getSprintBest(): Promise<string | null> {
-  return getItem(StorageKeys.SPRINT_BEST);
+  return enqueue(() => getItem(StorageKeys.SPRINT_BEST));
 }
 
 /** Speichert den Sprint als neuen Gegner (die Runde prüft vorher, ob er besser ist). */

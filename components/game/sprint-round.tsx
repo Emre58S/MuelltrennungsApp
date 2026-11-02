@@ -50,6 +50,10 @@ type Phase = "ready" | "countdown" | "play" | "end";
 
 /** Nach dem Ablauf der Zeit: so lange fliegen die letzten Würfe noch (ms). */
 const END_MS = 1100;
+/** Kurze Pause nach jedem Wurf – wahlloses Dauerwischen lohnt sich nicht (ms). */
+const THROW_GAP_MS = 400;
+/** Nach einem Fehlwurf: so lange bleibt Zeit für den Lern-Hinweis (ms). */
+const WRONG_PAUSE_MS = 1500;
 
 type EndInfo = { run: GhostRun; result: SprintResult; newBest: boolean };
 
@@ -97,6 +101,8 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   const [startedAt, setStartedAt] = useState(0);
   const startRef = useRef(0);
   const myThrows = useRef<GhostThrow[]>([]);
+  /** Vor diesem Zeitpunkt zählt kein neuer Wurf (THROW_GAP_MS). */
+  const lockUntil = useRef(0);
   const ids = useRef(0);
   /** Eigene Würfe und Ghost-Würfe in der Luft (für die Landung). */
   const flying = useRef(new Map<number, { hit: boolean; bin: number; item: Item; ghost: boolean }>());
@@ -131,7 +137,7 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
   /** Wurf des Ghosts – genau zu seiner Zeit, nur solange der Sprint läuft. */
   const ghostThrow = (g: GhostThrow) => {
     if (phaseRef.current !== "play") return;
-    const it = queue[g.i];
+    const it = queue[g.i % queue.length];
     if (!it) return;
     const spec: ThrowSpec = { id: ++ids.current, item: it, binIndex: g.bin, hit: g.correct, perfect: false, glow: false, ghost: true };
     flying.current.set(spec.id, { hit: g.correct, bin: g.bin, item: it, ghost: true });
@@ -192,12 +198,14 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
     layout.binTops.map((b) => (Math.atan2(b.x - x, y - b.y) * 180) / Math.PI);
 
   const handleThrow = (x0: number, y0: number, dx: number, dy: number, vy: number) => {
-    if (phaseRef.current !== "play" || !item) return;
+    if (phaseRef.current !== "play" || !item || Date.now() < lockUntil.current) return;
     const aim = aimFromDrag(dx, dy, anglesFrom(x0, y0));
     if (!aim) return;
     const current = item;
     const correct = bins[aim.binIndex].category === current.category;
-    myThrows.current.push({ i: index, ms: Date.now() - startRef.current, bin: aim.binIndex, correct });
+    const now = Date.now();
+    lockUntil.current = now + THROW_GAP_MS;
+    myThrows.current.push({ i: index, ms: now - startRef.current, bin: aim.binIndex, correct });
     const spec: ThrowSpec = {
       id: ++ids.current,
       item: current,
@@ -222,6 +230,12 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
       const bin = getBinByCategory(current.category);
       if (bin) showBanner(t("duel.belongsIn", { item: itemName(current), bin: t(bin.labelKey) }), 1500);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+      // Kurz durchatmen: Hinweis lesen, dann kommt der nächste Gegenstand
+      setItem(null);
+      setPreview(bus.current, null);
+      const next = index + 1;
+      later(() => phaseRef.current === "play" && showItem(next), WRONG_PAUSE_MS);
+      return;
     }
     showItem(index + 1);
   };
@@ -338,7 +352,7 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
           <ScoreChip p={0} points={me} hot={false} label={t("ghost.me")} calm={reduceMotion} />
           <View style={styles.counter}>
             {phase === "play" || phase === "end" ? (
-              <TimeLeft since={startedAt} warn={colors.warning} label={t("sprint.timeLeft")} />
+              <TimeLeft since={startedAt} warn={colors.warning} label={(n) => t("sprint.timeLeft", { n })} />
             ) : (
               <AppText variant="label" color="#FFFFFF" style={styles.shadow}>
                 VS
@@ -408,7 +422,7 @@ export function SprintRound({ onAgain, onExit }: { onAgain: () => void; onExit: 
 
 /** Restzeit in Sekunden – eigene kleine Anzeige, damit nicht die ganze Runde neu zeichnet.
  *  Die letzten 5 Sekunden in Warnfarbe. */
-function TimeLeft({ since, warn, label }: { since: number; warn: string; label: string }) {
+function TimeLeft({ since, warn, label }: { since: number; warn: string; label: (n: number) => string }) {
   const [now, setNow] = useState(since);
   const left = Math.max(0, Math.ceil((SPRINT_MS - (now - since)) / 1000));
   useEffect(() => {
@@ -417,7 +431,7 @@ function TimeLeft({ since, warn, label }: { since: number; warn: string; label: 
     return () => clearInterval(id);
   }, [left]);
   return (
-    <View accessible accessibilityLabel={`${label}: ${left}`}>
+    <View accessible accessibilityLabel={label(left)}>
       <AppText variant="title" color={left <= 5 ? warn : "#FFFFFF"} style={styles.shadow}>
         {left}
       </AppText>

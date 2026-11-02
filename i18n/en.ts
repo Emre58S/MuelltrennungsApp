@@ -409,7 +409,7 @@ export const en: Translations = {
   "sprint.rules": "30 seconds: sort as many items correctly as you can. Today everyone gets the same ones. Your best sprint flies along as a see-through ghost. More correct wins.",
   "sprint.practice": "No sprint yet today: a practice ghost throws along.",
   "sprint.best": "Your best sprint today: {correct} correct",
-  "sprint.timeLeft": "Seconds left",
+  "sprint.timeLeft": "{n} seconds left",
   "sprint.timeUp": "Time's up!",
   "sprint.row.throws": "Throws",
   "sprint.newBest": "New best! It flies along as a ghost in your next sprint.",

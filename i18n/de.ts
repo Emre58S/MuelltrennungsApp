@@ -408,7 +408,7 @@ export const de = {
   "sprint.rules": "30 Sekunden: Sortiere so viele Gegenstände richtig wie möglich. Heute kommen für alle die gleichen. Dein bester Sprint fliegt als durchsichtiger Ghost (Geist) mit. Mehr richtig gewinnt.",
   "sprint.practice": "Heute noch kein Sprint: Ein Übungs-Ghost wirft mit.",
   "sprint.best": "Dein bester Sprint heute: {correct} richtig",
-  "sprint.timeLeft": "Noch Sekunden",
+  "sprint.timeLeft": "Noch {n} Sekunden",
   "sprint.timeUp": "Zeit um!",
   "sprint.row.throws": "Würfe",
   "sprint.newBest": "Neuer Bestwert! Beim nächsten Sprint fliegt er als Ghost mit.",
