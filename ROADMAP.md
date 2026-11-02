@@ -2,6 +2,13 @@
 
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
+
+**Letzter Lauf (2.11., 19:17–22:50, Normalmodus):** 20 Zyklen, alle freigegeben, auf
+auto + preview: R3a Mission „1 Online-Runde“, R4a/R4b Rest, R4e Teil 2a/2b (Freund
+herausfordern, „Heute offen“ – freunde.sql ausgeführt), R4f Teil 3/4, R6a–R6d (Funken in
+Spurfarbe, Material-Effekte, Treffer-Stopp/Haptik, „Neue Tonne frei“, Stern-Animation),
+R8a Teil 1 (Ergebnis teilen), R10 fast komplett. **R5 übersprungen** – Emre arbeitet an
+den Trick-Dateien (vorher abstimmen). Nächstes: R5 (mit Emre) oder R8b, R7 zuletzt.
 Für alle verständlich (auch mit wenig Deutsch), nie strafend.
 
 Arbeitsweise: Die Zyklen (CLAUDE.md) nehmen ab jetzt die **oberste offene Aufgabe
@@ -358,8 +365,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 1 (64979ce + 4599002, Tester 8/10, EAS auto + preview): Burst-Stil je
     Material (effects.tsx): Bio flache Spritzer, Glas schnelle breite Scherben, Papier
     flatternde Schnipsel (wenig Schwerkraft, viel Luftwiderstand, Pendeln); fester Pool.
-  - Offen: Dose knautscht (Gegenstand beim Einwurf stauchen); Bio-Spritzer in erdigen
-    Tönen statt Spurfarbe; auch in Sprint-/Trick-Runden.
+  - [x] Teil 2 (4e55c7d + 14b3005, Tester 8/10, EAS auto + preview): Bio-Spritzer immer
+    erdig (Tonnenfarbe + Grün/Braun), keine Spurfarbe.
+  - Offen: Dose knautscht (Gegenstand beim Einwurf stauchen); auch in Sprint-/Trick-Runden;
+    Spur bei Bio-Perfekt evtl. als eine Farbe dazu.
 - [x] **R6c** Kurzer Treffer-Stopp (Hit-Stop ~60 ms) + leichtes Wackeln bei
   Serie 10/Boss; Haptik-Stufen. (e7bdfea + 988d002, Tester 8/10, EAS auto + preview):
   Serie 10/20 … → hitStop 60 ms (nicht doppelt mit Swish) + shake 0,03 beim Fieber-Start;
