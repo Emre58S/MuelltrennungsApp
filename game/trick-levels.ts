@@ -161,12 +161,13 @@ export const trampoline = (
   x: number,
   slide?: { amp: number; period: number; phase?: number },
   z = 2.3,
+  halfW = 0.6,
 ): TrickProp => ({
   kind: "trampoline",
   x,
   y: 0.42,
   z,
-  halfW: 0.6,
+  halfW,
   halfD: 0.55,
   kick: 1.1,
   slide,
@@ -549,6 +550,15 @@ export function parcoursLane(level: ParcoursLevel, bin: 0 | 1 | 2): TrickLevel {
 export const PARCOURS: ParcoursLevel[] = [
   // Reifenschaukel pendelt über alle Tonnen: werfen, wenn sie vor DEINER Tonne ist
   { id: 1, props: [tire(4.0)], lanes: [[0], [0], [0]], bonus: "firstTry", task: "trick.task.swing" },
+  // Vor jeder Tonne ein Trampolin (schmaler, damit die Rahmen nicht
+  // ineinanderstehen): aufs Tuch vor DEINER Tonne werfen
+  {
+    id: 2,
+    props: [-TRAMP_SIDE, 0, TRAMP_SIDE].map((x) => trampoline(x, undefined, 2.3, 0.52)),
+    lanes: [[0], [1], [2]],
+    bonus: "swish",
+    task: "trick.task.trampoline",
+  },
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */
