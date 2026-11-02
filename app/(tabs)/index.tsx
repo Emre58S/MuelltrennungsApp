@@ -477,7 +477,7 @@ export default function HomeScreen() {
             index={i}
             hub={h}
             title={t(h.titleKey)}
-            a11y={i === 0 && dailyDone ? `${t(h.titleKey)}. ${t(h.descKey)}` : `${t("hub.open", { name: t(h.titleKey) })}`}
+            a11y={`${t("hub.open", { name: t(h.titleKey) })}. ${i === 0 && !dailyDone ? t("home.hintDaily") : t(h.descKey)}`}
             dot={loaded && i === 0 && !dailyDone}
             compact={compact}
             onPress={() => launch(i)}
