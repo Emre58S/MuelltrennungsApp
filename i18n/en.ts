@@ -438,7 +438,7 @@ export const en: Translations = {
   "campaign.progressBoss": "🔥 {n}/{goal}",
   "campaign.throwsLeft": "{n} throws left",
   "campaign.throwLeft": "1 throw left",
-  "campaign.goalBoss": "👑 Boss · {goal} right in a row · max. {total} throws · bins swap places",
+  "campaign.goalBoss": "👑 Boss · {goal} in a row · max. {total} throws · 🔄 bins swap",
   "campaign.bossSwap": "Watch out, bins swap!",
   "campaign.kind.boss": "Boss",
   "campaign.end.missingStreak": "Best streak: {best}. {n} more in a row for your first star.",

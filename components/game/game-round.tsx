@@ -225,6 +225,8 @@ export function GameRound({
   );
   // Boss: Tonnen tauschen zwischendurch die Plätze (Reihenfolge der Grund-Tonnen)
   const [order, setOrder] = useState<number[] | null>(null);
+  /** Tonnen gleiten gerade – Schilder solange aus (sie stünden über der falschen). */
+  const [swapping, setSwapping] = useState(false);
   const bins = useMemo(
     () => (order ? order.map((k) => baseBins[k]) : baseBins),
     [order, baseBins],
@@ -685,12 +687,12 @@ export function GameRound({
       swapAt.current = after.throws + BOSS_SWAP_EVERY;
       l.swapping = true;
       setAim(bus.current, null);
+      // Hinweis sofort – sonst wirkt ein Wisch in der Sperre wie verschluckt
+      showBanner(`🔄 ${t("campaign.bossSwap")}`, 1700);
+      sfx("aim");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
       later(() => {
-        showBanner(`🔄 ${t("campaign.bossSwap")}`, 1700);
-        sfx("aim");
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
-      }, 450);
-      later(() => {
+        setSwapping(true);
         const k = Math.floor(Math.random() * (bins.length - 1));
         setOrder((o) => {
           const next = o ? [...o] : baseBins.map((_, j) => j);
@@ -698,10 +700,11 @@ export function GameRound({
           return next;
         });
         sfx("throw");
-      }, 1150);
+      }, 700);
       later(() => {
         l.swapping = false;
-      }, 1950);
+        setSwapping(false);
+      }, 1500);
     }
     queueBinEvent(
       bus.current,
@@ -1057,11 +1060,13 @@ export function GameRound({
         )}
         {ready && !showEnd && (
           <>
-            <BinLabels
-              bins={bins}
-              rects={layout.binRects}
-              onActivate={onActivateBin}
-            />
+            {!swapping && (
+              <BinLabels
+                bins={bins}
+                rects={layout.binRects}
+                onActivate={onActivateBin}
+              />
+            )}
             {floats.map((f) => (
               <FloatingText key={f.id} item={f} onDone={onFloatDone} />
             ))}

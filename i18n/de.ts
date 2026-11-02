@@ -437,7 +437,7 @@ export const de = {
   "campaign.progressBoss": "🔥 {n}/{goal}",
   "campaign.throwsLeft": "noch {n} Würfe",
   "campaign.throwLeft": "noch 1 Wurf",
-  "campaign.goalBoss": "👑 Boss · {goal} richtig in Folge · max. {total} Würfe · Tonnen tauschen Plätze",
+  "campaign.goalBoss": "👑 Boss · {goal} in Folge · max. {total} Würfe · 🔄 Tonnen tauschen",
   "campaign.bossSwap": "Achtung, Tonnen tauschen!",
   "campaign.kind.boss": "Boss",
   "campaign.end.missingStreak": "Beste Serie: {best}. Noch {n} mehr in Folge für den ersten Stern.",
