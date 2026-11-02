@@ -914,10 +914,12 @@ export function GameRound({
         setXpEarned((v) => v + bonus);
         xpTotal.current += bonus;
         setMissionsDone((n) => n + m.newlyDone.length);
-        later(() => {
+        // Sofort zeigen – außer die Runde ist vorbei oder ein Level-Aufstieg hat
+        // Vorrang (dann steht es im Endbildschirm)
+        if (!l.ended && getLevelFromXP(xpTotal.current + xp) <= levelNow.current) {
           sfx("unlock");
           showBanner(`✓ ${t("mission.doneBanner", { xp: bonus })}`);
-        }, 1500);
+        }
       }
     }
     xpTotal.current += xp;
