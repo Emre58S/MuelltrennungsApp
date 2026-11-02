@@ -4,7 +4,9 @@ import { describe, expect, test } from "@jest/globals";
 
 import {
   BIN_SKINS,
+  chestReward,
   isUnlocked,
+  nextChestTrail,
   newlyUnlocked,
   totalStars,
   TRAILS,
@@ -64,5 +66,28 @@ describe("Tonnen-Sticker", () => {
   test("alle Sticker sind erreichbar", () => {
     const max = TRICK_LEVELS.length * 3;
     for (const r of BIN_SKINS) if (r.stars !== undefined) expect(r.stars).toBeLessThanOrEqual(max);
+  });
+});
+
+describe("Truhen", () => {
+  test("1. Truhe bringt gleich eine Wurfspur, dazwischen XP", () => {
+    expect(chestReward(1)?.id).toBe("ozean");
+    expect(chestReward(2)).toBeNull();
+    expect(chestReward(3)?.id).toBe("kirschbluete");
+    expect(chestReward(6)?.id).toBe("neon");
+    expect(chestReward(7)).toBeNull();
+  });
+
+  test("Spur aus der Truhe ist erst nach dem Öffnen frei", () => {
+    const ozean = TRAILS.find((r) => r.id === "ozean")!;
+    expect(isUnlocked(ozean, { stars: 99, level: 99, gold: 99 })).toBe(false);
+    expect(isUnlocked(ozean, { stars: 0, level: 1, chests: 1 })).toBe(true);
+  });
+
+  test("Abstand zur nächsten Spur", () => {
+    expect(nextChestTrail(0)).toEqual({ reward: TRAILS.find((r) => r.id === "ozean"), left: 1 });
+    expect(nextChestTrail(1)?.left).toBe(2);
+    expect(nextChestTrail(4)?.reward.id).toBe("neon");
+    expect(nextChestTrail(6)).toBeNull();
   });
 });

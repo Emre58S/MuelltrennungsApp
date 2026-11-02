@@ -8,6 +8,7 @@
 // Tricks), bis sie mit
 // R2d als Stationen im Pfad leben. Darunter die 3 Tagesmissionen (R3a). Die
 // Tagesaufgabe ist eine goldene Karte direkt unter der aktuellen Station (R3b).
+// Alle 3 Missionen → Truhe, die man auf der Missionskarte öffnet (R3c).
 
 import { router, useFocusEffect } from "expo-router";
 import { type ComponentRef, Fragment, useCallback, useEffect, useRef, useState } from "react";
@@ -31,11 +32,14 @@ import {
   WORLDS,
 } from "@/game/campaign";
 import { type Mission, type MissionDay, MISSION_XP, missionProgress } from "@/game/missions";
+import { nextChestTrail, type TrailReward } from "@/game/rewards";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import {
   type DailyResult,
   getCampaignStars,
+  getChests,
   getMissionDay,
+  openChest,
   getTodayDaily,
   grantCampaignHeadStart,
   getTrickStars,
@@ -86,6 +90,9 @@ export default function KampagneScreen() {
   const [daily, setDaily] = useState<DailyResult | null | undefined>(undefined);
   const [trickStars, setTrickStars] = useState<TrickStars>({});
   const [missions, setMissions] = useState<MissionDay | null>(null);
+  const [chests, setChests] = useState({ earned: 0, opened: 0 });
+  /** Gerade geöffnete Truhe (nur diese Sitzung). */
+  const [chest, setChest] = useState<ChestResult | null>(null);
   /** Gerade Vorsprung nach Level bekommen – einmal erklären (nur diese Sitzung). */
   const [headStart, setHeadStart] = useState(false);
   const { colors } = useAppTheme();
@@ -116,6 +123,9 @@ export default function KampagneScreen() {
         .catch(() => undefined);
       getMissionDay()
         .then((m) => active && setMissions(m))
+        .catch(() => undefined);
+      getChests()
+        .then((c) => active && setChests(c))
         .catch(() => undefined);
       return () => {
         active = false;
@@ -150,7 +160,24 @@ export default function KampagneScreen() {
         <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
       </View>
 
-      {missions && <MissionCard day={missions} dailyDone={!!daily} />}
+      {missions && (
+        <MissionCard
+          day={missions}
+          dailyDone={!!daily}
+          chestsWaiting={chests.earned - chests.opened}
+          chest={chest}
+          onOpenChest={() => {
+            openChest()
+              .then((res) => {
+                if (!res) return;
+                sfx("unlock");
+                setChest(res);
+                setChests((c) => ({ ...c, opened: res.opened }));
+              })
+              .catch(() => undefined);
+          }}
+        />
+      )}
 
       {headStart && (
         <View style={[styles.headStart, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -233,9 +260,25 @@ function Chip({
 const MISSION_EMOJI = { streak: "🔥", correct: "✅", station: "⭐" } as const;
 
 /** Die 3 Tagesmissionen mit Fortschritt (game/missions.ts). */
-function MissionCard({ day, dailyDone }: { day: MissionDay; dailyDone: boolean }) {
+type ChestResult = { reward: TrailReward | null; xp: number; opened: number };
+
+function MissionCard({
+  day,
+  dailyDone,
+  chestsWaiting,
+  chest,
+  onOpenChest,
+}: {
+  day: MissionDay;
+  dailyDone: boolean;
+  /** Verdiente, noch nicht geöffnete Truhen. */
+  chestsWaiting: number;
+  chest: ChestResult | null;
+  onOpenChest: () => void;
+}) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
+  const next = chest ? nextChestTrail(chest.opened) : null;
   const allDone = day.done.length >= day.missions.length;
   const text = (m: Mission) => {
     if (m.kind === "bin" && m.bin) return t("mission.bin", { bin: t(`bin.${m.bin}`), n: m.goal });
@@ -279,10 +322,48 @@ function MissionCard({ day, dailyDone }: { day: MissionDay; dailyDone: boolean }
           {t("mission.flame")}
         </AppText>
       )}
+      {!allDone && (
+        <AppText variant="caption" tone="textSecondary">
+          {t("chest.goal")}
+        </AppText>
+      )}
       {allDone && (
         <AppText variant="caption" tone="textSecondary">
           🎉 {t("mission.allDone")}
         </AppText>
+      )}
+      {chestsWaiting > 0 && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("chest.open")}
+          onPress={() => {
+            tapHaptic();
+            onOpenChest();
+          }}
+          style={({ pressed }) => [styles.chestBtn, pressed && press.pressed]}
+        >
+          <AppText variant="label" color="#3A2A00">
+            {t("chest.open")}
+            {chestsWaiting > 1 ? ` (${chestsWaiting})` : ""}
+          </AppText>
+        </Pressable>
+      )}
+      {chest && (
+        <View style={[styles.chestResult, { backgroundColor: colors.goldSoft }]} accessibilityLiveRegion="polite">
+          <AppText variant="label" tone="onGoldSoft">
+            {chest.reward ? `🎉 ${t("reward.new", { name: t(chest.reward.name) })}` : `🎁 ${t("chest.xp", { xp: chest.xp })}`}
+          </AppText>
+          {chest.reward && (
+            <AppText variant="caption" tone="onGoldSoft">
+              {t("chest.where")}
+            </AppText>
+          )}
+          {next && (
+            <AppText variant="caption" tone="onGoldSoft">
+              {next.left === 1 ? t("chest.nextOne") : t("chest.next", { n: next.left })}
+            </AppText>
+          )}
+        </View>
       )}
     </View>
   );
@@ -551,6 +632,14 @@ const styles = StyleSheet.create({
   missionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
   missionRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   missionText: { flex: 1 },
+  chestBtn: {
+    alignSelf: "flex-start",
+    backgroundColor: DAILY_GOLD,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+  },
+  chestResult: { padding: Spacing.sm, borderRadius: Radius.md, gap: 2 },
   chip: {
     paddingHorizontal: Spacing.md - 4,
     paddingVertical: Spacing.sm,

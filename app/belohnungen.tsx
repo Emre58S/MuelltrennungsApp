@@ -52,6 +52,9 @@ const SWATCH: Record<TrailId, string[]> = {
   smaragd: ["#0E7A45", "#2BBF73", "#8FF0B8"],
   lava: ["#7A1408", "#E2481B", "#FFB000"],
   diamant: ["#FFFFFF", "#9FE3FF", "#FFFFFF", "#C8F0FF"],
+  ozean: ["#0E4C8A", "#1F8FD6", "#5FD0E8"],
+  kirschbluete: ["#FFD6E4", "#F27AA6", "#FFD6E4", "#F27AA6"],
+  neon: ["#FF2BD6", "#1FF2F2", "#FF2BD6", "#1FF2F2"],
 };
 
 export default function RewardsScreen() {
@@ -118,7 +121,9 @@ export default function RewardsScreen() {
           const open = isUnlocked(reward, progress);
           const active = open && selected === reward.id;
           const need =
-            reward.gold !== undefined
+            reward.chests !== undefined
+              ? t("reward.needChests", { n: reward.chests })
+              : reward.gold !== undefined
               ? t("reward.needGold", { n: reward.gold })
               : reward.stars !== undefined
                 ? t("reward.needStars", { n: reward.stars })

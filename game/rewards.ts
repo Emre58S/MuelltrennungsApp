@@ -1,6 +1,7 @@
 // Datei: game/rewards.ts
 // Belohnungen: Wurfspuren und Tonnen-Sticker, die man mit Trick-Sternen, dem
-// XP-Level oder Gold-Medaillen im Sammelbuch (game/mastery.ts) freischaltet und dann auswählt (Sticker: components/game/trash-bin.tsx). Rein und ohne React –
+// XP-Level, Gold-Medaillen im Sammelbuch (game/mastery.ts) oder Truhen
+// (alle 3 Tagesmissionen, game/missions.ts) freischaltet und dann auswählt (Sticker: components/game/trash-bin.tsx). Rein und ohne React –
 // Farben der Spuren macht components/game/items.tsx (trailColor).
 
 import { type TranslationKey } from "@/i18n";
@@ -18,7 +19,10 @@ export type TrailId =
   | "sternenstaub"
   | "smaragd"
   | "lava"
-  | "diamant";
+  | "diamant"
+  | "ozean"
+  | "kirschbluete"
+  | "neon";
 
 export type TrailReward = {
   id: TrailId;
@@ -27,8 +31,10 @@ export type TrailReward = {
   stars?: number;
   /** … oder ab diesem XP-Level … */
   level?: number;
-  /** … oder ab so vielen Gold-Gegenständen (Sammelbuch). */
+  /** … oder ab so vielen Gold-Gegenständen (Sammelbuch) … */
   gold?: number;
+  /** … oder aus der so-vielten geöffneten Truhe. */
+  chests?: number;
 };
 
 /** Reihenfolge = Anzeige auf der Belohnungs-Seite (von leicht nach schwer). */
@@ -46,10 +52,13 @@ export const TRAILS: TrailReward[] = [
   { id: "smaragd", name: "reward.trail.smaragd", gold: 3 },
   { id: "lava", name: "reward.trail.lava", gold: 10 },
   { id: "diamant", name: "reward.trail.diamant", gold: 25 },
+  { id: "ozean", name: "reward.trail.ozean", chests: 1 },
+  { id: "kirschbluete", name: "reward.trail.kirschbluete", chests: 3 },
+  { id: "neon", name: "reward.trail.neon", chests: 6 },
 ];
 
-/** `gold` = Gegenstände mit Gold-Medaille (fehlt = 0). */
-export type Progress = { stars: number; level: number; gold?: number };
+/** `gold` = Gegenstände mit Gold-Medaille, `chests` = geöffnete Truhen (fehlt = 0). */
+export type Progress = { stars: number; level: number; gold?: number; chests?: number };
 
 export type BinSkinId = "keiner" | "stern" | "herz" | "punkte";
 
@@ -74,7 +83,11 @@ export function usableSkin(id: string | null, progress: Progress): BinSkinId {
   return reward && isUnlocked(reward, progress) ? reward.id : "keiner";
 }
 
-export function isUnlocked(reward: { stars?: number; level?: number; gold?: number }, progress: Progress): boolean {
+export function isUnlocked(
+  reward: { stars?: number; level?: number; gold?: number; chests?: number },
+  progress: Progress,
+): boolean {
+  if (reward.chests !== undefined) return (progress.chests ?? 0) >= reward.chests;
   if (reward.gold !== undefined) return (progress.gold ?? 0) >= reward.gold;
   if (reward.stars !== undefined) return progress.stars >= reward.stars;
   if (reward.level !== undefined) return progress.level >= reward.level;
@@ -100,4 +113,20 @@ export function usableTrail(id: string | null, progress: Progress): TrailId {
 /** Summe aller Trick-Sterne (Tages-Trick zählt nicht – er wechselt täglich). */
 export function totalStars(stars: Record<number, number>): number {
   return Object.values(stars).reduce((sum, n) => sum + n, 0);
+}
+
+// ── Truhen ────────────────────────────────────────────────────────────
+
+/** XP aus einer Truhe ohne neue Wurfspur. */
+export const CHEST_XP = 50;
+
+/** Inhalt der so-vielten geöffneten Truhe: eine Wurfspur oder (null) XP. */
+export function chestReward(opened: number): TrailReward | null {
+  return TRAILS.find((r) => r.chests === opened) ?? null;
+}
+
+/** Nächste Wurfspur aus Truhen und wie viele Truhen noch fehlen (null = alle da). */
+export function nextChestTrail(opened: number): { reward: TrailReward; left: number } | null {
+  const reward = TRAILS.find((r) => r.chests !== undefined && r.chests > opened);
+  return reward ? { reward, left: reward.chests! - opened } : null;
 }

@@ -12,6 +12,7 @@ import {
   missionDayFor,
 } from "@/game/missions";
 import { type BinKey } from "@/constants/theme";
+import { CHEST_XP, chestReward, type TrailReward } from "@/game/rewards";
 import { goldCount } from "@/game/mastery";
 import { type FlameStatus, flameState, nextStreak } from "@/utils/streak";
 
@@ -58,6 +59,9 @@ export const StorageKeys = {
   CAMPAIGN_HEAD_START: "muell_campaign_head_start",
   /** Tagesmissionen von heute mit Fortschritt (game/missions.ts). */
   MISSIONS: "muell_missions",
+  /** Truhen: verdient (alle 3 Missionen eines Tages) und geöffnet. */
+  CHESTS_EARNED: "muell_chests_earned",
+  CHESTS_OPENED: "muell_chests_opened",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -418,6 +422,10 @@ export function flushThrowRecords(): Promise<void> {
     const { day, newlyDone } = addMissionCounts(await loadMissionDay(), missions);
     await setItem(StorageKeys.MISSIONS, JSON.stringify(day));
     batch.xp += newlyDone.length * MISSION_XP;
+    // Alle 3 gerade geschafft → eine Truhe (öffnen im Pfad)
+    if (newlyDone.length > 0 && day.done.length >= day.missions.length) {
+      await setNumber(StorageKeys.CHESTS_EARNED, (await getNumber(StorageKeys.CHESTS_EARNED)) + 1);
+    }
     // Flamme: zählt, sobald heute eine Mission geschafft oder die Tagesaufgabe gespielt ist
     if (day.done.length > 0 || (await getTodayDaily())) await updateStreak();
     if (batch.played === 0) {
@@ -556,6 +564,29 @@ export function getMissionDay(): Promise<MissionDay> {
   });
 }
 
+/** Truhen: verdient und schon geöffnet. */
+export async function getChests(): Promise<{ earned: number; opened: number }> {
+  const [earned, opened] = await Promise.all([
+    getNumber(StorageKeys.CHESTS_EARNED),
+    getNumber(StorageKeys.CHESTS_OPENED),
+  ]);
+  return { earned, opened };
+}
+
+/** Eine Truhe öffnen: neue Wurfspur oder XP (null = keine Truhe da). */
+export function openChest(): Promise<{ reward: TrailReward | null; xp: number; opened: number } | null> {
+  return enqueue(async () => {
+    const { earned, opened } = await getChests();
+    if (earned <= opened) return null;
+    const n = opened + 1;
+    await setNumber(StorageKeys.CHESTS_OPENED, n);
+    const reward = chestReward(n);
+    const xp = reward ? 0 : CHEST_XP;
+    if (xp > 0) await addXP(xp);
+    return { reward, xp, opened: n };
+  });
+}
+
 /** Station mit mindestens 1 Stern gespielt (wird mit den Würfen gespeichert). */
 export function queueStationMission() {
   pendingMissions.stations += 1;
@@ -598,16 +629,18 @@ export function saveTrickStars(level: number, stars: number): Promise<void> {
 // ── Belohnungen: Fortschritt und gewählte Wurfspur ──────────────────
 
 /** Trick-Sterne (Summe) und XP-Level – daran hängen die Belohnungen. */
-export async function getRewardProgress(): Promise<{ stars: number; level: number; gold: number }> {
-  const [stars, xp, items] = await Promise.all([
+export async function getRewardProgress(): Promise<{ stars: number; level: number; gold: number; chests: number }> {
+  const [stars, xp, items, chests] = await Promise.all([
     getTrickStars(),
     getNumber(StorageKeys.TOTAL_XP),
     getItemStats(),
+    getNumber(StorageKeys.CHESTS_OPENED),
   ]);
   return {
     stars: Object.values(stars).reduce((sum, n) => sum + n, 0),
     level: getLevelFromXP(xp),
     gold: goldCount(items),
+    chests,
   };
 }
 

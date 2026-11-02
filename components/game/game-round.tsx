@@ -918,7 +918,11 @@ export function GameRound({
         // Vorrang (dann steht es im Endbildschirm)
         if (!l.ended && getLevelFromXP(xpTotal.current + xp) <= levelNow.current) {
           sfx("unlock");
-          showBanner(`✓ ${t("mission.doneBanner", { xp: bonus })}`);
+          showBanner(
+            m.day.done.length >= m.day.missions.length
+              ? t("chest.banner")
+              : `✓ ${t("mission.doneBanner", { xp: bonus })}`,
+          );
         }
       }
     }
