@@ -76,6 +76,7 @@ import {
   StorageKeys,
   todayKey,
   getCampaignStars,
+  grantCampaignHeadStart,
 } from "@/utils/storage";
 import { type DayGhost, fetchDayGhost } from "@/utils/leaderboard";
 import { homeHint } from "@/game/home-hint";
@@ -144,6 +145,8 @@ export default function HomeScreen() {
   const [loaded, setLoaded] = useState(false);
   /** Tagesaufgabe heute schon gespielt? Sonst Punkt an der Kampagnen-Tonne. */
   const [dailyDone, setDailyDone] = useState(true);
+  // Für den Wurf-Start (Callback ohne Abhängigkeiten): Tagesaufgabe schon erledigt?
+  const dailyDoneRef = useRef(true);
   const [seenTutorial, setSeenTutorial] = useState(true);
   /** Tagesbester im Ghost-Rennen (Server) – für den einen Hinweis unten. */
   const [dayBest, setDayBest] = useState<DayGhost | null>(null);
@@ -207,8 +210,11 @@ export default function HomeScreen() {
     router.push(HUBS[hub].route);
     // Kampagne: ein Wurf = gleich weiterspielen (nächste Station). Der Pfad liegt
     // darunter – nach der Runde sieht man dort Sterne und was als Nächstes kommt.
-    if (HUBS[hub].route === "/kampagne")
-      getCampaignStars()
+    // Offene Tagesaufgabe: Pfad zeigen (dort steht die goldene Karte) statt loszulegen.
+    if (HUBS[hub].route === "/kampagne" && dailyDoneRef.current)
+      grantCampaignHeadStart()
+        .catch(() => false)
+        .then(() => getCampaignStars())
         .catch(() => ({}))
         .then((stars) =>
           router.push({ pathname: "/runde", params: { mode: "endless", station: currentStation(stars).id } }),
@@ -308,6 +314,7 @@ export default function HomeScreen() {
           if (!active) return;
           setSeenTutorial(seen);
           setDailyDone(today !== null);
+          dailyDoneRef.current = today !== null;
           setStreak(flameNow.count);
           setFlame(flameNow.status === "rescued" && !rescueNew ? "ok" : flameNow.status);
           setTotalXP(xp);
@@ -470,7 +477,7 @@ export default function HomeScreen() {
             index={i}
             hub={h}
             title={t(h.titleKey)}
-            a11y={`${t("hub.open", { name: t(h.titleKey) })}. ${t(h.descKey)}`}
+            a11y={i === 0 && dailyDone ? `${t(h.titleKey)}. ${t(h.descKey)}` : `${t("hub.open", { name: t(h.titleKey) })}`}
             dot={loaded && i === 0 && !dailyDone}
             compact={compact}
             onPress={() => launch(i)}

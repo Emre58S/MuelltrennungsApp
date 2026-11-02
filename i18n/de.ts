@@ -212,7 +212,7 @@ export const de = {
   "reward.progress": "{stars} ★ · Level {level}",
   "reward.needStars": "Ab {n} ★",
   "reward.next": "Nächste Belohnung: {name}",
-  "reward.nextLeft": "Noch {n} ★ – Sterne gibt es in jeder Station und bei Trickwürfen",
+  "reward.nextLeft": "Noch {n} ★ – aus Stationen und Tricks",
   "reward.needLevel": "Ab Level {n}",
   "reward.selected": "Ausgewählt",
   "reward.tapToSelect": "Tippen zum Auswählen",

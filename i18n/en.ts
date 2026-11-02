@@ -213,7 +213,7 @@ export const en: Translations = {
   "reward.progress": "{stars} ★ · Level {level}",
   "reward.needStars": "From {n} ★",
   "reward.next": "Next reward: {name}",
-  "reward.nextLeft": "{n} more ★ – earn stars in every station and in trick shots",
+  "reward.nextLeft": "{n} more ★ – from stations and tricks",
   "reward.needLevel": "From level {n}",
   "reward.selected": "Selected",
   "reward.tapToSelect": "Tap to select",

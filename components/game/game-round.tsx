@@ -351,11 +351,22 @@ export function GameRound({
   }, []);
   // Boss: noch nie besiegt? Dann bringt der Sieg eine Truhe (Speicher: saveCampaignStars)
   const [bossNew, setBossNew] = useState(false);
+  /** Sterne dieser Station vor der Runde – nur mehr Sterne zählen für Belohnungen. */
+  const [stationBefore, setStationBefore] = useState(0);
+  /** Belohnungs-Stand vor der Runde (für „Neue Wurfspur!“ am Ende). */
+  const [progressBefore, setProgressBefore] = useState<Progress | null>(null);
   useEffect(() => {
-    if (station?.kind !== "boss") return;
+    if (!station) return;
     let active = true;
+    getRewardProgress()
+      .then((p) => active && setProgressBefore(p))
+      .catch(() => undefined);
     getCampaignStars()
-      .then((s) => active && setBossNew(!((s[station.id] ?? 0) >= 1)))
+      .then((s) => {
+        if (!active) return;
+        setStationBefore(s[station.id] ?? 0);
+        if (station.kind === "boss") setBossNew(!((s[station.id] ?? 0) >= 1));
+      })
       .catch(() => undefined);
     return () => {
       active = false;
@@ -456,6 +467,15 @@ export function GameRound({
     missionStart.missions.some((m) => m.kind === "station") &&
     !missionStart.done.includes("station") &&
     stationStars(station, stats) >= 1;
+  // Neue Wurfspur/Sticker durch die Sterne dieser Station? (eine Sternen-Währung)
+  const starReward = (() => {
+    if (!showEnd || !station || !progressBefore) return undefined;
+    const gained = Math.max(0, stationStars(station, stats) - stationBefore);
+    if (!gained) return undefined;
+    const before = progressBefore;
+    const reward = newlyUnlocked(before, { ...before, stars: before.stars + gained })[0];
+    return reward ? `🎁 ${t(unlockMessageKey(reward), { name: t(reward.name) })}` : undefined;
+  })();
   // In dieser Runde eine Truhe verdient? (alle 3 Missionen fertig oder erster Boss-Sieg)
   const roundMissions = missionsDone + (stationMission ? 1 : 0);
   const chestEarned =
@@ -1275,6 +1295,7 @@ export function GameRound({
             xpEarned={xpEarned + (stationMission ? MISSION_XP : 0)}
             missionsDone={roundMissions}
             chestEarned={chestEarned}
+            rewardText={starReward}
             daily={daily}
             station={station}
             onNext={onNext}

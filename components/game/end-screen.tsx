@@ -55,6 +55,7 @@ export function EndScreen({
   xpEarned,
   missionsDone = 0,
   chestEarned = false,
+  rewardText,
   newBest,
   mistakes,
   daily,
@@ -74,6 +75,8 @@ export function EndScreen({
   missionsDone?: number;
   /** In dieser Runde eine Truhe verdient (öffnen im Pfad). */
   chestEarned?: boolean;
+  /** Neu freigeschaltete Belohnung (z. B. „🎁 Neue Wurfspur: Gold!“). */
+  rewardText?: string;
   newBest: boolean;
   mistakes: Mistake[];
   /** Tagesaufgabe: eigener Titel + Teilen. */
@@ -342,6 +345,11 @@ export function EndScreen({
           {chestEarned && (
             <AppText variant="label" tone="primary" center>
               {t("chest.end")}
+            </AppText>
+          )}
+          {rewardText && (
+            <AppText variant="label" tone="primary" center accessibilityLiveRegion="polite">
+              {rewardText}
             </AppText>
           )}
 
