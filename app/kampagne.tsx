@@ -314,6 +314,14 @@ function MissionCard({
   const [pop] = useState(() => new Animated.Value(1));
   /** Gesperrt, bis das Ergebnis kurz zu sehen war – sonst überdeckt ein Doppeltipp die neue Spur. */
   const busy = useRef(false);
+  /** Online-Mission: Doppeltipp öffnet den Online-Bereich nur einmal. */
+  const goneAt = useRef(0);
+  const goOnline = () => {
+    const now = Date.now();
+    if (now - goneAt.current < 1000) return;
+    goneAt.current = now;
+    router.push("/online");
+  };
   const openWithWobble = () => {
     if (busy.current) return;
     busy.current = true;
@@ -367,9 +375,9 @@ function MissionCard({
         return (
           <Pressable
             key={m.id}
-            style={styles.missionRow}
+            style={({ pressed }) => [styles.missionRow, pressed && { opacity: 0.6 }]}
             disabled={!go}
-            onPress={() => router.push("/online")}
+            onPress={goOnline}
             accessible
             accessibilityRole={go ? "button" : undefined}
             accessibilityLabel={`${text(m)}: ${done ? t("mission.doneA11y") : `${n}/${m.goal}`}`}
