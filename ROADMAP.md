@@ -368,8 +368,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 1 (589e924, Tester 8/10, EAS auto + preview): erster Boss-Sieg → Karte
     „🎉 Neue Tonne frei!“ mit Tonnen-Etikett(en) der nächsten Welt im Endbildschirm
     (federt auf, ruhig bei „Weniger Bewegung“); nicht nach der letzten Lern-Welt.
-  - Offen: Stern-Animation im Pfad (neue Sterne der eben gespielten Station);
-    Karte antippbar (was gehört rein?); kurzer Erfolgston; Truhe öffnen ist schon da (R3c).
+  - [x] Teil 2 (7eab8af + 0e5d958, Tester 8/10, EAS auto + preview): Sterne einer Station
+    springen nach der Rückkehr aus der Runde auf, wenn es mehr geworden sind (StationDot,
+    useLayoutEffect, ruhig bei „Weniger Bewegung“).
+  - Offen: Karte „Neue Tonne“ antippbar (was gehört rein?); kurzer Erfolgston; Truhe
+    öffnen ist schon da (R3c).
 
 ### R7 – Release-Vorbereitung (ganz am Ende, wenn die Inhalte stehen)
 - [ ] **R7a** App-Symbol + Startbild (eigene Tonne mit Gesicht o. ä.).
