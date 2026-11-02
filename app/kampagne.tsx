@@ -80,6 +80,9 @@ export default function KampagneScreen() {
   /** Tagesaufgabe von heute (undefined = noch nicht geladen, null = offen). */
   const [daily, setDaily] = useState<DailyResult | null | undefined>(undefined);
   const [trickStars, setTrickStars] = useState<TrickStars>({});
+  /** Gerade Vorsprung nach Level bekommen – einmal erklären (nur diese Sitzung). */
+  const [headStart, setHeadStart] = useState(false);
+  const { colors } = useAppTheme();
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
   const worldY = useRef<Record<number, number>>({});
@@ -93,6 +96,7 @@ export default function KampagneScreen() {
       scrolled.current = false;
       // Bestandsspieler: einmalig Welten nach Level vorab freischalten
       grantCampaignHeadStart()
+        .then((granted) => granted && active && setHeadStart(true))
         .catch(() => undefined)
         .then(getCampaignStars)
         .then((s) => active && setStars(s))
@@ -141,6 +145,12 @@ export default function KampagneScreen() {
         />
         <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
       </View>
+
+      {headStart && (
+        <View style={[styles.headStart, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <AppText variant="caption">🎉 {t("campaign.headStart")}</AppText>
+        </View>
+      )}
 
       {stars &&
         current &&
@@ -429,6 +439,7 @@ function StationDot({
 
 const styles = StyleSheet.create({
   chips: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
+  headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
   chip: {
     paddingHorizontal: Spacing.md - 4,
     paddingVertical: Spacing.sm,

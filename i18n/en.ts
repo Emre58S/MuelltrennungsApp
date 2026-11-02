@@ -442,6 +442,7 @@ export const en: Translations = {
   "campaign.bossSwap": "Watch out, bins swap!",
   "campaign.kind.boss": "Boss",
   "campaign.freePlay": "Free play",
+  "campaign.headStart": "You already know many bins – the first worlds are open. Play them again for more stars.",
   "campaign.end.missingStreak": "Best streak: {best}. {n} more in a row for your first star.",
   "campaign.trick": "Trick school",
   "campaign.trickLevels": "Levels {from}–{to}",

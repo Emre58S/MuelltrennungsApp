@@ -492,15 +492,17 @@ export async function getCampaignStars(): Promise<CampaignStars> {
 }
 
 /** Kampagne: Bestandsspieler einmalig nach Level vorab freischalten (beim
- *  ersten Öffnen des Pfads; neue Spieler bekommen nichts und werden markiert). */
-export function grantCampaignHeadStart(): Promise<void> {
+ *  ersten Öffnen des Pfads; neue Spieler bekommen nichts und werden markiert).
+ *  true = gerade Stationen vorab freigeschaltet (→ einmal erklären). */
+export function grantCampaignHeadStart(): Promise<boolean> {
   return enqueue(async () => {
-    if (await getItem(StorageKeys.CAMPAIGN_HEAD_START)) return;
+    if (await getItem(StorageKeys.CAMPAIGN_HEAD_START)) return false;
     const head = headStartStars(getLevelFromXP(await getNumber(StorageKeys.TOTAL_XP)));
     const before = await getCampaignStars();
     const next = Object.entries(head).reduce((all, [id, n]) => withStars(all, id, n), before);
     if (next !== before) await setItem(StorageKeys.CAMPAIGN_STARS, JSON.stringify(next));
     await setItem(StorageKeys.CAMPAIGN_HEAD_START, "1");
+    return next !== before;
   });
 }
 

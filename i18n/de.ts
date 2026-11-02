@@ -441,6 +441,7 @@ export const de = {
   "campaign.bossSwap": "Achtung, Tonnen tauschen!",
   "campaign.kind.boss": "Boss",
   "campaign.freePlay": "Freies Spiel",
+  "campaign.headStart": "Du kennst schon viele Tonnen – die ersten Welten sind frei. Nochmal spielen bringt mehr Sterne.",
   "campaign.end.missingStreak": "Beste Serie: {best}. Noch {n} mehr in Folge für den ersten Stern.",
   "campaign.trick": "Trick-Schule",
   "campaign.trickLevels": "Level {from}–{to}",
