@@ -270,7 +270,12 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     Freundesliste → Sprint/Survival gegen den Lauf des Freundes von heute als Ghost
     (`/runde?mode=…&friend=CODE`, SQL friend_run – **Nutzer muss freunde.sql erneut
     ausführen**); Hinweise „hat heute noch nicht gespielt – spiel vor“ / „kam nicht an“.
-  - Offen: offene Herausforderungen (Teil 2b, „X hat dich geschlagen“); Lauf kommt nach
+  - [x] Teil 2b (a9e4a32, Tester 8/10, EAS auto + preview): Karte „⚔️ Heute offen – schlag
+    deine Freunde“ oben in der Freundesliste: Freunde mit heutigem Lauf ≥ meinem Besten von
+    heute (lokal), je Modus eine Zeile + „Antreten“; SQL friend_today (freunde.sql erneut
+    ausführen); ohne SQL/Netz unsichtbar.
+  - Offen: Gleichstand bleibt „offen“ (evtl. „noch 1 mehr!“); eigener Bestwert nur lokal
+    (anderes Gerät → 0); Unterschied „+3 vor dir“; Zeile ganz antippbar; Lauf kommt nach
     dem Start an → Hinweis; „nicht mehr befreundet“ eigener Text; nach der Runde
     zurückfordern/teilen; Link statt Code;
     „Code neu erzeugen“; Code mit einem Tipp kopieren; Knopf „Hinzufügen“ volle Breite;
