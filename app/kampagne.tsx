@@ -170,7 +170,7 @@ export default function KampagneScreen() {
             openChest()
               .then((res) => {
                 if (!res) return;
-                sfx("unlock");
+                sfx(res.levelUp !== null ? "levelup" : "unlock");
                 setChest(res);
                 setChests((c) => ({ ...c, opened: res.opened }));
               })
