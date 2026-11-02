@@ -57,6 +57,26 @@ export const TRAILS: TrailReward[] = [
   { id: "neon", name: "reward.trail.neon", chests: 6 },
 ];
 
+/** Treffer-Funken je Wurfspur (ROADMAP R6a) – dieselben Töne wie die Spur
+ *  (components/game/items.tsx trailColor); Standard behält die Tonnenfarbe. */
+export const TRAIL_SPARKS: Partial<Record<TrailId, string[]>> = {
+  gold: ["#FFD54A", "#FFE082", "#FFC107"],
+  komet: ["#5AA9FF", "#FFFFFF", "#A9D2FF"],
+  herbstlaub: ["#E8772E", "#C94A2A", "#F2B134", "#9C5B2E"],
+  regenbogen: ["#FF5A5F", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"],
+  konfetti: ["#FF5A5F", "#FFD54A", "#3DDC97", "#4D9DE0", "#B57EDC"],
+  polarlicht: ["#4DE8B0", "#4DB8E8", "#9B6BE8"],
+  seifenblasen: ["#9FF3E8", "#F7B5E3", "#C9E8FF"],
+  funken: ["#FFF3B0", "#FFB74D", "#FFFFFF"],
+  sternenstaub: ["#5B4BC4", "#FFFFFF", "#8E80E0"],
+  smaragd: ["#1FBF6A", "#5EE89A", "#0E8A4A"],
+  lava: ["#7A1408", "#FFB000", "#FF5A1F"],
+  diamant: ["#FFFFFF", "#A8E6FF", "#D6F3FF"],
+  ozean: ["#0E5FA8", "#2EC4D6", "#5AA9E6"],
+  kirschbluete: ["#F8C8DC", "#F06FA8", "#FFE4EE"],
+  neon: ["#FF2BD6", "#00F0FF"],
+};
+
 /** `gold` = Gegenstände mit Gold-Medaille, `chests` = geöffnete Truhen (fehlt = 0). */
 export type Progress = { stars: number; level: number; gold?: number; chests?: number };
 

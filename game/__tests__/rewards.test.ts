@@ -9,6 +9,7 @@ import {
   nextChestTrail,
   newlyUnlocked,
   totalStars,
+  TRAIL_SPARKS,
   TRAILS,
   unlockMessageKey,
   usableSkin,
@@ -44,6 +45,19 @@ describe("Wurfspuren", () => {
     const max = TRICK_LEVELS.length * 3;
     for (const r of TRAILS) if (r.stars !== undefined) expect(r.stars).toBeLessThanOrEqual(max);
     expect(totalStars({ 1: 3, 2: 2 })).toBe(5);
+  });
+});
+
+describe("Treffer-Funken je Wurfspur", () => {
+  test("jede Spur außer Standard hat eigene Funkenfarben", () => {
+    for (const r of TRAILS) {
+      const c = TRAIL_SPARKS[r.id];
+      if (r.id === "standard") expect(c).toBeUndefined();
+      else {
+        expect(c?.length).toBeGreaterThanOrEqual(2);
+        for (const hex of c ?? []) expect(hex).toMatch(/^#[0-9A-F]{6}$/);
+      }
+    }
   });
 });
 
