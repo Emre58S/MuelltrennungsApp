@@ -31,7 +31,7 @@ export default function TutorialScreen() {
   // Stufen aus dem Spiel selbst (game/logic.ts), nicht fest im Text
   const tiers = STREAK_TIERS.filter((s) => s.multiplier > 1)
     .map((s) => t("tutorial.streak.tier", { n: s.min, m: formatNumber(s.multiplier) }))
-    .join(", ");
+    .join(" · ");
 
   // Einmal geöffnet: der Hinweis-Punkt am „?“ im Menü verschwindet
   useEffect(() => {
