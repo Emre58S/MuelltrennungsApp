@@ -530,9 +530,6 @@ export async function getCampaignStars(): Promise<CampaignStars> {
   }
 }
 
-/** Kampagne: Bestandsspieler einmalig nach Level vorab freischalten (beim
- *  ersten Öffnen des Pfads; neue Spieler bekommen nichts und werden markiert).
- *  true = gerade Stationen vorab freigeschaltet (→ einmal erklären). */
 // ── Tagesmissionen (game/missions.ts) ─────────────────────────────────
 
 /** Missionen von heute (neuer Tag → neue, mit den Tonnen der aktuellen Welt). */
@@ -563,6 +560,9 @@ export function queueStationMission() {
   pendingMissions.stations += 1;
 }
 
+/** Kampagne: Bestandsspieler einmalig nach Level vorab freischalten (beim
+ *  ersten Öffnen des Pfads; neue Spieler bekommen nichts und werden markiert).
+ *  true = gerade Stationen vorab freigeschaltet (→ einmal erklären). */
 export function grantCampaignHeadStart(): Promise<boolean> {
   return enqueue(async () => {
     if (await getItem(StorageKeys.CAMPAIGN_HEAD_START)) return false;
