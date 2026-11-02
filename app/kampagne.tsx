@@ -64,8 +64,8 @@ function worldColor(world: World): string {
 }
 
 /** Freies Spiel (früher „Üben“): ohne Ziel, mit den Tonnen der aktuellen Welt. */
-function startFreePlay(stars: CampaignStars | null) {
-  router.push({ pathname: "/runde", params: { mode: "endless", bins: freePlayBins(stars ?? {}).join(",") } });
+function startFreePlay(stars: CampaignStars) {
+  router.push({ pathname: "/runde", params: { mode: "endless", bins: freePlayBins(stars).join(",") } });
 }
 
 function startStation(station: Station) {
@@ -125,7 +125,7 @@ export default function KampagneScreen() {
     >
       {/* Bisherige Spielarten – klein, damit der Pfad im Mittelpunkt steht */}
       <View style={styles.chips}>
-        <Chip emoji="🌱" label={t("campaign.freePlay")} onPress={() => startFreePlay(stars)} />
+        <Chip emoji="🌱" label={t("campaign.freePlay")} onPress={() => stars && startFreePlay(stars)} />
         {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
           <Chip key={m.mode} emoji={MODE_LOOK[m.mode] ?? "🎮"} label={t(m.titleKey)} onPress={() => startGame(m.mode)} />
         ))}
