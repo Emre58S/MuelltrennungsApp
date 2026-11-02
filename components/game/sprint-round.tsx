@@ -27,6 +27,7 @@ import {
   Animated,
   Easing,
   ScrollView,
+  Share,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -71,7 +72,14 @@ import {
 import { MISSION_XP, type MissionDay } from "@/game/missions";
 import { itemLimit, practiceSurvival, SURVIVAL_MAX_MS, survivalResult, survivalRun } from "@/game/survival";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { fetchFriendRun, fetchRandomRun, leaderboardReady, submitOnlineRun } from "@/utils/leaderboard";
+import {
+  fetchFriendRun,
+  fetchRandomRun,
+  formatFriendCode,
+  getFriendCode,
+  leaderboardReady,
+  submitOnlineRun,
+} from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import {
@@ -772,6 +780,17 @@ function SprintEnd({
   ];
   const heads = [t("ghost.me"), `👻 ${ghostName}`];
   const rankLock = useRef(0);
+  // Teilen (ROADMAP R8a): Ergebnis + eigener Freundes-Code, damit man zurückfordern kann
+  const shareLock = useRef(0);
+  const share = async () => {
+    if (Date.now() < shareLock.current) return;
+    shareLock.current = Date.now() + 1500;
+    const won = !!rival && result === "win";
+    let text = t(won ? `share.${kind}.win` : `share.${kind}.score`, { name: rival ?? "", n: run.correct });
+    const code = leaderboardReady ? await getFriendCode().catch(() => null) : null;
+    if (code) text += `\n${t("share.code", { code: formatFriendCode(code) })}`;
+    Share.share({ message: text }).catch(() => undefined);
+  };
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(`${title} ${run.correct} : ${ghost.correct}`);
   }, [title, run.correct, ghost.correct]);
@@ -865,6 +884,9 @@ function SprintEnd({
         )}
 
         <Button title={t("ghost.again")} icon="refresh-cw" size="lg" onPress={onAgain} />
+        {run.correct > 0 && (
+          <Button title={t("game.end.share")} icon="share" variant="secondary" onPress={() => void share()} />
+        )}
         {leaderboardReady && (
           <Button
             title={t("home.rank")}
