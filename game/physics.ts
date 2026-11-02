@@ -77,7 +77,10 @@ export function flightPoint(
  *  und Tests sehen denselben Reifen zur selben Zeit. */
 export type RingMotion =
   | { kind: "slide"; axis: "x" | "y"; amp: number; period: number; phase?: number }
-  | { kind: "spin"; period: number; phase?: number };
+  | { kind: "spin"; period: number; phase?: number }
+  /** Reifenschaukel: hängt am Seil (`length` bis zur Reifenmitte) und pendelt
+   *  links ↔ rechts, höchstens `amp` (rad) aus der Ruhelage bei x/y/z. */
+  | { kind: "swing"; length: number; amp: number; period: number; phase?: number };
 
 /** Reifen, durch den man werfen muss. Steht senkrecht (zeigt zur Kamera). */
 export type RingCollider = {
@@ -219,12 +222,24 @@ export function windmillAngle(w: WindmillCollider, time: number) {
   return (time / w.period) * TAU;
 }
 
-/** Mitte und Blickrichtung (Normale) eines Reifens zur Zeit `time`. */
+/** Auslenkung (rad) einer Reifenschaukel zur Zeit `time`. */
+export function swingAngle(m: Extract<RingMotion, { kind: "swing" }>, time: number) {
+  return Math.sin((time / m.period) * TAU + (m.phase ?? 0)) * m.amp;
+}
+
+/** Mitte und Blickrichtung (Normale) eines Reifens zur Zeit `time`. Die
+ *  Schaukel kippt dabei nur um ihre eigene Achse – für den Wurf gleich. */
 export function ringPose(ring: RingCollider, time: number, center: THREE.Vector3, normal: THREE.Vector3) {
   center.set(ring.x, ring.y, ring.z);
   normal.set(0, 0, 1);
   const m = ring.motion;
   if (!m) return;
+  if (m.kind === "swing") {
+    const a = swingAngle(m, time);
+    center.x += Math.sin(a) * m.length;
+    center.y += (1 - Math.cos(a)) * m.length;
+    return;
+  }
   const angle = (time / m.period) * TAU + (m.phase ?? 0);
   if (m.kind === "slide") center[m.axis] += Math.sin(angle) * m.amp;
   else normal.set(Math.sin(angle), 0, Math.cos(angle));

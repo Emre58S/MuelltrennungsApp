@@ -25,6 +25,8 @@ import { type BinSlide, type LidFlap, type PropCollider, type RingMotion } from 
 
 /** Dicke des Reifen-Rohrs (passend zu components/game/trick-props.tsx). */
 export const RING_TUBE = 0.05;
+/** Dicke des Autoreifens an der Reifenschaukel. */
+export const TIRE_TUBE = 0.13;
 
 export type TrickProp =
   | { kind: "ring"; x: number; y: number; z: number; radius: number; motion?: RingMotion }
@@ -137,6 +139,10 @@ const ring = (x: number, y: number, z: number, radius: number, motion?: RingMoti
   radius,
   motion,
 });
+
+/** Reifenschaukel: Autoreifen am Seil, pendelt über alle Tonnen (±1 m). */
+const tire = (period: number): TrickProp =>
+  ring(0, 2.8, 1.5, 0.62, { kind: "swing", length: 3.5, amp: Math.asin(1.0 / 3.5), period });
 
 /** Windfeld vor den Tonnen (zwischen Scheitel und Öffnung). */
 const fan = (x: number, force: number): TrickProp => ({
@@ -487,7 +493,7 @@ export function mirrorLevel<T extends Omit<TrickLevel, "id">>(level: T): T {
       ? undefined
       : m.kind === "spin"
         ? { ...m, period: -m.period, phase: -(m.phase ?? 0) }
-        : m.axis === "x"
+        : m.kind === "swing" || m.axis === "x"
           ? { ...m, phase: (m.phase ?? 0) + Math.PI }
           : m;
     return { ...p, x: -p.x, motion };
@@ -541,14 +547,8 @@ export function parcoursLane(level: ParcoursLevel, bin: 0 | 1 | 2): TrickLevel {
 }
 
 export const PARCOURS: ParcoursLevel[] = [
-  // Ein Reifen gleitet über alle Tonnen: werfen, wenn er vor DEINER Tonne ist
-  {
-    id: 1,
-    props: [ring(0, 2.8, 1.5, 0.55, { kind: "slide", axis: "x", amp: 1.0, period: 4.0 })],
-    lanes: [[0], [0], [0]],
-    bonus: "firstTry",
-    task: "trick.task.moving",
-  },
+  // Reifenschaukel pendelt über alle Tonnen: werfen, wenn sie vor DEINER Tonne ist
+  { id: 1, props: [tire(4.0)], lanes: [[0], [0], [0]], bonus: "firstTry", task: "trick.task.swing" },
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */
@@ -556,7 +556,7 @@ export const PARCOURS: ParcoursLevel[] = [
 /** Physik-Körper eines Levels (Hindernis-id = Index in `props`). */
 export function levelColliders(level: Pick<TrickLevel, "props">): PropCollider[] {
   return level.props.map((p, id): PropCollider => {
-    if (p.kind === "ring") return { ...p, id, tube: RING_TUBE };
+    if (p.kind === "ring") return { ...p, id, tube: p.motion?.kind === "swing" ? TIRE_TUBE : RING_TUBE };
     // Bauzaun rechnet wie eine aufrechte Tafel vom Boden bis zur Oberkante
     if (p.kind === "fence")
       return { kind: "sign", id, x: 0, y: p.top / 2, z: p.z, halfW: p.halfW, halfH: p.top / 2, tilt: 0, yaw: 0, look: "fence" };

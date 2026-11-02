@@ -130,6 +130,7 @@ export const en: Translations = {
   "trick.task.ring": "Through the hoop",
   "trick.task.rings": "Through both hoops",
   "trick.task.moving": "Through the moving hoop",
+  "trick.task.swing": "Throw when the tire is in front of your bin",
   "trick.task.spin": "Through the spinning hoop",
   "trick.task.windmill": "Past the windmill",
   "trick.task.windmillRing": "Through the hoop, past the windmill",

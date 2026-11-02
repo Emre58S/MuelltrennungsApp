@@ -30,6 +30,7 @@ import {
   ringPose,
   SIGN_THICK,
   type SignCollider,
+  swingAngle,
   type TrampolineCollider,
   trampolineX,
   type WindmillCollider,
@@ -60,13 +61,60 @@ function hoop(radius: number, tube: number): THREE.Object3D {
   return baked;
 }
 
+/** Reifenschaukel: Autoreifen (Mitte im Ursprung), Seil vom oberen Rand bis
+ *  zum Aufhängepunkt `length` darüber, Knoten am Reifen. Pendelt als Ganzes. */
+function swingTire(radius: number, tube: number, length: number): THREE.Object3D {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 8, 18), lowpoly("#2E2E33")));
+  // Lauffläche: etwas hellere Rillen-Klötze außen auf dem Reifen (aufliegend)
+  // (Klotz 0,05 hoch: innen unter der Rundung auch an den Kanten, außen 5 mm drüber)
+  const block = new THREE.BoxGeometry(0.07, 0.05, tube * 1.3);
+  const blocks = 14;
+  for (let i = 0; i < blocks; i++) {
+    const a = (i / blocks) * Math.PI * 2;
+    const b = new THREE.Mesh(block, lowpoly("#45454B"));
+    const r = radius + tube - 0.02;
+    b.position.set(Math.cos(a) * r, Math.sin(a) * r, 0);
+    b.rotation.z = a - Math.PI / 2;
+    g.add(b);
+  }
+  const top = radius + tube;
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, length - top + 0.05, 6), lowpoly("#C9A46A"));
+  rope.position.y = (length + top) / 2;
+  g.add(rope);
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 4), lowpoly("#B08D55"));
+  knot.position.y = top + 0.03;
+  g.add(knot);
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
+/** Ast, an dem die Schaukel hängt (ruht; Mitte am Aufhängepunkt). */
+function branch(): THREE.Object3D {
+  const g = new THREE.Group();
+  const log = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 3.2, 7), lowpoly("#7A5233"));
+  log.rotation.z = Math.PI / 2 + 0.06;
+  log.position.y = 0.08;
+  g.add(log);
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
 const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef }) {
   const group = useRef<THREE.Group>(null);
   const glow = useRef<THREE.Mesh>(null);
-  const model = useMemo(() => hoop(ring.radius, ring.tube), [ring.radius, ring.tube]);
+  const swing = ring.motion?.kind === "swing" ? ring.motion : undefined;
+  const length = swing?.length ?? 0;
+  const model = useMemo(
+    () => (length ? swingTire(ring.radius, ring.tube, length) : hoop(ring.radius, ring.tube)),
+    [ring.radius, ring.tube, length],
+  );
+  const bough = useMemo(() => (length ? branch() : null), [length]);
   const glowGeo = useMemo(
-    () => new THREE.TorusGeometry(ring.radius, ring.tube * 2.2, 8, 36),
-    [ring.radius, ring.tube],
+    () => new THREE.TorusGeometry(ring.radius, ring.tube * (length ? 1.4 : 2.2), 8, 36),
+    [ring.radius, ring.tube, length],
   );
   const glowMat = useMemo(
     () =>
@@ -78,10 +126,11 @@ const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef
   useEffect(
     () => () => {
       model.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+      bough?.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
       glowGeo.dispose();
       glowMat.dispose();
     },
-    [model, glowGeo, glowMat],
+    [model, bough, glowGeo, glowMat],
   );
 
   useFrame(() => {
@@ -91,6 +140,8 @@ const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef
     ringPose(ring, clock, center, normal);
     g.position.copy(center);
     g.rotation.y = Math.atan2(normal.x, normal.z);
+    // Schaukel kippt mit dem Seil (Aufhängepunkt bleibt oben stehen)
+    if (swing) g.rotation.z = swingAngle(swing, clock);
     // Aufleuchten nach dem Durchfliegen: kurz größer und golden
     const since = clock - (bus.current.ringPass[ring.id] ?? -99);
     const k = since >= 0 && since < FLASH ? 1 - since / FLASH : 0;
@@ -100,10 +151,13 @@ const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef
   });
 
   return (
-    <group ref={group}>
-      <primitive object={model} />
-      <mesh ref={glow} geometry={glowGeo} material={glowMat} visible={false} />
-    </group>
+    <>
+      <group ref={group}>
+        <primitive object={model} />
+        <mesh ref={glow} geometry={glowGeo} material={glowMat} visible={false} />
+      </group>
+      {bough && <primitive object={bough} position={[ring.x, ring.y + length, ring.z]} />}
+    </>
   );
 });
 

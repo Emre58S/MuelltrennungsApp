@@ -129,6 +129,7 @@ export const de = {
   "trick.task.ring": "Durch den Reifen",
   "trick.task.rings": "Durch beide Reifen",
   "trick.task.moving": "Durch den beweglichen Reifen",
+  "trick.task.swing": "Wirf, wenn der Reifen vor deiner Tonne ist",
   "trick.task.spin": "Durch den drehenden Reifen",
   "trick.task.windmill": "Am Windrad vorbei",
   "trick.task.windmillRing": "Durch den Reifen, am Windrad vorbei",
