@@ -296,6 +296,7 @@ export const en: Translations = {
   "parcours.points": "Points: {n}",
   "parcours.best": "Best: {n}",
   "parcours.ghost": "👻 Ghost: {n}",
+  "parcours.ghostLead": "👻 Ghost: {n} · you +{d}",
   "parcours.ghostWon": "👻 Ghost beaten! (Ghost: {n})",
   "parcours.ghostTie": "👻 Same as the ghost: {n}",
   "parcours.ghostBehind": "👻 Ghost: {n} · {gap} points to go",

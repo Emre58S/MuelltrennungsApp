@@ -601,7 +601,11 @@ export function ParcoursHud({
     return () => clearInterval(id);
   }, [running]);
   const pulse = usePulse(points);
-  const ghostPoints = ghost && endsAt !== null ? ghostPointsAt(ghost, total * 1000 - Math.max(0, endsAt - now)) : 0;
+  // Zeit um → ganzer Ghost-Lauf (auch Landungen nach Ablauf; die Uhr steht dann, `now` kann zurückliegen)
+  const ghostMs = endsAt === null ? 0 : left <= 0 ? Infinity : total * 1000 - Math.max(0, endsAt - now);
+  const ghostPoints = ghost && endsAt !== null ? ghostPointsAt(ghost, ghostMs) : 0;
+  // Nur ein Vorsprung wird genannt – Rückstand nie (nicht strafend)
+  const lead = points - ghostPoints;
   return (
     <HudSurface style={styles.trickHud}>
       <AppText
@@ -628,7 +632,7 @@ export function ParcoursHud({
           style={styles.tabular}
           accessibilityLabel={`${t("ghost.name")}, ${t("parcours.points", { n: ghostPoints })}`}
         >
-          {t("parcours.ghost", { n: ghostPoints })}
+          {lead > 0 ? t("parcours.ghostLead", { n: ghostPoints, d: lead }) : t("parcours.ghost", { n: ghostPoints })}
         </AppText>
       )}
     </HudSurface>
