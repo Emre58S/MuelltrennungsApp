@@ -315,7 +315,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 9 (031ed62 + 98a23ec, Tester 8/10, EAS auto + preview): Startkarte „🌍 Gegner
     wird gesucht …“ (nur diese Zeile während der Suche), „Geschlagen: Name (N)“ /
     „Gleichstand mit Name“, Ghost-Zeile einzeilig. Offen: nach erfolgloser Suche kurzer
-    Hinweis „heute noch kein Gegner“; `searching` bei Ausnahme nicht zurückgesetzt.
+    Hinweis „heute noch kein Gegner“ (✓ 6495de2 + 3595ed2, Tester 8/10: „🌍 Gerade kein
+    Gegner da – spiel vor …“, nur ohne eigenen Lauf); `searching` bei Ausnahme nicht
+    zurückgesetzt.
   - [x] Teil 10 (755ad7b, Tester 8/10, EAS auto + preview): Rangliste-Reiter „Parcours
     des Tages“ (parcours_top, Punkte von heute, wartet ≤ 3 s auf den eigenen Lauf).
     Offen: über Mitternacht offen → gestrige Liste.
