@@ -3,7 +3,12 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., 22:46–23:05, Normalmodus):** R5e als erledigt geprüft (Trick-Schule
+**Letzter Lauf (3.11., spät, Normalmodus):** 2 Zyklen, beide freigegeben, auf auto + preview:
+Survival-Beenden-Dialog „Der Balken läuft weiter – ist er leer, endet die Runde.“ (R4b, 8/10);
+Sprint/Survival: Gegner, der im 3-2-1 noch gefunden wird, fliegt mit (R4d, 7 → 8/10). Offen
+wie zuvor: R7a–d/f brauchen den Nutzer; R4d „Seed der Woche“ (neues SQL).
+
+**Lauf davor (3.11., 22:46–23:05, Normalmodus):** R5e als erledigt geprüft (Trick-Schule
 je Welt), R7e Teil 1: „Konto/Abmelden“ ausgeblendet, login/register leiten auf den Start um
 (AUTH_ENABLED) – je 8/10, auf auto + preview. **Was jetzt noch fehlt, braucht den Nutzer:**
 R7a App-Symbol/Startbild (Entwurf), R7b `eas build` + TestFlight, R7c Store-Texte/Bilder,
@@ -390,7 +395,8 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     umschaltbar auf eigenen/Übungs-Ghost, „Suche Gegner …“; nur vor dem Start übernommen.
   - Offen: Seed der Woche statt Tag (mehr Gegner); Server rechnet `correct` nicht nach
     (nur Auswahl betroffen); Startkarte springt kurz nach der Suche (✓ 914b41c + 2a170e7–e55f779, Tester 8/10, 5/10 → 7/10: gemeinsamer Platz auch für Freundes-Hinweise, Gegner-Zeile bis 3 Zeilen; ✓ friends.noRun kurz „… – spiel zuerst!“ d5f0994 + 92caa33, Tester 7/10); Hinweis, wenn
-    während der Suche gestartet wurde; Gegner auch für das Ghost-Rennen.
+    während der Suche gestartet wurde (✓ Gegner, der im 3-2-1 ankommt, fliegt mit – 9ed78f9 +
+    0d74ca4, Tester 7/10 → 8/10, EAS auto + preview; danach weiter verworfen); Gegner auch für das Ghost-Rennen.
 - [ ] **R4e** Freunde: eigener **Freundes-Code** (z. B. EMRE-4821), Freund
   hinzufügen per Code/Link, Liste mit „Herausfordern“ + offenen Herausforderungen.
   - [x] Teil 1 (3d05241 + 1a9988b + 351ddc8, Tester 7/10 → 7/10, EAS auto + preview):
