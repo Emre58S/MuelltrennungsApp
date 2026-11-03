@@ -558,7 +558,9 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 2 (7eab8af + 0e5d958, Tester 8/10, EAS auto + preview): Sterne einer Station
     springen nach der Rückkehr aus der Runde auf, wenn es mehr geworden sind (StationDot,
     useLayoutEffect, ruhig bei „Weniger Bewegung“).
-  - Offen: Karte „Neue Tonne“ antippbar (was gehört rein?); kurzer Erfolgston; Truhe
+  - [x] Teil 3 (43121d7, Tester 7/10, EAS auto + preview): Karte „Neue Tonne“ zeigt „Zum
+    Beispiel: …“ (introExamples, wie Lernkarte; VoiceOver mit Namen).
+  - Offen: kurzer Erfolgston; Truhe
     öffnen ist schon da (R3c).
 
 ### R7 – Release-Vorbereitung (ganz am Ende, wenn die Inhalte stehen)
