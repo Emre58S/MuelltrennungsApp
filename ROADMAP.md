@@ -527,9 +527,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   auf der Trick-Seite (nur geprüfte Level/Vorlagen, teils gespiegelt, ohne Sterne);
   Meister-Level 25–28 (Reifen/Windrad/Trampolin + klappender Deckel), Fairness grün;
   Trick-Schule der letzten Welt nimmt alle Level ab 21 (worldTricks).
-- [ ] **R5e** Bisherige Level 1–24 werden „Trick-Schule“ (Seitenpfad der
+- [x] **R5e** Bisherige Level 1–24 werden „Trick-Schule“ (Seitenpfad der
   Kampagne, je ein Element erklären, feste Tonne ok). Wäscheleine, Basketball,
-  Laubbläser, Lieferwagen nach und nach (Kann).
+  Laubbläser, Lieferwagen nach und nach (Kann). ✓ Kern erledigt: TrickSchool je Welt in
+  app/kampagne.tsx (worldTricks, 4 Level je Welt, Tipps erklären die Elemente); neue
+  Elemente bleiben „Kann“ (mit Emre abstimmen).
 
 ### R6 – Crunch & Belohnungsgefühl (Soll, viel per EAS-Update nachlieferbar)
 - [x] **R6a** Aufprall-Partikel in der **Farbe der Wurfspur** beim Treffer.
