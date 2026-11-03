@@ -517,8 +517,11 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 2 (4e55c7d + 14b3005, Tester 8/10, EAS auto + preview): Bio-Spritzer immer
     erdig (Tonnenfarbe + Grün/Braun), keine Spurfarbe.
   - [x] Teil 3 (51dae22, Tester 8/10, EAS auto + preview): auch im Parcours (Trick-Treffer
-    mit Material-Stil, normaler Treffer kleiner Burst). Offen: Höhe BIN_OPENING_Y wie Hauptspiel.
-  - Offen: Dose knautscht (Gegenstand beim Einwurf stauchen); auch in Sprint-/Trick-Runden;
+    mit Material-Stil, normaler Treffer kleiner Burst).
+  - [x] Teil 4 (6f0f15e + ddf1b4e, Tester 8/10, EAS auto + preview): auch Sprint/Survival
+    (Bio erdig, sonst Spielerfarbe + Material); Parcours-Höhe wie Hauptspiel.
+  - Offen: Dose knautscht (Gegenstand beim Einwurf stauchen); Trick-Runden; Sprint-Ring
+    bei schneller Folge evtl. kleiner;
     Spur bei Bio-Perfekt evtl. als eine Farbe dazu.
 - [x] **R6c** Kurzer Treffer-Stopp (Hit-Stop ~60 ms) + leichtes Wackeln bei
   Serie 10/Boss; Haptik-Stufen. (e7bdfea + 988d002, Tester 8/10, EAS auto + preview):
