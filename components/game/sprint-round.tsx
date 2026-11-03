@@ -707,17 +707,19 @@ function RoundClock({
 const TIMER_WARN = "#E53935";
 
 /** Survival: Balken unter dem Gegenstand, der in `ms` leer läuft (nativ animiert);
- *  im letzten Drittel blendet er in Rot über (Spielerfarbe ist schon orange). */
+ *  im letzten Drittel blendet er in Rot über (Spielerfarbe ist schon orange) und wird
+ *  dicker – so ist „gleich vorbei“ auch ohne Farbe (Rot-Grün-Schwäche) erkennbar. */
 function ItemTimer({ ms, color, warn }: { ms: number; color: string; warn: string }) {
   const [k] = useState(() => new Animated.Value(1));
   const [warnOpacity] = useState(() => k.interpolate({ inputRange: [0, 0.3, 0.4, 1], outputRange: [1, 1, 0, 0] }));
+  const [thick] = useState(() => k.interpolate({ inputRange: [0, 0.3, 0.4, 1], outputRange: [2, 2, 1, 1] }));
   useEffect(() => {
     const anim = Animated.timing(k, { toValue: 0, duration: ms, easing: Easing.linear, useNativeDriver: true });
     anim.start();
     return () => anim.stop();
   }, [k, ms]);
   return (
-    <View style={styles.timerTrack}>
+    <Animated.View style={[styles.timerTrack, { transform: [{ scaleY: thick }] }]}>
       <Animated.View style={[styles.timerFill, { backgroundColor: color, transform: [{ scaleX: k }] }]} />
       <Animated.View
         style={[
@@ -726,7 +728,7 @@ function ItemTimer({ ms, color, warn }: { ms: number; color: string; warn: strin
           { backgroundColor: warn, opacity: warnOpacity, transform: [{ scaleX: k }] },
         ]}
       />
-    </View>
+    </Animated.View>
   );
 }
 
