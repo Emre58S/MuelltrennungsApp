@@ -580,12 +580,15 @@ export function ParcoursHud({
   endsAt,
   total,
   ghost,
+  ghostName,
 }: {
   title: string;
   task: string;
   points: number;
   /** Ghost (bester Lauf von heute): seine Punkte zur selben Rundenzeit. */
   ghost?: ParcoursRun | null;
+  /** Name in der Ghost-Zeile (eigener Lauf: „Ghost“, sonst der Gegner). */
+  ghostName: string;
   /** Ende der Runde (Date.now()-Zeit); null = noch nicht gestartet. */
   endsAt: number | null;
   /** Rundenzeit (s), angezeigt vor dem Start. */
@@ -606,7 +609,10 @@ export function ParcoursHud({
   const ghostPoints = ghost && endsAt !== null ? ghostPointsAt(ghost, ghostMs) : 0;
   // Nur ein Vorsprung wird genannt – Rückstand nie (nicht strafend)
   const lead = points - ghostPoints;
-  const ghostText = lead > 0 ? t("parcours.ghostLead", { n: ghostPoints, d: lead }) : t("parcours.ghost", { n: ghostPoints });
+  const ghostText =
+    lead > 0
+      ? t("parcours.ghostLead", { name: ghostName, n: ghostPoints, d: lead })
+      : t("parcours.ghost", { name: ghostName, n: ghostPoints });
   return (
     <HudSurface style={styles.trickHud}>
       <AppText

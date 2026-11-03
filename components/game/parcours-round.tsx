@@ -11,7 +11,7 @@ import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
 import { computeLayout, shotLanding } from "@/game/layout";
 import { type FreeShot, FULL_SWIPE_SHARE } from "@/game/logic";
 import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
-import { encodeParcours, type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
+import { decodeParcours, encodeParcours, type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
 import {
   levelColliders,
   meetsRequirement,
@@ -25,7 +25,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { submitParcoursRun } from "@/utils/leaderboard";
+import { fetchRandomParcoursRun, submitParcoursRun } from "@/utils/leaderboard";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { usableSkin, usableTrail } from "@/game/rewards";
 import {
@@ -148,6 +148,8 @@ export function ParcoursRound({
   // Ghost: eigener bester Lauf von heute – nur vor dem Start übernommen
   const [ghost, setGhost] = useState<ParcoursRun | null>(null);
   const ghostRef = useRef<ParcoursRun | null>(null);
+  /** Gegner von heute (Server) – null: eigener Lauf als Ghost. */
+  const [rival, setRival] = useState<string | null>(null);
   /** Punkte des gespeicherten Laufs von heute – auch, wenn er erst nach dem Start geladen ist. */
   const todayRef = useRef(0);
   /** Eigener Lauf: Punktestand nach jedem Treffer (wird ggf. neuer Ghost). */
@@ -164,6 +166,15 @@ export function ParcoursRound({
         if (phaseRef.current !== "ready") return;
         ghostRef.current = run;
         setGhost(ghostRef.current);
+        // Trick-Battle: ein echter Gegner von heute (ähnlich stark) ersetzt den eigenen Ghost
+        return fetchRandomParcoursRun(level.id, day, run?.points ?? bestRef.current).then((other) => {
+          const decoded = other ? decodeParcours(other.code) : null;
+          // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
+          if (!other || !decoded || phaseRef.current !== "ready") return;
+          ghostRef.current = decoded;
+          setGhost(decoded);
+          setRival(other.name);
+        });
       })
       .catch(() => undefined);
   }, [level.id, day]);
@@ -454,15 +465,20 @@ export function ParcoursRound({
         : result.best > 0
           ? t("parcours.sameBest", { n: result.best })
           : t("parcours.tryAgain");
+  const ghostName = rival ?? t("ghost.name");
   const ghostGap = ghost && result ? ghost.points - result.points : 0;
   const ghostLine =
     !ghost || !result
       ? null
       : ghostGap < 0
-        ? t("parcours.ghostWon", { n: ghost.points })
+        ? t("parcours.ghostWon", { name: ghostName, n: ghost.points })
         : ghostGap === 0
-          ? t("parcours.ghostTie", { n: ghost.points })
-          : t(ghostGap === 1 ? "parcours.ghostBehindOne" : "parcours.ghostBehind", { n: ghost.points, gap: ghostGap });
+          ? t("parcours.ghostTie", { name: ghostName, n: ghost.points })
+          : t(ghostGap === 1 ? "parcours.ghostBehindOne" : "parcours.ghostBehind", {
+              name: ghostName,
+              n: ghost.points,
+              gap: ghostGap,
+            });
 
   return (
     <GestureDetector gesture={gesture}>
@@ -493,7 +509,7 @@ export function ParcoursRound({
             ))}
             <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + Spacing.sm }]}>
               <IconButton icon="x" label={t("common.close")} onPress={onExit} />
-              <ParcoursHud title={title} task={t(level.task)} points={points} endsAt={endsAt} total={level.seconds} ghost={ghost} />
+              <ParcoursHud title={title} task={t(level.task)} points={points} endsAt={endsAt} total={level.seconds} ghost={ghost} ghostName={ghostName} />
               <View style={styles.topSpacer} />
             </View>
             {item && playing && (
@@ -535,7 +551,9 @@ export function ParcoursRound({
               </AppText>
               {ghost && (
                 <AppText variant="caption" tone="textSecondary" center>
-                  {t("parcours.ghostInfo")} ({t("parcours.points", { n: ghost.points })})
+                  {rival
+                    ? t("parcours.rivalInfo", { name: rival, points: t("parcours.points", { n: ghost.points }) })
+                    : `${t("parcours.ghostInfo")} (${t("parcours.points", { n: ghost.points })})`}
                 </AppText>
               )}
               <Button title={t("duel.start")} icon="zap" size="lg" onPress={start} />
@@ -560,7 +578,7 @@ export function ParcoursRound({
                 </AppText>
               )}
               {/* Bestwert-Zeile entfällt, wenn der Ghost schon dasselbe sagt (Bestwert = Lauf von heute) */}
-              {(!ghost || ghost.points !== result.best || result.points > result.best) && (
+              {(!ghost || rival !== null || ghost.points !== result.best || result.points > result.best) && (
                 <AppText
                   variant="label"
                   tone={result.points > result.best ? "gold" : "textSecondary"}

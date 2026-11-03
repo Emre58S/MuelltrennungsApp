@@ -269,6 +269,28 @@ export async function submitParcoursRun(level: number, day: string, code: string
   }
 }
 
+/** Parcours-Lauf eines anderen Spielers von heute auf demselben Parcours mit
+ *  ähnlich vielen Punkten (oder null – offline oder SQL fehlt). */
+export async function fetchRandomParcoursRun(
+  level: number,
+  day: string,
+  points: number,
+): Promise<{ name: string; code: string; points: number } | null> {
+  if (!leaderboardReady) return null;
+  try {
+    const player = await getPlayer();
+    const rows = await rpc<{ name: string; code: string; points: number }[]>("random_parcours_run", {
+      p_level: level,
+      p_day: day,
+      p_player: player.id,
+      p_points: points,
+    });
+    return rows?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Lauf eines anderen Spielers von heute mit ähnlich vielen Treffern (oder null). */
 export async function fetchRandomRun(mode: OnlineMode, day: string, correct: number): Promise<OnlineRun | null> {
   if (!leaderboardReady) return null;
