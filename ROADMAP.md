@@ -266,8 +266,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 1 (ed0c699, Tester 8/10, EAS auto + preview): Karte „🎯 Parcours des Tages“
     im Online-Bereich (Gruppe „Schnell spielen“), Parcours aus dem Datum (`dailyParcoursId`
     in game/parcours.ts +Test), startet `/runde?mode=parcours&level=N`, zurück in Online.
-  - Offen: Name/Aufgabe statt „Parcours 2“ + heutiger Bestwert auf der Karte; „für alle
-    gleich“ erst mit Vergleich (Freunde/Rangliste) einlösen; Karte über Mitternacht offen
+  - [x] Teil 2 (d77733e + 80a9135, Tester 7/10, EAS auto + preview): Karte zeigt Symbol
+    des Parcours, „Heute: {Aufgabe} · N Sekunden“ und „Bestwert: N“ (statt „Parcours 2“).
+  - Offen: „Sortieren + tricksen“ wieder im Kartentext (ohne zu lang zu werden); Vergleich
+    mit Freunden/Rangliste für den Parcours des Tages; Karte über Mitternacht offen
     → zeigt gestrigen Parcours; Gegner-Ghost (Startzeit der Szenen-Uhr mitschreiben).
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
