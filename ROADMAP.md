@@ -271,6 +271,12 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - Offen: „Sortieren + tricksen“ wieder im Kartentext (ohne zu lang zu werden); Vergleich
     mit Freunden/Rangliste für den Parcours des Tages; Karte über Mitternacht offen
     → zeigt gestrigen Parcours; Gegner-Ghost (Startzeit der Szenen-Uhr mitschreiben).
+  - [x] Teil 3 (591987e + ebec2db, Tester 8/10, EAS auto + preview): eigener bester Lauf
+    von heute je Parcours als Ghost (`ParcoursRun` = Punktestand je Treffer, StorageKeys.
+    PARCOURS_TODAY); Kopfleiste „👻 Ghost: N“ zur selben Rundenzeit, Startkarte nennt ihn.
+    Offen: Vorsprung/Rückstand zeigen (nie rot); Endkarte „Ghost geschlagen!“; Screenreader-
+    Label ohne Emoji; HUD-Uhr stoppt bei 0 → letzter Ghost-Treffer evtl. nicht sichtbar;
+    Ghost des Gegners/Freundes (Server).
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
