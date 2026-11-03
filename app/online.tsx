@@ -6,7 +6,7 @@
 // (für alle gleich, Vorstufe zum Trick-Battle R4c).
 
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { type ComponentRef, useCallback, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
@@ -36,7 +36,7 @@ export default function OnlineScreen() {
 
   // Code eines Freundes: hier prüfen, dann direkt ins Rennen gegen den Lauf
   const [entering, setEntering] = useState(false);
-  const codeInput = useRef<TextInput>(null);
+  const codeInput = useRef<ComponentRef<typeof TextInput>>(null);
   const [draft, setDraft] = useState("");
   const [invalid, setInvalid] = useState<"invalid" | "update" | null>(null);
   const closeCode = () => {
