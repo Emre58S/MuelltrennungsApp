@@ -19,15 +19,19 @@ import { levelIcons, PARCOURS } from "@/game/trick-levels";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { getBoolean, getParcoursBest, setBoolean, StorageKeys, todayKey } from "@/utils/storage";
 
+/** Parcours des Tages zu einem Tag (für alle gleich). */
+function parcoursOfDay(day: string) {
+  const id = dailyParcoursId(day, PARCOURS.map((p) => p.id));
+  return PARCOURS.find((p) => p.id === id) ?? PARCOURS[0];
+}
+
 export default function OnlineScreen() {
   const { t } = useI18n();
   const { scheme, colors } = useAppTheme();
   const [seenDuel, setSeenDuel] = useState(true);
-  // Parcours des Tages: beim Öffnen des Bereichs gewählt (nach Mitternacht beim nächsten Öffnen neu)
-  const [today] = useState(() => {
-    const id = dailyParcoursId(todayKey(), PARCOURS.map((p) => p.id));
-    return PARCOURS.find((p) => p.id === id) ?? PARCOURS[0];
-  });
+  // Parcours des Tages: Tag beim Öffnen und bei jeder Rückkehr neu (über Mitternacht offen → neuer Parcours)
+  const [day, setDay] = useState(todayKey);
+  const today = parcoursOfDay(day);
   const [parcoursBest, setParcoursBest] = useState(0);
 
   // Code eines Freundes: hier prüfen, dann direkt ins Rennen gegen den Lauf
@@ -60,13 +64,15 @@ export default function OnlineScreen() {
       getBoolean(StorageKeys.SEEN_DUEL, false)
         .then((seen) => active && setSeenDuel(seen))
         .catch(() => undefined);
+      const now = todayKey();
+      setDay(now);
       getParcoursBest()
-        .then((best) => active && setParcoursBest(best[today.id] ?? 0))
+        .then((best) => active && setParcoursBest(best[parcoursOfDay(now).id] ?? 0))
         .catch(() => undefined);
       return () => {
         active = false;
       };
-    }, [today.id]),
+    }, []),
   );
 
   return (
