@@ -494,7 +494,11 @@ export function ParcoursRound({
               <AppText variant="label" tone={result.points > result.best ? "gold" : "textSecondary"} center>
                 {result.points > result.best && result.points > 0
                   ? t("parcours.newBest")
-                  : t("parcours.oldBest", { n: Math.max(result.best, result.points) })}
+                  : result.best > result.points
+                    ? t("parcours.gap", { n: result.best, gap: result.best - result.points })
+                    : result.best > 0
+                      ? t("parcours.sameBest", { n: result.best })
+                      : t("parcours.oldBest", { n: result.best })}
               </AppText>
               <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
               <Button title={t("parcours.overview")} variant="secondary" onPress={onExit} />
