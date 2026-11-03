@@ -280,15 +280,21 @@ export async function fetchParcoursBoard(level: number, day: string, limit = 50)
   // Höchstens 3 s auf den eigenen Lauf warten – bei schlechtem Netz trotzdem laden
   await Promise.race([parcoursSending, new Promise((done) => setTimeout(done, 3000))]);
   const player = await getPlayer();
-  const rows = await rpc<{ rank: number; name: string; score: number; is_me: boolean }[]>("parcours_top", {
-    p_level: level,
-    p_day: day,
-    p_player: player.id,
-    p_limit: limit,
-  });
+  const [rows, myRank] = await Promise.all([
+    rpc<{ rank: number; name: string; score: number; is_me: boolean }[]>("parcours_top", {
+      p_level: level,
+      p_day: day,
+      p_player: player.id,
+      p_limit: limit,
+    }),
+    // Eigener Platz auch außerhalb der Liste; fehlt die Funktion (altes SQL), eben ohne
+    rpc<{ rank: number; score: number }[]>("parcours_my_rank", { p_level: level, p_day: day, p_player: player.id }).catch(
+      () => null,
+    ),
+  ]);
   const list = (rows ?? []).map((r) => ({ rank: Number(r.rank), name: r.name, score: r.score, isMe: r.is_me }));
-  const mine = list.find((r) => r.isMe);
-  return { rows: list, me: mine ? { rank: mine.rank, score: mine.score } : null };
+  const mine = myRank?.[0] ?? list.find((r) => r.isMe);
+  return { rows: list, me: mine ? { rank: Number(mine.rank), score: mine.score } : null };
 }
 
 /** Parcours-Lauf eines anderen Spielers von heute auf demselben Parcours mit

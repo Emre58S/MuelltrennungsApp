@@ -100,6 +100,23 @@ as $$
   limit greatest(1, least(p_limit, 100));
 $$;
 
+-- Eigener Platz (auch wenn man nicht unter den Besten steht)
+create or replace function public.parcours_my_rank(p_level integer, p_day text, p_player uuid)
+returns table (rank bigint, score integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with ranked as (
+    select player, points, rank() over (order by points desc) as rank
+    from parcours_runs
+    where level = p_level and day = p_day
+  )
+  select rank, points from ranked where player = p_player;
+$$;
+
 grant execute on function public.submit_parcours_run(uuid, integer, text, text, integer) to anon, authenticated;
 grant execute on function public.random_parcours_run(integer, text, uuid, integer) to anon, authenticated;
 grant execute on function public.parcours_top(integer, text, uuid, integer) to anon, authenticated;
+grant execute on function public.parcours_my_rank(integer, text, uuid) to anon, authenticated;
