@@ -49,6 +49,39 @@ export function parseParcoursRun(value: unknown): ParcoursRun | null {
   return ok ? { points, hits: hits as [number, number][] } : null;
 }
 
+/** Höchstens so viele Treffer im Code (mehr schafft niemand in 30 s). */
+const CODE_HITS = 100;
+
+/** Lauf als kurzer Text für den Server (supabase/parcours.sql): je Treffer
+ *  Punkte (1–4) + Zeitabstand in Zehntelsekunden (2 Zeichen, Basis 36). */
+export function encodeParcours(run: ParcoursRun): string {
+  let body = "";
+  let prevAt = 0;
+  let prevTotal = 0;
+  for (const [ms, total] of run.hits.slice(0, CODE_HITS)) {
+    const gained = Math.min(Math.max(total - prevTotal, 1), 4);
+    const at = Math.max(prevAt, Math.round(ms / 100));
+    body += String(gained) + Math.min(at - prevAt, 36 * 36 - 1).toString(36).padStart(2, "0");
+    prevAt = at;
+    prevTotal += gained;
+  }
+  return body;
+}
+
+/** Lauf aus einem Code (null, wenn der Code nicht passt). */
+export function decodeParcours(code: string): ParcoursRun | null {
+  if (!code || code.length > CODE_HITS * 3 || !/^([1-4][0-9a-z]{2})+$/.test(code)) return null;
+  const hits: [number, number][] = [];
+  let at = 0;
+  let total = 0;
+  for (let i = 0; i < code.length; i += 3) {
+    total += Number(code[i]);
+    at += parseInt(code.slice(i + 1, i + 3), 36);
+    hits.push([at * 100, total]);
+  }
+  return { points: total, hits };
+}
+
 export type ParcoursThrow = {
   /** In der richtigen Tonne gelandet. */
   correct: boolean;

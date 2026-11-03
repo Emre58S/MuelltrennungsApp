@@ -11,7 +11,7 @@ import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
 import { computeLayout, shotLanding } from "@/game/layout";
 import { type FreeShot, FULL_SWIPE_SHARE } from "@/game/logic";
 import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
-import { type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
+import { encodeParcours, type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
 import {
   levelColliders,
   meetsRequirement,
@@ -25,6 +25,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { submitParcoursRun } from "@/utils/leaderboard";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { usableSkin, usableTrail } from "@/game/rewards";
 import {
@@ -193,6 +194,8 @@ export function ParcoursRound({
     phaseRef.current = "end";
     const total = pointsRef.current;
     if (total > bestRef.current) saveParcoursBest(level.id, total).catch(() => undefined);
+    // Online (Trick-Battle): jeder Lauf mit Punkten – der Server behält den besten
+    if (total > 0) submitParcoursRun(level.id, day, encodeParcours({ points: total, hits: hits.current }), total);
     if (total > todayRef.current) {
       saveParcoursToday(level.id, { points: total, hits: hits.current } satisfies ParcoursRun, day).catch(() => undefined);
     }

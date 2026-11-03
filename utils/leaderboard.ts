@@ -256,6 +256,19 @@ export function submitOnlineRun(mode: OnlineMode, day: string, code: string, cor
   return onlineSending;
 }
 
+/** Fertigen Parcours-Lauf einreichen (supabase/parcours.sql; der Server behält je
+ *  Tag und Parcours den besten). Still, wenn offline oder nicht eingerichtet. */
+export async function submitParcoursRun(level: number, day: string, code: string, points: number): Promise<void> {
+  if (!leaderboardReady || points < 1 || !code) return;
+  try {
+    const player = await getPlayer();
+    await rpc("set_name", { p_player: player.id, p_name: player.name });
+    await rpc("submit_parcours_run", { p_player: player.id, p_level: level, p_day: day, p_code: code, p_points: points });
+  } catch {
+    // Kein Netz oder SQL noch nicht eingerichtet – dann eben ohne
+  }
+}
+
 /** Lauf eines anderen Spielers von heute mit ähnlich vielen Treffern (oder null). */
 export async function fetchRandomRun(mode: OnlineMode, day: string, correct: number): Promise<OnlineRun | null> {
   if (!leaderboardReady) return null;

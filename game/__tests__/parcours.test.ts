@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from "@jest/globals";
 
-import { dailyParcoursId, ghostPointsAt, parseParcoursRun, PARCOURS_ITEMS, parcoursPoints, parcoursQueue } from "../parcours";
+import { dailyParcoursId, decodeParcours, encodeParcours, ghostPointsAt, parseParcoursRun, PARCOURS_ITEMS, parcoursPoints, parcoursQueue } from "../parcours";
 import { PARCOURS } from "../trick-levels";
 
 describe("Parcours-Runde", () => {
@@ -46,5 +46,20 @@ describe("Parcours-Runde", () => {
     expect(parseParcoursRun({ points: 0, hits: [] })).toBeNull();
     expect(parseParcoursRun({ points: 3, hits: [[500, 3], [100, 1]] })).toBeNull();
     expect(parseParcoursRun("x")).toBeNull();
+  });
+
+  test("Lauf-Code für den Server: hin und zurück, Unsinn fällt weg", () => {
+    const run = { points: 8, hits: [[1230, 1], [4000, 4], [12960, 8]] as [number, number][] };
+    const code = encodeParcours(run);
+    expect(code).toMatch(/^([1-4][0-9a-z]{2})+$/);
+    expect(code).toHaveLength(9);
+    const back = decodeParcours(code);
+    expect(back?.points).toBe(8);
+    expect(back?.hits.map(([, total]) => total)).toEqual([1, 4, 8]);
+    // Zeiten auf Zehntel genau
+    back?.hits.forEach(([ms], i) => expect(Math.abs(ms - run.hits[i][0])).toBeLessThanOrEqual(100));
+    expect(decodeParcours("")).toBeNull();
+    expect(decodeParcours("5aa")).toBeNull();
+    expect(decodeParcours("1a")).toBeNull();
   });
 });
