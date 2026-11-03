@@ -150,6 +150,8 @@ export function ParcoursRound({
   const ghostRef = useRef<ParcoursRun | null>(null);
   /** Gegner von heute (Server) – null: eigener Lauf als Ghost. */
   const [rival, setRival] = useState<string | null>(null);
+  /** Suche nach dem Gegner läuft (nur Hinweis auf der Startkarte). */
+  const [searching, setSearching] = useState(false);
   /** Punkte des gespeicherten Laufs von heute – auch, wenn er erst nach dem Start geladen ist. */
   const todayRef = useRef(0);
   /** Eigener Lauf: Punktestand nach jedem Treffer (wird ggf. neuer Ghost). */
@@ -167,7 +169,9 @@ export function ParcoursRound({
         ghostRef.current = run;
         setGhost(ghostRef.current);
         // Trick-Battle: ein echter Gegner von heute (ähnlich stark) ersetzt den eigenen Ghost
+        setSearching(true);
         return fetchRandomParcoursRun(level.id, day, run?.points ?? bestRef.current).then((other) => {
+          setSearching(false);
           const decoded = other ? decodeParcours(other.code) : null;
           // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
           if (!other || !decoded || phaseRef.current !== "ready") return;
@@ -549,6 +553,11 @@ export function ParcoursRound({
                 {t("parcours.time", { n: level.seconds })}
                 {best > 0 ? ` · ${t("parcours.best", { n: best })}` : ""}
               </AppText>
+              {searching && !rival && (
+                <AppText variant="caption" tone="textMuted" center>
+                  {t("parcours.rivalSearch")}
+                </AppText>
+              )}
               {ghost && (
                 <AppText variant="caption" tone="textSecondary" center>
                   {rival

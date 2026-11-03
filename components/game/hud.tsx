@@ -638,6 +638,7 @@ export function ParcoursHud({
           center
           style={styles.tabular}
           // Screenreader: derselbe Text ohne Emoji
+          numberOfLines={1}
           accessibilityLabel={ghostText.replace("👻", "").trim()}
         >
           {ghostText}
