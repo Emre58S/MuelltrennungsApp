@@ -393,13 +393,13 @@ export type OpenChallenge = {
 };
 
 /** Offen = Freund hat heute mindestens so viele richtig wie mein Bestes von heute
- *  (noch nicht gespielt zählt als 0). */
+ *  (noch nicht gespielt zählt als 0). Ein Lauf mit 0 richtig ist keine Herausforderung. */
 export function openChallenges(rows: Friend[], mine: Record<OnlineMode, number>): OpenChallenge[] {
   const out: OpenChallenge[] = [];
   for (const f of rows) {
     for (const mode of ["sprint", "survival"] as const) {
       const n = f[mode];
-      if (n != null && n >= mine[mode]) out.push({ name: f.name, code: f.code, mode, correct: n, tie: n > 0 && n === mine[mode] });
+      if (n != null && n > 0 && n >= mine[mode]) out.push({ name: f.name, code: f.code, mode, correct: n, tie: n === mine[mode] });
     }
   }
   return out;

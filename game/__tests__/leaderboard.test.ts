@@ -115,10 +115,8 @@ describe("Offene Herausforderungen (Freunde)", () => {
     expect(openChallenges(rows, { sprint: 13, survival: 6 })).toEqual([]);
   });
 
-  test("0 zu 0 ist kein Gleichstand (noch nichts gespielt)", () => {
+  test("Lauf mit 0 richtig ist keine Herausforderung (auch kein Gleichstand)", () => {
     const rows = [{ name: "Cem", code: "CCCCCC", sprint: 0, survival: null }];
-    expect(openChallenges(rows, { sprint: 0, survival: 0 })).toEqual([
-      { name: "Cem", code: "CCCCCC", mode: "sprint", correct: 0, tie: false },
-    ]);
+    expect(openChallenges(rows, { sprint: 0, survival: 0 })).toEqual([]);
   });
 });
