@@ -12,7 +12,17 @@
 
 import { router, useFocusEffect } from "expo-router";
 import { type ComponentRef, Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, type ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  Pressable,
+  type ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { HubScreen } from "@/components/ui/hub";
 import { AppText } from "@/components/ui/app-text";
@@ -631,8 +641,13 @@ function TrickSchool({
       accessibilityRole="button"
       accessibilityLabel={`${t("campaign.trick")}, ${range}, ${t("campaign.trickStars", { n: got, max: levels.length * 3 })}, ${status}`}
       accessibilityState={{ disabled: !open }}
-      disabled={!open}
       onPress={() => {
+        // Gesperrt: spürbar antworten und den Grund vorlesen (steht auch auf der Karte)
+        if (!open) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+          AccessibilityInfo.announceForAccessibility(status);
+          return;
+        }
         sfx("tap");
         tapHaptic();
         router.push({ pathname: "/runde", params: { mode: "trick", level: String(target.level) } });
