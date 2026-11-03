@@ -236,7 +236,14 @@ export default function FriendsScreen() {
               </AppText>
             )}
             <View style={styles.row}>
-              <Button title={t("friends.addGo")} icon="user-plus" onPress={add} disabled={adding || !draft.trim()} />
+              <Button
+                title={t("friends.addGo")}
+                icon="user-plus"
+                onPress={add}
+                disabled={adding || !draft.trim()}
+                // Volle Breite – leichter zu treffen (Ladekreis daneben)
+                style={styles.flex}
+              />
               {adding && <ActivityIndicator color={colors.primary} />}
             </View>
           </View>
