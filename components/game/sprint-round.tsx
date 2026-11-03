@@ -607,7 +607,7 @@ export function SprintRound({
             </AppText>
             <RuleLines text={t(`${kind}.rules`)} />
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
-              <AppText variant="label" color={PLAYER[1].on} style={styles.center} numberOfLines={1}>
+              <AppText variant="label" color={PLAYER[1].on} style={styles.center} numberOfLines={2}>
                 {vsRival
                   ? `${friend ? "👫" : "🌍"} ${t("online.rival", { name: rival.name, correct: rival.run.correct })}`
                   : best
