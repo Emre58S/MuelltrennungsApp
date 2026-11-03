@@ -644,7 +644,7 @@ function TrickSchool({
       onPress={() => {
         // Gesperrt: spürbar antworten und den Grund vorlesen (steht auch auf der Karte)
         if (!open) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
           AccessibilityInfo.announceForAccessibility(status);
           return;
         }
@@ -659,7 +659,7 @@ function TrickSchool({
           borderColor: open ? TRICK_COLOR : colors.border,
           opacity: open ? 1 : 0.7,
         },
-        pressed && press.pressed,
+        pressed && open && press.pressed,
       ]}
     >
       <AppText style={styles.trickEmoji}>{open ? "🎯" : "🔒"}</AppText>
