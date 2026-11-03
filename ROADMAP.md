@@ -161,7 +161,9 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     antwortet (sanfte Vibration + Grund vorgelesen; 6b4345c + f278b89, Tester 8/10).
   - Offen (klein, bündeln): Zeit-Ziel 16 für 3 Sterne auf dem Gerät prüfen (ggf. 14);
     Stations-Runden zählen in Statistik von Ohne Fehler/Zeit; gesperrte Stationspunkte
-    ebenso antworten lassen; EN „Finish the previous trick school
+    ebenso antworten lassen (**verworfen 3.11.**, Zweig `verworfen-gesperrte-station`,
+    Tester 6/10 zweimal: Hinweis unter dem Punkt wird von den Wegpunkten der nächsten
+    Station übermalt – Hinweis z. B. über dem Punkt oder als Banner oben zeigen); EN „Finish the previous trick school
     first“; Sternzahl #F5B800 auf Weiß schwach; Trick-Schule Welt 1 erst nach 1-1?
 - [x] **R2e** **Boss** am Ende jeder Welt: 10 Treffer in Folge; zwischendurch
   **tauschen Tonnen die Plätze/Farben** (z. B. Rest ↔ Gelb) – mit klarer
