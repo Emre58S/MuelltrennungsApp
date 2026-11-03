@@ -513,7 +513,7 @@ function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
   useEffect(() => {
     const timer = setTimeout(() => sfx("unlock"), 1100);
     return () => clearTimeout(timer);
-  }, [calm]);
+  }, []);
   const names = bins.map((b) => t(b.labelKey)).join(", ");
   // Was gehört rein? Dieselben 3 typischen Beispiele wie auf der Lernkarte (game/campaign.ts)
   const examples = bins.map((b) => introExamples(b.key));
