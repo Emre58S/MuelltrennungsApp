@@ -300,8 +300,8 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 6 (1187fa2 + 5c5048d, Tester 8/10, EAS auto + preview): Kopfleiste
     „👻 Ghost: N · du +D“ (nur Vorsprung, Rückstand nie), Ansage ohne Emoji mit Vorsprung;
     nach Ablauf zählt der ganze Ghost-Lauf.
-    Offen: „du +D“ in Gold?;
-    Ghost des Gegners/Freundes (Server).
+    „du +D“ in Gold, lange Namen gekürzt (5dc3bfb + 58c7435, Tester 8/10). Ghost des
+    Gegners/Freundes: ✓ Teil 8/13. Offen: kurzer Puls beim ersten Überholen.
   - [x] Teil 7 (ee33074, Tester 8/10, EAS auto + preview): jeder Parcours-Lauf mit Punkten
     geht als Code (encodeParcours: Punkte + Zeitabstand je Treffer) an
     **supabase/parcours.sql – Nutzer muss es ausführen** (Tabelle parcours_runs, prüft
