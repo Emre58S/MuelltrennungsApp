@@ -120,7 +120,9 @@ JS-Änderungen per EAS-Update nachkommen.
   nach R5 anpassen; „Zuletzt“ schneller erreichbar (bis R2 den Pfad bringt).
 - [x] **R1c** Ein Hinweis-Platz mit Vorrang-Regel (game/home-hint.ts): neu → Start-Hinweis,
   Flamme, Tagesaufgabe, Tagesbester (Ghost). (fef2152, Tester 8/10.) Offen: eingehende
-  Herausforderungen gibt es erst mit Freunden (R4e) – dann als Stufe einreihen;
+  Herausforderungen ✓ als Stufe 5 „⚔️ {name} fordert dich heraus – Online → Freunde“
+  (731dcb0, Tester 8/10, EAS auto + preview; Offen: Wortlaut mit „Rekord & Freunde“
+  angleichen, Abfragen beim Fokus zwischenspeichern);
   Text springt bei langsamem Netz kurz um.
 - [x] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen
   (a06f16c + a5494c2, Tester 5/10 → 8/10): Karte 🔑 in Online, Code geprüft →
