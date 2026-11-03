@@ -295,7 +295,7 @@ export const de = {
   "parcours.points": "Punkte: {n}",
   "parcours.best": "Bestwert: {n}",
   "parcours.ghost": "👻 Ghost: {n}",
-  "parcours.ghostWon": "👻 Ghost geschlagen! Er hatte {n}",
+  "parcours.ghostWon": "👻 Ghost geschlagen! (Ghost: {n})",
   "parcours.ghostTie": "👻 Gleich viel wie der Ghost: {n}",
   "parcours.ghostBehind": "👻 Ghost: {n} · noch {gap} Punkte",
   "parcours.ghostInfo": "👻 Dein bester Lauf von heute spielt mit",
