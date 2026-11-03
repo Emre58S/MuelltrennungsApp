@@ -33,6 +33,16 @@ describe("homeHint", () => {
     expect(homeHint({ ...base, dayBest: { name: "Ich", isMe: true } }).key).toBe("home.hintDayBestMe");
   });
 
+  test("Freund mit offener Herausforderung vor dem Tagesbesten, nach der Tagesaufgabe", () => {
+    const friend = { name: "Emre" };
+    expect(homeHint({ ...base, friend, dayBest: { name: "Ich", isMe: true } })).toEqual({
+      key: "home.hintFriend",
+      arrow: true,
+      name: "Emre",
+    });
+    expect(homeHint({ ...base, friend, dailyDone: false }).key).toBe("home.hintDaily");
+  });
+
   test("Lange Namen werden gekürzt", () => {
     const h = homeHint({ ...base, dayBest: { name: "Maximilian-Alexander", isMe: false } });
     expect(h.key === "home.hintDayBest" && h.name).toBe("Maximilian-…");

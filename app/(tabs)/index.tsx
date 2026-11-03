@@ -78,7 +78,7 @@ import {
   getCampaignStars,
   grantCampaignHeadStart,
 } from "@/utils/storage";
-import { type DayGhost, fetchDayGhost } from "@/utils/leaderboard";
+import { type DayGhost, fetchDayGhost, fetchOpenChallenges } from "@/utils/leaderboard";
 import { homeHint } from "@/game/home-hint";
 import { usableSkin } from "@/game/rewards";
 
@@ -150,6 +150,8 @@ export default function HomeScreen() {
   const [seenTutorial, setSeenTutorial] = useState(true);
   /** Tagesbester im Ghost-Rennen (Server) – für den einen Hinweis unten. */
   const [dayBest, setDayBest] = useState<DayGhost | null>(null);
+  /** Erster Freund mit offener Herausforderung von heute (für den Hinweis). */
+  const [friend, setFriend] = useState<{ name: string } | null>(null);
 
   const fx = useRef(createFx());
   const bus = useRef(createBus());
@@ -325,6 +327,10 @@ export default function HomeScreen() {
       fetchDayGhost(todayKey())
         .then((best) => active && setDayBest(best))
         .catch(() => undefined);
+      // Offene Herausforderung eines Freundes (still, falls offline oder nicht eingerichtet)
+      fetchOpenChallenges()
+        .then((open) => active && setFriend(open[0] ? { name: open[0].name } : null))
+        .catch(() => undefined);
 
       return () => {
         active = false;
@@ -392,8 +398,9 @@ export default function HomeScreen() {
   /* eslint-enable react-hooks/refs */
 
   const { level, progress } = getLevelProgress(totalXP);
-  const hint = homeHint({ totalXP, flame, dailyDone, dayBest });
-  const hintText = hint.key === "home.hintDayBest" ? t(hint.key, { name: hint.name }) : t(hint.key);
+  const hint = homeHint({ totalXP, flame, dailyDone, dayBest, friend });
+  const hintText =
+    hint.key === "home.hintDayBest" || hint.key === "home.hintFriend" ? t(hint.key, { name: hint.name }) : t(hint.key);
   const firstRect = layout.binRects[0];
   // Wisch-Fläche: von den Tonnen bis unter den Gegenstand
   const swipeTop = Math.max((firstRect?.y ?? 0) - 20, insets.top + 90);
