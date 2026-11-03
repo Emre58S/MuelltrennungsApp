@@ -48,6 +48,7 @@ import {
   todayKey,
 } from "@/utils/storage";
 import * as Haptics from "expo-haptics";
+import Reanimated, { FadeOut } from "react-native-reanimated";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, AppState, ScrollView, Share, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -581,14 +582,19 @@ export function ParcoursRound({
           </>
         )}
         {ready && learn && playing && (
-          <View pointerEvents="none" style={[styles.overlayRow, { top: tipTop }]}>
+          // Beim nächsten Wurf weich ausblenden (bei „Weniger Bewegung“ sofort weg)
+          <Reanimated.View
+            exiting={reduceMotion ? undefined : FadeOut.duration(220)}
+            pointerEvents="none"
+            style={[styles.overlayRow, { top: tipTop }]}
+          >
             <LearnCard
               key={learn.id}
               item={learn.item}
               bin={learn.bin}
               reason={learnReason ? ITEM_REASONS[learn.item.name]?.[lang] : undefined}
             />
-          </View>
+          </Reanimated.View>
         )}
         {ready && tips.tip && playing && !learn && (
           <View pointerEvents="box-none" style={[styles.overlayRow, { top: tipTop }]}>
