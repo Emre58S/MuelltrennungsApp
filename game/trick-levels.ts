@@ -567,7 +567,8 @@ export function randomTrick(seed: number): TrickLevel {
  *  Deshalb muss er für alle 3 Tonnen gleich fair sein: entweder dasselbe
  *  Hindernis vor jeder Tonne oder eins, das über alle Tonnen wandert.
  *  `lanes[i]` = Pflicht-Hindernisse (Index in `props`) für Tonne i. Fahrende
- *  Tonne / klappender Deckel gelten für die Tonne des Gegenstands. */
+ *  Tonne / klappender Deckel gelten für die Tonne des Gegenstands – mit
+ *  `flapAll` klappen alle Deckel im selben Takt. */
 export type ParcoursLevel = Omit<TrickLevel, "id" | "target" | "requires"> & {
   id: number;
   lanes: [number[], number[], number[]];
