@@ -279,7 +279,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     Kopfleiste liest „Ghost, Punkte: N“ (ohne Emoji).
   - [x] Teil 5 (a52868c, Tester 8/10, EAS auto + preview): „noch 1 Punkt“ (gapOne,
     ghostBehindOne), Ghost-Zeile der Endkarte ohne Emoji für Screenreader.
-    Offen: Bestwert-Zeile („🏆 Neuer Bestwert!“) ebenso ohne Emoji vorlesen; Vorsprung/Rückstand in der Kopfleiste (nie rot); HUD-Uhr stoppt bei 0 → letzter Ghost-Treffer evtl. nicht sichtbar;
+  - [x] Teil 6 (1187fa2 + 5c5048d, Tester 8/10, EAS auto + preview): Kopfleiste
+    „👻 Ghost: N · du +D“ (nur Vorsprung, Rückstand nie), Ansage ohne Emoji mit Vorsprung;
+    nach Ablauf zählt der ganze Ghost-Lauf.
+    Offen: Bestwert-Zeile („🏆 Neuer Bestwert!“) ebenso ohne Emoji vorlesen; „du +D“ in Gold?;
     Ghost des Gegners/Freundes (Server).
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
