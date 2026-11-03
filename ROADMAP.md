@@ -263,6 +263,12 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   (falsch 0 · richtig 1 · Trick 3 · Swish +1) – Sortieren entscheidet mit.
   Gegner fliegt als Ghost mit; da die Hindernisse nur an der Rundenzeit hängen,
   schwingt die Reifenschaukel bei beiden gleich.
+  - [x] Teil 1 (ed0c699, Tester 8/10, EAS auto + preview): Karte „🎯 Parcours des Tages“
+    im Online-Bereich (Gruppe „Schnell spielen“), Parcours aus dem Datum (`dailyParcoursId`
+    in game/parcours.ts +Test), startet `/runde?mode=parcours&level=N`, zurück in Online.
+  - Offen: Name/Aufgabe statt „Parcours 2“ + heutiger Bestwert auf der Karte; „für alle
+    gleich“ erst mit Vergleich (Freunde/Rangliste) einlösen; Karte über Mitternacht offen
+    → zeigt gestrigen Parcours; Gegner-Ghost (Startzeit der Szenen-Uhr mitschreiben).
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
