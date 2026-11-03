@@ -129,8 +129,9 @@ JS-Änderungen per EAS-Update nachkommen.
 - [x] **R1c** Ein Hinweis-Platz mit Vorrang-Regel (game/home-hint.ts): neu → Start-Hinweis,
   Flamme, Tagesaufgabe, Tagesbester (Ghost). (fef2152, Tester 8/10.) Offen: eingehende
   Herausforderungen ✓ als Stufe 5 „⚔️ {name} fordert dich heraus – Online → Freunde“
-  (731dcb0, Tester 8/10, EAS auto + preview; Offen: Wortlaut mit „Rekord & Freunde“
-  angleichen, Abfragen beim Fokus zwischenspeichern);
+  (731dcb0, Tester 8/10, EAS auto + preview; Karte „Rekord & Freunde“ heißt jetzt
+  „Ghost-Rennen“, Hinweis-Weg angepasst – 9a8c157 + cf453f7, Tester 8/10; Offen: Abfragen
+  beim Fokus zwischenspeichern; Schlüssel `home.ghost` evtl. ungenutzt);
   Text springt bei langsamem Netz kurz um.
 - [x] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen
   (a06f16c + a5494c2, Tester 5/10 → 8/10): Karte 🔑 in Online, Code geprüft →
