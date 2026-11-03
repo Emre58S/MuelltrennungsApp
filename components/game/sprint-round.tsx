@@ -625,24 +625,28 @@ export function SprintRound({
                 👫 {t("friends.runLost")}
               </AppText>
             )}
-            {searching && !rival && (
-              <AppText variant="caption" tone="textSecondary" style={styles.center}>
-                {friend ? `👫 ${t("friends.loading")}` : `🌍 ${t("online.searching")}`}
-              </AppText>
-            )}
-            {rival && (
-              <Button
-                title={
-                  vsOwn
-                    ? t("online.playRival", { name: rival.name })
-                    : best
-                      ? t("ghost.code.mine")
-                      : t("online.vsPractice")
-                }
-                icon={vsOwn ? "globe" : "user"}
-                variant="secondary"
-                onPress={() => setVsOwn((v) => !v)}
-              />
+            {/* Suche und Umschalt-Knopf teilen sich einen Platz in Knopfhöhe – die Karte springt nicht */}
+            {(searching || rival) && (
+              <View style={styles.rivalSlot}>
+                {rival ? (
+                  <Button
+                    title={
+                      vsOwn
+                        ? t("online.playRival", { name: rival.name })
+                        : best
+                          ? t("ghost.code.mine")
+                          : t("online.vsPractice")
+                    }
+                    icon={vsOwn ? "globe" : "user"}
+                    variant="secondary"
+                    onPress={() => setVsOwn((v) => !v)}
+                  />
+                ) : (
+                  <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                    {friend ? `👫 ${t("friends.loading")}` : `🌍 ${t("online.searching")}`}
+                  </AppText>
+                )}
+              </View>
             )}
             <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
           </View>
@@ -963,6 +967,7 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: Radius.lg, padding: Spacing.md, gap: Spacing.xs },
   learn: { borderRadius: Radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.md, gap: Spacing.sm },
   learnRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  rivalSlot: { minHeight: 48, justifyContent: "center" },
   timerTrack: {
     width: 120,
     height: 6,
