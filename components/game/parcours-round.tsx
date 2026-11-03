@@ -625,7 +625,8 @@ export function ParcoursRound({
                     : `${t("parcours.ghostInfo")} (${t("parcours.points", { n: ghost.points })})`}
                 </AppText>
               )}
-              {noRival && (
+              {/* Nur ohne eigenen Lauf von heute – sonst sagt die Ghost-Zeile schon alles */}
+              {noRival && !ghost && (
                 <AppText variant="caption" tone="textSecondary" center>
                   {t("parcours.noRival")}
                 </AppText>
