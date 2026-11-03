@@ -96,7 +96,7 @@ export default function OnlineScreen() {
         color="#F06BA8"
         title={t("hub.parcours.title")}
         desc={t("hub.parcours.desc", { task: t(today.task), s: today.seconds })}
-        info={parcoursBest > 0 ? `🏆 ${parcoursBest}` : null}
+        info={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : null}
         onPress={() => router.push({ pathname: "/runde", params: { mode: "parcours", level: String(today.id) } })}
       />
       <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
