@@ -14,10 +14,10 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { press, tapHaptic } from "@/components/ui/press";
 import { Star } from "@/components/game/hud";
-import { type Item, ITEMS } from "@/constants/items";
+import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
-import { type Station, stationStars } from "@/game/campaign";
+import { introExamples, type Station, stationStars } from "@/game/campaign";
 import { MISSION_XP } from "@/game/missions";
 import { type HitResult, type Stats } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
@@ -509,8 +509,8 @@ function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
     Animated.spring(pop, { toValue: 1, friction: 4, delay: 500, useNativeDriver: true }).start();
   }, [calm, pop]);
   const names = bins.map((b) => t(b.labelKey)).join(", ");
-  // Was gehört rein? Ein paar leichte Beispiele je Tonne
-  const examples = bins.map((b) => ITEMS.filter((i) => i.category === b.category && i.difficulty === "leicht").slice(0, 4));
+  // Was gehört rein? Dieselben 3 typischen Beispiele wie auf der Lernkarte (game/campaign.ts)
+  const examples = bins.map((b) => introExamples(b.key));
   const exampleNames = examples
     .flat()
     .map((i) => itemName(i))
