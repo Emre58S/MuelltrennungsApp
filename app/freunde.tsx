@@ -6,12 +6,13 @@
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Share, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, TextInput, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { IconButton } from "@/components/ui/icon-button";
+import { press } from "@/components/ui/press";
 import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
 import { PARCOURS } from "@/game/trick-levels";
@@ -97,6 +98,12 @@ export default function FriendsScreen() {
   const race = (mode: "sprint" | "survival", friendCode: string) =>
     router.push({ pathname: "/runde", params: { mode, friend: friendCode } });
 
+  /** Offene Herausforderung annehmen (Zeile oder Knopf „Antreten“). */
+  const takeOn = (c: OpenChallenge) =>
+    c.mode === "parcours"
+      ? router.push({ pathname: "/runde", params: { mode: "parcours", level: String(c.level), friend: c.code } })
+      : race(c.mode, c.code);
+
   /** Herausfordern: Modus wählen, dann gegen den Lauf des Freundes von heute. */
   const challenge = (friend: Friend) => {
     const go = (mode: "sprint" | "survival") => race(mode, friend.code);
@@ -172,7 +179,13 @@ export default function FriendsScreen() {
                 ⚔️ {t("friends.open")}
               </AppText>
               {open.map((c) => (
-                <View key={`${c.code}-${c.mode}`} style={styles.row}>
+                // Ganze Zeile antippbar (für VoiceOver bleibt der Knopf das eine Ziel)
+                <Pressable
+                  key={`${c.code}-${c.mode}`}
+                  accessible={false}
+                  onPress={() => takeOn(c)}
+                  style={({ pressed }) => [styles.row, pressed && press.pressed]}
+                >
                   <View style={styles.flex}>
                     <AppText variant="body" color={colors.onGoldSoft} numberOfLines={1}>
                       {c.mode === "sprint" ? "⏱️" : c.mode === "survival" ? "🛡️" : "🎯"}{" "}
@@ -185,19 +198,8 @@ export default function FriendsScreen() {
                       </AppText>
                     )}
                   </View>
-                  <Button
-                    title={t("friends.go")}
-                    icon="play"
-                    onPress={() =>
-                      c.mode === "parcours"
-                        ? router.push({
-                            pathname: "/runde",
-                            params: { mode: "parcours", level: String(c.level), friend: c.code },
-                          })
-                        : race(c.mode, c.code)
-                    }
-                  />
-                </View>
+                  <Button title={t("friends.go")} icon="play" onPress={() => takeOn(c)} />
+                </Pressable>
               ))}
             </View>
           )}
