@@ -3,7 +3,13 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., 19:03–20:06, Normalmodus, Takt 3 Zyklen + 10 min Pause):**
+**Letzter Lauf (3.11., 20:16–21:15, Normalmodus):** Zyklen 41–46, alle freigegeben, auf
+auto + preview: Solo-Ende „Online: Zeit-Sprint/Survival“ (R4f), Karte „Ghost-Rennen“ statt
+„Rekord & Freunde“, 🔑 fokussiert erneut (R1d), Sprint-Startkarte ohne Springen (fester
+Platz für Suche/Gegner/Freundes-Hinweise, R4d), „… – spiel zuerst!“. Nächstes: R5e, R4d
+„Seed der Woche“, R7 zuletzt.
+
+**Lauf davor (3.11., 19:03–20:06, Normalmodus, Takt 3 Zyklen + 10 min Pause):**
 parcours.sql vom Nutzer ausgeführt (Server antwortet). Zyklen 34–40: Kampagne-Station
 „Parcours des Tages“ (Ende letzte Welt), Material-Effekte im Parcours + Sprint/Survival
 (R6b Teil 3/4), gesperrte Trick-Schule antwortet, Trick-Schule-Sterne lesbar + EN-Text,
