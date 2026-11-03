@@ -649,13 +649,15 @@ export function RuleLines({ text }: { text: string }) {
       {text.split("\n").map((line, i) => {
         const space = line.indexOf(" ");
         const icon = space > 0 && space <= 4 ? line.slice(0, space) : "";
+        const rest = icon ? line.slice(space + 1) : line;
+        // Eine Zeile = ein VoiceOver-Schritt, ohne Symbol vorgelesen
         return (
-          <View key={i} style={styles.ruleRow}>
-            <AppText variant="body" style={styles.ruleIcon} importantForAccessibility="no">
+          <View key={i} style={styles.ruleRow} accessible accessibilityLabel={rest}>
+            <AppText variant="body" style={styles.ruleIcon}>
               {icon}
             </AppText>
             <AppText variant="body" tone="textSecondary" style={styles.ruleText}>
-              {icon ? line.slice(space + 1) : line}
+              {rest}
             </AppText>
           </View>
         );
