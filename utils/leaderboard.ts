@@ -248,6 +248,7 @@ let onlineSending: Promise<void> = Promise.resolve();
 export function submitOnlineRun(mode: OnlineMode, day: string, code: string, correct: number, ms: number): Promise<void> {
   if (!leaderboardReady || correct < 1) return Promise.resolve();
   openCache = null;
+  openGen += 1;
   onlineSending = (async () => {
     try {
       const player = await getPlayer();
@@ -272,6 +273,7 @@ export function submitOnlineRun(mode: OnlineMode, day: string, code: string, cor
 export function submitParcoursRun(level: number, day: string, code: string, points: number): Promise<void> {
   if (!leaderboardReady || points < 1 || !code) return Promise.resolve();
   openCache = null;
+  openGen += 1;
   parcoursSending = (async () => {
     try {
       const player = await getPlayer();
@@ -534,14 +536,17 @@ export function openParcoursChallenges(
 
 /** Zuletzt geladene offene Herausforderungen (Startschirm fragt nicht bei jeder Rückkehr neu). */
 let openCache: { at: number; day: string; list: OpenChallenge[] } | null = null;
+/** Steigt mit jedem eigenen Lauf – eine Abfrage von davor schreibt ihr Ergebnis nicht mehr in den Merker. */
+let openGen = 0;
 
 /** Offene Herausforderungen von heute (leer, wenn offline oder SQL fehlt).
  *  `maxAgeMs`: ein höchstens so altes Ergebnis wiederverwenden (eigene Läufe leeren es). */
 export async function fetchOpenChallenges(maxAgeMs = 0): Promise<OpenChallenge[]> {
   if (!leaderboardReady) return [];
   if (openCache && openCache.day === todayKey() && Date.now() - openCache.at < maxAgeMs) return openCache.list;
+  const gen = openGen;
   const list = await loadOpenChallenges();
-  openCache = { at: Date.now(), day: todayKey(), list };
+  if (gen === openGen) openCache = { at: Date.now(), day: todayKey(), list };
   return list;
 }
 
