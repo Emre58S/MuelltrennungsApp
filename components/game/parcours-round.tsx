@@ -8,7 +8,7 @@
 // Swish +1. Werfen wie in der Trick-Runde, ein Wurf zur Zeit. Die Hindernisse
 // hängen nur an der Rundenzeit der Szene – gleicher Wurf, gleiches Ergebnis.
 import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
-import { computeLayout, shotLanding } from "@/game/layout";
+import { BIN_OPENING_Y, computeLayout, shotLanding } from "@/game/layout";
 import { type FreeShot, FULL_SWIPE_SHARE } from "@/game/logic";
 import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
 import { dailyParcoursId, decodeParcours, encodeParcours, type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
@@ -374,7 +374,7 @@ export function ParcoursRound({
         queueBurst(bus.current, {
           id: ++ids.current,
           x: layout.bins[bin].x,
-          y: 1.75,
+          y: BIN_OPENING_Y + 0.15,
           z: layout.bins[bin].z + 0.1,
           // Je Material wie im Hauptspiel (Bio spritzt, Glas splittert, Papier flattert)
           colors: ["#FFD54A", "#FFFFFF", bins[bin].colorLight, ...MATERIAL_SPARKS[itemMaterial(thrown)]],
@@ -393,7 +393,7 @@ export function ParcoursRound({
         queueBurst(bus.current, {
           id: ++ids.current,
           x: layout.bins[bin].x,
-          y: 1.75,
+          y: BIN_OPENING_Y + 0.15,
           z: layout.bins[bin].z + 0.1,
           colors: [bins[bin].colorLight, ...MATERIAL_SPARKS[itemMaterial(thrown)]],
           count: 10,

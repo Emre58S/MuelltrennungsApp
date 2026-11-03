@@ -37,7 +37,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Countdown, PLAYER, ScoreChip, Tug } from "@/components/game/duel-round";
 import { createFx, shake } from "@/components/game/fx";
-import { SceneCanvas } from "@/components/game/game-round";
+import { MATERIAL_BURST, MATERIAL_SPARKS, SceneCanvas } from "@/components/game/game-round";
 import { Banner, FloatingText, type FloatText, ItemCard, RuleLines } from "@/components/game/hud";
 import {
   createBus,
@@ -463,10 +463,12 @@ export function SprintRound({
           x: layout.bins[bin].x,
           y: BIN_OPENING_Y + 0.15,
           z: layout.bins[bin].z + 0.1,
-          colors: [PLAYER[0].color, "#FFFFFF", "#FFD54A"],
+          // Spielerfarbe + Funken je Material; Flugart wie im Hauptspiel (Bio spritzt, Glas splittert …)
+          colors: [PLAYER[0].color, "#FFFFFF", "#FFD54A", ...MATERIAL_SPARKS[itemMaterial(it)]],
           count: 22,
           power: 1.1,
           ring: true,
+          style: MATERIAL_BURST[itemMaterial(it)],
         });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       } else sfx("plop");
