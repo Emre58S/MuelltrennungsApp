@@ -529,6 +529,28 @@ function GhostRace({
               </AppText>
             )}
             <Button title={t("duel.start")} icon="zap" size="lg" disabled={!loaded} onPress={start} />
+            {/* Tagesbester (ROADMAP R8b): eigenen besten Lauf als Herausforderung teilen */}
+            {!friendRun && top?.info.isMe && best && (
+              <Button
+                title={t("ghost.top.share")}
+                icon="share-2"
+                variant="secondary"
+                onPress={() => {
+                  getPlayer()
+                    .then((p) =>
+                      Share.share({
+                        message: t("ghost.top.shareText", {
+                          correct: best.correct,
+                          total: GHOST_ITEMS,
+                          time: sec(best.ms),
+                          code: encodeRun(best, trackFor(today).sign, p.named ? p.name : null),
+                        }),
+                      }),
+                    )
+                    .catch(() => undefined);
+                }}
+              />
+            )}
             {friendRun ? (
               <Button title={t("ghost.code.mine")} variant="secondary" onPress={() => onChallenge(null)} />
             ) : (
