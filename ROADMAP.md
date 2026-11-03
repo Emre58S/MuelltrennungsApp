@@ -560,7 +560,8 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     useLayoutEffect, ruhig bei „Weniger Bewegung“).
   - [x] Teil 3 (43121d7, Tester 7/10, EAS auto + preview): Karte „Neue Tonne“ zeigt „Zum
     Beispiel: …“ (introExamples, wie Lernkarte; VoiceOver mit Namen).
-  - Offen: kurzer Erfolgston; Truhe
+  - [x] Teil 4 (faa7fd5–a0a3d88, Tester 5/10 → 8/10, EAS auto + preview): kurzer
+    Freischalt-Ton „unlock“ + Aufspringen erst nach den Sternen (1,1 s). Truhe
     öffnen ist schon da (R3c).
 
 ### R7 – Release-Vorbereitung (ganz am Ende, wenn die Inhalte stehen)
