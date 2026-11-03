@@ -354,6 +354,8 @@ export const en: Translations = {
   "game.end.bestStreak": "Best streak",
   "game.end.accuracy": "Accuracy",
   "game.end.newBest": "New best score!",
+  "game.end.onlineSprint": "⏱️ Online with leaderboard: Time sprint",
+  "game.end.onlineSurvival": "🛡️ Online with leaderboard: Survival",
   "game.end.again": "Play again",
   "game.end.menu": "Back to menu",
   "game.end.learned": "Remember:",

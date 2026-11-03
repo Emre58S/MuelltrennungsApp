@@ -1341,6 +1341,8 @@ export function GameRound({
             onAgain={onAgain}
             onMenu={onExit}
             board={station ? undefined : boardFor(mode, daily)}
+            // Solo-Modi ohne Rangliste: auf die Online-Variante mit Rangliste hinweisen (R4f)
+            online={!station && !daily ? (mode === "time" ? "sprint" : mode === "survival" ? "survival" : undefined) : undefined}
           />
         )}
       </View>

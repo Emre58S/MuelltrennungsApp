@@ -66,6 +66,7 @@ export function EndScreen({
   onMenu,
   board,
   newBins = [],
+  online,
 }: {
   title: string;
   stats: Stats;
@@ -94,6 +95,8 @@ export function EndScreen({
   board?: Board;
   /** Gerade freigeschaltete Tonnen (erster Boss-Sieg öffnet die nächste Welt). */
   newBins?: BinDef[];
+  /** Solo „Gegen die Zeit“/„Ohne Fehler“: Online-Variante mit Rangliste anbieten. */
+  online?: "sprint" | "survival";
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
@@ -451,6 +454,15 @@ export function EndScreen({
             onPress={onAgain}
             style={styles.fullWidth}
           />
+          {online && (
+            <Button
+              title={t(online === "sprint" ? "game.end.onlineSprint" : "game.end.onlineSurvival")}
+              icon="globe"
+              variant="secondary"
+              onPress={() => router.replace({ pathname: "/runde", params: { mode: online } })}
+              style={styles.fullWidth}
+            />
+          )}
           <Button
             title={t(station ? "campaign.end.path" : "game.end.menu")}
             variant="ghost"
