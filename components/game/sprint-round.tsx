@@ -607,7 +607,7 @@ export function SprintRound({
             </AppText>
             <RuleLines text={t(`${kind}.rules`)} />
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
-              <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
+              <AppText variant="label" color={PLAYER[1].on} style={styles.center} numberOfLines={1}>
                 {vsRival
                   ? `${friend ? "👫" : "🌍"} ${t("online.rival", { name: rival.name, correct: rival.run.correct })}`
                   : best
@@ -615,20 +615,19 @@ export function SprintRound({
                     : t(`${kind}.practice`)}
               </AppText>
             </View>
-            {friendNoRun && (
-              <AppText variant="caption" tone="textSecondary" style={styles.center}>
-                👫 {t("friends.noRun", { name: friendNoRun })}
-              </AppText>
-            )}
-            {friendLost && (
-              <AppText variant="caption" tone="textSecondary" style={styles.center}>
-                👫 {t("friends.runLost")}
-              </AppText>
-            )}
-            {/* Suche und Umschalt-Knopf teilen sich einen Platz in Knopfhöhe – die Karte springt nicht */}
-            {(searching || rival) && (
+            {/* Suche, Umschalt-Knopf und Freundes-Hinweise teilen sich einen Platz in Knopfhöhe –
+                die Karte springt nicht */}
+            {(searching || rival || friendNoRun || friendLost) && (
               <View style={styles.rivalSlot}>
-                {rival ? (
+                {friendNoRun ? (
+                  <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                    👫 {t("friends.noRun", { name: friendNoRun })}
+                  </AppText>
+                ) : friendLost ? (
+                  <AppText variant="caption" tone="textSecondary" style={styles.center}>
+                    👫 {t("friends.runLost")}
+                  </AppText>
+                ) : rival ? (
                   <Button
                     title={
                       vsOwn
