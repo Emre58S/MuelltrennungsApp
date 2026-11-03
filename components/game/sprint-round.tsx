@@ -474,15 +474,23 @@ export function SprintRound({
     return () => setLandHandler(b, () => undefined);
   }, [layout]);
 
+  // Die Uhr hält im Dialog nicht an – sonst gäbe er Bedenkzeit (Online-Wertung); der Text sagt es.
+  // Endet der Lauf, während der Dialog offen ist, zählt er normal (erst „Beenden“ verwirft ihn).
   const askExit = () => {
     if (phaseRef.current === "end" || phaseRef.current === "ready") {
       onExit();
       return;
     }
-    quitting.current = true;
-    Alert.alert(t("ghost.quit.title"), t("ghost.quit.message"), [
-      { text: t("common.cancel"), style: "cancel", onPress: () => (quitting.current = false) },
-      { text: t("duel.quit.confirm"), style: "destructive", onPress: onExit },
+    Alert.alert(t("ghost.quit.title"), t("sprint.quit.message"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("duel.quit.confirm"),
+        style: "destructive",
+        onPress: () => {
+          quitting.current = true;
+          onExit();
+        },
+      },
     ]);
   };
 

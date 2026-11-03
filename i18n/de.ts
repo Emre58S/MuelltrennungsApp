@@ -474,6 +474,7 @@ export const de = {
   "ghost.again": "Nochmal",
   "ghost.quit.title": "Lauf beenden?",
   "ghost.quit.message": "Dieser Lauf zählt dann nicht.",
+  "sprint.quit.message": "Dieser Lauf zählt dann nicht. Die Uhr läuft weiter.",
   "ghost.friend": "Freund",
   "ghost.rulesFriend": "Gleiche 10 Gegenstände wie bei {name}. Der Lauf von {name} fliegt als durchsichtiger Ghost mit. Mehr richtig gewinnt – bei Gleichstand der Schnellere.",
   "ghost.challenge": "{name} fordert dich heraus: {correct} von {total} richtig in {time}",
