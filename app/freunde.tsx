@@ -203,7 +203,16 @@ export default function FriendsScreen() {
                     {/* Ziel vor Augen: so viele mehr als mein Bestes von heute gewinnen */}
                     {c.need !== undefined && (
                       <AppText variant="caption" color={colors.onGoldSoft} numberOfLines={2}>
-                        {t(c.need === 1 ? "friends.openNeedOne" : "friends.openNeed", { n: c.need })}
+                        {t(
+                          c.mode === "parcours"
+                            ? c.need === 1
+                              ? "friends.openNeedPointsOne"
+                              : "friends.openNeedPoints"
+                            : c.need === 1
+                              ? "friends.openNeedOne"
+                              : "friends.openNeed",
+                          { n: c.need },
+                        )}
                       </AppText>
                     )}
                   </View>

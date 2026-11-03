@@ -134,6 +134,8 @@ describe("Offene Herausforderungen (Freunde)", () => {
       { name: "Ben", code: "BBBBBB", mode: "parcours", correct: 9, level: 3, tie: true },
     ]);
     expect(openParcoursChallenges(rows, 0, 3)).toHaveLength(3);
+    // Gleichstand: keine „N mehr“-Angabe
+    expect(openParcoursChallenges(rows, 9, 3).find((c) => c.tie)?.need).toBeUndefined();
     expect(openParcoursChallenges(rows, 13, 3)).toEqual([]);
   });
 });
