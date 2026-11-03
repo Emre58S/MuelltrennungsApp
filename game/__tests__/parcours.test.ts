@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from "@jest/globals";
 
-import { PARCOURS_ITEMS, parcoursPoints, parcoursQueue } from "../parcours";
+import { dailyParcoursId, PARCOURS_ITEMS, parcoursPoints, parcoursQueue } from "../parcours";
 import { PARCOURS } from "../trick-levels";
 
 describe("Parcours-Runde", () => {
@@ -26,5 +26,13 @@ describe("Parcours-Runde", () => {
 
   test("Zeit je Parcours 20–30 s", () => {
     for (const p of PARCOURS) expect([20, 25, 30]).toContain(p.seconds);
+  });
+
+  test("Parcours des Tages: gleich für alle, mal dieser, mal jener", () => {
+    const ids = PARCOURS.map((p) => p.id);
+    expect(dailyParcoursId("2026-11-03", ids)).toBe(dailyParcoursId("2026-11-03", ids));
+    const seen = new Set(Array.from({ length: 30 }, (_, i) => dailyParcoursId(`2026-11-${String(i + 1).padStart(2, "0")}`, ids)));
+    expect(seen.size).toBeGreaterThan(1);
+    for (const id of seen) expect(ids).toContain(id);
   });
 });

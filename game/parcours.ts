@@ -4,6 +4,7 @@
 // Hindernisse hängen nur an der Rundenzeit – ein Ghost sieht später exakt
 // denselben Parcours. Rein und ohne React (Tests: __tests__/parcours.test.ts).
 
+import { hashString } from "./logic";
 import { sprintQueue } from "./sprint";
 
 /** Länge der Strecke – mehr, als jemand in 30 s werfen kann. */
@@ -12,6 +13,11 @@ export const PARCOURS_ITEMS = 40;
 /** Die Gegenstände eines Parcours heute: für alle gleich, je Parcours anders. */
 export function parcoursQueue<T>(pool: T[], day: string, id: number): T[] {
   return sprintQueue(pool, day, PARCOURS_ITEMS, `parcours-${id}`);
+}
+
+/** Parcours des Tages (Online-Karte): für alle gleich, nur vom Datum abhängig. */
+export function dailyParcoursId(day: string, ids: number[]): number {
+  return ids[hashString(`parcours-day:${day}`) % ids.length];
 }
 
 export type ParcoursThrow = {

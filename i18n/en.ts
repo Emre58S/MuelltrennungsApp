@@ -613,5 +613,7 @@ export const en: Translations = {
   "hub.duel.desc": "Who sorts correctly faster?",
   "hub.sprint.desc": "30 seconds: who sorts more correctly?",
   "hub.survival.desc": "No mistakes, faster and faster: who lasts longer?",
+  "hub.parcours.title": "Course of the day",
+  "hub.parcours.desc": "Same for everyone today: course {n}, {s} seconds. Sort + trick.",
   "hub.code.desc": "Paste a code from friends and race their run",
 };

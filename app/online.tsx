@@ -2,7 +2,8 @@
 //
 // Hinter der blauen Menü-Tonne: gegen den eigenen Rekord, den Besten von
 // heute oder Freunde per Code (Ghost), zu zweit an einem Handy (Duell),
-// Freunde (Freundes-Code, R4e) und die Rangliste. Zeit-Sprint (30 s, R4a), Survival (R4b); später Trick-Battle (ROADMAP.md, R4).
+// Freunde (Freundes-Code, R4e) und die Rangliste. Zeit-Sprint (30 s, R4a), Survival (R4b); Parcours des Tages
+// (für alle gleich, Vorstufe zum Trick-Battle R4c).
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -13,13 +14,20 @@ import { Button } from "@/components/ui/button";
 import { HubCard, HubScreen } from "@/components/ui/hub";
 import { Radius, Spacing } from "@/constants/theme";
 import { readCode } from "@/game/ghost-track";
+import { dailyParcoursId } from "@/game/parcours";
+import { PARCOURS } from "@/game/trick-levels";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
-import { getBoolean, setBoolean, StorageKeys } from "@/utils/storage";
+import { getBoolean, setBoolean, StorageKeys, todayKey } from "@/utils/storage";
 
 export default function OnlineScreen() {
   const { t } = useI18n();
   const { scheme, colors } = useAppTheme();
   const [seenDuel, setSeenDuel] = useState(true);
+  // Parcours des Tages: beim Öffnen des Bereichs gewählt (nach Mitternacht beim nächsten Öffnen neu)
+  const [today] = useState(() => {
+    const id = dailyParcoursId(todayKey(), PARCOURS.map((p) => p.id));
+    return PARCOURS.find((p) => p.id === id) ?? PARCOURS[0];
+  });
 
   // Code eines Freundes: hier prüfen, dann direkt ins Rennen gegen den Lauf
   const [entering, setEntering] = useState(false);
@@ -78,11 +86,19 @@ export default function OnlineScreen() {
         desc={t("hub.survival.desc")}
         onPress={() => router.push({ pathname: "/runde", params: { mode: "survival" } })}
       />
+      <HubCard
+        index={2}
+        emoji="🎯"
+        color="#F06BA8"
+        title={t("hub.parcours.title")}
+        desc={t("hub.parcours.desc", { n: today.id, s: today.seconds })}
+        onPress={() => router.push({ pathname: "/runde", params: { mode: "parcours", level: String(today.id) } })}
+      />
       <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
         {t("hub.group.friends")}
       </AppText>
       <HubCard
-        index={2}
+        index={3}
         emoji="👫"
         color="#2BB6A8"
         title={t("friends.title")}
@@ -90,7 +106,7 @@ export default function OnlineScreen() {
         onPress={() => router.push("/freunde")}
       />
       <HubCard
-        index={3}
+        index={4}
         emoji="🔑"
         color="#7C5CD6"
         title={t("ghost.code.enter")}
@@ -129,7 +145,7 @@ export default function OnlineScreen() {
         </View>
       )}
       <HubCard
-        index={4}
+        index={5}
         emoji="👻"
         color="#4DA3FF"
         title={t("home.ghostShort")}
@@ -137,7 +153,7 @@ export default function OnlineScreen() {
         onPress={() => router.push({ pathname: "/runde", params: { mode: "ghost" } })}
       />
       <HubCard
-        index={5}
+        index={6}
         emoji="🤝"
         color="#FF8A3D"
         title={t("hub.duel.title")}
@@ -152,7 +168,7 @@ export default function OnlineScreen() {
         {t("hub.group.rank")}
       </AppText>
       <HubCard
-        index={6}
+        index={7}
         emoji="🏆"
         color="#E3A92E"
         title={t("home.rank")}
