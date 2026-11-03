@@ -244,8 +244,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 2 (9b7a947 + 8450257, Tester 7/10, EAS auto + preview): Startregel Sprint +
     Survival als 3 kurze Zeilen mit Symbolen; Survival „mehr richtig gewinnt“ (wie Wertung).
     Mission „1 Online-Runde“ siehe R3a.
-  - Offen: Freund herausfordern (R4e Teil 2); Übungs-Ghost evtl. 11–12 oder angepasst;
-    Regelzeilen linksbündig (Symbole untereinander).
+  - [x] Regelzeilen linksbündig, Symbole untereinander (RuleLines in hud.tsx, auch Parcours;
+    30035ae + a73188c, Tester 8/10, EAS auto + preview); je Zeile ein VoiceOver-Schritt.
+  - Offen: Übungs-Ghost evtl. 11–12 oder angepasst; Symbolbreite 26 bei großer Systemschrift.
 - [ ] **R4b** Survival: Ohne Fehler, aber Tempo steigt – nach max. ~30 s
   Höchsttempo; wer länger durchhält, gewinnt.
   - [x] Teil 1 (5d2b201 + 5d0469d, Tester 8/10, EAS auto + preview): Karte 🛡️ im
