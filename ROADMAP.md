@@ -402,7 +402,7 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     (anderes Gerät → 0); Unterschied „+3 vor dir“; Zeile ganz antippbar (✓ 5312813, Tester 8/10); Lauf kommt nach
     dem Start an → Hinweis; „nicht mehr befreundet“ eigener Text; nach der Runde
     zurückfordern/teilen; Link statt Code;
-    „Code neu erzeugen“; Code mit einem Tipp kopieren; Knopf „Hinzufügen“ volle Breite;
+    „Code neu erzeugen“; Code mit einem Tipp kopieren; Knopf „Hinzufügen“ volle Breite (✓ 32fceca + 0f17c64, Tester 8/10);
     Grenze 50 nicht gegen gleichzeitige Aufrufe gesichert (Ausgabe gedeckelt).
 - [ ] **R4f** Ranglisten je Modus (Woche + Allzeit), eigener Platz immer sichtbar.
   Zeit/Survival/Tricks gibt es danach **nur noch online mit Rangliste**
