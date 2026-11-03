@@ -18,6 +18,7 @@ import { type BinDef } from "@/game/bins";
 import { type ScreenRect } from "@/game/layout";
 import { type Mass } from "@/game/item-mass";
 import { type Medal, MEDAL_ICON } from "@/game/mastery";
+import { ghostPointsAt, type ParcoursRun } from "@/game/parcours";
 import { type TrickBonus } from "@/game/trick-levels";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
@@ -578,10 +579,13 @@ export function ParcoursHud({
   points,
   endsAt,
   total,
+  ghost,
 }: {
   title: string;
   task: string;
   points: number;
+  /** Ghost (bester Lauf von heute): seine Punkte zur selben Rundenzeit. */
+  ghost?: ParcoursRun | null;
   /** Ende der Runde (Date.now()-Zeit); null = noch nicht gestartet. */
   endsAt: number | null;
   /** Rundenzeit (s), angezeigt vor dem Start. */
@@ -615,6 +619,13 @@ export function ParcoursHud({
           {t("parcours.points", { n: points })}
         </AppText>
       </Animated.View>
+      {ghost && (
+        <AppText variant="caption" tone="textSecondary" center style={styles.tabular}>
+          {t("parcours.ghost", {
+            n: endsAt === null ? 0 : ghostPointsAt(ghost, total * 1000 - Math.max(0, endsAt - now)),
+          })}
+        </AppText>
+      )}
     </HudSurface>
   );
 }

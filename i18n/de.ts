@@ -294,6 +294,8 @@ export const de = {
   "parcours.timeLeft": "noch {n} Sekunden",
   "parcours.points": "Punkte: {n}",
   "parcours.best": "Bestwert: {n}",
+  "parcours.ghost": "👻 Ghost: {n}",
+  "parcours.ghostInfo": "👻 Dein bester Lauf von heute spielt mit",
   "parcours.noBest": "Noch nicht gespielt",
   "parcours.plus": "+{n}",
   "parcours.plusTrick": "+{n} Trick!",

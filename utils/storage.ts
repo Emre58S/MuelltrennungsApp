@@ -68,6 +68,7 @@ export const StorageKeys = {
   FLAME_RESCUE_SEEN: "muell_flame_rescue_seen",
   /** Parcours-Runde: beste Punkte je Parcours (eigener Schlüssel, nicht die Trick-Sterne). */
   PARCOURS_BEST: "muell_parcours_best",
+  PARCOURS_TODAY: "muell_parcours_today",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -768,6 +769,33 @@ export function saveParcoursBest(id: number, points: number): Promise<void> {
     if ((all[id] ?? 0) >= points) return;
     all[id] = points;
     await setItem(StorageKeys.PARCOURS_BEST, JSON.stringify(all));
+  });
+}
+
+/** Bester Parcours-Lauf von heute (als Ghost) – Prüfung: game/parcours.ts parseParcoursRun. */
+export async function getParcoursToday(id: number, day = todayKey()): Promise<unknown> {
+  const raw = await enqueue(() => getItem(StorageKeys.PARCOURS_TODAY));
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as { day?: unknown; runs?: Record<string, unknown> };
+    return parsed?.day === day ? (parsed.runs?.[id] ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Speichert den Lauf als Ghost von heute (alte Tage fallen weg; die Runde prüft vorher, ob er besser ist). */
+export function saveParcoursToday(id: number, run: unknown, day = todayKey()): Promise<void> {
+  return enqueue(async () => {
+    let runs: Record<string, unknown> = {};
+    try {
+      const parsed = JSON.parse((await getItem(StorageKeys.PARCOURS_TODAY)) ?? "null") as { day?: unknown; runs?: Record<string, unknown> } | null;
+      if (parsed?.day === day && parsed.runs && typeof parsed.runs === "object") runs = parsed.runs;
+    } catch {
+      // kaputt → neu anfangen
+    }
+    runs[id] = run;
+    await setItem(StorageKeys.PARCOURS_TODAY, JSON.stringify({ day, runs }));
   });
 }
 

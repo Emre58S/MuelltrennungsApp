@@ -295,6 +295,8 @@ export const en: Translations = {
   "parcours.timeLeft": "{n} seconds left",
   "parcours.points": "Points: {n}",
   "parcours.best": "Best: {n}",
+  "parcours.ghost": "👻 Ghost: {n}",
+  "parcours.ghostInfo": "👻 Your best run today plays along",
   "parcours.noBest": "Not played yet",
   "parcours.plus": "+{n}",
   "parcours.plusTrick": "+{n} trick!",

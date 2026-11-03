@@ -20,6 +20,35 @@ export function dailyParcoursId(day: string, ids: number[]): number {
   return ids[hashString(`parcours-day:${day}`) % ids.length];
 }
 
+/** Ein Parcours-Lauf als Ghost: Punktestand nach jedem Treffer (ms seit Start). */
+export type ParcoursRun = { points: number; hits: [ms: number, total: number][] };
+
+/** Punkte des Ghosts zur Rundenzeit `ms` – nur, was er bis dahin geschafft hatte. */
+export function ghostPointsAt(run: ParcoursRun, ms: number): number {
+  let total = 0;
+  for (const [at, sum] of run.hits) {
+    if (at > ms) break;
+    total = sum;
+  }
+  return total;
+}
+
+/** Prüft einen gespeicherten Lauf (null = unbrauchbar). */
+export function parseParcoursRun(value: unknown): ParcoursRun | null {
+  if (!value || typeof value !== "object") return null;
+  const { points, hits } = value as { points?: unknown; hits?: unknown };
+  if (typeof points !== "number" || !Number.isFinite(points) || points <= 0 || !Array.isArray(hits)) return null;
+  const ok = hits.every(
+    (h, i) =>
+      Array.isArray(h) &&
+      h.length === 2 &&
+      typeof h[0] === "number" &&
+      typeof h[1] === "number" &&
+      (i === 0 || (h[0] >= hits[i - 1][0] && h[1] >= hits[i - 1][1])),
+  );
+  return ok ? { points, hits: hits as [number, number][] } : null;
+}
+
 export type ParcoursThrow = {
   /** In der richtigen Tonne gelandet. */
   correct: boolean;

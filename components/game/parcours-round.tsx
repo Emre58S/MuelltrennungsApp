@@ -11,7 +11,7 @@ import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
 import { computeLayout, shotLanding } from "@/game/layout";
 import { type FreeShot, FULL_SWIPE_SHARE } from "@/game/logic";
 import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
-import { parcoursPoints, parcoursQueue } from "@/game/parcours";
+import { type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
 import {
   levelColliders,
   meetsRequirement,
@@ -27,7 +27,16 @@ import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { usableSkin, usableTrail } from "@/game/rewards";
-import { getBinSkin, getParcoursBest, getRewardProgress, getTrail, saveParcoursBest, todayKey } from "@/utils/storage";
+import {
+  getBinSkin,
+  getParcoursBest,
+  getParcoursToday,
+  getRewardProgress,
+  getTrail,
+  saveParcoursBest,
+  saveParcoursToday,
+  todayKey,
+} from "@/utils/storage";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, AppState, StyleSheet, useWindowDimensions, View } from "react-native";
@@ -135,16 +144,24 @@ export function ParcoursRound({
   // Belohnungen: gewählte Spur/Tonnen-Look, bisheriger Bestwert
   const bestRef = useRef(0);
   const [best, setBest] = useState(0);
+  // Ghost: eigener bester Lauf von heute – nur vor dem Start übernommen
+  const [ghost, setGhost] = useState<ParcoursRun | null>(null);
+  const ghostRef = useRef<ParcoursRun | null>(null);
+  /** Eigener Lauf: Punktestand nach jedem Treffer (wird ggf. neuer Ghost). */
+  const hits = useRef<[number, number][]>([]);
   useEffect(() => {
-    Promise.all([getTrail(), getRewardProgress(), getBinSkin(), getParcoursBest()])
-      .then(([id, progress, skin, bests]) => {
+    Promise.all([getTrail(), getRewardProgress(), getBinSkin(), getParcoursBest(), getParcoursToday(level.id, day)])
+      .then(([id, progress, skin, bests, today]) => {
         setTrail(bus.current, usableTrail(id, progress));
         setBinSkin(bus.current, usableSkin(skin, progress));
         bestRef.current = bests[level.id] ?? 0;
         setBest(bestRef.current);
+        if (phaseRef.current !== "ready") return;
+        ghostRef.current = parseParcoursRun(today);
+        setGhost(ghostRef.current);
       })
       .catch(() => undefined);
-  }, [level.id]);
+  }, [level.id, day]);
 
   useEffect(() => {
     refreshSfxSetting();
@@ -172,6 +189,9 @@ export function ParcoursRound({
     phaseRef.current = "end";
     const total = pointsRef.current;
     if (total > bestRef.current) saveParcoursBest(level.id, total).catch(() => undefined);
+    if (total > (ghostRef.current?.points ?? 0)) {
+      saveParcoursToday(level.id, { points: total, hits: hits.current } satisfies ParcoursRun, day).catch(() => undefined);
+    }
     sfx(total > bestRef.current && total > 0 ? "perfect" : "comboUp");
     setItem(null);
     setLearn(null);
@@ -272,6 +292,8 @@ export function ParcoursRound({
       const gained = parcoursPoints({ correct: true, trick: isTrick, clean });
       pointsRef.current += gained;
       setPoints(pointsRef.current);
+      const elapsed = level.seconds * 1000 - Math.max(0, endsRef.current - Date.now());
+      hits.current.push([Math.round(elapsed), pointsRef.current]);
       counts.current.right += 1;
       const top = layout.binTops[bin];
       if (isTrick) {
@@ -440,7 +462,7 @@ export function ParcoursRound({
             ))}
             <View pointerEvents="box-none" style={[styles.top, { paddingTop: insets.top + Spacing.sm }]}>
               <IconButton icon="x" label={t("common.close")} onPress={onExit} />
-              <ParcoursHud title={title} task={t(level.task)} points={points} endsAt={endsAt} total={level.seconds} />
+              <ParcoursHud title={title} task={t(level.task)} points={points} endsAt={endsAt} total={level.seconds} ghost={ghost} />
               <View style={styles.topSpacer} />
             </View>
             {item && playing && (
@@ -482,6 +504,11 @@ export function ParcoursRound({
                 {t("parcours.time", { n: level.seconds })}
                 {best > 0 ? ` · ${t("parcours.best", { n: best })}` : ""}
               </AppText>
+              {ghost && (
+                <AppText variant="caption" tone="textSecondary" center>
+                  {t("parcours.ghostInfo")} ({t("parcours.points", { n: ghost.points })})
+                </AppText>
+              )}
               <Button title={t("duel.start")} icon="zap" size="lg" onPress={start} />
             </View>
           </View>
