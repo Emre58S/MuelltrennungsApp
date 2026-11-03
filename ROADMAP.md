@@ -135,8 +135,8 @@ JS-Änderungen per EAS-Update nachkommen.
   Text springt bei langsamem Netz kurz um.
 - [x] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen
   (a06f16c + a5494c2, Tester 5/10 → 8/10): Karte 🔑 in Online, Code geprüft →
-  direkt ins Ghost-Rennen; Teilen-Text nennt Online. Offen: zweites Tippen auf 🔑
-  bei offener Eingabe fokussiert nicht; Verweis auf der Ghost-Karte auch aus Online.
+  direkt ins Ghost-Rennen; Teilen-Text nennt Online. ✓ Zweites Tippen auf 🔑 fokussiert
+  die Eingabe (ba38197 + 5305b71, Tester 8/10). Offen: Verweis auf der Ghost-Karte auch aus Online.
 
 ### R2 – Kampagne als Lernpfad (Muss)
 Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.

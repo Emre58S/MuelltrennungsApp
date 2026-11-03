@@ -157,6 +157,8 @@ wenig Deutsch, nie strafend.
   mit hunderten Fehlern ab) – solche Texte gleich mit dem Edit-Tool setzen.
 - Schutz-Hook prüft vor `git commit` die Typen und blockt dann den GANZEN verketteten
   Befehl (auch vorangestellte sed-Edits) – Edits erst einzeln, dann committen.
+- Prüfkette nie mit `| grep` vor dem Commit verketten (Pipe schluckt den tsc-Exit-Code,
+  ein Commit mit Typfehler lief durch) – `npx tsc … && git commit` ohne Pipe dazwischen.
 - Kein `npx prettier --write` auf ganze Dateien: Projekt ist nicht prettier-formatiert
   (riesiger Diff); Einrückung gezielt per Skript anpassen.
 - Parcours online: Server-Zeitprüfung (parcours.sql, ≤ 1 Treffer je 0,5 s) hängt an der
