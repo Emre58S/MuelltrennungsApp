@@ -158,7 +158,7 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
   Chips oben. Nachgezogen (29ecc97, Tester 8/10): kein „🎁 Neue Tonne“ in
   Stationen, „Gut geübt!“ weit unter dem Ziel, Tagesaufgaben-Chip mit Punkt/Ergebnis.
   Offen: auf dem Gerät prüfen – Scrollen nach „Zum Pfad“, 2-Tonnen-Welt, roter
-  Chip-Punkt (ragt 3 px heraus); VoiceOver-Text „noch offen“ für den Punkt.
+  Chip-Punkt (✓ erledigt: Chips haben keinen Punkt mehr).
 - [x] **R2d** Stations-Arten: normal · **Zeit** (Gegen die Zeit) · **Ohne Fehler**
   · **Trick** (Trick-Level 1–24 als Seitenstationen) · **Boss** (→ R2e). Damit leben die
   bisherigen Modi im Pfad weiter.
@@ -371,7 +371,7 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     5 nächsten zufällig), richtig/falsch rechnet die App nach; Startkarte „🌍 Gegner: …“,
     umschaltbar auf eigenen/Übungs-Ghost, „Suche Gegner …“; nur vor dem Start übernommen.
   - Offen: Seed der Woche statt Tag (mehr Gegner); Server rechnet `correct` nicht nach
-    (nur Auswahl betroffen); Startkarte springt kurz nach der Suche; Hinweis, wenn
+    (nur Auswahl betroffen); Startkarte springt kurz nach der Suche (✓ 914b41c, Tester 8/10: gemeinsamer Platz); Hinweis, wenn
     während der Suche gestartet wurde; Gegner auch für das Ghost-Rennen.
 - [ ] **R4e** Freunde: eigener **Freundes-Code** (z. B. EMRE-4821), Freund
   hinzufügen per Code/Link, Liste mit „Herausfordern“ + offenen Herausforderungen.
