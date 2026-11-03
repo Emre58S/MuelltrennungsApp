@@ -1,5 +1,5 @@
 // Datei: app/register.tsx — with validation and centralized theme
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -13,7 +13,15 @@ import {
 import { AppColors, FontSize, Radius, Spacing } from "@/constants/theme";
 import { useI18n } from "@/providers/app-settings";
 
+/** Noch keine echte Anmeldung (ROADMAP R7e) – Seite leitet zum Start um, auch per Deep-Link. */
+const AUTH_ENABLED = false;
+
 export default function RegisterScreen() {
+  return AUTH_ENABLED ? <RegisterForm /> : <Redirect href="/" />;
+}
+
+/** Platzhalter-Formular für später (echte Anmeldung). */
+function RegisterForm() {
   const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
