@@ -567,10 +567,9 @@ function DailyStation({ result }: { result: DailyResult | null }) {
 function ParcoursStation({ best }: { best: Record<number, number> }) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
-  const [level] = useState(() => {
-    const id = dailyParcoursId(todayKey(), PARCOURS.map((p) => p.id));
-    return PARCOURS.find((p) => p.id === id) ?? PARCOURS[0];
-  });
+  // Bei jedem Zeichnen neu (die Seite zeichnet bei jeder Rückkehr) – nach Mitternacht der neue Parcours
+  const id = dailyParcoursId(todayKey(), PARCOURS.map((p) => p.id));
+  const level = PARCOURS.find((p) => p.id === id) ?? PARCOURS[0];
   const score = best[level.id] ?? 0;
   const sub = score > 0 ? t("parcours.best", { n: score }) : t("parcours.noBest");
   return (
@@ -593,8 +592,8 @@ function ParcoursStation({ best }: { best: Record<number, number> }) {
       </AppText>
       <View style={styles.flex}>
         <AppText variant="label">{t("hub.parcours.title")}</AppText>
-        <AppText variant="caption" tone="textSecondary" numberOfLines={2}>
-          {t(level.task)}
+        <AppText variant="caption" tone="textSecondary" numberOfLines={3}>
+          {t("hub.parcours.desc", { task: t(level.task), s: level.seconds })}
         </AppText>
         <AppText variant="caption" tone={score > 0 ? "gold" : "textMuted"}>
           {sub}
