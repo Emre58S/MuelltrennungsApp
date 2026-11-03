@@ -275,8 +275,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 2 (d77733e + 80a9135, Tester 7/10, EAS auto + preview): Karte zeigt Symbol
     des Parcours, „Heute: {Aufgabe} · N Sekunden“ und „Bestwert: N“ (statt „Parcours 2“).
   - [x] Kartentext „Sortieren mit Trickwurf, N Sekunden. / Heute: {Aufgabe}“ (e68a5a2 +
-    04fdf57, Tester 7/10, EAS auto + preview). Offen: Abschnitt „Parcours: sortieren +
-    tricksen“ auf der Trick-Seite ebenso einfacher.
+    04fdf57, Tester 7/10, EAS auto + preview). Trick-Seite ebenso: „Parcours: sortieren
+    mit Trickwurf“ + Unterzeile (59d5172 + 41ef35e, Tester 8/10). Offen (R10): Wort
+    „Parcours“ ist für Nicht-Muttersprachler schwer.
   - Offen: Vergleich
     mit Freunden/Rangliste für den Parcours des Tages; Karte über Mitternacht offen
     → zeigt gestrigen Parcours; Gegner-Ghost (Startzeit der Szenen-Uhr mitschreiben).
