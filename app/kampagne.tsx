@@ -20,7 +20,9 @@ import { press, tapHaptic } from "@/components/ui/press";
 import { type GameMode, MENU_MODES, startDaily, startGame } from "@/constants/modes";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef } from "@/game/bins";
+import { dailyParcoursId } from "@/game/parcours";
 import { nextStarReward } from "@/game/rewards";
+import { levelIcons, PARCOURS } from "@/game/trick-levels";
 import {
   type CampaignStars,
   currentStation,
@@ -40,11 +42,13 @@ import {
   getCampaignStars,
   getChests,
   getMissionDay,
+  getParcoursBest,
   openChest,
   getTodayDaily,
   grantCampaignHeadStart,
   getTrickStars,
   getRewardProgress,
+  todayKey,
   type TrickStars,
 } from "@/utils/storage";
 import { sfx } from "@/utils/sfx";
@@ -91,6 +95,8 @@ export default function KampagneScreen() {
   /** Tagesaufgabe von heute (undefined = noch nicht geladen, null = offen). */
   const [daily, setDaily] = useState<DailyResult | null | undefined>(undefined);
   const [trickStars, setTrickStars] = useState<TrickStars>({});
+  /** Bestwerte der Parcours (für die Station am Ende des Pfads). */
+  const [parcoursBest, setParcoursBest] = useState<Record<number, number>>({});
   const [missions, setMissions] = useState<MissionDay | null>(null);
   const [chests, setChests] = useState({ earned: 0, opened: 0 });
   /** Ziel vor Augen: nächste Belohnung über Sterne (null = alle frei / lädt). */
@@ -124,6 +130,9 @@ export default function KampagneScreen() {
         .catch(() => active && setDaily(null));
       getTrickStars()
         .then((s) => active && setTrickStars(s))
+        .catch(() => undefined);
+      getParcoursBest()
+        .then((b) => active && setParcoursBest(b))
         .catch(() => undefined);
       getMissionDay()
         .then((m) => active && setMissions(m))
@@ -248,6 +257,10 @@ export default function KampagneScreen() {
               reached={isUnlocked(stars, world.stations[0].id)}
               trickStars={trickStars}
             />
+            {/* Am Ende des Pfads: Parcours des Tages (sortieren mit Trickwurf, alle Tonnen) */}
+            {world.index === WORLDS[WORLDS.length - 1].index && isUnlocked(stars, world.stations[0].id) && (
+              <ParcoursStation best={parcoursBest} />
+            )}
           </View>
         ))}
     </HubScreen>
@@ -545,6 +558,47 @@ function DailyStation({ result }: { result: DailyResult | null }) {
             {t("campaign.dailyTomorrow")}
           </AppText>
         )}
+      </View>
+    </Pressable>
+  );
+}
+
+/** Station „Parcours des Tages“ am Ende des Pfads: wie die Online-Karte, mit Bestwert. */
+function ParcoursStation({ best }: { best: Record<number, number> }) {
+  const { t } = useI18n();
+  const { colors } = useAppTheme();
+  const [level] = useState(() => {
+    const id = dailyParcoursId(todayKey(), PARCOURS.map((p) => p.id));
+    return PARCOURS.find((p) => p.id === id) ?? PARCOURS[0];
+  });
+  const score = best[level.id] ?? 0;
+  const sub = score > 0 ? t("parcours.best", { n: score }) : t("parcours.noBest");
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${t("hub.parcours.title")}. ${t(level.task)}. ${sub}`}
+      onPress={() => {
+        sfx("tap");
+        tapHaptic();
+        router.push({ pathname: "/runde", params: { mode: "parcours", level: String(level.id) } });
+      }}
+      style={({ pressed }) => [
+        styles.trick,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+        pressed && press.pressed,
+      ]}
+    >
+      <AppText style={styles.trickEmoji} importantForAccessibility="no">
+        {levelIcons(level)[0] ?? "🎯"}
+      </AppText>
+      <View style={styles.flex}>
+        <AppText variant="label">{t("hub.parcours.title")}</AppText>
+        <AppText variant="caption" tone="textSecondary" numberOfLines={2}>
+          {t(level.task)}
+        </AppText>
+        <AppText variant="caption" tone={score > 0 ? "gold" : "textMuted"}>
+          {sub}
+        </AppText>
       </View>
     </Pressable>
   );
