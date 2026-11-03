@@ -23,7 +23,7 @@ import { type FxRef, stepFx } from "./fx";
 import { type BinSlide, type PropCollider, slideOffset } from "@/game/physics";
 import { type TrickProp } from "@/game/trick-levels";
 
-import { AimGuide, type BinSlideSpec, PreviewItem, ShotGuideDots, ThrowLayer } from "./items";
+import { AimGuide, type BinSlideSpec, flapOf, PreviewItem, ShotGuideDots, ThrowLayer } from "./items";
 import { TrickProps } from "./trick-props";
 import { ModelWarmup } from "./model-cache";
 import { type BusRef } from "./scene-bus";
@@ -216,7 +216,7 @@ export const GameScene = memo(function GameScene({
             bus={bus}
             label={binLabelTexture(bin.key, lang)}
             openLid={openLids}
-            flap={trick?.binSlide?.bin === i ? trick.binSlide.flap : undefined}
+            flap={flapOf(trick?.binSlide, i)}
           />
         );
         // Fahrende Zieltonne (Trickwürfe): bewegt sich genau wie in der Physik

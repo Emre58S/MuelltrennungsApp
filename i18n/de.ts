@@ -146,6 +146,7 @@ export const de = {
   "trick.task.board": "Durchs Loch vor deiner Tonne",
   "trick.task.trampolineLanes": "Aufs Trampolin vor deiner Tonne",
   "trick.task.flap": "Wirf, wenn der Deckel offen ist",
+  "trick.task.flapAll": "Wirf, wenn dein Deckel offen ist",
   "trick.task.trampolineRing": "Aufs Trampolin, dann durch den Reifen",
   "trick.task.trampolineMoving": "Triff das Trampolin vor der Tonne",
   "trick.task.trampolineFlap": "Aufs Trampolin – der Deckel klappt",

@@ -125,6 +125,9 @@ export type TrickLevel = {
   binSlide?: BinSlide;
   /** Der Deckel der Zieltonne klappt auf und zu (Timing). */
   binFlap?: LidFlap;
+  /** Alle Deckel klappen im selben Takt wie `binFlap` (Parcours: für jede
+   *  Spur gleich). */
+  flapAll?: boolean;
   bonus: TrickBonus;
   /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
@@ -591,6 +594,16 @@ export const PARCOURS: ParcoursLevel[] = [
   },
   // Torwand: durchs Loch vor DEINER Tonne
   { id: 3, props: goalWall(0.42), lanes: [[0], [1], [2]], bonus: "swish", task: "trick.task.board" },
+  // Alle Deckel klappen im Takt: werfen, wenn DEIN Deckel offen ist
+  {
+    id: 4,
+    props: [],
+    lanes: [[], [], []],
+    binFlap: { period: 2.6 },
+    flapAll: true,
+    bonus: "swish",
+    task: "trick.task.flapAll",
+  },
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */

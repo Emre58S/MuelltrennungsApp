@@ -147,6 +147,7 @@ export const en: Translations = {
   "trick.task.board": "Through the hole in front of your bin",
   "trick.task.trampolineLanes": "Onto the trampoline in front of your bin",
   "trick.task.flap": "Throw when the lid is open",
+  "trick.task.flapAll": "Throw when your lid is open",
   "trick.task.trampolineRing": "Trampoline, then through the hoop",
   "trick.task.trampolineMoving": "Hit the trampoline in front of the bin",
   "trick.task.trampolineFlap": "Trampoline – the lid flaps",

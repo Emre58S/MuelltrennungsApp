@@ -157,16 +157,21 @@ const DOTS = 14;
 const NO_PROPS: PropCollider[] = [];
 
 /** Bewegte Zieltonne (Trickwürfe): welche Tonne, wie sie fährt und ob ihr
- *  Deckel von selbst auf- und zuklappt. */
-export type BinSlideSpec = { bin: number; slide?: BinSlide; flap?: LidFlap };
+ *  Deckel von selbst auf- und zuklappt (`flapAll`: alle Deckel). */
+export type BinSlideSpec = { bin: number; slide?: BinSlide; flap?: LidFlap; flapAll?: boolean };
+
+/** Klappt der Deckel von Tonne `i`? */
+export function flapOf(spec: BinSlideSpec | undefined, i: number): LidFlap | undefined {
+  return spec && (spec.bin === i || spec.flapAll) ? spec.flap : undefined;
+}
 
 /** Physik-Tonnen aus den Öffnungen (gleitende Tonne mit Ruhelage). */
 function binColliders(openings: THREE.Vector3[], binSlide?: BinSlideSpec): BinCollider[] {
   return openings.map((o, i) => {
     const c: BinCollider = { x: o.x, z: o.z - 0.05, lid: 0 };
-    if (binSlide?.bin !== i) return c;
-    if (binSlide.slide) Object.assign(c, { slide: binSlide.slide, baseX: o.x, baseZ: o.z - 0.05 });
-    if (binSlide.flap) c.flap = binSlide.flap;
+    const flap = flapOf(binSlide, i);
+    if (flap) c.flap = flap;
+    if (binSlide?.bin === i && binSlide.slide) Object.assign(c, { slide: binSlide.slide, baseX: o.x, baseZ: o.z - 0.05 });
     return c;
   });
 }

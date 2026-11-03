@@ -12,7 +12,7 @@ import { type Mass, MASS_FEEL } from "./item-mass";
 import { type BinCollider, lobVelocity, simulateShot } from "./physics";
 import { levelColliders, levelPeriod, meetsRequirement, type TrickLevel } from "./trick-levels";
 
-type SolverLevel = Pick<TrickLevel, "props" | "binSlide" | "binFlap">;
+type SolverLevel = Pick<TrickLevel, "props" | "binSlide" | "binFlap" | "flapAll">;
 
 /** Deckel stehen im Trick-Modus offen (wie im Zielwurf). */
 const LID_OPEN = 1.85;
@@ -30,7 +30,7 @@ export function createSolver(width = 390, height = 844) {
       z: b.z,
       lid: LID_OPEN,
       ...(level.binSlide && i === target ? { slide: level.binSlide, baseX: b.x, baseZ: b.z } : {}),
-      ...(level.binFlap && i === target ? { flap: level.binFlap } : {}),
+      ...(level.binFlap && (i === target || level.flapAll) ? { flap: level.binFlap } : {}),
     }));
 
   /** Ein Wurf: Winkel (Grad, 0 = gerade), Kraft (0…1; Wischlänge oder -tempo),

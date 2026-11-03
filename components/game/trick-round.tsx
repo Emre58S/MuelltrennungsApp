@@ -130,7 +130,7 @@ export function TrickRound({
       colliders: levelColliders(level),
       binSlide:
         level.binSlide || level.binFlap
-          ? { bin: level.target, slide: level.binSlide, flap: level.binFlap }
+          ? { bin: level.target, slide: level.binSlide, flap: level.binFlap, flapAll: level.flapAll }
           : undefined,
     }),
     [level],
