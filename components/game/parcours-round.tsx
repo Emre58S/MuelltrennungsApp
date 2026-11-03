@@ -238,6 +238,8 @@ export function ParcoursRound({
     if (!current || busy.current || over.current || phaseRef.current !== "play") return;
     // Zeit schon um (z. B. App war im Hintergrund, Timer kam noch nicht)
     if (Date.now() >= endsRef.current) {
+      // Spürbar: dieser Wisch zählt nicht mehr
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
       timeUp();
       return;
     }
@@ -437,6 +439,18 @@ export function ParcoursRound({
   const itemTagTop = layout.item.screen.y + screenW * 0.15 + 4;
   const tipTop = Math.max(0, ...layout.binRects.map((r) => r.y + r.h)) + 10;
   const title = t("parcours.title", { n: level.id });
+  const bestLine = !result
+    ? ""
+    : result.points > result.best && result.points > 0
+      ? t("parcours.newBest")
+      : result.best > result.points
+        ? t(result.best - result.points === 1 ? "parcours.gapOne" : "parcours.gap", {
+            n: result.best,
+            gap: result.best - result.points,
+          })
+        : result.best > 0
+          ? t("parcours.sameBest", { n: result.best })
+          : t("parcours.tryAgain");
   const ghostGap = ghost && result ? ghost.points - result.points : 0;
   const ghostLine =
     !ghost || !result
@@ -544,17 +558,14 @@ export function ParcoursRound({
               )}
               {/* Bestwert-Zeile entfällt, wenn der Ghost schon dasselbe sagt (Bestwert = Lauf von heute) */}
               {(!ghost || ghost.points !== result.best || result.points > result.best) && (
-                <AppText variant="label" tone={result.points > result.best ? "gold" : "textSecondary"} center>
-                  {result.points > result.best && result.points > 0
-                    ? t("parcours.newBest")
-                    : result.best > result.points
-                      ? t(result.best - result.points === 1 ? "parcours.gapOne" : "parcours.gap", {
-                          n: result.best,
-                          gap: result.best - result.points,
-                        })
-                      : result.best > 0
-                        ? t("parcours.sameBest", { n: result.best })
-                        : t("parcours.tryAgain")}
+                <AppText
+                  variant="label"
+                  tone={result.points > result.best ? "gold" : "textSecondary"}
+                  center
+                  // Screenreader ohne Emoji (🏆)
+                  accessibilityLabel={bestLine.replace("🏆", "").trim()}
+                >
+                  {bestLine}
                 </AppText>
               )}
               {ghostLine !== null && ghost && (
