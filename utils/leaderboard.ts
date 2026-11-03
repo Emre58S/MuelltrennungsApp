@@ -258,15 +258,37 @@ export function submitOnlineRun(mode: OnlineMode, day: string, code: string, cor
 
 /** Fertigen Parcours-Lauf einreichen (supabase/parcours.sql; der Server behält je
  *  Tag und Parcours den besten). Still, wenn offline oder nicht eingerichtet. */
-export async function submitParcoursRun(level: number, day: string, code: string, points: number): Promise<void> {
-  if (!leaderboardReady || points < 1 || !code) return;
-  try {
-    const player = await getPlayer();
-    await rpc("set_name", { p_player: player.id, p_name: player.name });
-    await rpc("submit_parcours_run", { p_player: player.id, p_level: level, p_day: day, p_code: code, p_points: points });
-  } catch {
-    // Kein Netz oder SQL noch nicht eingerichtet – dann eben ohne
-  }
+export function submitParcoursRun(level: number, day: string, code: string, points: number): Promise<void> {
+  if (!leaderboardReady || points < 1 || !code) return Promise.resolve();
+  parcoursSending = (async () => {
+    try {
+      const player = await getPlayer();
+      await rpc("set_name", { p_player: player.id, p_name: player.name });
+      await rpc("submit_parcours_run", { p_player: player.id, p_level: level, p_day: day, p_code: code, p_points: points });
+    } catch {
+      // Kein Netz oder SQL noch nicht eingerichtet – dann eben ohne
+    }
+  })();
+  return parcoursSending;
+}
+
+/** Zuletzt gesendeter Parcours-Lauf – die Rangliste wartet kurz darauf. */
+let parcoursSending: Promise<void> = Promise.resolve();
+
+/** Rangliste eines Parcours an einem Tag (Parcours des Tages, supabase/parcours.sql). */
+export async function fetchParcoursBoard(level: number, day: string, limit = 50): Promise<BoardResult> {
+  // Höchstens 3 s auf den eigenen Lauf warten – bei schlechtem Netz trotzdem laden
+  await Promise.race([parcoursSending, new Promise((done) => setTimeout(done, 3000))]);
+  const player = await getPlayer();
+  const rows = await rpc<{ rank: number; name: string; score: number; is_me: boolean }[]>("parcours_top", {
+    p_level: level,
+    p_day: day,
+    p_player: player.id,
+    p_limit: limit,
+  });
+  const list = (rows ?? []).map((r) => ({ rank: Number(r.rank), name: r.name, score: r.score, isMe: r.is_me }));
+  const mine = list.find((r) => r.isMe);
+  return { rows: list, me: mine ? { rank: mine.rank, score: mine.score } : null };
 }
 
 /** Parcours-Lauf eines anderen Spielers von heute auf demselben Parcours mit

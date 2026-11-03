@@ -24,6 +24,8 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Radius, Spacing } from "@/constants/theme";
+import { dailyParcoursId } from "@/game/parcours";
+import { PARCOURS } from "@/game/trick-levels";
 import { type TranslationKey } from "@/i18n";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import {
@@ -33,6 +35,7 @@ import {
   decodeTrickScore,
   fetchBoard,
   fetchOnlineBoard,
+  fetchParcoursBoard,
   getPlayer,
   isMissingOnServer,
   leaderboardReady,
@@ -40,6 +43,7 @@ import {
   setPlayerName,
 } from "@/utils/leaderboard";
 import { sfx } from "@/utils/sfx";
+import { todayKey } from "@/utils/storage";
 
 type Tab = {
   key: string;
@@ -49,12 +53,15 @@ type Tab = {
   online?: OnlineMode;
   daily?: boolean;
   trick?: boolean;
+  /** Parcours des Tages: Punkte von heute (supabase/parcours.sql) */
+  parcours?: boolean;
 };
 type Span = "week" | "all";
 
 const TABS: Tab[] = [
   { key: "sprint", label: "sprint.title", online: "sprint" },
   { key: "survival", label: "survival.title", online: "survival" },
+  { key: "parcours", label: "hub.parcours.title", parcours: true },
   // „Gegen die Zeit“/„Ohne Fehler“ solo ohne Rangliste (ROADMAP R4f) – sonst
   // verwechselbar mit Zeit-Sprint/Survival
   { key: "tagesaufgabe", label: "home.daily", board: () => dailyBoard("tagesaufgabe"), daily: true },
@@ -78,6 +85,12 @@ export default function LeaderboardScreen() {
   // „setup“: Verbindung steht, aber die Online-Liste ist auf dem Server noch nicht eingerichtet
   const [state, setState] = useState<"idle" | "loading" | "error" | "setup">("idle");
   const [span, setSpan] = useState<Span>("week");
+  // Parcours des Tages (wie auf der Online-Karte) – beim Öffnen gewählt
+  const [today] = useState(() => {
+    const day = todayKey();
+    const id = dailyParcoursId(day, PARCOURS.map((p) => p.id));
+    return { day, level: PARCOURS.find((p) => p.id === id) ?? PARCOURS[0] };
+  });
 
   /** Gerade gewählte Liste – späte Antworten anderer Listen werden verworfen. */
   const shown = useRef(tab);
@@ -87,7 +100,12 @@ export default function LeaderboardScreen() {
   const load = useCallback((which: Tab, when: Span) => {
     if (!leaderboardReady) return;
     const current = () => shown.current === which && (!which.online || shownSpan.current === when);
-    (which.online ? fetchOnlineBoard(which.online, when) : fetchBoard(which.board!()))
+    (which.online
+      ? fetchOnlineBoard(which.online, when)
+      : which.parcours
+        ? fetchParcoursBoard(today.level.id, today.day)
+        : fetchBoard(which.board!())
+    )
       .then((r) => {
         if (!current()) return;
         setResult(r);
@@ -96,7 +114,7 @@ export default function LeaderboardScreen() {
       .catch((e: unknown) => {
         if (current()) setState(isMissingOnServer(e) ? "setup" : "error");
       });
-  }, []);
+  }, [today]);
 
   // Beim Öffnen: Spitzname und die gewählte Liste (neu) laden
   useFocusEffect(
@@ -149,6 +167,7 @@ export default function LeaderboardScreen() {
   /** Punkte je Brett: Online-Modi als „N richtig“, Tages-Trick als Sterne + Versuche. */
   const scoreText = (score: number) => {
     if (tab.online) return t("rank.correct", { n: formatNumber(score) });
+    if (tab.parcours) return t("parcours.points", { n: formatNumber(score) });
     if (!tab.trick) return formatNumber(score);
     const { stars, attempts } = decodeTrickScore(score);
     return `${"★".repeat(stars)} · ${attempts <= 1 ? t("trick.attemptsOne") : t("trick.attempts", { n: attempts })}`;
@@ -293,6 +312,13 @@ export default function LeaderboardScreen() {
               {t("rank.onlineHint")}
             </AppText>
           </>
+        )}
+
+        {/* Parcours des Tages: welcher heute dran ist */}
+        {tab.parcours && (
+          <AppText variant="caption" tone="textSecondary">
+            {t("rank.parcoursHint", { task: t(today.level.task) })}
+          </AppText>
         )}
 
         {!leaderboardReady ? (

@@ -222,6 +222,7 @@ export const de = {
   "rank.week": "Diese Woche",
   "rank.allTime": "Allzeit",
   "rank.correct": "{n} richtig",
+  "rank.parcoursHint": "Heute: {task}. Dein bester Lauf zählt. Mehr Punkte = weiter oben.",
   "rank.onlineHint": "Dein bester Lauf zählt. Mehr richtig = weiter oben.",
   "home.rank": "Rangliste",
   "reward.title": "Belohnungen",

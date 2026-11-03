@@ -223,6 +223,7 @@ export const en: Translations = {
   "rank.week": "This week",
   "rank.allTime": "All time",
   "rank.correct": "{n} correct",
+  "rank.parcoursHint": "Today: {task}. Your best run counts. More points = higher up.",
   "rank.onlineHint": "Your best run counts. More correct = higher up.",
   "home.rank": "Leaderboard",
   "reward.title": "Rewards",
