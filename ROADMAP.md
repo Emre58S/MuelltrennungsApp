@@ -471,7 +471,9 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     nach 8 s keine Landung, zählt der Wurf als daneben; späte/doppelte Landungen (Wurf-Id)
     zählen nicht. Rest: Netz an Szenen-Spielzeit koppeln (Hintergrund), alten Gegenstand
     dann aus der Szene nehmen, „daneben“ nicht in Bildmitte, Unit-Test.
-  - Offen: Lernkarte beim Wurf weich ausblenden (außer „Weniger Bewegung“); Startkarte mit 4 Regelzeilen auf kleinem iPhone prüfen;
+  - [x] Start-/Endkarte scrollbar, wenn zu hoch; oben Platz für X (fba6aa5 + cab0431,
+    Tester 8/10, EAS auto + preview).
+  - Offen: Lernkarte beim Wurf weich ausblenden (außer „Weniger Bewegung“);
     Lernkarte statt nur „Gehört in“; Startzeit der Szenen-Uhr für den Ghost (R4c)
     mitschreiben; Parcours in Kampagne einbinden (Online: ✓ R4c Teil 1).
   - [x] Wisch nach Ablauf: kräftiger Stoß (nicht die Fehlwurf-Warnung); Bestwert-Zeile der
