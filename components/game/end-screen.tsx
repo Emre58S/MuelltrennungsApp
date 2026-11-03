@@ -507,11 +507,11 @@ function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
   // Vor dem Zeichnen klein setzen – sonst blitzt die Karte einen Frame groß auf
   useLayoutEffect(() => {
     if (calm) return;
-    Animated.spring(pop, { toValue: 1, friction: 4, delay: 500, useNativeDriver: true }).start();
+    Animated.spring(pop, { toValue: 1, friction: 4, delay: 1100, useNativeDriver: true }).start();
   }, [calm, pop]);
-  // Kurzer Erfolgston, wenn die Karte aufspringt (vorhandener Freischalt-Klang)
+  // Kurzer Erfolgston, wenn die Karte aufspringt – erst nach den Sternen (wie TrickResult)
   useEffect(() => {
-    const timer = setTimeout(() => sfx("unlock"), calm ? 0 : 500);
+    const timer = setTimeout(() => sfx("unlock"), 1100);
     return () => clearTimeout(timer);
   }, [calm]);
   const names = bins.map((b) => t(b.labelKey)).join(", ");
