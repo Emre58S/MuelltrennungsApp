@@ -14,6 +14,7 @@ import {
   isMissingOnServer,
   leaderboardReady,
   openChallenges,
+  openParcoursChallenges,
   submitScore,
   trickScore,
   weekStart,
@@ -118,5 +119,19 @@ describe("Offene Herausforderungen (Freunde)", () => {
   test("Lauf mit 0 richtig ist keine Herausforderung (auch kein Gleichstand)", () => {
     const rows = [{ name: "Cem", code: "CCCCCC", sprint: 0, survival: null }];
     expect(openChallenges(rows, { sprint: 0, survival: 0 })).toEqual([]);
+  });
+
+  test("Parcours des Tages: offen ab gleich vielen Punkten, Gleichstand markiert", () => {
+    const rows = [
+      { name: "Anna", code: "AAAAAA", points: 12 },
+      { name: "Ben", code: "BBBBBB", points: 9 },
+      { name: "Cem", code: "CCCCCC", points: 5 },
+    ];
+    expect(openParcoursChallenges(rows, 9, 3)).toEqual([
+      { name: "Anna", code: "AAAAAA", mode: "parcours", correct: 12, level: 3, tie: false },
+      { name: "Ben", code: "BBBBBB", mode: "parcours", correct: 9, level: 3, tie: true },
+    ]);
+    expect(openParcoursChallenges(rows, 0, 3)).toHaveLength(3);
+    expect(openParcoursChallenges(rows, 13, 3)).toEqual([]);
   });
 });

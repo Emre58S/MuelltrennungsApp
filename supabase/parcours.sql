@@ -136,8 +136,27 @@ as $$
   limit 1;
 $$;
 
+-- „Heute offen“ (Freundesliste): Freunde mit ihrem besten Lauf von heute auf
+-- dem Parcours des Tages (nur, wer ihn gespielt hat). Ob man sie schon
+-- geschlagen hat, rechnet die App selbst aus.
+create or replace function public.friend_parcours_today(p_player uuid, p_level integer, p_day text)
+returns table (name text, code text, points integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.name, c.code, r.points
+  from friends f
+  join players p on p.id = f.friend
+  join friend_codes c on c.player = f.friend
+  join parcours_runs r on r.player = f.friend and r.level = p_level and r.day = p_day
+  where f.player = p_player;
+$$;
+
 grant execute on function public.submit_parcours_run(uuid, integer, text, text, integer) to anon, authenticated;
 grant execute on function public.random_parcours_run(integer, text, uuid, integer) to anon, authenticated;
 grant execute on function public.parcours_top(integer, text, uuid, integer) to anon, authenticated;
 grant execute on function public.parcours_my_rank(integer, text, uuid) to anon, authenticated;
 grant execute on function public.friend_parcours_run(uuid, text, integer, text) to anon, authenticated;
+grant execute on function public.friend_parcours_today(uuid, integer, text) to anon, authenticated;

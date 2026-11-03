@@ -8,8 +8,18 @@
 // Fehlt er, läuft alles weiter: Ergebnisse werden gemerkt und später
 // nachgereicht, die Ranglisten-Seite zeigt einen Hinweis.
 
+import { dailyParcoursId, parseParcoursRun } from "@/game/parcours";
 import { parseSprint } from "@/game/sprint";
-import { getItem, getSprintBest, getSurvivalBest, setItem, StorageKeys, todayKey } from "@/utils/storage";
+import { PARCOURS } from "@/game/trick-levels";
+import {
+  getItem,
+  getParcoursToday,
+  getSprintBest,
+  getSurvivalBest,
+  setItem,
+  StorageKeys,
+  todayKey,
+} from "@/utils/storage";
 
 const URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -471,8 +481,10 @@ export async function fetchFriendParcoursRun(
 export type OpenChallenge = {
   name: string;
   code: string;
-  mode: OnlineMode;
+  /** „parcours“: Parcours des Tages (correct = Punkte, level = welcher). */
+  mode: OnlineMode | "parcours";
   correct: number;
+  level?: number;
   /** Gleich viele wie mein Bestes (> 0) – einer mehr gewinnt. */
   tie: boolean;
 };
@@ -490,21 +502,44 @@ export function openChallenges(rows: Friend[], mine: Record<OnlineMode, number>)
   return out;
 }
 
+/** Parcours des Tages: offen = Freund hat heute mindestens so viele Punkte wie mein
+ *  Bestes von heute (Läufe mit 0 Punkten gibt es auf dem Server nicht). */
+export function openParcoursChallenges(
+  rows: { name: string; code: string; points: number }[],
+  mine: number,
+  level: number,
+): OpenChallenge[] {
+  return rows
+    .filter((r) => r.points > 0 && r.points >= mine)
+    .map((r) => ({ name: r.name, code: r.code, mode: "parcours" as const, correct: r.points, level, tie: r.points === mine }));
+}
+
 /** Offene Herausforderungen von heute (leer, wenn offline oder SQL fehlt). */
 export async function fetchOpenChallenges(): Promise<OpenChallenge[]> {
   if (!leaderboardReady) return [];
   try {
     const day = todayKey();
     const player = await getPlayer();
-    const [rows, sprint, survival] = await Promise.all([
+    const level = dailyParcoursId(day, PARCOURS.map((p) => p.id));
+    const [rows, sprint, survival, parcoursRows, parcoursMine] = await Promise.all([
       rpc<Friend[]>("friend_today", { p_player: player.id, p_day: day }),
       getSprintBest(),
       getSurvivalBest(),
+      // Parcours des Tages: fehlt das SQL noch, eben ohne
+      rpc<{ name: string; code: string; points: number }[]>("friend_parcours_today", {
+        p_player: player.id,
+        p_level: level,
+        p_day: day,
+      }).catch(() => null),
+      getParcoursToday(level, day),
     ]);
-    return openChallenges(rows ?? [], {
-      sprint: parseSprint(sprint, day)?.correct ?? 0,
-      survival: parseSprint(survival, day)?.correct ?? 0,
-    });
+    return [
+      ...openChallenges(rows ?? [], {
+        sprint: parseSprint(sprint, day)?.correct ?? 0,
+        survival: parseSprint(survival, day)?.correct ?? 0,
+      }),
+      ...openParcoursChallenges(parcoursRows ?? [], parseParcoursRun(parcoursMine)?.points ?? 0, level),
+    ];
   } catch {
     return [];
   }

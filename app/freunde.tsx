@@ -175,7 +175,8 @@ export default function FriendsScreen() {
                 <View key={`${c.code}-${c.mode}`} style={styles.row}>
                   <View style={styles.flex}>
                     <AppText variant="body" color={colors.onGoldSoft} numberOfLines={1}>
-                      {c.mode === "sprint" ? "⏱️" : "🛡️"} {t("friends.openRow", { name: c.name, n: c.correct })}
+                      {c.mode === "sprint" ? "⏱️" : c.mode === "survival" ? "🛡️" : "🎯"}{" "}
+                      {t(c.mode === "parcours" ? "friends.openRowPoints" : "friends.openRow", { name: c.name, n: c.correct })}
                     </AppText>
                     {/* Gleichstand: kurze eigene Zeile, damit nichts abgeschnitten wird */}
                     {c.tie && (
@@ -184,7 +185,18 @@ export default function FriendsScreen() {
                       </AppText>
                     )}
                   </View>
-                  <Button title={t("friends.go")} icon="play" onPress={() => race(c.mode, c.code)} />
+                  <Button
+                    title={t("friends.go")}
+                    icon="play"
+                    onPress={() =>
+                      c.mode === "parcours"
+                        ? router.push({
+                            pathname: "/runde",
+                            params: { mode: "parcours", level: String(c.level), friend: c.code },
+                          })
+                        : race(c.mode, c.code)
+                    }
+                  />
                 </View>
               ))}
             </View>
