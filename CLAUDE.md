@@ -153,3 +153,5 @@ wenig Deutsch, nie strafend.
   Edit-Tool setzen, danach `grep -c $'\x08'` prüfen.
 - Node-Edit-Skripte: `String.replace(a, b)` deutet `$'`/`$&` in b als Muster
   (SQL-Regex `…$'` zerstörte online.sql) – `split(a).join(b)` oder Funktion nutzen.
+- `\n` in i18n-Texten: Node-Skript aus Bash-Heredoc schrieb echte Umbrüche (tsc bricht
+  mit hunderten Fehlern ab) – solche Texte gleich mit dem Edit-Tool setzen.
