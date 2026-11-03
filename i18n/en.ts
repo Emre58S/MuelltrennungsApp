@@ -468,7 +468,7 @@ export const en: Translations = {
   "home.duelDesc": "Two players, one phone: who sorts faster?",
   "home.ghost": "Ghost",
   "home.ghostShort": "Ghost race",
-  "home.ghostDesc": "Play against your best run of today or challenge friends with a code",
+  "home.ghostDesc": "Play against your best run, today's top player or friends by code",
   "ghost.title": "Ghost race",
   "ghost.codeWhere": "🔑 Code from friends? Enter it under Online.",
   "ghost.rules": "10 items, the same for everyone today. Your best run flies along as a see-through ghost. Most correct wins – if tied, the faster one.",

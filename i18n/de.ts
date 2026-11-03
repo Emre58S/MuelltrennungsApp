@@ -467,7 +467,7 @@ export const de = {
   "home.duelDesc": "Zu zweit an einem Handy: Wer sortiert schneller richtig?",
   "home.ghost": "Ghost",
   "home.ghostShort": "Ghost-Rennen",
-  "home.ghostDesc": "Spiel gegen deinen besten Lauf von heute oder fordere Freunde per Code heraus",
+  "home.ghostDesc": "Spiel gegen deinen besten Lauf, den Besten des Tages oder Freunde per Code",
   "ghost.title": "Ghost-Rennen",
   "ghost.codeWhere": "🔑 Code von Freunden? Unter Online eingeben.",
   "ghost.rules": "10 Gegenstände, heute für alle gleich. Dein bester Lauf fliegt als durchsichtiger Ghost (Geist) mit. Mehr richtig gewinnt – bei Gleichstand der Schnellere.",
