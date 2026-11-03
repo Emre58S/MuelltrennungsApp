@@ -36,6 +36,7 @@ export default function OnlineScreen() {
 
   // Code eines Freundes: hier prüfen, dann direkt ins Rennen gegen den Lauf
   const [entering, setEntering] = useState(false);
+  const codeInput = useRef<TextInput>(null);
   const [draft, setDraft] = useState("");
   const [invalid, setInvalid] = useState<"invalid" | "update" | null>(null);
   const closeCode = () => {
@@ -123,11 +124,13 @@ export default function OnlineScreen() {
         title={t("ghost.code.enter")}
         desc={t("hub.code.desc")}
         // Öffnet nur – zu geht es mit „Abbrechen“ (eingefügter Text bleibt sonst erhalten)
-        onPress={() => setEntering(true)}
+        // Schon offen: Feld wieder in den Fokus (Tastatur kommt zurück)
+        onPress={() => (entering ? codeInput.current?.focus() : setEntering(true))}
       />
       {entering && (
         <View style={[styles.codeBox, { backgroundColor: colors.surface }]}>
           <TextInput
+            ref={codeInput}
             value={draft}
             onChangeText={(v) => {
               setDraft(v);
