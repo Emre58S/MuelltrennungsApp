@@ -14,7 +14,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { press, tapHaptic } from "@/components/ui/press";
 import { Star } from "@/components/game/hud";
-import { type Item } from "@/constants/items";
+import { type Item, ITEMS } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
 import { type BinDef } from "@/game/bins";
 import { type Station, stationStars } from "@/game/campaign";
@@ -500,7 +500,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 
 /** „Neue Tonne frei!“ – springt kurz auf (bei weniger Bewegung ruhig). */
 function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
-  const { t } = useI18n();
+  const { t, itemName } = useI18n();
   const { colors } = useAppTheme();
   const [pop] = useState(() => new Animated.Value(calm ? 1 : 0.6));
   // Vor dem Zeichnen klein setzen – sonst blitzt die Karte einen Frame groß auf
@@ -509,11 +509,17 @@ function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
     Animated.spring(pop, { toValue: 1, friction: 4, delay: 500, useNativeDriver: true }).start();
   }, [calm, pop]);
   const names = bins.map((b) => t(b.labelKey)).join(", ");
+  // Was gehört rein? Ein paar leichte Beispiele je Tonne
+  const examples = bins.map((b) => ITEMS.filter((i) => i.category === b.category && i.difficulty === "leicht").slice(0, 4));
+  const exampleNames = examples
+    .flat()
+    .map((i) => itemName(i))
+    .join(", ");
   return (
     <Animated.View
       accessible
       accessibilityLiveRegion="polite"
-      accessibilityLabel={`${t("campaign.newBinTitle")} ${names}. ${t("campaign.newBinHint")}`}
+      accessibilityLabel={`${t("campaign.newBinTitle")} ${names}. ${t("campaign.newBinExamples", { items: exampleNames })}. ${t("campaign.newBinHint")}`}
       style={[styles.newBin, { backgroundColor: colors.goldSoft, transform: [{ scale: pop }] }]}
     >
       <AppText variant="label" tone="onGoldSoft" center>
@@ -528,6 +534,11 @@ function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
           </View>
         ))}
       </View>
+      {examples.some((e) => e.length > 0) && (
+        <AppText variant="body" tone="onGoldSoft" center>
+          {t("campaign.newBinExamples", { items: examples.flat().map((i) => i.emoji).join(" ") })}
+        </AppText>
+      )}
       <AppText variant="caption" tone="onGoldSoft" center>
         {t("campaign.newBinHint")}
       </AppText>

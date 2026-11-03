@@ -126,6 +126,7 @@ export const de = {
   "game.levelUp": "Level {level}!",
   "game.newBin": "Neu: {bin} – ab jetzt in manchen Runden",
   "campaign.newBinTitle": "Neue Tonne frei!",
+  "campaign.newBinExamples": "Zum Beispiel: {items}",
   "campaign.newBinHint": "Ab der nächsten Station ist sie dabei.",
   "game.miss": "Daneben!",
   "game.near": "Knapp daneben!",

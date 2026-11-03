@@ -127,6 +127,7 @@ export const en: Translations = {
   "game.levelUp": "Level {level}!",
   "game.newBin": "New: {bin} – now in some rounds",
   "campaign.newBinTitle": "New bin unlocked!",
+  "campaign.newBinExamples": "For example: {items}",
   "campaign.newBinHint": "It joins from the next stage.",
   "game.miss": "Missed!",
   "game.near": "So close!",
