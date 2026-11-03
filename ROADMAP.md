@@ -371,6 +371,16 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   Kollision mit Trick-Level 1); eigener Aufgabentext „Wirf, wenn es vor
   deiner Tonne ist“ (DE/EN); `props` der Spuren teilen sich ein Array –
   in der Runde nicht verändern.
+  - [x] Teil 1 (b27fbe3 + bed0063, Tester 7/10, EAS auto – preview vom Nutzer
+    abgelehnt/übersprungen): `/runde?mode=parcours&level=N` (components/game/parcours-round.tsx,
+    game/parcours.ts +Tests): Abschnitt „Parcours“ auf der Trick-Seite (4 Karten mit Zeit +
+    Bestwert), Startkarte mit Regeln, Gegenstände aller Tonnen aus dem Tages-Seed
+    (`parcours-N`), Zeit je Parcours (`seconds`: 30/20/25/25), Punkte falsch 0 · richtig 1 ·
+    Trick 3 · Swish +1 (nur mit Trick), Hinweis „falsches Trampolin“/„anderes Loch“, Tipp
+    `tip.flapAll`, Endkarte mit Bestwert (StorageKeys.PARCOURS_BEST).
+  - Offen: App im Hintergrund – Uhr zeigt 0 s, „Zeit um“ kommt erst danach (setTimeout);
+    Abstand zum Bestwert auf der Endkarte; Lernkarte statt nur „Gehört in“; Startzeit der
+    Szenen-Uhr für den Ghost (R4c) mitschreiben; Parcours in Kampagne/Online einbinden.
 - [x] **R5-Vorlauf (Emre, 02.11.)**: Zielen genauer – Vorschau zeigt beim Halten die
   ganze Bahn bis zur ersten Berührung + pulsierenden Aufprall-Ring; 🎲 Zufalls-Trick
   auf der Trick-Seite (nur geprüfte Level/Vorlagen, teils gespiegelt, ohne Sterne);
