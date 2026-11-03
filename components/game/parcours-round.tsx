@@ -11,10 +11,11 @@ import { type BinDef, getItemsForBins, STANDARD_BINS } from "@/game/bins";
 import { computeLayout, shotLanding } from "@/game/layout";
 import { type FreeShot, FULL_SWIPE_SHARE } from "@/game/logic";
 import { itemMass, itemMaterial, MASS_FEEL } from "@/game/item-mass";
-import { decodeParcours, encodeParcours, type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
+import { dailyParcoursId, decodeParcours, encodeParcours, type ParcoursRun, parcoursPoints, parcoursQueue, parseParcoursRun } from "@/game/parcours";
 import {
   levelColliders,
   meetsRequirement,
+  PARCOURS,
   type ParcoursLevel,
   parcoursLane,
 } from "@/game/trick-levels";
@@ -25,7 +26,8 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { fetchRandomParcoursRun, submitParcoursRun } from "@/utils/leaderboard";
+import { fetchRandomParcoursRun, leaderboardReady, submitParcoursRun } from "@/utils/leaderboard";
+import { router } from "expo-router";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { usableSkin, usableTrail } from "@/game/rewards";
 import {
@@ -152,6 +154,10 @@ export function ParcoursRound({
   const [rival, setRival] = useState<string | null>(null);
   /** Suche nach dem Gegner läuft (nur Hinweis auf der Startkarte). */
   const [searching, setSearching] = useState(false);
+  /** Parcours des Tages – nur der hat eine Rangliste (Reiter „Parcours des Tages“). */
+  const isDaily = dailyParcoursId(day, PARCOURS.map((p) => p.id)) === level.id;
+  // Sperre gegen Doppeltippen (sonst zwei Ranglisten übereinander)
+  const rankLock = useRef(0);
   /** Punkte des gespeicherten Laufs von heute – auch, wenn er erst nach dem Start geladen ist. */
   const todayRef = useRef(0);
   /** Eigener Lauf: Punktestand nach jedem Treffer (wird ggf. neuer Ghost). */
@@ -611,6 +617,18 @@ export function ParcoursRound({
                 </AppText>
               )}
               <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
+              {leaderboardReady && isDaily && result.points > 0 && (
+                <Button
+                  title={t("home.rank")}
+                  icon="award"
+                  variant="secondary"
+                  onPress={() => {
+                    if (Date.now() < rankLock.current) return;
+                    rankLock.current = Date.now() + 900;
+                    router.push({ pathname: "/rangliste", params: { tab: "parcours" } });
+                  }}
+                />
+              )}
               <Button title={t("parcours.overview")} variant="secondary" onPress={onExit} />
             </View>
           </View>
