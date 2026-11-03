@@ -82,6 +82,15 @@ export function decodeParcours(code: string): ParcoursRun | null {
   return { points: total, hits };
 }
 
+/** Dieselbe Prüfung wie der Server (supabase/parcours.sql): höchstens 31 s
+ *  insgesamt und höchstens ein Treffer je halbe Sekunde. */
+export function parcoursCodePlausible(code: string): boolean {
+  const run = decodeParcours(code);
+  if (!run) return false;
+  const ds = Math.round((run.hits[run.hits.length - 1]?.[0] ?? 0) / 100);
+  return ds <= 310 && run.hits.length <= 1 + Math.floor(ds / 5);
+}
+
 export type ParcoursThrow = {
   /** In der richtigen Tonne gelandet. */
   correct: boolean;

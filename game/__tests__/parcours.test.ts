@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from "@jest/globals";
 
-import { dailyParcoursId, decodeParcours, encodeParcours, ghostPointsAt, parseParcoursRun, PARCOURS_ITEMS, parcoursPoints, parcoursQueue } from "../parcours";
+import { dailyParcoursId, decodeParcours, encodeParcours, parcoursCodePlausible, ghostPointsAt, parseParcoursRun, PARCOURS_ITEMS, parcoursPoints, parcoursQueue } from "../parcours";
 import { PARCOURS } from "../trick-levels";
 
 describe("Parcours-Runde", () => {
@@ -61,5 +61,16 @@ describe("Parcours-Runde", () => {
     expect(decodeParcours("")).toBeNull();
     expect(decodeParcours("5aa")).toBeNull();
     expect(decodeParcours("1a")).toBeNull();
+  });
+
+  test("Server-Prüfung: echte Läufe gehen durch, erfundene nicht", () => {
+    // Echt: alle ~1,2 s ein Treffer, letzter (späte Landung) bei 30 s
+    const hits: [number, number][] = [];
+    for (let i = 1; i <= 24; i++) hits.push([Math.min(i * 1240, 30000), i * 3]);
+    expect(parcoursCodePlausible(encodeParcours({ points: 72, hits }))).toBe(true);
+    // Erfunden: 100 Treffer mit je 4 Punkten in 0 s
+    expect(parcoursCodePlausible("400".repeat(100))).toBe(false);
+    // Zu lang (über 31 s)
+    expect(parcoursCodePlausible(encodeParcours({ points: 1, hits: [[40000, 1]] }))).toBe(false);
   });
 });

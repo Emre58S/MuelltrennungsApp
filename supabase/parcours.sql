@@ -38,6 +38,7 @@ set search_path = public
 as $$
 declare
   v_sum integer;
+  v_ds integer;
 begin
   if not exists (select 1 from players where id = p_player) then
     raise exception 'unbekannter Spieler';
@@ -50,6 +51,17 @@ begin
   from generate_series(0, length(p_code) / 3 - 1) as i;
   if v_sum <> p_points then
     raise exception 'Punkte passen nicht';
+  end if;
+  -- Zeiten (Zehntelsekunden, 2 Zeichen Basis 36): ein Parcours dauert höchstens
+  -- 30 s (späte Landungen zählen mit 30 s), und jeder Wurf fliegt eine Weile –
+  -- mehr als ein Treffer je halbe Sekunde geht nicht (gegen erfundene Läufe)
+  select sum(
+    (strpos('0123456789abcdefghijklmnopqrstuvwxyz', substr(lower(p_code), i * 3 + 2, 1)) - 1) * 36
+    + strpos('0123456789abcdefghijklmnopqrstuvwxyz', substr(lower(p_code), i * 3 + 3, 1)) - 1
+  ) into v_ds
+  from generate_series(0, length(p_code) / 3 - 1) as i;
+  if v_ds > 310 or length(p_code) / 3 > 1 + v_ds / 5 then
+    raise exception 'Zeiten passen nicht';
   end if;
   -- nur heute (±1 Tag wegen Zeitzonen)
   if p_day !~ '^\d{4}-\d{2}-\d{2}$' or p_day::date not between current_date - 1 and current_date + 1 then
