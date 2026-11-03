@@ -299,6 +299,7 @@ export const de = {
   "parcours.best": "Bestwert: {n}",
   "parcours.ghost": "👻 {name}: {n}",
   "parcours.ghostLead": "👻 {name}: {n} · du +{d}",
+  "parcours.lead": "du +{d}",
   "parcours.ghostWon": "👻 Geschlagen: {name} ({n})",
   "parcours.ghostTie": "👻 Gleichstand mit {name}: {n}",
   "parcours.ghostBehind": "👻 {name}: {n} · noch {gap} Punkte",
