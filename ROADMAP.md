@@ -489,7 +489,8 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     160 ms später (TipCard `delay`; 63fcfee + c750d62, Tester 8/10) – kein Überlappen.
   - Offen:
     Lernkarte statt nur „Gehört in“; Startzeit der Szenen-Uhr für den Ghost (R4c)
-    mitschreiben; Parcours in Kampagne einbinden (Online: ✓ R4c Teil 1).
+    mitschreiben. Parcours eingebunden: Online ✓ (R4c Teil 1), Kampagne ✓ (Station
+    „Parcours des Tages“ am Ende der letzten Welt, 2a46fff + 976988f, Tester 7/10).
   - [x] Wisch nach Ablauf: kräftiger Stoß (nicht die Fehlwurf-Warnung); Bestwert-Zeile der
     Endkarte ohne 🏆 vorgelesen (16d1700 + 82712ea, Tester 8/10, EAS auto + preview).
 - [x] **R5-Vorlauf (Emre, 02.11.)**: Zielen genauer – Vorschau zeigt beim Halten die
