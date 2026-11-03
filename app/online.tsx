@@ -15,9 +15,9 @@ import { HubCard, HubScreen } from "@/components/ui/hub";
 import { Radius, Spacing } from "@/constants/theme";
 import { readCode } from "@/game/ghost-track";
 import { dailyParcoursId } from "@/game/parcours";
-import { PARCOURS } from "@/game/trick-levels";
+import { levelIcons, PARCOURS } from "@/game/trick-levels";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
-import { getBoolean, setBoolean, StorageKeys, todayKey } from "@/utils/storage";
+import { getBoolean, getParcoursBest, setBoolean, StorageKeys, todayKey } from "@/utils/storage";
 
 export default function OnlineScreen() {
   const { t } = useI18n();
@@ -28,6 +28,7 @@ export default function OnlineScreen() {
     const id = dailyParcoursId(todayKey(), PARCOURS.map((p) => p.id));
     return PARCOURS.find((p) => p.id === id) ?? PARCOURS[0];
   });
+  const [parcoursBest, setParcoursBest] = useState(0);
 
   // Code eines Freundes: hier prüfen, dann direkt ins Rennen gegen den Lauf
   const [entering, setEntering] = useState(false);
@@ -59,10 +60,13 @@ export default function OnlineScreen() {
       getBoolean(StorageKeys.SEEN_DUEL, false)
         .then((seen) => active && setSeenDuel(seen))
         .catch(() => undefined);
+      getParcoursBest()
+        .then((best) => active && setParcoursBest(best[today.id] ?? 0))
+        .catch(() => undefined);
       return () => {
         active = false;
       };
-    }, []),
+    }, [today.id]),
   );
 
   return (
@@ -88,10 +92,11 @@ export default function OnlineScreen() {
       />
       <HubCard
         index={2}
-        emoji="🎯"
+        emoji={levelIcons(today)[0] ?? "🎯"}
         color="#F06BA8"
         title={t("hub.parcours.title")}
-        desc={t("hub.parcours.desc", { n: today.id, s: today.seconds })}
+        desc={t("hub.parcours.desc", { task: t(today.task), s: today.seconds })}
+        info={parcoursBest > 0 ? `🏆 ${parcoursBest}` : null}
         onPress={() => router.push({ pathname: "/runde", params: { mode: "parcours", level: String(today.id) } })}
       />
       <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
