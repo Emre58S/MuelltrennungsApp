@@ -164,6 +164,8 @@ export function ParcoursRound({
   const [rival, setRival] = useState<string | null>(null);
   /** Suche nach dem Gegner läuft (nur Hinweis auf der Startkarte). */
   const [searching, setSearching] = useState(false);
+  /** Suche ohne Ergebnis – Hinweis „spiel vor“ auf der Startkarte. */
+  const [noRival, setNoRival] = useState(false);
   /** Freund herausgefordert: hat heute noch nicht gespielt (Name) bzw. Lauf kam nicht an. */
   const [friendNoRun, setFriendNoRun] = useState<string | null>(null);
   const [friendLost, setFriendLost] = useState(false);
@@ -216,6 +218,8 @@ export function ParcoursRound({
           const decoded = other ? decodeParcours(other.code) : null;
           // Lauf des Freundes da, aber nicht lesbar → wie „kam nicht an“
           if (friend && other && !decoded) setFriendLost(true);
+          // Kein Gegner da (oder offline): kurz sagen, warum der eigene Ghost bleibt
+          if (!friend && !other && leaderboardReady) setNoRival(true);
           // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
           if (!other || !decoded || phaseRef.current !== "ready") return;
           ghostRef.current = decoded;
@@ -619,6 +623,11 @@ export function ParcoursRound({
                         points: t("parcours.points", { n: ghost.points }),
                       })
                     : `${t("parcours.ghostInfo")} (${t("parcours.points", { n: ghost.points })})`}
+                </AppText>
+              )}
+              {noRival && (
+                <AppText variant="caption" tone="textSecondary" center>
+                  {t("parcours.noRival")}
                 </AppText>
               )}
               {friendNoRun && (
