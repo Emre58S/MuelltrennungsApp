@@ -473,7 +473,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     dann aus der Szene nehmen, „daneben“ nicht in Bildmitte, Unit-Test.
   - [x] Start-/Endkarte scrollbar, wenn zu hoch; oben Platz für X (fba6aa5 + cab0431,
     Tester 8/10, EAS auto + preview).
-  - Offen: Lernkarte beim Wurf weich ausblenden (außer „Weniger Bewegung“);
+  - [x] Lernkarte blendet beim Wurf weich aus (Reanimated FadeOut 160 ms, außer „Weniger
+    Bewegung“; b623cec + b7f9f5a, Tester 8/10, EAS auto + preview). Offen: Tipp-Karte kann
+    kurz mit der ausblendenden Lernkarte überlappen (FadeIn/Verzögerung).
+  - Offen:
     Lernkarte statt nur „Gehört in“; Startzeit der Szenen-Uhr für den Ghost (R4c)
     mitschreiben; Parcours in Kampagne einbinden (Online: ✓ R4c Teil 1).
   - [x] Wisch nach Ablauf: kräftiger Stoß (nicht die Fehlwurf-Warnung); Bestwert-Zeile der
