@@ -274,7 +274,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     in game/parcours.ts +Test), startet `/runde?mode=parcours&level=N`, zurück in Online.
   - [x] Teil 2 (d77733e + 80a9135, Tester 7/10, EAS auto + preview): Karte zeigt Symbol
     des Parcours, „Heute: {Aufgabe} · N Sekunden“ und „Bestwert: N“ (statt „Parcours 2“).
-  - Offen: „Sortieren + tricksen“ wieder im Kartentext (ohne zu lang zu werden); Vergleich
+  - [x] Kartentext „Sortieren mit Trickwurf, N Sekunden. / Heute: {Aufgabe}“ (e68a5a2 +
+    04fdf57, Tester 7/10, EAS auto + preview). Offen: Abschnitt „Parcours: sortieren +
+    tricksen“ auf der Trick-Seite ebenso einfacher.
+  - Offen: Vergleich
     mit Freunden/Rangliste für den Parcours des Tages; Karte über Mitternacht offen
     → zeigt gestrigen Parcours; Gegner-Ghost (Startzeit der Szenen-Uhr mitschreiben).
   - [x] Teil 3 (591987e + ebec2db, Tester 8/10, EAS auto + preview): eigener bester Lauf
