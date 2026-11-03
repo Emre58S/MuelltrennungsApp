@@ -641,6 +641,29 @@ export function ParcoursHud({
   );
 }
 
+/** Regeln einer Startkarte: je Zeile Symbol + Text, Symbole untereinander, Text
+ *  linksbündig (Zeilen „🎯 Text“, durch \n getrennt). Der Block steht mittig. */
+export function RuleLines({ text }: { text: string }) {
+  return (
+    <View style={styles.rules}>
+      {text.split("\n").map((line, i) => {
+        const space = line.indexOf(" ");
+        const icon = space > 0 && space <= 4 ? line.slice(0, space) : "";
+        return (
+          <View key={i} style={styles.ruleRow}>
+            <AppText variant="body" style={styles.ruleIcon} importantForAccessibility="no">
+              {icon}
+            </AppText>
+            <AppText variant="body" tone="textSecondary" style={styles.ruleText}>
+              {icon ? line.slice(space + 1) : line}
+            </AppText>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 /** Ein Stern, der nacheinander „aufploppt“. */
 export function Star({ filled, delay, n }: { filled: boolean; delay: number; n: 1 | 2 | 3 }) {
   const pop = useEnter(380, Easing.out(Easing.back(2.4)), delay);
@@ -819,6 +842,10 @@ const shadow = {
 };
 
 const styles = StyleSheet.create({
+  rules: { alignSelf: "center", maxWidth: "100%", gap: 2 },
+  ruleRow: { flexDirection: "row", alignItems: "flex-start", gap: Spacing.sm },
+  ruleIcon: { width: 26, textAlign: "center" },
+  ruleText: { flexShrink: 1 },
   flexShrink: { flexShrink: 1 },
   bold: { fontFamily: FontFamily.bold },
   tabular: { fontVariant: ["tabular-nums"] },

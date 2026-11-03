@@ -38,7 +38,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Countdown, PLAYER, ScoreChip, Tug } from "@/components/game/duel-round";
 import { createFx, shake } from "@/components/game/fx";
 import { SceneCanvas } from "@/components/game/game-round";
-import { Banner, FloatingText, type FloatText, ItemCard } from "@/components/game/hud";
+import { Banner, FloatingText, type FloatText, ItemCard, RuleLines } from "@/components/game/hud";
 import {
   createBus,
   queueBinEvent,
@@ -599,9 +599,7 @@ export function SprintRound({
             <AppText variant="title" style={styles.center}>
               {KIND[kind].emoji} {t(`${kind}.title`)}
             </AppText>
-            <AppText variant="body" tone="textSecondary" style={styles.center}>
-              {t(`${kind}.rules`)}
-            </AppText>
+            <RuleLines text={t(`${kind}.rules`)} />
             <View style={[styles.pill, { backgroundColor: PLAYER[1].color }]}>
               <AppText variant="label" color={PLAYER[1].on} style={styles.center}>
                 {vsRival

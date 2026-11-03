@@ -45,7 +45,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { cancelSlowMotion, createFx } from "./fx";
 import { SceneCanvas } from "./game-round";
-import { FloatingText, type FloatText, ItemCard, LearnCard, ParcoursHud, TipCard } from "./hud";
+import { FloatingText, type FloatText, ItemCard, LearnCard, ParcoursHud, RuleLines, TipCard } from "./hud";
 import { useLater } from "./round-hooks";
 import { type TipId, useTips } from "./tips";
 import { beginThrow, createThrowInput, previewShot, releaseShot, stepClick } from "./throw-input";
@@ -511,9 +511,7 @@ export function ParcoursRound({
               <AppText variant="label" center>
                 {t(level.task)}
               </AppText>
-              <AppText variant="body" tone="textSecondary" center>
-                {t("parcours.rules")}
-              </AppText>
+              <RuleLines text={t("parcours.rules")} />
               <AppText variant="label" tone="textSecondary" center>
                 {t("parcours.time", { n: level.seconds })}
                 {best > 0 ? ` · ${t("parcours.best", { n: best })}` : ""}
