@@ -464,7 +464,11 @@ export function SprintRound({
           y: BIN_OPENING_Y + 0.15,
           z: layout.bins[bin].z + 0.1,
           // Spielerfarbe + Funken je Material; Flugart wie im Hauptspiel (Bio spritzt, Glas splittert …)
-          colors: [PLAYER[0].color, "#FFFFFF", "#FFD54A", ...MATERIAL_SPARKS[itemMaterial(it)]],
+          // Bio-Spritzer bleiben erdig (wie im Hauptspiel)
+          colors:
+            MATERIAL_BURST[itemMaterial(it)] === "splash"
+              ? MATERIAL_SPARKS[itemMaterial(it)]
+              : [PLAYER[0].color, "#FFFFFF", "#FFD54A", ...MATERIAL_SPARKS[itemMaterial(it)]],
           count: 22,
           power: 1.1,
           ring: true,
