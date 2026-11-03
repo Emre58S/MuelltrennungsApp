@@ -186,6 +186,8 @@ export function SprintRound({
   const [vsOwn, setVsOwn] = useState(false);
   /** Suche läuft noch (nur mit eingerichtetem Server) – ruhiger Hinweis statt Springen. */
   const [searching, setSearching] = useState(leaderboardReady);
+  /** Ghost für die Zeitgeber der Runde (nach jedem Zeichnen aktuell, siehe unten). */
+  const ghostRef = useRef({ ghost: practice, ghostName: "" });
   useEffect(() => {
     if (!loaded) return;
     let alive = true;
@@ -200,7 +202,10 @@ export function SprintRound({
         // Nur bis zum Ende des 3-2-1 übernehmen – danach fliegt schon der bisherige Ghost
         if (!alive || !found || !throws || (phaseRef.current !== "ready" && phaseRef.current !== "countdown")) return;
         const run = survival ? survivalRun(day, throws, found.ms ?? 0) : sprintRun(day, throws);
-        if (run.throws.length > 0) setRival({ name: found.name, run });
+        if (run.throws.length === 0) return;
+        // Sofort auch für den Anpfiff merken – kommt er vor dem nächsten Zeichnen, fliegt sonst der alte Ghost
+        ghostRef.current = { ghost: run, ghostName: found.name };
+        setRival({ name: found.name, run });
       })
       .catch(() => undefined)
       .finally(() => alive && setSearching(false));
@@ -213,8 +218,7 @@ export function SprintRound({
   const vsRival = !!rival && !vsOwn;
   const ghost = vsRival ? rival.run : (best ?? practice);
   const ghostName = vsRival ? rival.name : best ? t("ghost.name") : t("ghost.practiceName");
-  // Zeitgeber lesen den Ghost erst beim Anpfiff – ein Gegner, der im 3-2-1 ankommt, fliegt mit
-  const ghostRef = useRef({ ghost, ghostName });
+  // Zeitgeber lesen den Ghost erst beim Anpfiff (ghostRef) – ein Gegner, der im 3-2-1 ankommt, fliegt mit
   useEffect(() => {
     ghostRef.current = { ghost, ghostName };
   });
