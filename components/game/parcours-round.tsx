@@ -116,6 +116,8 @@ export function ParcoursRound({
   const over = useRef(false);
   const busy = useRef(false);
   const thrownRef = useRef<Item | null>(null);
+  /** Id des Wurfs in der Luft (0 = keiner) – späte oder doppelte Landungen zählen nicht. */
+  const flightRef = useRef(0);
   const ids = useRef(0);
   const input = useRef(createThrowInput());
   const [points, setPoints] = useState(0);
@@ -231,6 +233,11 @@ export function ParcoursRound({
       free: { accept: bins.map((b) => b.category === current.category), center: shot.perfect },
     };
     queueThrow(bus.current, spec);
+    flightRef.current = spec.id;
+    // Sicherheitsnetz: meldet die Szene keine Landung, zählt der Wurf als daneben
+    later(() => {
+      if (flightRef.current === spec.id) handlers.current.land(spec.id);
+    }, 8000);
     setItem(null);
     sfx("throw");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
@@ -248,7 +255,9 @@ export function ParcoursRound({
     return t("trick.noTrick");
   };
 
-  const handleLand = (_id: number, outcome?: LandOutcome) => {
+  const handleLand = (id: number, outcome?: LandOutcome) => {
+    if (id !== flightRef.current) return;
+    flightRef.current = 0;
     busy.current = false;
     const thrown = thrownRef.current;
     if (!thrown) return;
