@@ -215,6 +215,7 @@ export const de = {
   "friends.loading": "Lade Lauf deines Freundes …",
   "friends.open": "Heute offen – schlag deine Freunde",
   "friends.openRow": "{name}: {n} richtig",
+  "friends.openRowTie": "{name}: {n} richtig · Gleichstand – einer mehr gewinnt!",
   "friends.go": "Antreten",
   "friends.runLost": "Der Lauf deines Freundes kam nicht an. Du spielst gegen den Ghost oben.",
   "friends.noRun": "{name} hat heute noch nicht gespielt. Spiel vor – dann kann {name} gegen dich antreten.",

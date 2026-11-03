@@ -383,7 +383,14 @@ export async function fetchFriendRun(friendCode: string, mode: OnlineMode, day: 
   }
 }
 
-export type OpenChallenge = { name: string; code: string; mode: OnlineMode; correct: number };
+export type OpenChallenge = {
+  name: string;
+  code: string;
+  mode: OnlineMode;
+  correct: number;
+  /** Gleich viele wie mein Bestes (> 0) – einer mehr gewinnt. */
+  tie: boolean;
+};
 
 /** Offen = Freund hat heute mindestens so viele richtig wie mein Bestes von heute
  *  (noch nicht gespielt zählt als 0). */
@@ -392,7 +399,7 @@ export function openChallenges(rows: Friend[], mine: Record<OnlineMode, number>)
   for (const f of rows) {
     for (const mode of ["sprint", "survival"] as const) {
       const n = f[mode];
-      if (n != null && n >= mine[mode]) out.push({ name: f.name, code: f.code, mode, correct: n });
+      if (n != null && n >= mine[mode]) out.push({ name: f.name, code: f.code, mode, correct: n, tie: n > 0 && n === mine[mode] });
     }
   }
   return out;

@@ -107,8 +107,8 @@ describe("Offene Herausforderungen (Freunde)", () => {
       { name: "Ben", code: "BBBBBB", sprint: 8, survival: 5 },
     ];
     expect(openChallenges(rows, { sprint: 10, survival: 5 })).toEqual([
-      { name: "Anna", code: "AAAAAA", mode: "sprint", correct: 12 },
-      { name: "Ben", code: "BBBBBB", mode: "survival", correct: 5 },
+      { name: "Anna", code: "AAAAAA", mode: "sprint", correct: 12, tie: false },
+      { name: "Ben", code: "BBBBBB", mode: "survival", correct: 5, tie: true },
     ]);
     // Noch nicht gespielt (0) → alles offen; alles geschlagen → nichts
     expect(openChallenges(rows, { sprint: 0, survival: 0 })).toHaveLength(3);
