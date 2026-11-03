@@ -3,7 +3,15 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., 15:42–18:50, Normalmodus, Takt 3 Zyklen + 10 min Pause):**
+**Letzter Lauf (3.11., 19:03–20:06, Normalmodus, Takt 3 Zyklen + 10 min Pause):**
+parcours.sql vom Nutzer ausgeführt (Server antwortet). Zyklen 34–40: Kampagne-Station
+„Parcours des Tages“ (Ende letzte Welt), Material-Effekte im Parcours + Sprint/Survival
+(R6b Teil 3/4), gesperrte Trick-Schule antwortet, Trick-Schule-Sterne lesbar + EN-Text,
+Startschirm-Hinweis „⚔️ Name fordert dich heraus“ (R1c) – je 7–8/10, auf auto + preview.
+**Verworfen:** gesperrte Stationspunkte mit Hinweis (2× 6/10, Zweig
+`verworfen-gesperrte-station`). Nächstes: R5e, R4d-Rest (Seed der Woche), R7 zuletzt.
+
+**Lauf davor (3.11., 15:42–18:50, Normalmodus, Takt 3 Zyklen + 10 min Pause):**
 18 Zyklen (16–33), alle freigegeben (8/10), auf auto + preview (2 nur SQL/Test → ohne EAS):
 Trick-Battle online – **supabase/parcours.sql (Nutzer muss es ausführen, nach
 rangliste.sql + freunde.sql)**: Läufe an den Server, Gegner von heute als Ghost,
