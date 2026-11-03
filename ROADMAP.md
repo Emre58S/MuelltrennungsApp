@@ -256,8 +256,11 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     Gegner = eigener Bestlauf von heute oder Übungs-Ghost (scheidet bei 10/11 aus).
   - [x] Teil 2 (c1d847e→9871e74, Tester 7/10, EAS auto + preview): Zeitbalken je
     Gegenstand blendet im letzten Drittel in festes Rot (#E53935) über (nativ animiert).
-  - Offen: Freund herausfordern (R4e Teil 2); Uhr läuft hinter dem Beenden-Dialog weiter
-    (auch Sprint); Balken im letzten Drittel evtl. dicker (Rot-Grün-Schwäche).
+  - [x] Beenden-Dialog (a9c654a + bc075ce, Tester 7/10, EAS auto + preview): Uhr läuft
+    bewusst weiter (sonst Bedenkzeit → unfair online), Text sagt „Die Zeit läuft weiter“;
+    endet der Lauf bei offenem Dialog, zählt er, „Beenden“ zeigt dann das Ergebnis.
+  - Offen: Balken im letzten Drittel evtl. dicker (Rot-Grün-Schwäche); Survival: Hinweis,
+    dass man bei offenem Dialog „zu langsam“ ausscheiden kann.
 - [ ] **R4c** Trick-Battle (braucht R5): beide spielen denselben Parcours mit
   denselben Gegenständen (Seed), Zeit je Parcours 20–30 s, Punkte wie in R5
   (falsch 0 · richtig 1 · Trick 3 · Swish +1) – Sortieren entscheidet mit.
