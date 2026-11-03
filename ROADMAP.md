@@ -302,6 +302,12 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     nach Ablauf zählt der ganze Ghost-Lauf.
     Offen: „du +D“ in Gold?;
     Ghost des Gegners/Freundes (Server).
+  - [x] Teil 7 (ee33074, Tester 8/10, EAS auto + preview): jeder Parcours-Lauf mit Punkten
+    geht als Code (encodeParcours: Punkte + Zeitabstand je Treffer) an
+    **supabase/parcours.sql – Nutzer muss es ausführen** (Tabelle parcours_runs, prüft
+    Punkte = Summe im Code; Funktionen random_parcours_run, parcours_top schon dabei).
+    Offen: Zeiten im SQL prüfen (Summe ≤ ~35 s, Abstand ≥ 1 Zehntel) gegen Fälschungen;
+    Sende-Promise merken (Rangliste direkt danach).
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
