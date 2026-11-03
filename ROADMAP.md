@@ -136,8 +136,8 @@ JS-Änderungen per EAS-Update nachkommen.
   Flamme, Tagesaufgabe, Tagesbester (Ghost). (fef2152, Tester 8/10.) Offen: eingehende
   Herausforderungen ✓ als Stufe 5 „⚔️ {name} fordert dich heraus – Online → Freunde“
   (731dcb0, Tester 8/10, EAS auto + preview; Karte „Rekord & Freunde“ heißt jetzt
-  „Ghost-Rennen“, Hinweis-Weg angepasst – 9a8c157 + cf453f7, Tester 8/10; Offen: Abfragen
-  beim Fokus zwischenspeichern; Schlüssel `home.ghost` evtl. ungenutzt);
+  „Ghost-Rennen“, Hinweis-Weg angepasst – 9a8c157 + cf453f7, Tester 8/10; Abfragen
+  beim Fokus 1 min gemerkt ✓ (432792b, Tester 8/10); Offen: Schlüssel `home.ghost` evtl. ungenutzt);
   Text springt bei langsamem Netz kurz um.
 - [x] **R1d** Code-Eingabe für Herausforderungen in den Online-Bereich verlegen
   (a06f16c + a5494c2, Tester 5/10 → 8/10): Karte 🔑 in Online, Code geprüft →
