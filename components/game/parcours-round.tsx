@@ -437,6 +437,16 @@ export function ParcoursRound({
   const itemTagTop = layout.item.screen.y + screenW * 0.15 + 4;
   const tipTop = Math.max(0, ...layout.binRects.map((r) => r.y + r.h)) + 10;
   const title = t("parcours.title", { n: level.id });
+  const ghostGap = ghost && result ? ghost.points - result.points : 0;
+  const ghostLine =
+    !ghost || !result
+      ? null
+      : ghostGap < 0
+        ? t("parcours.ghostWon", { n: ghost.points })
+        : ghostGap === 0
+          ? t("parcours.ghostTie", { n: ghost.points })
+          : t(ghostGap === 1 ? "parcours.ghostBehindOne" : "parcours.ghostBehind", { n: ghost.points, gap: ghostGap });
+
   return (
     <GestureDetector gesture={gesture}>
       <View style={[styles.root, { width: screenW, height: screenH }]}>
@@ -540,19 +550,24 @@ export function ParcoursRound({
                   {result.points > result.best && result.points > 0
                     ? t("parcours.newBest")
                     : result.best > result.points
-                      ? t("parcours.gap", { n: result.best, gap: result.best - result.points })
+                      ? t(result.best - result.points === 1 ? "parcours.gapOne" : "parcours.gap", {
+                          n: result.best,
+                          gap: result.best - result.points,
+                        })
                       : result.best > 0
                         ? t("parcours.sameBest", { n: result.best })
                         : t("parcours.tryAgain")}
                 </AppText>
               )}
-              {ghost && (
-                <AppText variant="label" tone={result.points > ghost.points ? "gold" : "textSecondary"} center>
-                  {result.points > ghost.points
-                    ? t("parcours.ghostWon", { n: ghost.points })
-                    : result.points === ghost.points
-                      ? t("parcours.ghostTie", { n: ghost.points })
-                      : t("parcours.ghostBehind", { n: ghost.points, gap: ghost.points - result.points })}
+              {ghostLine !== null && ghost && (
+                <AppText
+                  variant="label"
+                  tone={result.points > ghost.points ? "gold" : "textSecondary"}
+                  center
+                  // Screenreader ohne Emoji
+                  accessibilityLabel={ghostLine.replace("👻", "").trim()}
+                >
+                  {ghostLine}
                 </AppText>
               )}
               <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
