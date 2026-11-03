@@ -553,12 +553,13 @@ export function ParcoursRound({
                 {t("parcours.time", { n: level.seconds })}
                 {best > 0 ? ` · ${t("parcours.best", { n: best })}` : ""}
               </AppText>
+              {/* Während der Suche nur diese Zeile – sonst springt die Karte zweimal */}
               {searching && !rival && (
                 <AppText variant="caption" tone="textMuted" center>
                   {t("parcours.rivalSearch")}
                 </AppText>
               )}
-              {ghost && (
+              {ghost && !searching && (
                 <AppText variant="caption" tone="textSecondary" center>
                   {rival
                     ? t("parcours.rivalInfo", { name: rival, points: t("parcours.points", { n: ghost.points }) })
