@@ -597,8 +597,9 @@ export function ParcoursRound({
         )}
         {phase === "ready" && (
           <View
+            // Oben Platz für den X-Knopf (Runde verlassen), auch wenn die Karte voll ist
             pointerEvents="box-none"
-            style={[styles.cover, { paddingTop: insets.top + Spacing.md, paddingBottom: insets.bottom + Spacing.lg }]}
+            style={[styles.cover, { paddingTop: insets.top + 64, paddingBottom: insets.bottom + Spacing.lg }]}
           >
             {/* Scrollt nur, wenn die Karte zu hoch wird (kleines iPhone, große Schrift) */}
             <ScrollView style={styles.cardScroll} bounces={false} showsVerticalScrollIndicator={false}>
