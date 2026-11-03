@@ -306,8 +306,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     geht als Code (encodeParcours: Punkte + Zeitabstand je Treffer) an
     **supabase/parcours.sql – Nutzer muss es ausführen** (Tabelle parcours_runs, prüft
     Punkte = Summe im Code; Funktionen random_parcours_run, parcours_top schon dabei).
-    Offen: Zeiten im SQL prüfen (Summe ≤ ~35 s, Abstand ≥ 1 Zehntel) gegen Fälschungen;
-    Sende-Promise merken (Rangliste direkt danach).
+    Zeiten prüft der Server seit Teil 15 (96e1d33, Tester 8/10: ≤ 31 s, ≤ 1 Treffer je
+    0,5 s; TS-Spiegel parcoursCodePlausible – hängt an der 250-ms-Pause nach Treffern;
+    **parcours.sql erneut ausführen**). Sende-Promise: ✓ Teil 10.
   - [x] Teil 8 (94e1420, Tester 8/10, EAS auto + preview): Gegner von heute (Server,
     random_parcours_run, ähnliche Punkte) ersetzt vor dem Start den eigenen Ghost; Name in
     Kopfleiste/Endkarte, Startkarte „🌍 Gegner von heute: Name (Punkte: N)“.
