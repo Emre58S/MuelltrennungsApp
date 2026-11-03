@@ -162,10 +162,17 @@ export default function FriendsScreen() {
               </AppText>
               {open.map((c) => (
                 <View key={`${c.code}-${c.mode}`} style={styles.row}>
-                  <AppText variant="body" color={colors.onGoldSoft} style={styles.flex} numberOfLines={c.tie ? 2 : 1}>
-                    {c.mode === "sprint" ? "⏱️" : "🛡️"}{" "}
-                    {t(c.tie ? "friends.openRowTie" : "friends.openRow", { name: c.name, n: c.correct })}
-                  </AppText>
+                  <View style={styles.flex}>
+                    <AppText variant="body" color={colors.onGoldSoft} numberOfLines={1}>
+                      {c.mode === "sprint" ? "⏱️" : "🛡️"} {t("friends.openRow", { name: c.name, n: c.correct })}
+                    </AppText>
+                    {/* Gleichstand: kurze eigene Zeile, damit nichts abgeschnitten wird */}
+                    {c.tie && (
+                      <AppText variant="caption" color={colors.onGoldSoft} numberOfLines={2}>
+                        {t("friends.openRowTie")}
+                      </AppText>
+                    )}
+                  </View>
                   <Button title={t("friends.go")} icon="play" onPress={() => race(c.mode, c.code)} />
                 </View>
               ))}
