@@ -378,8 +378,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     (`parcours-N`), Zeit je Parcours (`seconds`: 30/20/25/25), Punkte falsch 0 · richtig 1 ·
     Trick 3 · Swish +1 (nur mit Trick), Hinweis „falsches Trampolin“/„anderes Loch“, Tipp
     `tip.flapAll`, Endkarte mit Bestwert (StorageKeys.PARCOURS_BEST).
-  - Offen: App im Hintergrund – Uhr zeigt 0 s, „Zeit um“ kommt erst danach (setTimeout);
-    Abstand zum Bestwert auf der Endkarte; Lernkarte statt nur „Gehört in“; Startzeit der
+  - [x] Teil 2 (3d1d100, Tester 8/10, EAS auto): Zeitablauf auch nach dem Hintergrund
+    (AppState + Prüfung beim Wurf), „Zeit um“ nur einmal.
+  - Offen: Sicherheits-Timeout, falls eine Landung ausbleibt; kurze Vibration, wenn ein Wisch
+    nach Ablauf verworfen wird; Abstand zum Bestwert auf der Endkarte; Lernkarte statt nur „Gehört in“; Startzeit der
     Szenen-Uhr für den Ghost (R4c) mitschreiben; Parcours in Kampagne/Online einbinden.
 - [x] **R5-Vorlauf (Emre, 02.11.)**: Zielen genauer – Vorschau zeigt beim Halten die
   ganze Bahn bis zur ersten Berührung + pulsierenden Aufprall-Ring; 🎲 Zufalls-Trick
