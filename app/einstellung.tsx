@@ -4,7 +4,6 @@
 // Sprache sofort finden. Sprachen werden in ihrer eigenen Schrift gezeigt.
 
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { type ComponentProps, useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -101,17 +100,6 @@ export default function EinstellungenScreen() {
     StorageKeys.HIGHSCORE_ENDLOS,
     StorageKeys.HIGHSCORE_ZIELWURF,
   ];
-
-  const confirmLogout = () => {
-    Alert.alert(t("settings.logout"), t("settings.logout.confirm"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("settings.logout"),
-        style: "destructive",
-        onPress: () => router.replace("/login"),
-      },
-    ]);
-  };
 
   const languageOptions: { value: LanguageSetting; label: string; flag: string }[] =
     [
@@ -261,16 +249,8 @@ export default function EinstellungenScreen() {
           />
         </Card>
 
-        {/* Konto */}
-        <SectionLabel text={t("settings.account")} />
-        <Card style={styles.group}>
-          <ActionRow
-            icon="log-out"
-            title={t("settings.logout")}
-            subtitle={t("settings.logout.desc")}
-            onPress={confirmLogout}
-          />
-        </Card>
+        {/* „Konto/Abmelden“ ausgeblendet (ROADMAP R7e): es gibt noch keine echte Anmeldung –
+            die Seiten app/login.tsx und app/register.tsx sind nur Platzhalter */}
       </ScrollView>
     </View>
   );
