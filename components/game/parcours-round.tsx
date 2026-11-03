@@ -48,7 +48,7 @@ import {
   todayKey,
 } from "@/utils/storage";
 import * as Haptics from "expo-haptics";
-import Reanimated, { FadeOut } from "react-native-reanimated";
+import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, AppState, ScrollView, Share, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -597,9 +597,14 @@ export function ParcoursRound({
           </Reanimated.View>
         )}
         {ready && tips.tip && playing && !learn && (
-          <View pointerEvents="box-none" style={[styles.overlayRow, { top: tipTop }]}>
+          // Erst nach dem Ausblenden der Lernkarte einblenden – sonst liegen beide kurz übereinander
+          <Reanimated.View
+            entering={reduceMotion ? undefined : FadeIn.duration(180).delay(160)}
+            pointerEvents="box-none"
+            style={[styles.overlayRow, { top: tipTop }]}
+          >
             <TipCard text={t(tips.tip.key)} onClose={tips.dismiss} />
-          </View>
+          </Reanimated.View>
         )}
         {phase === "ready" && (
           <View
