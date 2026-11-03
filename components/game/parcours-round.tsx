@@ -19,6 +19,7 @@ import {
   parcoursLane,
 } from "@/game/trick-levels";
 import { type Item } from "@/constants/items";
+import { ITEM_REASONS } from "@/i18n/item-reasons";
 import { Radius, Spacing } from "@/constants/theme";
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { cancelSlowMotion, createFx } from "./fx";
 import { SceneCanvas } from "./game-round";
-import { FloatingText, type FloatText, ItemCard, ParcoursHud, TipCard } from "./hud";
+import { FloatingText, type FloatText, ItemCard, LearnCard, ParcoursHud, TipCard } from "./hud";
 import { useLater } from "./round-hooks";
 import { type TipId, useTips } from "./tips";
 import { beginThrow, createThrowInput, previewShot, releaseShot, stepClick } from "./throw-input";
@@ -67,7 +68,7 @@ export function ParcoursRound({
   const insets = useSafeAreaInsets();
   const { scheme, colors } = useAppTheme();
   const { t, lang } = useI18n();
-  const { reduceMotion } = useAppSettings();
+  const { reduceMotion, learnReason } = useAppSettings();
   const fx = useRef(createFx());
   const bus = useRef(createBus());
   useEffect(() => {
@@ -121,9 +122,12 @@ export function ParcoursRound({
   const pointsRef = useRef(0);
   const counts = useRef({ right: 0, tricks: 0, wrong: 0 });
   const [floats, setFloats] = useState<FloatText[]>([]);
+  /** Lernkarte nach falscher Tonne: Gegenstand → richtige Tonne. */
+  const [learn, setLearn] = useState<{ id: number; item: Item; bin: BinDef } | null>(null);
   const [result, setResult] = useState<{ points: number; right: number; tricks: number; wrong: number; best: number } | null>(null);
   const later = useLater();
-  const tips = useTips();
+  // Tipp wartet, solange die Lernkarte an seinem Platz steht
+  const tips = useTips(learn !== null);
   const showTip = tips.show;
 
   // Belohnungen: gewählte Spur/Tonnen-Look, bisheriger Bestwert
@@ -168,6 +172,7 @@ export function ParcoursRound({
     if (total > bestRef.current) saveParcoursBest(level.id, total).catch(() => undefined);
     sfx(total > bestRef.current && total > 0 ? "perfect" : "comboUp");
     setItem(null);
+    setLearn(null);
     tips.dismiss();
     later(() => {
       setPhase("end");
@@ -284,10 +289,13 @@ export function ParcoursRound({
       }
       sfxMaterial(itemMaterial(thrown));
     } else if (bin !== null) {
-      // Falsche Tonne: 0 Punkte – sagen, wohin es gehört, Zieltonne hüpft kurz
+      // Falsche Tonne: 0 Punkte – Lernkarte (wohin es gehört), Zieltonne hüpft kurz
       counts.current.wrong += 1;
       queueBinEvent(bus.current, bin, "reject");
-      float(t("trick.belongsIn", { bin: t(bins[correct].labelKey) }), screenX(binXs[bin]), y);
+      const id = ++ids.current;
+      setLearn({ id, item: thrown, bin: bins[correct] });
+      // Mit Begründung bleibt die Karte etwas länger stehen (zum Lesen)
+      later(() => setLearn((v) => (v?.id === id ? null : v)), learnReason ? 2300 : 1800);
       later(() => queueBinEvent(bus.current, correct, "peek"), 250);
       sfx("plop");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
@@ -299,11 +307,13 @@ export function ParcoursRound({
       finish();
       return;
     }
+    // Nach falscher Tonne kurze Lernpause (Karte lesen; wahlloses Werfen lohnt nicht)
+    const wrong = bin !== null && bin !== correct;
     later(() => {
       if (over.current) return;
       indexRef.current += 1;
       setItem(queue[indexRef.current % queue.length] ?? null);
-    }, 250);
+    }, wrong ? 1200 : 250);
   };
 
   // Gesten-Handler (aktuell halten, ohne die Geste neu zu bauen)
@@ -429,7 +439,17 @@ export function ParcoursRound({
             )}
           </>
         )}
-        {ready && tips.tip && playing && (
+        {ready && learn && playing && (
+          <View pointerEvents="none" style={[styles.overlayRow, { top: tipTop }]}>
+            <LearnCard
+              key={learn.id}
+              item={learn.item}
+              bin={learn.bin}
+              reason={learnReason ? ITEM_REASONS[learn.item.name]?.[lang] : undefined}
+            />
+          </View>
+        )}
+        {ready && tips.tip && playing && !learn && (
           <View pointerEvents="box-none" style={[styles.overlayRow, { top: tipTop }]}>
             <TipCard text={t(tips.tip.key)} onClose={tips.dismiss} />
           </View>
