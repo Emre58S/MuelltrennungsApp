@@ -301,7 +301,7 @@ export const de = {
   "parcours.timeUp": "Zeit um!",
   "parcours.newBest": "🏆 Neuer Bestwert!",
   "parcours.gap": "Dein Bestwert: {n} · noch {gap} Punkte",
-  "parcours.tryAgain": "Versuch es nochmal – du schaffst das!",
+  "parcours.tryAgain": "Du schaffst das!",
   "parcours.sameBest": "So gut wie dein Bestwert: {n}!",
   "parcours.summary": "{right} richtig · davon {tricks} mit Trick",
   "parcours.wrongCount": "{n} in der falschen Tonne",

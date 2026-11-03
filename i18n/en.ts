@@ -302,7 +302,7 @@ export const en: Translations = {
   "parcours.timeUp": "Time's up!",
   "parcours.newBest": "🏆 New best!",
   "parcours.gap": "Your best: {n} · {gap} points to go",
-  "parcours.tryAgain": "Try again – you can do it!",
+  "parcours.tryAgain": "You can do it!",
   "parcours.sameBest": "As good as your best: {n}!",
   "parcours.summary": "{right} correct · {tricks} with a trick",
   "parcours.wrongCount": "{n} in the wrong bin",
