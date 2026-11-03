@@ -607,7 +607,7 @@ export const en: Translations = {
   "campaign.trick": "Trick school",
   "campaign.trickLevels": "Levels {from}–{to}",
   "campaign.trickNext": "Next: level {n}",
-  "campaign.trickBefore": "Finish the trick school before first",
+  "campaign.trickBefore": "Finish the previous trick school first",
   "campaign.trickReach": "Opens at stage {id}",
   "campaign.trickStars": "{n} of {max} stars",
   "campaign.progressTime": "✓ {n} · goal {goal}",

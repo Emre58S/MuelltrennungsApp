@@ -671,7 +671,7 @@ function TrickSchool({
           {status}
         </AppText>
       </View>
-      <AppText variant="label" style={styles.trickStars}>
+      <AppText variant="label" tone="gold">
         ★ {got}/{levels.length * 3}
       </AppText>
     </Pressable>
@@ -882,7 +882,6 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   trickEmoji: { fontSize: 22, lineHeight: 28 },
-  trickStars: { color: "#F5B800" },
   trail: { alignItems: "center", gap: 5, marginBottom: 6 },
   trailDot: { width: 6, height: 6, borderRadius: 3, opacity: 0.6 },
   dot: {
