@@ -29,7 +29,7 @@ import { usableSkin, usableTrail } from "@/game/rewards";
 import { getBinSkin, getParcoursBest, getRewardProgress, getTrail, saveParcoursBest, todayKey } from "@/utils/storage";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, StyleSheet, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, AppState, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -109,6 +109,8 @@ export function ParcoursRound({
   const [phase, setPhase] = useState<Phase>("ready");
   const phaseRef = useRef<Phase>("ready");
   const [endsAt, setEndsAt] = useState<number | null>(null);
+  /** Rundenende (Date.now()-Zeit) – Timer laufen im Hintergrund nicht weiter. */
+  const endsRef = useRef(0);
   /** Zeit um – laufender Wurf darf noch landen, dann Schluss. */
   const over = useRef(false);
   const busy = useRef(false);
@@ -174,6 +176,7 @@ export function ParcoursRound({
   };
 
   const timeUp = () => {
+    if (over.current) return;
     over.current = true;
     setItem(null);
     float(t("parcours.timeUp"), screenW / 2, layout.binTops[0].y - 40, "#FFD54A");
@@ -186,7 +189,8 @@ export function ParcoursRound({
     setPhase("play");
     sfx("comboUp");
     const ms = level.seconds * 1000;
-    setEndsAt(Date.now() + ms);
+    endsRef.current = Date.now() + ms;
+    setEndsAt(endsRef.current);
     indexRef.current = 0;
     setItem(queue[0] ?? null);
     // Letzte 3 Sekunden ticken hörbar
@@ -201,6 +205,11 @@ export function ParcoursRound({
   const throwShot = (shot: FreeShot) => {
     const current = itemRef.current;
     if (!current || busy.current || over.current || phaseRef.current !== "play") return;
+    // Zeit schon um (z. B. App war im Hintergrund, Timer kam noch nicht)
+    if (Date.now() >= endsRef.current) {
+      timeUp();
+      return;
+    }
     busy.current = true;
     thrownRef.current = current;
     cancelSlowMotion(fx.current);
@@ -304,6 +313,8 @@ export function ParcoursRound({
     release: (_dx: number, _dy: number, _vy: number) => {},
     cancel: () => {},
     land: (_id: number, _outcome?: LandOutcome) => {},
+    /** Zurück aus dem Hintergrund: abgelaufene Zeit sofort beenden. */
+    resume: () => {},
   });
   const throwCtx = () => ({
     full: screenH * FULL_SWIPE_SHARE,
@@ -334,12 +345,21 @@ export function ParcoursRound({
       },
       cancel: () => setShotGuide(bus.current, null),
       land: handleLand,
+      resume: () => {
+        if (phaseRef.current === "play" && Date.now() >= endsRef.current) timeUp();
+      },
     };
   });
   useEffect(() => {
     const b = bus.current;
     setLandHandler(b, (id, outcome) => handlers.current.land(id, outcome));
     return () => setLandHandler(b, () => undefined);
+  }, []);
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") handlers.current.resume();
+    });
+    return () => sub.remove();
   }, []);
 
   const onBegin = useCallback(() => handlers.current.begin(), []);
