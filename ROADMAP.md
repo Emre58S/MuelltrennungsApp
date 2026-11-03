@@ -163,8 +163,9 @@ Ein senkrechter Pfad mit Stationen (Kreise), der beim Spielen wächst.
     Stations-Runden zählen in Statistik von Ohne Fehler/Zeit; gesperrte Stationspunkte
     ebenso antworten lassen (**verworfen 3.11.**, Zweig `verworfen-gesperrte-station`,
     Tester 6/10 zweimal: Hinweis unter dem Punkt wird von den Wegpunkten der nächsten
-    Station übermalt – Hinweis z. B. über dem Punkt oder als Banner oben zeigen); EN „Finish the previous trick school
-    first“; Sternzahl #F5B800 auf Weiß schwach; Trick-Schule Welt 1 erst nach 1-1?
+    Station übermalt – Hinweis z. B. über dem Punkt oder als Banner oben zeigen);
+    Trick-Schule Welt 1 erst nach 1-1? ✓ EN „Finish the previous trick school first“ +
+    Sternzahl in Theme-Gold (abc8fcf, Tester 8/10, EAS auto + preview).
 - [x] **R2e** **Boss** am Ende jeder Welt: 10 Treffer in Folge; zwischendurch
   **tauschen Tonnen die Plätze/Farben** (z. B. Rest ↔ Gelb) – mit klarer
   Ankündigung („Achtung, Tonnen tauschen!“) und Animation. Sieg = Truhe.
