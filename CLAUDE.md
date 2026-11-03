@@ -163,3 +163,6 @@ wenig Deutsch, nie strafend.
   (riesiger Diff); Einrückung gezielt per Skript anpassen.
 - Parcours online: Server-Zeitprüfung (parcours.sql, ≤ 1 Treffer je 0,5 s) hängt an der
   250-ms-Pause nach Treffern in parcours-round.tsx – nicht verkürzen ohne Prüfung.
+- React-Compiler „immutability“: Ein Ref, das ein früherer Effekt schon nutzt, darf kein
+  späterer Effekt setzen, wenn es erst danach deklariert ist – useRef vor den ersten Effekt ziehen.
+  Zeitgeber (later) lesen Render-Werte vom Start → Ghost & Co. über Ref, sonst veraltet.
