@@ -315,6 +315,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     wird gesucht …“ (nur diese Zeile während der Suche), „Geschlagen: Name (N)“ /
     „Gleichstand mit Name“, Ghost-Zeile einzeilig. Offen: nach erfolgloser Suche kurzer
     Hinweis „heute noch kein Gegner“; `searching` bei Ausnahme nicht zurückgesetzt.
+  - [x] Teil 10 (755ad7b, Tester 8/10, EAS auto + preview): Rangliste-Reiter „Parcours
+    des Tages“ (parcours_top, Punkte von heute, wartet ≤ 3 s auf den eigenen Lauf).
+    Offen: eigener Platz außerhalb der Top 50 (SQL parcours_my_rank); Einladung bei leerer
+    Liste; über Mitternacht offen → gestrige Liste; Knopf „Rangliste“ auf der Endkarte.
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
