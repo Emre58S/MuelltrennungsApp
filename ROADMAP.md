@@ -399,7 +399,7 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Freund mit 0 richtig ist keine offene Herausforderung (+ Test; 727437e + 6fa9919,
     Tester 8/10, EAS auto + preview). Offen: Test „0 neben >0“.
   - Offen: eigener Bestwert nur lokal
-    (anderes Gerät → 0); Unterschied „+3 vor dir“; Zeile ganz antippbar (✓ 5312813, Tester 8/10); Lauf kommt nach
+    (anderes Gerät → 0); Unterschied (✓ „Noch N mehr als dein Bestes – dann gewinnst du!“, 253676c, Tester 7/10); Zeile ganz antippbar (✓ 5312813, Tester 8/10); Lauf kommt nach
     dem Start an → Hinweis; „nicht mehr befreundet“ eigener Text; nach der Runde
     zurückfordern/teilen; Link statt Code;
     „Code neu erzeugen“; Code mit einem Tipp kopieren; Knopf „Hinzufügen“ volle Breite (✓ 32fceca + 0f17c64, Tester 8/10);
