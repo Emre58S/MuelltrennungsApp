@@ -487,7 +487,7 @@ export function SprintRound({
       onExit();
       return;
     }
-    Alert.alert(t("ghost.quit.title"), t("sprint.quit.message"), [
+    Alert.alert(t("ghost.quit.title"), t(survival ? "survival.quit.message" : "sprint.quit.message"), [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("duel.quit.confirm"),

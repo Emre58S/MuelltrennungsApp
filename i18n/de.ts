@@ -496,6 +496,7 @@ export const de = {
   "ghost.quit.title": "Lauf beenden?",
   "ghost.quit.message": "Dieser Lauf zählt dann nicht.",
   "sprint.quit.message": "Dieser Lauf zählt dann nicht. Die Zeit läuft weiter.",
+  "survival.quit.message": "Dieser Lauf zählt dann nicht. Die Zeit läuft weiter – bist du zu langsam, endet die Runde.",
   "ghost.friend": "Freund",
   "ghost.rulesFriend": "Gleiche 10 Gegenstände wie bei {name}. Der Lauf von {name} fliegt als durchsichtiger Ghost mit. Mehr richtig gewinnt – bei Gleichstand der Schnellere.",
   "ghost.challenge": "{name} fordert dich heraus: {correct} von {total} richtig in {time}",
