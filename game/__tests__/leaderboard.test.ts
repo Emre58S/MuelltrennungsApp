@@ -108,11 +108,13 @@ describe("Offene Herausforderungen (Freunde)", () => {
       { name: "Ben", code: "BBBBBB", sprint: 8, survival: 5 },
     ];
     expect(openChallenges(rows, { sprint: 10, survival: 5 })).toEqual([
-      { name: "Anna", code: "AAAAAA", mode: "sprint", correct: 12, tie: false },
+      { name: "Anna", code: "AAAAAA", mode: "sprint", correct: 12, tie: false, need: 3 },
       { name: "Ben", code: "BBBBBB", mode: "survival", correct: 5, tie: true },
     ]);
     // Noch nicht gespielt (0) → alles offen; alles geschlagen → nichts
     expect(openChallenges(rows, { sprint: 0, survival: 0 })).toHaveLength(3);
+    // Noch nicht gespielt: keine „N mehr“-Angabe
+    expect(openChallenges(rows, { sprint: 0, survival: 0 }).every((c) => c.need === undefined)).toBe(true);
     expect(openChallenges(rows, { sprint: 13, survival: 6 })).toEqual([]);
   });
 
@@ -128,7 +130,7 @@ describe("Offene Herausforderungen (Freunde)", () => {
       { name: "Cem", code: "CCCCCC", points: 5 },
     ];
     expect(openParcoursChallenges(rows, 9, 3)).toEqual([
-      { name: "Anna", code: "AAAAAA", mode: "parcours", correct: 12, level: 3, tie: false },
+      { name: "Anna", code: "AAAAAA", mode: "parcours", correct: 12, level: 3, tie: false, need: 4 },
       { name: "Ben", code: "BBBBBB", mode: "parcours", correct: 9, level: 3, tie: true },
     ]);
     expect(openParcoursChallenges(rows, 0, 3)).toHaveLength(3);

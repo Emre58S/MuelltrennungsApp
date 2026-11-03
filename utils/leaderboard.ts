@@ -487,6 +487,8 @@ export type OpenChallenge = {
   level?: number;
   /** Gleich viele wie mein Bestes (> 0) – einer mehr gewinnt. */
   tie: boolean;
+  /** So viele mehr als mein Bestes von heute gewinnen (nur, wenn ich heute schon gespielt habe). */
+  need?: number;
 };
 
 /** Offen = Freund hat heute mindestens so viele richtig wie mein Bestes von heute
@@ -496,7 +498,10 @@ export function openChallenges(rows: Friend[], mine: Record<OnlineMode, number>)
   for (const f of rows) {
     for (const mode of ["sprint", "survival"] as const) {
       const n = f[mode];
-      if (n != null && n > 0 && n >= mine[mode]) out.push({ name: f.name, code: f.code, mode, correct: n, tie: n === mine[mode] });
+      if (n != null && n > 0 && n >= mine[mode]) {
+        const tie = n === mine[mode];
+        out.push({ name: f.name, code: f.code, mode, correct: n, tie, ...(!tie && mine[mode] > 0 && { need: n - mine[mode] + 1 }) });
+      }
     }
   }
   return out;
@@ -511,7 +516,18 @@ export function openParcoursChallenges(
 ): OpenChallenge[] {
   return rows
     .filter((r) => r.points > 0 && r.points >= mine)
-    .map((r) => ({ name: r.name, code: r.code, mode: "parcours" as const, correct: r.points, level, tie: r.points === mine }));
+    .map((r) => {
+      const tie = r.points === mine;
+      return {
+        name: r.name,
+        code: r.code,
+        mode: "parcours" as const,
+        correct: r.points,
+        level,
+        tie,
+        ...(!tie && mine > 0 && { need: r.points - mine + 1 }),
+      };
+    });
 }
 
 /** Offene Herausforderungen von heute (leer, wenn offline oder SQL fehlt). */

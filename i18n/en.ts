@@ -218,6 +218,8 @@ export const en: Translations = {
   "friends.open": "Open today – beat your friends",
   "friends.openRow": "{name}: {n} right",
   "friends.openRowPoints": "{name}: {n} points",
+  "friends.openNeed": "{n} more and you win!",
+  "friends.openNeedOne": "1 more and you win!",
   "friends.openRowTie": "Tie – 1 more wins!",
   "friends.go": "Race",
   "friends.runLost": "Your friend's run didn't load. You play against the ghost above.",

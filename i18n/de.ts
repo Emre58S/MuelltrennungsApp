@@ -217,6 +217,8 @@ export const de = {
   "friends.open": "Heute offen – schlag deine Freunde",
   "friends.openRow": "{name}: {n} richtig",
   "friends.openRowPoints": "{name}: {n} Punkte",
+  "friends.openNeed": "{n} mehr, dann gewinnst du!",
+  "friends.openNeedOne": "1 mehr, dann gewinnst du!",
   "friends.openRowTie": "Gleichstand – 1 mehr gewinnt!",
   "friends.go": "Antreten",
   "friends.runLost": "Der Lauf deines Freundes kam nicht an. Du spielst gegen den Ghost oben.",
