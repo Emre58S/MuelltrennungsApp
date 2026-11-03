@@ -506,10 +506,19 @@ export function Banner({ text }: { text: string }) {
 
 /* ── Einführung: Tipp (einmalig, Tippen schließt) ─────────────── */
 
-export function TipCard({ text, onClose }: { text: string; onClose: () => void }) {
+export function TipCard({
+  text,
+  onClose,
+  delay = 0,
+}: {
+  text: string;
+  onClose: () => void;
+  /** Später „ploppen“ (ms), z. B. bis eine andere Karte ausgeblendet ist. */
+  delay?: number;
+}) {
   const { colors } = useAppTheme();
   const { t } = useI18n();
-  const enter = useEnter(300, Easing.out(Easing.back(1.6)));
+  const enter = useEnter(300, Easing.out(Easing.back(1.6)), delay);
   return (
     <Animated.View
       style={{
