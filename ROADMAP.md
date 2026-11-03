@@ -313,8 +313,8 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     endet der Lauf bei offenem Dialog, zählt er, „Beenden“ zeigt dann das Ergebnis.
   - [x] Balken im letzten Drittel doppelt so dick (scaleY, nativ) – erkennbar ohne Rot
     (fa65517, Tester 8/10, EAS auto + preview). Offen: Ecken bei scaleY leicht oval.
-  - Offen: Survival: Hinweis,
-    dass man bei offenem Dialog „zu langsam“ ausscheiden kann.
+  - [x] Survival-Beenden-Dialog: „Der Balken läuft weiter – ist er leer, endet die Runde.“
+    (795d514 + 0fa6818, Tester 8/10, EAS auto + preview; eigener Text survival.quit.message).
 - [ ] **R4c** Trick-Battle (braucht R5): beide spielen denselben Parcours mit
   denselben Gegenständen (Seed), Zeit je Parcours 20–30 s, Punkte wie in R5
   (falsch 0 · richtig 1 · Trick 3 · Swish +1) – Sortieren entscheidet mit.
