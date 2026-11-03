@@ -324,6 +324,11 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 12 (83a1fc9, Tester 8/10, EAS auto + preview): eigener Platz auch außerhalb der
     Top 50 (SQL parcours_my_rank – **parcours.sql erneut ausführen**; ohne: wie bisher).
     Offen: „Platz X von N“.
+  - [x] Teil 13 (033e3be + 24eb413, Tester 8/10, EAS auto + preview): Freund im Parcours
+    des Tages herausfordern (Dialog „🎯 Parcours des Tages“, SQL friend_parcours_run –
+    **parcours.sql erneut ausführen**); Startkarte „👫 Name spielt mit“ / „hat heute noch
+    nicht gespielt“ / „kam nicht an“. Offen: Dialog hat 4 Knöpfe (Android zeigt 3); Tag
+    als Parameter statt neu berechnet; „Heute offen“ auch für den Parcours.
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
