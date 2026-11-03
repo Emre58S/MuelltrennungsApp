@@ -289,7 +289,7 @@ export const en: Translations = {
   "tip.flapAll": "All lids open and close together. Throw just before they open.",
   "trick.otherTrampoline": "Close! Use the trampoline in front of your bin.",
   "parcours.section": "Courses: sort with trick shots",
-  "parcours.sectionDesc": "Every item into its bin. Tricks give more points.",
+  "parcours.sectionDesc": "Every item into its bin. Trick shots give more points.",
   "parcours.title": "Course {n}",
   "parcours.rules": "✅ Right bin: 1 point\n🎯 With a trick: 3 points\n✨ Trick without touching: +1\n❌ Wrong bin: short pause to learn",
   "parcours.time": "⏱ {n} seconds",

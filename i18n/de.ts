@@ -288,7 +288,7 @@ export const de = {
   "tip.flapAll": "Alle Deckel klappen zusammen auf und zu. Wirf kurz bevor sie aufgehen.",
   "trick.otherTrampoline": "Fast! Nimm das Trampolin vor deiner Tonne.",
   "parcours.section": "Parcours: sortieren mit Trickwurf",
-  "parcours.sectionDesc": "Jeder Gegenstand in seine Tonne. Mit Trick gibt es mehr Punkte.",
+  "parcours.sectionDesc": "Jeder Gegenstand in seine Tonne. Mit Trickwurf gibt es mehr Punkte.",
   "parcours.title": "Parcours {n}",
   "parcours.rules": "✅ Richtige Tonne: 1 Punkt\n🎯 Mit Trick: 3 Punkte\n✨ Trick ohne Berührung: +1\n❌ Falsche Tonne: kurze Pause zum Lernen",
   "parcours.time": "⏱ {n} Sekunden",
