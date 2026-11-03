@@ -238,8 +238,8 @@ export function ParcoursRound({
     if (!current || busy.current || over.current || phaseRef.current !== "play") return;
     // Zeit schon um (z. B. App war im Hintergrund, Timer kam noch nicht)
     if (Date.now() >= endsRef.current) {
-      // Spürbar: dieser Wisch zählt nicht mehr
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+      // Spürbar: dieser Wisch zählt nicht mehr (eigener Stoß, nicht die Fehlwurf-Warnung)
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => undefined);
       timeUp();
       return;
     }
