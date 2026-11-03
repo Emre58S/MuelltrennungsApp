@@ -641,7 +641,11 @@ export function ParcoursHud({
           numberOfLines={1}
           accessibilityLabel={ghostText.replace("👻", "").trim()}
         >
-          {t("parcours.ghost", { name: ghostName, n: ghostPoints })}
+          {/* Lange Namen kürzen, damit der Vorsprung sichtbar bleibt */}
+          {t("parcours.ghost", {
+            name: ghostName.length > 12 ? `${ghostName.slice(0, 11)}…` : ghostName,
+            n: ghostPoints,
+          })}
           {/* Vorsprung in Gold – als Lob erkennbar */}
           {lead > 0 && (
             <AppText variant="caption" tone="gold">
