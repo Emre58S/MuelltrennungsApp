@@ -197,8 +197,8 @@ export function SprintRound({
         if (alive && friend && found && !found.code) setFriendNoRun(found.name);
         if (alive && friend && !found) setFriendLost(true);
         const throws = found?.code ? decodeSprint(found.code, correctBins, bins.length) : null;
-        // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
-        if (!alive || !found || !throws || phaseRef.current !== "ready") return;
+        // Nur bis zum Ende des 3-2-1 übernehmen – danach fliegt schon der bisherige Ghost
+        if (!alive || !found || !throws || (phaseRef.current !== "ready" && phaseRef.current !== "countdown")) return;
         const run = survival ? survivalRun(day, throws, found.ms ?? 0) : sprintRun(day, throws);
         if (run.throws.length > 0) setRival({ name: found.name, run });
       })
@@ -213,6 +213,11 @@ export function SprintRound({
   const vsRival = !!rival && !vsOwn;
   const ghost = vsRival ? rival.run : (best ?? practice);
   const ghostName = vsRival ? rival.name : best ? t("ghost.name") : t("ghost.practiceName");
+  // Zeitgeber lesen den Ghost erst beim Anpfiff – ein Gegner, der im 3-2-1 ankommt, fliegt mit
+  const ghostRef = useRef({ ghost, ghostName });
+  useEffect(() => {
+    ghostRef.current = { ghost, ghostName };
+  });
 
   const [phase, setPhase] = useState<Phase>("ready");
   const goPhase = useCallback((p: Phase) => {
@@ -303,7 +308,7 @@ export function SprintRound({
         missionDay.current = { ...d, done: [...d.done, "online"] };
       }
     }
-    setEnd({ run, result: (survival ? survivalResult : sprintResult)(run, ghost), newBest, mission });
+    setEnd({ run, result: (survival ? survivalResult : sprintResult)(run, ghostRef.current.ghost), newBest, mission });
     goPhase("end");
     sfx("end");
     playMusic("menu");
@@ -316,7 +321,7 @@ export function SprintRound({
     setStoppedAt(Date.now());
     setItem(null);
     setPreview(bus.current, null);
-    setGhostScore(ghost.correct);
+    setGhostScore(ghostRef.current.ghost.correct);
     showBanner(`⏱️ ${t("sprint.timeUp")}`, END_MS);
     later(finish, END_MS);
   };
@@ -331,7 +336,7 @@ export function SprintRound({
     setStoppedAt(now);
     setItem(null);
     setPreview(bus.current, null);
-    setGhostScore(ghost.correct);
+    setGhostScore(ghostRef.current.ghost.correct);
     if (reason === "slow") {
       // Auch hier lernen: wohin der Gegenstand gehört, richtige Tonne hüpft
       const bin = missed ? getBinByCategory(missed.category) : undefined;
@@ -368,11 +373,12 @@ export function SprintRound({
       startRef.current = now;
       setStartedAt(now);
       showItem(0, 0);
-      for (const g of ghost.throws) later(() => ghostThrow(g), g.ms);
+      const { ghost: g0, ghostName: name } = ghostRef.current;
+      for (const g of g0.throws) later(() => ghostThrow(g), g.ms);
       if (survival) {
         // Ghost raus: Bescheid geben – jeder weitere Treffer zählt fürs Ergebnis
-        if (ghost.ms < SURVIVAL_MAX_MS)
-          later(() => phaseRef.current === "play" && showBanner(`👻 ${t("survival.ghostOut", { name: ghostName })}`), ghost.ms + 300);
+        if (g0.ms < SURVIVAL_MAX_MS)
+          later(() => phaseRef.current === "play" && showBanner(`👻 ${t("survival.ghostOut", { name })}`), g0.ms + 300);
         later(() => out("max"), SURVIVAL_MAX_MS);
         return;
       }
