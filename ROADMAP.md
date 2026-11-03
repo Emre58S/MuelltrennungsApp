@@ -288,7 +288,7 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 6 (1187fa2 + 5c5048d, Tester 8/10, EAS auto + preview): Kopfleiste
     „👻 Ghost: N · du +D“ (nur Vorsprung, Rückstand nie), Ansage ohne Emoji mit Vorsprung;
     nach Ablauf zählt der ganze Ghost-Lauf.
-    Offen: Bestwert-Zeile („🏆 Neuer Bestwert!“) ebenso ohne Emoji vorlesen; „du +D“ in Gold?;
+    Offen: „du +D“ in Gold?;
     Ghost des Gegners/Freundes (Server).
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
@@ -425,9 +425,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     zählen nicht. Rest: Netz an Szenen-Spielzeit koppeln (Hintergrund), alten Gegenstand
     dann aus der Szene nehmen, „daneben“ nicht in Bildmitte, Unit-Test.
   - Offen: Lernkarte beim Wurf weich ausblenden (außer „Weniger Bewegung“); Startkarte mit 4 Regelzeilen auf kleinem iPhone prüfen;
-    kurze Vibration, wenn ein Wisch
-    nach Ablauf verworfen wird; Lernkarte statt nur „Gehört in“; Startzeit der
-    Szenen-Uhr für den Ghost (R4c) mitschreiben; Parcours in Kampagne/Online einbinden.
+    Lernkarte statt nur „Gehört in“; Startzeit der Szenen-Uhr für den Ghost (R4c)
+    mitschreiben; Parcours in Kampagne einbinden (Online: ✓ R4c Teil 1).
+  - [x] Wisch nach Ablauf: kräftiger Stoß (nicht die Fehlwurf-Warnung); Bestwert-Zeile der
+    Endkarte ohne 🏆 vorgelesen (16d1700 + 82712ea, Tester 8/10, EAS auto + preview).
 - [x] **R5-Vorlauf (Emre, 02.11.)**: Zielen genauer – Vorschau zeigt beim Halten die
   ganze Bahn bis zur ersten Berührung + pulsierenden Aufprall-Ring; 🎲 Zufalls-Trick
   auf der Trick-Seite (nur geprüfte Level/Vorlagen, teils gespiegelt, ohne Sterne);
