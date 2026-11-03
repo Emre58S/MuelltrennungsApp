@@ -412,10 +412,6 @@ export const de = {
   "settings.resetAll.confirm": "XP, Level, Tage in Folge und Bestwerte werden gelöscht. Sammelbuch und Sterne (Pfad und Tricks) bleiben.",
   "settings.reset.button": "Löschen",
   "settings.done": "Erledigt",
-  "settings.account": "Konto",
-  "settings.logout": "Abmelden",
-  "settings.logout.desc": "Von diesem Gerät abmelden",
-  "settings.logout.confirm": "Willst du dich wirklich abmelden?",
 
   "tutorial.subtitle": "Sortiere jeden Gegenstand in die richtige Tonne.",
   "tutorial.throw": "Werfen",

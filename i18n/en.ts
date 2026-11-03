@@ -413,10 +413,6 @@ export const en: Translations = {
   "settings.resetAll.confirm": "XP, level, days in a row and best scores will be deleted. Collection book and stars (path and tricks) stay.",
   "settings.reset.button": "Delete",
   "settings.done": "Done",
-  "settings.account": "Account",
-  "settings.logout": "Log out",
-  "settings.logout.desc": "Log out on this device",
-  "settings.logout.confirm": "Do you really want to log out?",
 
   "tutorial.subtitle": "Sort every item into the right bin.",
   "tutorial.throw": "Throwing",
