@@ -221,7 +221,7 @@ export const en: Translations = {
   "friends.openRowTie": "Tie – 1 more wins!",
   "friends.go": "Race",
   "friends.runLost": "Your friend's run didn't load. You play against the ghost above.",
-  "friends.noRun": "{name} hasn't played today yet. Go first – then {name} can race you.",
+  "friends.noRun": "{name} hasn't played today – go first!",
   "rank.week": "This week",
   "rank.allTime": "All time",
   "rank.correct": "{n} correct",

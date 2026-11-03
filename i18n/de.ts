@@ -220,7 +220,7 @@ export const de = {
   "friends.openRowTie": "Gleichstand – 1 mehr gewinnt!",
   "friends.go": "Antreten",
   "friends.runLost": "Der Lauf deines Freundes kam nicht an. Du spielst gegen den Ghost oben.",
-  "friends.noRun": "{name} hat heute noch nicht gespielt. Spiel vor – dann kann {name} gegen dich antreten.",
+  "friends.noRun": "{name} hat heute noch nicht gespielt – spiel vor!",
   "rank.week": "Diese Woche",
   "rank.allTime": "Allzeit",
   "rank.correct": "{n} richtig",
