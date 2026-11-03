@@ -22,6 +22,7 @@ import { MISSION_XP } from "@/game/missions";
 import { type HitResult, type Stats } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { type Board, fetchBoard, leaderboardReady } from "@/utils/leaderboard";
+import { sfx } from "@/utils/sfx";
 import { getLevelProgress, todayKey } from "@/utils/storage";
 
 export type Mistake = { item: Item; bin: BinDef };
@@ -508,6 +509,11 @@ function NewBinCard({ bins, calm }: { bins: BinDef[]; calm: boolean }) {
     if (calm) return;
     Animated.spring(pop, { toValue: 1, friction: 4, delay: 500, useNativeDriver: true }).start();
   }, [calm, pop]);
+  // Kurzer Erfolgston, wenn die Karte aufspringt (vorhandener Freischalt-Klang)
+  useEffect(() => {
+    const timer = setTimeout(() => sfx("unlock"), calm ? 0 : 500);
+    return () => clearTimeout(timer);
+  }, [calm]);
   const names = bins.map((b) => t(b.labelKey)).join(", ");
   // Was gehört rein? Dieselben 3 typischen Beispiele wie auf der Lernkarte (game/campaign.ts)
   const examples = bins.map((b) => introExamples(b.key));
