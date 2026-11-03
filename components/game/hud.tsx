@@ -601,6 +601,7 @@ export function ParcoursHud({
     return () => clearInterval(id);
   }, [running]);
   const pulse = usePulse(points);
+  const ghostPoints = ghost && endsAt !== null ? ghostPointsAt(ghost, total * 1000 - Math.max(0, endsAt - now)) : 0;
   return (
     <HudSurface style={styles.trickHud}>
       <AppText
@@ -620,10 +621,14 @@ export function ParcoursHud({
         </AppText>
       </Animated.View>
       {ghost && (
-        <AppText variant="caption" tone="textSecondary" center style={styles.tabular}>
-          {t("parcours.ghost", {
-            n: endsAt === null ? 0 : ghostPointsAt(ghost, total * 1000 - Math.max(0, endsAt - now)),
-          })}
+        <AppText
+          variant="caption"
+          tone="textSecondary"
+          center
+          style={styles.tabular}
+          accessibilityLabel={`${t("ghost.name")}, ${t("parcours.points", { n: ghostPoints })}`}
+        >
+          {t("parcours.ghost", { n: ghostPoints })}
         </AppText>
       )}
     </HudSurface>

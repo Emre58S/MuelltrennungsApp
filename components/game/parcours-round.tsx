@@ -534,15 +534,27 @@ export function ParcoursRound({
                   {t("parcours.wrongCount", { n: result.wrong })}
                 </AppText>
               )}
-              <AppText variant="label" tone={result.points > result.best ? "gold" : "textSecondary"} center>
-                {result.points > result.best && result.points > 0
-                  ? t("parcours.newBest")
-                  : result.best > result.points
-                    ? t("parcours.gap", { n: result.best, gap: result.best - result.points })
-                    : result.best > 0
-                      ? t("parcours.sameBest", { n: result.best })
-                      : t("parcours.tryAgain")}
-              </AppText>
+              {/* Bestwert-Zeile entfällt, wenn der Ghost schon dasselbe sagt (Bestwert = Lauf von heute) */}
+              {(!ghost || ghost.points !== result.best || result.points > result.best) && (
+                <AppText variant="label" tone={result.points > result.best ? "gold" : "textSecondary"} center>
+                  {result.points > result.best && result.points > 0
+                    ? t("parcours.newBest")
+                    : result.best > result.points
+                      ? t("parcours.gap", { n: result.best, gap: result.best - result.points })
+                      : result.best > 0
+                        ? t("parcours.sameBest", { n: result.best })
+                        : t("parcours.tryAgain")}
+                </AppText>
+              )}
+              {ghost && (
+                <AppText variant="label" tone={result.points > ghost.points ? "gold" : "textSecondary"} center>
+                  {result.points > ghost.points
+                    ? t("parcours.ghostWon", { n: ghost.points })
+                    : result.points === ghost.points
+                      ? t("parcours.ghostTie", { n: ghost.points })
+                      : t("parcours.ghostBehind", { n: ghost.points, gap: ghost.points - result.points })}
+                </AppText>
+              )}
               <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
               <Button title={t("parcours.overview")} variant="secondary" onPress={onExit} />
             </View>
