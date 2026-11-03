@@ -361,6 +361,8 @@ export const de = {
   "share.sprint.score": "Im Zeit-Sprint habe ich {n} richtig sortiert. Schaffst du mehr? ♻️",
   "share.survival.win": "Ich habe {name} in Survival geschlagen: {n} richtig ohne Fehler! Schaffst du mehr? ♻️",
   "share.survival.score": "In Survival habe ich {n} richtig ohne Fehler geschafft. Schaffst du mehr? ♻️",
+  "share.parcours.win": "Ich habe {name} im Parcours des Tages geschlagen: {n} Punkte! Schaffst du mehr? ♻️",
+  "share.parcours.score": "Im Parcours des Tages habe ich {n} Punkte geholt. Schaffst du mehr? ♻️",
   "share.code": "Spiel gegen mich: Online → Freunde → Freund hinzufügen → {code}",
   "game.end.shareText": "♻️ Müll-Sortieren · Tagesaufgabe {date}\n{boxes}\n{correct}/{total} richtig · {score} Punkte",
   "game.end.dailyTitle": "Tagesaufgabe geschafft!",

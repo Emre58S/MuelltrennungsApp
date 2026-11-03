@@ -26,7 +26,14 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { fetchFriendParcoursRun, fetchRandomParcoursRun, leaderboardReady, submitParcoursRun } from "@/utils/leaderboard";
+import {
+  fetchFriendParcoursRun,
+  fetchRandomParcoursRun,
+  formatFriendCode,
+  getFriendCode,
+  leaderboardReady,
+  submitParcoursRun,
+} from "@/utils/leaderboard";
 import { router } from "expo-router";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { usableSkin, usableTrail } from "@/game/rewards";
@@ -42,7 +49,7 @@ import {
 } from "@/utils/storage";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, StyleSheet, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, AppState, Share, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -164,6 +171,20 @@ export function ParcoursRound({
   const isDaily = dailyParcoursId(day, PARCOURS.map((p) => p.id)) === level.id;
   // Sperre gegen Doppeltippen (sonst zwei Ranglisten übereinander)
   const rankLock = useRef(0);
+  // Teilen (ROADMAP R8a): Ergebnis + eigener Freundes-Code – Code vorab laden,
+  // „Teilen“ wartet nie aufs Netz (fehlt er, ohne Code)
+  const [friendCode, setFriendCode] = useState<string | null>(null);
+  useEffect(() => {
+    if (!leaderboardReady || !isDaily) return;
+    let alive = true;
+    getFriendCode()
+      .then((c) => alive && setFriendCode(c))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [isDaily]);
+  const shareLock = useRef(0);
   /** Punkte des gespeicherten Laufs von heute – auch, wenn er erst nach dem Start geladen ist. */
   const todayRef = useRef(0);
   /** Eigener Lauf: Punktestand nach jedem Treffer (wird ggf. neuer Ghost). */
@@ -492,6 +513,15 @@ export function ParcoursRound({
           ? t("parcours.sameBest", { n: result.best })
           : t("parcours.tryAgain");
   const ghostName = rival ?? t("ghost.name");
+  const share = () => {
+    if (!result || Date.now() < shareLock.current) return;
+    shareLock.current = Date.now() + 1500;
+    // „geschlagen“ nur gegen einen echten Gegner/Freund, nicht gegen den eigenen Ghost
+    const won = !!rival && !!ghost && result.points > ghost.points;
+    let text = t(won ? "share.parcours.win" : "share.parcours.score", { name: rival ?? "", n: result.points });
+    if (friendCode) text += `\n${t("share.code", { code: formatFriendCode(friendCode) })}`;
+    Share.share({ message: text }).catch(() => undefined);
+  };
   const ghostGap = ghost && result ? ghost.points - result.points : 0;
   const ghostLine =
     !ghost || !result
@@ -646,6 +676,9 @@ export function ParcoursRound({
                 </AppText>
               )}
               <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
+              {isDaily && result.points > 0 && (
+                <Button title={t("game.end.share")} icon="share" variant="secondary" onPress={share} />
+              )}
               {leaderboardReady && isDaily && result.points > 0 && (
                 <Button
                   title={t("home.rank")}
