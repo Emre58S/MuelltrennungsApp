@@ -504,7 +504,7 @@ export const en: Translations = {
   "ghost.top.info": "👑 Best run today: {name} – {correct} of {total} in {time}",
   "ghost.top.me": "👑 You have the best run of everyone today!",
   "ghost.top.play": "Race {name} (best today)",
-  "ghost.top.share": "👑 Share: I'm today's best",
+  "ghost.top.share": "👑 Share: best run today",
   "ghost.top.shareText": "👑 Ghost race (waste sorting): I have today's best run of all – {correct} of {total} correct in {time}. Can you beat it?\nHow: open the game → Online → “Enter a friend's code” → paste this message.\n{code}",
   "sprint.title": "Time sprint",
   "sprint.rules": "⏱️ 30 seconds\n✅ Sort as many right as you can\n👻 Your rival throws too – more right wins",

@@ -503,7 +503,7 @@ export const de = {
   "ghost.top.info": "👑 Bester Lauf heute: {name} – {correct} von {total} in {time}",
   "ghost.top.me": "👑 Du hast heute den besten Lauf von allen!",
   "ghost.top.play": "Gegen {name} (Bester heute)",
-  "ghost.top.share": "👑 Teilen: Ich bin heute Bester",
+  "ghost.top.share": "👑 Teilen: Bester Lauf heute",
   "ghost.top.shareText": "👑 Ghost-Rennen (Mülltrennung): Ich habe heute den besten Lauf von allen – {correct} von {total} richtig in {time}. Schaffst du mehr?\nSo geht's: Spiel öffnen → Online → „Code von einem Freund eingeben“ → diese Nachricht einfügen.\n{code}",
   "sprint.title": "Zeit-Sprint",
   "sprint.rules": "⏱️ 30 Sekunden\n✅ So viele richtig wie möglich\n👻 Der Gegner wirft mit – mehr richtig gewinnt",
