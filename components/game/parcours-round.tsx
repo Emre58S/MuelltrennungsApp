@@ -55,7 +55,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { cancelSlowMotion, createFx } from "./fx";
-import { SceneCanvas } from "./game-round";
+import { MATERIAL_BURST, MATERIAL_SPARKS, SceneCanvas } from "./game-round";
 import { FloatingText, type FloatText, ItemCard, LearnCard, ParcoursHud, RuleLines, TipCard } from "./hud";
 import { useLater } from "./round-hooks";
 import { type TipId, useTips } from "./tips";
@@ -376,10 +376,12 @@ export function ParcoursRound({
           x: layout.bins[bin].x,
           y: 1.75,
           z: layout.bins[bin].z + 0.1,
-          colors: ["#FFD54A", "#FFFFFF", bins[bin].colorLight],
+          // Je Material wie im Hauptspiel (Bio spritzt, Glas splittert, Papier flattert)
+          colors: ["#FFD54A", "#FFFFFF", bins[bin].colorLight, ...MATERIAL_SPARKS[itemMaterial(thrown)]],
           count: 18,
           power: 1,
           ring: true,
+          style: MATERIAL_BURST[itemMaterial(thrown)],
         });
         sfx("perfect");
         if (clean) sfx("swish");
@@ -387,6 +389,18 @@ export function ParcoursRound({
         float(t(clean ? "parcours.plusSwish" : "parcours.plusTrick", { n: gained }), top.x, top.y, "#FFD54A");
       } else {
         queueBinEvent(bus.current, bin, "hit");
+        // Auch ohne Trick: kleiner Einwurf-Effekt je Material
+        queueBurst(bus.current, {
+          id: ++ids.current,
+          x: layout.bins[bin].x,
+          y: 1.75,
+          z: layout.bins[bin].z + 0.1,
+          colors: [bins[bin].colorLight, ...MATERIAL_SPARKS[itemMaterial(thrown)]],
+          count: 10,
+          power: 0.9,
+          ring: false,
+          style: MATERIAL_BURST[itemMaterial(thrown)],
+        });
         sfx("plop");
         float(`${t("parcours.plus", { n: gained })} · ${noTrickText(lane, passed)}`, top.x, top.y);
       }

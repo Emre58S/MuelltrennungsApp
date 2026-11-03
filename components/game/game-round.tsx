@@ -189,7 +189,7 @@ type Learn = { id: number; item: Item; bin: Mistake["bin"] };
 /** Tonhöhe des Combo-Klangs je Multiplikator (steigt mit jeder Stufe). */
 const COMBO_PITCH: Record<number, number> = { 1.5: 1, 2: 1.12, 3: 1.26 };
 /** Flugart der Einwurf-Teile je Material (Bio spritzt, Glas splittert, Papier flattert). */
-const MATERIAL_BURST: Record<Material, BurstStyle> = {
+export const MATERIAL_BURST: Record<Material, BurstStyle> = {
   glas: "shards",
   papier: "flutter",
   plastik: "confetti",
@@ -198,7 +198,7 @@ const MATERIAL_BURST: Record<Material, BurstStyle> = {
   rest: "confetti",
 };
 /** Einwurf-Funken je Material – passend zum Klang. */
-const MATERIAL_SPARKS: Record<Material, string[]> = {
+export const MATERIAL_SPARKS: Record<Material, string[]> = {
   glas: ["#E0F7FF", "#9EE6FF", "#FFFFFF"],
   papier: ["#F5F0E6", "#E8DCC4", "#FFFFFF"],
   plastik: ["#FFD54A", "#5AC8FA", "#FF6B8B"],
