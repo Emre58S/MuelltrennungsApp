@@ -532,6 +532,9 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     „Online → Freunde → Freund hinzufügen → CODE“; Code vorab geladen (nie warten).
   - Offen: Bild statt Text (braucht view-shot o. ä.); App-Name/Store-Link im Text (R7);
     „gleichauf mit {name}“ bei Gleichstand.
+  - [x] Teil 2 (a050505 + bb945d9, Tester 8/10, EAS auto + preview): „Ergebnis teilen“ auf
+    der Parcours-Endkarte (nur Parcours des Tages, Punkte > 0; „geschlagen“ nur gegen echten
+    Gegner/Freund; mit Freundes-Code).
 - [ ] **R8b** Tägliche Herausforderung „Tagesbester“ teilbar.
 - [ ] **R8c** (1.1) WhatsApp-Sticker der Tonnen-Figuren (eigenes Sticker-Paket;
   iOS braucht dafür ein Zusatzmodul bzw. Sticker-App → nach dem Start).
