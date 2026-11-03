@@ -361,6 +361,8 @@ export const en: Translations = {
   "share.sprint.win": "I beat {name} in Time Sprint: {n} correct! Can you do better? ♻️",
   "share.sprint.score": "I sorted {n} correctly in Time Sprint. Can you do better? ♻️",
   "share.survival.win": "I beat {name} in Survival: {n} correct without a mistake! Can you do better? ♻️",
+  "share.sprint.tie": "Tied with {name} in Time Sprint: {n} correct! Can you do better? ♻️",
+  "share.survival.tie": "Tied with {name} in Survival: {n} correct without a mistake! Can you do better? ♻️",
   "share.survival.score": "I got {n} correct without a mistake in Survival. Can you do better? ♻️",
   "share.parcours.win": "I beat {name} in the Course of the Day: {n} points! Can you do better? ♻️",
   "share.parcours.score": "I got {n} points in the Course of the Day. Can you do better? ♻️",

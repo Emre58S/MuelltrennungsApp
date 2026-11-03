@@ -360,6 +360,8 @@ export const de = {
   "share.sprint.win": "Ich habe {name} im Zeit-Sprint geschlagen: {n} richtig! Schaffst du mehr? ♻️",
   "share.sprint.score": "Im Zeit-Sprint habe ich {n} richtig sortiert. Schaffst du mehr? ♻️",
   "share.survival.win": "Ich habe {name} in Survival geschlagen: {n} richtig ohne Fehler! Schaffst du mehr? ♻️",
+  "share.sprint.tie": "Gleichauf mit {name} im Zeit-Sprint: {n} richtig! Schaffst du mehr? ♻️",
+  "share.survival.tie": "Gleichauf mit {name} in Survival: {n} richtig ohne Fehler! Schaffst du mehr? ♻️",
   "share.survival.score": "In Survival habe ich {n} richtig ohne Fehler geschafft. Schaffst du mehr? ♻️",
   "share.parcours.win": "Ich habe {name} im Parcours des Tages geschlagen: {n} Punkte! Schaffst du mehr? ♻️",
   "share.parcours.score": "Im Parcours des Tages habe ich {n} Punkte geholt. Schaffst du mehr? ♻️",

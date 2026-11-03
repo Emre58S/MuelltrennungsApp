@@ -807,8 +807,9 @@ function SprintEnd({
   const share = () => {
     if (Date.now() < shareLock.current) return;
     shareLock.current = Date.now() + 1500;
-    const won = !!rival && result === "win";
-    let text = t(won ? `share.${kind}.win` : `share.${kind}.score`, { name: rival ?? "", n: run.correct });
+    // Gegen einen echten Gegner: geschlagen oder gleichauf nennen, sonst nur das Ergebnis
+    const outcome = rival && result === "win" ? "win" : rival && result === "draw" ? "tie" : "score";
+    let text = t(`share.${kind}.${outcome}`, { name: rival ?? "", n: run.correct });
     if (friendCode) text += `\n${t("share.code", { code: formatFriendCode(friendCode) })}`;
     Share.share({ message: text }).catch(() => undefined);
   };
