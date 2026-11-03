@@ -535,7 +535,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 2 (a050505 + bb945d9, Tester 8/10, EAS auto + preview): „Ergebnis teilen“ auf
     der Parcours-Endkarte (nur Parcours des Tages, Punkte > 0; „geschlagen“ nur gegen echten
     Gegner/Freund; mit Freundes-Code).
-- [ ] **R8b** Tägliche Herausforderung „Tagesbester“ teilbar.
+- [x] **R8b** Tägliche Herausforderung „Tagesbester“ teilbar. (82d4ea1 + 6b51c12, Tester
+  8/10, EAS auto + preview): Ghost-Rennen-Startkarte „👑 Teilen: Bester Lauf heute“, wenn
+  man heute den besten Lauf aller hat – Text + Code zum Nachspielen. Offen: Startkarte auf
+  375×667 ohne Scrollen prüfen.
 - [ ] **R8c** (1.1) WhatsApp-Sticker der Tonnen-Figuren (eigenes Sticker-Paket;
   iOS braucht dafür ein Zusatzmodul bzw. Sticker-App → nach dem Start).
 
