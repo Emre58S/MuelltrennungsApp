@@ -624,6 +624,6 @@ export const en: Translations = {
   "hub.sprint.desc": "30 seconds: who sorts more correctly?",
   "hub.survival.desc": "No mistakes, faster and faster: who lasts longer?",
   "hub.parcours.title": "Course of the day",
-  "hub.parcours.desc": "Sort + trick in {s} seconds. Today: {task}",
+  "hub.parcours.desc": "Sort with trick shots, {s} seconds.\nToday: {task}",
   "hub.code.desc": "Paste a code from friends and race their run",
 };

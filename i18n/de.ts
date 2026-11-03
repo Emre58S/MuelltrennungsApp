@@ -623,7 +623,7 @@ export const de = {
   "hub.sprint.desc": "30 Sekunden: Wer sortiert mehr richtig?",
   "hub.survival.desc": "Kein Fehler, immer schneller: Wer hält länger durch?",
   "hub.parcours.title": "Parcours des Tages",
-  "hub.parcours.desc": "Sortieren + tricksen in {s} Sekunden. Heute: {task}",
+  "hub.parcours.desc": "Sortieren mit Trickwurf, {s} Sekunden.\nHeute: {task}",
   "hub.code.desc": "Code von Freunden einfügen und gegen den Lauf spielen",
 } as const;
 
