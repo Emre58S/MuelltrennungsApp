@@ -247,6 +247,7 @@ let onlineSending: Promise<void> = Promise.resolve();
  *  offline oder nicht eingerichtet. */
 export function submitOnlineRun(mode: OnlineMode, day: string, code: string, correct: number, ms: number): Promise<void> {
   if (!leaderboardReady || correct < 1) return Promise.resolve();
+  openCache = null;
   onlineSending = (async () => {
     try {
       const player = await getPlayer();
@@ -270,6 +271,7 @@ export function submitOnlineRun(mode: OnlineMode, day: string, code: string, cor
  *  Tag und Parcours den besten). Still, wenn offline oder nicht eingerichtet. */
 export function submitParcoursRun(level: number, day: string, code: string, points: number): Promise<void> {
   if (!leaderboardReady || points < 1 || !code) return Promise.resolve();
+  openCache = null;
   parcoursSending = (async () => {
     try {
       const player = await getPlayer();
@@ -530,9 +532,20 @@ export function openParcoursChallenges(
     });
 }
 
-/** Offene Herausforderungen von heute (leer, wenn offline oder SQL fehlt). */
-export async function fetchOpenChallenges(): Promise<OpenChallenge[]> {
+/** Zuletzt geladene offene Herausforderungen (Startschirm fragt nicht bei jeder Rückkehr neu). */
+let openCache: { at: number; day: string; list: OpenChallenge[] } | null = null;
+
+/** Offene Herausforderungen von heute (leer, wenn offline oder SQL fehlt).
+ *  `maxAgeMs`: ein höchstens so altes Ergebnis wiederverwenden (eigene Läufe leeren es). */
+export async function fetchOpenChallenges(maxAgeMs = 0): Promise<OpenChallenge[]> {
   if (!leaderboardReady) return [];
+  if (openCache && openCache.day === todayKey() && Date.now() - openCache.at < maxAgeMs) return openCache.list;
+  const list = await loadOpenChallenges();
+  openCache = { at: Date.now(), day: todayKey(), list };
+  return list;
+}
+
+async function loadOpenChallenges(): Promise<OpenChallenge[]> {
   try {
     const day = todayKey();
     const player = await getPlayer();

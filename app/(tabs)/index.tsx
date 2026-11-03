@@ -328,7 +328,8 @@ export default function HomeScreen() {
         .then((best) => active && setDayBest(best))
         .catch(() => undefined);
       // Offene Herausforderung eines Freundes (still, falls offline oder nicht eingerichtet)
-      fetchOpenChallenges()
+      // Höchstens 1 min altes Ergebnis wiederverwenden – der Startschirm wird oft besucht
+      fetchOpenChallenges(60_000)
         .then((open) => active && setFriend(open[0] ? { name: open[0].name } : null))
         .catch(() => undefined);
 

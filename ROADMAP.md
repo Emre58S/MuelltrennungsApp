@@ -550,7 +550,7 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   Serie 10/Boss; Haptik-Stufen. (e7bdfea + 988d002, Tester 8/10, EAS auto + preview):
   Serie 10/20 … → hitStop 60 ms (nicht doppelt mit Swish) + shake 0,03 beim Fieber-Start;
   Haptik mittel, kräftig bei jeder 5er-Serie. Offen: Boss-Sieg/-Tausch mit Wackeln.
-- [ ] **R6d** Belohnungs-Momente: Truhe öffnen, Stern-Animation im Pfad,
+- [x] **R6d** Belohnungs-Momente: Truhe öffnen, Stern-Animation im Pfad,
   „Neue Tonne freigeschaltet!“. Hot-Path-Regel beachten (keine Objekte pro Frame).
   - [x] Teil 1 (589e924, Tester 8/10, EAS auto + preview): erster Boss-Sieg → Karte
     „🎉 Neue Tonne frei!“ mit Tonnen-Etikett(en) der nächsten Welt im Endbildschirm
