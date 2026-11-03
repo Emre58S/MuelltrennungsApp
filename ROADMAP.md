@@ -3,7 +3,13 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., 20:16–21:15, Normalmodus):** Zyklen 41–46, alle freigegeben, auf
+**Letzter Lauf (3.11., 21:25–22:36, Normalmodus):** Zyklen 47–52, alle freigegeben
+(7–8/10, einer 5 → 8), auf auto + preview: Freunde „Heute offen“ (Zeile antippbar, „Noch N
+mehr als dein Bestes – dann gewinnst du!“), Knopf „Hinzufügen“ volle Breite, „Neue Tonne frei!“
+mit Beispielen + Freischalt-Ton (R6d komplett ✓), Startschirm merkt offene Herausforderungen
+1 min. Nächstes: R5e prüfen (Trick-Schule gibt es schon), R4d „Seed der Woche“, R7 zuletzt.
+
+**Lauf davor (3.11., 20:16–21:15, Normalmodus):** Zyklen 41–46, alle freigegeben, auf
 auto + preview: Solo-Ende „Online: Zeit-Sprint/Survival“ (R4f), Karte „Ghost-Rennen“ statt
 „Rekord & Freunde“, 🔑 fokussiert erneut (R1d), Sprint-Startkarte ohne Springen (fester
 Platz für Suche/Gegner/Freundes-Hinweise, R4d), „… – spiel zuerst!“. Nächstes: R5e, R4d
