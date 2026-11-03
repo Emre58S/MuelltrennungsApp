@@ -3,7 +3,17 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., 13:45–15:40, Normalmodus, Takt 3 Zyklen + 7 min Pause):**
+**Letzter Lauf (3.11., 15:42–18:50, Normalmodus, Takt 3 Zyklen + 10 min Pause):**
+18 Zyklen (16–33), alle freigegeben (8/10), auf auto + preview (2 nur SQL/Test → ohne EAS):
+Trick-Battle online – **supabase/parcours.sql (Nutzer muss es ausführen, nach
+rangliste.sql + freunde.sql)**: Läufe an den Server, Gegner von heute als Ghost,
+„Gegner wird gesucht …“/„kein Gegner da“, Rangliste-Reiter „Parcours des Tages“ + eigener
+Platz + Knopf auf der Endkarte, Freund im Parcours herausfordern, „Heute offen“ mit Parcours,
+Zeitprüfung gegen Fälschungen; Teilen (Parcours, Tagesbester R8b, „Gleichauf“); Vorsprung in
+Gold; Karten scrollbar; Lernkarte blendet weich aus, Tipp ploppt danach; Online-Karte nach
+Mitternacht neu. Nächstes: R5e Trick-Schule oder Parcours in die Kampagne; R7 zuletzt.
+
+**Lauf davor (3.11., 13:45–15:40, Normalmodus, Takt 3 Zyklen + 7 min Pause):**
 15 Zyklen, alle freigegeben (7–8/10, einer nach Nachbesserung 6 → 8), auf auto + preview:
 R4c Teil 1–6 (Online-Karte „Parcours des Tages“ mit Aufgabe/Bestwert, eigener Ghost im
 Parcours mit Kopfleiste/Vorsprung/Endkarte, Einzahl, Screenreader), Sprint/Survival-Beenden-
@@ -288,7 +298,8 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     „Parcours“ ist für Nicht-Muttersprachler schwer.
   - Offen: Vergleich
     mit Freunden/Rangliste für den Parcours des Tages; Karte über Mitternacht offen
-    → zeigt gestrigen Parcours; Gegner-Ghost (Startzeit der Szenen-Uhr mitschreiben).
+    → zeigt gestrigen Parcours (✓ 75298c1, Tester 8/10: Tag bei jeder Rückkehr neu; Bestwert
+    flackert kurz); Gegner-Ghost (Startzeit der Szenen-Uhr mitschreiben).
   - [x] Teil 3 (591987e + ebec2db, Tester 8/10, EAS auto + preview): eigener bester Lauf
     von heute je Parcours als Ghost (`ParcoursRun` = Punktestand je Treffer, StorageKeys.
     PARCOURS_TODAY); Kopfleiste „👻 Ghost: N“ zur selben Rundenzeit, Startkarte nennt ihn.
