@@ -3,7 +3,15 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11. abends, Normalmodus):** 3 Zyklen R5d Teil 4–6 (Regel Lernpause, Abstand zum Bestwert; Lernkarte weg beim nächsten Wurf, Satz bei 0 Punkten; Sicherheitsnetz Landung), je 8/10, auf auto + preview. Nächstes: Parcours in Kampagne/Online einbinden oder R4c Trick-Battle.
+**Letzter Lauf (3.11./4.11. Nachmittag bis 16 Uhr, Normalmodus, Takt 3 Zyklen + 7 min Pause):**
+15 Zyklen, alle freigegeben (7–8/10, einer nach Nachbesserung 6 → 8), auf auto + preview:
+R4c Teil 1–6 (Online-Karte „Parcours des Tages“ mit Aufgabe/Bestwert, eigener Ghost im
+Parcours mit Kopfleiste/Vorsprung/Endkarte, Einzahl, Screenreader), Sprint/Survival-Beenden-
+Dialog („Zeit läuft weiter“, Lauf zählt bei Zeitablauf), Survival-Balken dicker, Regelzeilen
+linksbündig (RuleLines), Freunde-Gleichstand + 0-Läufe, Parcours-Stoß nach Ablauf, Texte
+„Trickwurf“. Nächstes: Ghost eines Freundes/Gegners im Parcours (Server, R4c) oder R5e.
+
+**Lauf davor (3.11. abends, Normalmodus):** 3 Zyklen R5d Teil 4–6 (Regel Lernpause, Abstand zum Bestwert; Lernkarte weg beim nächsten Wurf, Satz bei 0 Punkten; Sicherheitsnetz Landung), je 8/10, auf auto + preview. Nächstes: Parcours in Kampagne/Online einbinden oder R4c Trick-Battle.
 
 **Lauf davor (3.11., Normalmodus):** 3 Zyklen R5d (Teil 1–3: Parcours-Runde spielbar, Zeitablauf nach Hintergrund, Lernkarte), alle freigegeben (7–8/10), auf auto + preview. Nächstes: R5d-Rest (Abstand zum Bestwert, Regeln: Lernpause) oder R4c Trick-Battle.
 
@@ -323,7 +331,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     ausführen); ohne SQL/Netz unsichtbar.
   - [x] Gleichstand in „Heute offen“: eigene kurze Zeile „Gleichstand – 1 mehr gewinnt!“
     (5ffc64e + 3cf03ba, Tester 6/10 → 8/10, EAS auto + preview; `tie` in openChallenges).
-  - Offen: Test „0 zu 0 → kein Gleichstand“; eigener Bestwert nur lokal
+  - [x] Freund mit 0 richtig ist keine offene Herausforderung (+ Test; 727437e + 6fa9919,
+    Tester 8/10, EAS auto + preview). Offen: Test „0 neben >0“.
+  - Offen: eigener Bestwert nur lokal
     (anderes Gerät → 0); Unterschied „+3 vor dir“; Zeile ganz antippbar; Lauf kommt nach
     dem Start an → Hinweis; „nicht mehr befreundet“ eigener Text; nach der Runde
     zurückfordern/teilen; Link statt Code;
