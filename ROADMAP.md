@@ -3,7 +3,7 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11./4.11. Nachmittag bis 16 Uhr, Normalmodus, Takt 3 Zyklen + 7 min Pause):**
+**Letzter Lauf (3.11., 13:45–15:40, Normalmodus, Takt 3 Zyklen + 7 min Pause):**
 15 Zyklen, alle freigegeben (7–8/10, einer nach Nachbesserung 6 → 8), auf auto + preview:
 R4c Teil 1–6 (Online-Karte „Parcours des Tages“ mit Aufgabe/Bestwert, eigener Ghost im
 Parcours mit Kopfleiste/Vorsprung/Endkarte, Einzahl, Screenreader), Sprint/Survival-Beenden-
