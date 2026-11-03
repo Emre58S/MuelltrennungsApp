@@ -530,8 +530,8 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 1 (b49031f + 5bb9254, Tester 6/10 → 8/10, EAS auto + preview): Knopf
     „Ergebnis teilen“ im Sprint-/Survival-Endbildschirm – Text (geschlagen/Ergebnis) +
     „Online → Freunde → Freund hinzufügen → CODE“; Code vorab geladen (nie warten).
-  - Offen: Bild statt Text (braucht view-shot o. ä.); App-Name/Store-Link im Text (R7);
-    „gleichauf mit {name}“ bei Gleichstand.
+  - Offen: Bild statt Text (braucht view-shot o. ä.); App-Name/Store-Link im Text (R7).
+    ✓ „Gleichauf mit {name}“ bei Gleichstand (4224f1a, Tester 8/10, EAS auto + preview).
   - [x] Teil 2 (a050505 + bb945d9, Tester 8/10, EAS auto + preview): „Ergebnis teilen“ auf
     der Parcours-Endkarte (nur Parcours des Tages, Punkte > 0; „geschlagen“ nur gegen echten
     Gegner/Freund; mit Freundes-Code).
