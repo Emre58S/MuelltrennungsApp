@@ -3,7 +3,7 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., spät, Normalmodus):** 2 Zyklen, beide freigegeben, auf auto + preview:
+**Letzter Lauf (3.11., bis 24 Uhr, Normalmodus):** 3 Zyklen (dazu R7e: ungenutzte Konto-Texte raus, 9/10), beide freigegeben, auf auto + preview:
 Survival-Beenden-Dialog „Der Balken läuft weiter – ist er leer, endet die Runde.“ (R4b, 8/10);
 Sprint/Survival: Gegner, der im 3-2-1 noch gefunden wird, fliegt mit (R4d, 7 → 8/10). Offen
 wie zuvor: R7a–d/f brauchen den Nutzer; R4d „Seed der Woche“ (neues SQL).
@@ -595,7 +595,8 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 1 (01f1518, Tester 8/10, EAS auto + preview): „Konto/Abmelden“ in den
     Einstellungen ausgeblendet (führte auf Platzhalter-Login). dev-error-reporter ist schon
     nur `__DEV__` (geprüft). ✓ login/register leiten auf /(tabs) um (e098edf, Tester 8/10;
-    Schalter AUTH_ENABLED). Offen: i18n settings.account/logout* ungenutzt; Zielwurf-Reste.
+    Schalter AUTH_ENABLED). ✓ i18n settings.account/logout* entfernt (80a9fa8, Tester 9/10; ohne EAS, nichts
+    sichtbar). Offen: Zielwurf-Reste (Modus „aim“ per Deep-Link noch erreichbar).
 - [ ] **R7f** Leistung auf älterem iPhone (Ruckeln aus 29.10. prüfen).
 
 ### R8 – Teilen & Viralität (Soll)
