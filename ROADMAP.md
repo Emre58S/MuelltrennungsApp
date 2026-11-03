@@ -328,7 +328,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     des Tages herausfordern (Dialog „🎯 Parcours des Tages“, SQL friend_parcours_run –
     **parcours.sql erneut ausführen**); Startkarte „👫 Name spielt mit“ / „hat heute noch
     nicht gespielt“ / „kam nicht an“. Offen: Dialog hat 4 Knöpfe (Android zeigt 3); Tag
-    als Parameter statt neu berechnet; „Heute offen“ auch für den Parcours.
+    als Parameter statt neu berechnet.
+  - [x] Teil 14 (dee8363, Tester 8/10, EAS auto + preview): „Heute offen“ zeigt auch den
+    Parcours des Tages (🎯 „Name: N Punkte“, SQL friend_parcours_today – **parcours.sql
+    erneut ausführen**). Offen: eigener Bestwert nur lokal; Zeilen nach Abstand sortieren.
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
