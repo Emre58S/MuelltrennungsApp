@@ -180,6 +180,7 @@ export default function GameScreen() {
         <ParcoursRound
           key={`${round}-parcours-${rawLevel}`}
           level={PARCOURS.find((p) => p.id === Number(rawLevel)) ?? PARCOURS[0]}
+          friend={rawFriend ? (cleanFriendCode(rawFriend) ?? undefined) : undefined}
           onExit={goBack}
           onRetry={retryTrick}
         />

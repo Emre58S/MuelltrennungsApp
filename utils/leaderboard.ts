@@ -446,6 +446,28 @@ export async function fetchFriendRun(friendCode: string, mode: OnlineMode, day: 
   }
 }
 
+/** Bester Parcours-Lauf eines Freundes von heute (code null = noch nicht
+ *  gespielt; null = kein Freund, offline oder SQL fehlt). */
+export async function fetchFriendParcoursRun(
+  friendCode: string,
+  level: number,
+  day: string,
+): Promise<{ name: string; code: string | null; points: number | null } | null> {
+  if (!leaderboardReady) return null;
+  try {
+    const player = await getPlayer();
+    const rows = await rpc<{ name: string; code: string | null; points: number | null }[]>("friend_parcours_run", {
+      p_player: player.id,
+      p_code: friendCode,
+      p_level: level,
+      p_day: day,
+    });
+    return rows?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export type OpenChallenge = {
   name: string;
   code: string;

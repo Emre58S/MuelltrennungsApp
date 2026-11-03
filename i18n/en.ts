@@ -304,6 +304,7 @@ export const en: Translations = {
   "parcours.ghostBehind": "👻 {name}: {n} · {gap} points to go",
   "parcours.ghostBehindOne": "👻 {name}: {n} · 1 point to go",
   "parcours.rivalSearch": "🌍 Looking for an opponent …",
+  "parcours.friendInfo": "👫 {name} plays along ({points})",
   "parcours.rivalInfo": "🌍 Today's opponent: {name} ({points})",
   "parcours.ghostInfo": "👻 Your best run today plays along",
   "parcours.noBest": "Not played yet",

@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { IconButton } from "@/components/ui/icon-button";
 import { Radius, Spacing } from "@/constants/theme";
+import { dailyParcoursId } from "@/game/parcours";
+import { PARCOURS } from "@/game/trick-levels";
 import { type TranslationKey } from "@/i18n";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import {
@@ -29,6 +31,7 @@ import {
   removeFriend,
 } from "@/utils/leaderboard";
 import { sfx } from "@/utils/sfx";
+import { todayKey } from "@/utils/storage";
 
 const ERROR_TEXT: Record<FriendError, TranslationKey> = {
   invalid: "friends.err.invalid",
@@ -100,6 +103,14 @@ export default function FriendsScreen() {
     Alert.alert(t("friends.challenge", { name: friend.name }), t("friends.challengeInfo", { name: friend.name }), [
       { text: `⏱️ ${t("sprint.title")}`, onPress: () => go("sprint") },
       { text: `🛡️ ${t("survival.title")}`, onPress: () => go("survival") },
+      {
+        text: `🎯 ${t("hub.parcours.title")}`,
+        onPress: () =>
+          router.push({
+            pathname: "/runde",
+            params: { mode: "parcours", level: String(dailyParcoursId(todayKey(), PARCOURS.map((p) => p.id))), friend: friend.code },
+          }),
+      },
       { text: t("common.cancel"), style: "cancel" },
     ]);
   };

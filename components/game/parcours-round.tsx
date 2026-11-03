@@ -26,7 +26,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { fetchRandomParcoursRun, leaderboardReady, submitParcoursRun } from "@/utils/leaderboard";
+import { fetchFriendParcoursRun, fetchRandomParcoursRun, leaderboardReady, submitParcoursRun } from "@/utils/leaderboard";
 import { router } from "expo-router";
 import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
 import { usableSkin, usableTrail } from "@/game/rewards";
@@ -70,10 +70,13 @@ type Phase = "ready" | "play" | "end";
 
 export function ParcoursRound({
   level,
+  friend,
   onExit,
   onRetry,
 }: {
   level: ParcoursLevel;
+  /** Freundes-Code: gegen dessen Lauf von heute antreten (statt Zufallsgegner). */
+  friend?: string;
   onExit: () => void;
   onRetry: () => void;
 }) {
@@ -154,6 +157,9 @@ export function ParcoursRound({
   const [rival, setRival] = useState<string | null>(null);
   /** Suche nach dem Gegner läuft (nur Hinweis auf der Startkarte). */
   const [searching, setSearching] = useState(false);
+  /** Freund herausgefordert: hat heute noch nicht gespielt (Name) bzw. Lauf kam nicht an. */
+  const [friendNoRun, setFriendNoRun] = useState<string | null>(null);
+  const [friendLost, setFriendLost] = useState(false);
   /** Parcours des Tages – nur der hat eine Rangliste (Reiter „Parcours des Tages“). */
   const isDaily = dailyParcoursId(day, PARCOURS.map((p) => p.id)) === level.id;
   // Sperre gegen Doppeltippen (sonst zwei Ranglisten übereinander)
@@ -176,7 +182,15 @@ export function ParcoursRound({
         setGhost(ghostRef.current);
         // Trick-Battle: ein echter Gegner von heute (ähnlich stark) ersetzt den eigenen Ghost
         setSearching(true);
-        return fetchRandomParcoursRun(level.id, day, run?.points ?? bestRef.current).then((other) => {
+        // Freund herausgefordert: dessen Lauf von heute, sonst ein Zufallsgegner
+        const search = friend
+          ? fetchFriendParcoursRun(friend, level.id, day).then((found) => {
+              if (found && !found.code) setFriendNoRun(found.name);
+              if (!found) setFriendLost(true);
+              return found?.code ? { name: found.name, code: found.code } : null;
+            })
+          : fetchRandomParcoursRun(level.id, day, run?.points ?? bestRef.current);
+        return search.then((other) => {
           setSearching(false);
           const decoded = other ? decodeParcours(other.code) : null;
           // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
@@ -187,7 +201,7 @@ export function ParcoursRound({
         });
       })
       .catch(() => undefined);
-  }, [level.id, day]);
+  }, [level.id, day, friend]);
 
   useEffect(() => {
     refreshSfxSetting();
@@ -562,14 +576,27 @@ export function ParcoursRound({
               {/* Während der Suche nur diese Zeile – sonst springt die Karte zweimal */}
               {searching && !rival && (
                 <AppText variant="caption" tone="textMuted" center>
-                  {t("parcours.rivalSearch")}
+                  {friend ? `👫 ${t("friends.loading")}` : t("parcours.rivalSearch")}
                 </AppText>
               )}
               {ghost && !searching && (
                 <AppText variant="caption" tone="textSecondary" center>
                   {rival
-                    ? t("parcours.rivalInfo", { name: rival, points: t("parcours.points", { n: ghost.points }) })
+                    ? t(friend ? "parcours.friendInfo" : "parcours.rivalInfo", {
+                        name: rival,
+                        points: t("parcours.points", { n: ghost.points }),
+                      })
                     : `${t("parcours.ghostInfo")} (${t("parcours.points", { n: ghost.points })})`}
+                </AppText>
+              )}
+              {friendNoRun && (
+                <AppText variant="caption" tone="textSecondary" center>
+                  👫 {t("friends.noRun", { name: friendNoRun })}
+                </AppText>
+              )}
+              {friendLost && (
+                <AppText variant="caption" tone="textSecondary" center>
+                  👫 {t("friends.runLost")}
                 </AppText>
               )}
               <Button title={t("duel.start")} icon="zap" size="lg" onPress={start} />

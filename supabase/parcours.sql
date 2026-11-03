@@ -6,7 +6,8 @@
 -- ein Ghost sieht also exakt denselben Parcours.
 -- Einmal im Supabase-Projekt ausführen: Dashboard → SQL Editor → einfügen → Run.
 -- Erneut ausführen ist unschädlich (Funktionen werden ersetzt, Läufe bleiben).
--- Setzt supabase/rangliste.sql voraus (Tabelle players, Funktion set_name).
+-- Setzt supabase/rangliste.sql voraus (Tabelle players, Funktion set_name) und
+-- supabase/freunde.sql (Freund herausfordern: friend_parcours_run).
 --
 -- Datenschutz wie bei der Rangliste: Die Geräte-ID verlässt die Datenbank nie,
 -- Abfragen liefern nur Spitzname und Lauf.
@@ -116,7 +117,27 @@ as $$
   select rank, points from ranked where player = p_player;
 $$;
 
+-- Freund herausfordern: bester Parcours-Lauf eines Freundes von heute (code
+-- null = Freund hat diesen Parcours heute noch nicht gespielt; keine Zeile =
+-- kein Freund oder Code unbekannt)
+create or replace function public.friend_parcours_run(p_player uuid, p_code text, p_level integer, p_day text)
+returns table (name text, code text, points integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.name, r.code, r.points
+  from friend_codes c
+  join friends f on f.player = p_player and f.friend = c.player
+  join players p on p.id = c.player
+  left join parcours_runs r on r.player = c.player and r.level = p_level and r.day = p_day
+  where c.code = p_code
+  limit 1;
+$$;
+
 grant execute on function public.submit_parcours_run(uuid, integer, text, text, integer) to anon, authenticated;
 grant execute on function public.random_parcours_run(integer, text, uuid, integer) to anon, authenticated;
 grant execute on function public.parcours_top(integer, text, uuid, integer) to anon, authenticated;
 grant execute on function public.parcours_my_rank(integer, text, uuid) to anon, authenticated;
+grant execute on function public.friend_parcours_run(uuid, text, integer, text) to anon, authenticated;
