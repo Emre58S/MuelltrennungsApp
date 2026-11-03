@@ -193,6 +193,8 @@ export function ParcoursRound({
         return search.then((other) => {
           setSearching(false);
           const decoded = other ? decodeParcours(other.code) : null;
+          // Lauf des Freundes da, aber nicht lesbar → wie „kam nicht an“
+          if (friend && other && !decoded) setFriendLost(true);
           // Nur vor dem Start übernehmen – danach fliegt schon der bisherige Ghost
           if (!other || !decoded || phaseRef.current !== "ready") return;
           ghostRef.current = decoded;
@@ -596,7 +598,7 @@ export function ParcoursRound({
               )}
               {friendLost && (
                 <AppText variant="caption" tone="textSecondary" center>
-                  👫 {t("friends.runLost")}
+                  👫 {t("parcours.friendLost")}
                 </AppText>
               )}
               <Button title={t("duel.start")} icon="zap" size="lg" onPress={start} />

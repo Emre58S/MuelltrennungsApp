@@ -304,6 +304,7 @@ export const de = {
   "parcours.ghostBehindOne": "👻 {name}: {n} · noch 1 Punkt",
   "parcours.rivalSearch": "🌍 Gegner wird gesucht …",
   "parcours.friendInfo": "👫 {name} spielt mit ({points})",
+  "parcours.friendLost": "Der Lauf deines Freundes kam nicht an. Versuch es später nochmal.",
   "parcours.rivalInfo": "🌍 Gegner von heute: {name} ({points})",
   "parcours.ghostInfo": "👻 Dein bester Lauf von heute spielt mit",
   "parcours.noBest": "Noch nicht gespielt",
