@@ -413,7 +413,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     noch zielwurf), kein Platz-Hinweis mehr im Endbildschirm; lokaler Bestwert bleibt.
   - [x] Teil 4 (011246e + 141c478, Tester 8/10, EAS auto + preview): „Erneut versuchen“
     auch bei „wird eingerichtet“, Text „Versuch es später nochmal“.
-  - Offen: Sprint-Gleichstand nach Zeit?; Tricks erst mit R4c; Hinweis „Für die Rangliste: Zeit-Sprint“ im
+  - [x] Solo-Endbildschirm „Gegen die Zeit“/„Ohne Fehler“: Knopf „Online: Zeit-Sprint“ bzw.
+    „Online: Survival“ (be5c1d8, Tester 7/10, EAS auto + preview).
+  - Offen: Sprint-Gleichstand nach Zeit?; Tricks ✓ (Parcours-Reiter, R4c Teil 10); (erledigt:) Hinweis „Für die Rangliste: Zeit-Sprint“ im
     Endbildschirm der Solo-Modi; FixedBoard zeit/runden nur noch Altdaten.
 - [ ] **R4g** (1.1) **Live-Duell parallel** auf zwei Handys (G4, Supabase
   Realtime): beide werfen gleichzeitig denselben Gegenstand, wer zuerst richtig
