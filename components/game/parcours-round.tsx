@@ -49,7 +49,7 @@ import {
 } from "@/utils/storage";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, AppState, Share, StyleSheet, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, AppState, ScrollView, Share, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -596,113 +596,127 @@ export function ParcoursRound({
           </View>
         )}
         {phase === "ready" && (
-          <View pointerEvents="box-none" style={[styles.cover, { paddingBottom: insets.bottom + Spacing.lg }]}>
-            <View style={[styles.card, { backgroundColor: colors.surface }]}>
-              <AppText variant="title" center accessibilityRole="header">
-                {title}
-              </AppText>
-              <AppText variant="label" center>
-                {t(level.task)}
-              </AppText>
-              <RuleLines text={t("parcours.rules")} />
-              <AppText variant="label" tone="textSecondary" center>
-                {t("parcours.time", { n: level.seconds })}
-                {best > 0 ? ` · ${t("parcours.best", { n: best })}` : ""}
-              </AppText>
-              {/* Während der Suche nur diese Zeile – sonst springt die Karte zweimal */}
-              {searching && !rival && (
-                <AppText variant="caption" tone="textMuted" center>
-                  {friend ? `👫 ${t("friends.loading")}` : t("parcours.rivalSearch")}
+          <View
+            pointerEvents="box-none"
+            style={[styles.cover, { paddingTop: insets.top + Spacing.md, paddingBottom: insets.bottom + Spacing.lg }]}
+          >
+            {/* Scrollt nur, wenn die Karte zu hoch wird (kleines iPhone, große Schrift) */}
+            <ScrollView style={styles.cardScroll} bounces={false} showsVerticalScrollIndicator={false}>
+              <View style={[styles.card, { backgroundColor: colors.surface }]}>
+                <AppText variant="title" center accessibilityRole="header">
+                  {title}
                 </AppText>
-              )}
-              {ghost && !searching && (
-                <AppText variant="caption" tone="textSecondary" center>
-                  {rival
-                    ? t(friend ? "parcours.friendInfo" : "parcours.rivalInfo", {
-                        name: rival,
-                        points: t("parcours.points", { n: ghost.points }),
-                      })
-                    : `${t("parcours.ghostInfo")} (${t("parcours.points", { n: ghost.points })})`}
+                <AppText variant="label" center>
+                  {t(level.task)}
                 </AppText>
-              )}
-              {/* Nur ohne eigenen Lauf von heute – sonst sagt die Ghost-Zeile schon alles */}
-              {noRival && !ghost && (
-                <AppText variant="caption" tone="textSecondary" center>
-                  {t("parcours.noRival")}
+                <RuleLines text={t("parcours.rules")} />
+                <AppText variant="label" tone="textSecondary" center>
+                  {t("parcours.time", { n: level.seconds })}
+                  {best > 0 ? ` · ${t("parcours.best", { n: best })}` : ""}
                 </AppText>
-              )}
-              {friendNoRun && (
-                <AppText variant="caption" tone="textSecondary" center>
-                  👫 {t("friends.noRun", { name: friendNoRun })}
-                </AppText>
-              )}
-              {friendLost && (
-                <AppText variant="caption" tone="textSecondary" center>
-                  👫 {t("parcours.friendLost")}
-                </AppText>
-              )}
-              <Button title={t("duel.start")} icon="zap" size="lg" onPress={start} />
-            </View>
+                {/* Während der Suche nur diese Zeile – sonst springt die Karte zweimal */}
+                {searching && !rival && (
+                  <AppText variant="caption" tone="textMuted" center>
+                    {friend ? `👫 ${t("friends.loading")}` : t("parcours.rivalSearch")}
+                  </AppText>
+                )}
+                {ghost && !searching && (
+                  <AppText variant="caption" tone="textSecondary" center>
+                    {rival
+                      ? t(friend ? "parcours.friendInfo" : "parcours.rivalInfo", {
+                          name: rival,
+                          points: t("parcours.points", { n: ghost.points }),
+                        })
+                      : `${t("parcours.ghostInfo")} (${t("parcours.points", { n: ghost.points })})`}
+                  </AppText>
+                )}
+                {/* Nur ohne eigenen Lauf von heute – sonst sagt die Ghost-Zeile schon alles */}
+                {noRival && !ghost && (
+                  <AppText variant="caption" tone="textSecondary" center>
+                    {t("parcours.noRival")}
+                  </AppText>
+                )}
+                {friendNoRun && (
+                  <AppText variant="caption" tone="textSecondary" center>
+                    👫 {t("friends.noRun", { name: friendNoRun })}
+                  </AppText>
+                )}
+                {friendLost && (
+                  <AppText variant="caption" tone="textSecondary" center>
+                    👫 {t("parcours.friendLost")}
+                  </AppText>
+                )}
+                <Button title={t("duel.start")} icon="zap" size="lg" onPress={start} />
+              </View>
+            </ScrollView>
           </View>
         )}
         {phase === "end" && result && (
-          <View style={[styles.cover, styles.coverCenter, { paddingBottom: insets.bottom + Spacing.lg }]}>
-            <View style={[styles.card, { backgroundColor: colors.surface }]}>
-              <AppText variant="title" center accessibilityRole="header">
-                {t("parcours.timeUp")}
-              </AppText>
-              <AppText variant="display" tone="gold" center>
-                {t("parcours.points", { n: result.points })}
-              </AppText>
-              <AppText variant="body" center>
-                {t("parcours.summary", { right: result.right, tricks: result.tricks })}
-              </AppText>
-              {result.wrong > 0 && (
-                <AppText variant="caption" tone="textSecondary" center>
-                  {t("parcours.wrongCount", { n: result.wrong })}
+          <View
+            style={[
+              styles.cover,
+              styles.coverCenter,
+              { paddingTop: insets.top + Spacing.md, paddingBottom: insets.bottom + Spacing.lg },
+            ]}
+          >
+            <ScrollView style={styles.cardScroll} bounces={false} showsVerticalScrollIndicator={false}>
+              <View style={[styles.card, { backgroundColor: colors.surface }]}>
+                <AppText variant="title" center accessibilityRole="header">
+                  {t("parcours.timeUp")}
                 </AppText>
-              )}
-              {/* Bestwert-Zeile entfällt, wenn der Ghost schon dasselbe sagt (Bestwert = Lauf von heute) */}
-              {(!ghost || rival !== null || ghost.points !== result.best || result.points > result.best) && (
-                <AppText
-                  variant="label"
-                  tone={result.points > result.best ? "gold" : "textSecondary"}
-                  center
-                  // Screenreader ohne Emoji (🏆)
-                  accessibilityLabel={bestLine.replace("🏆", "").trim()}
-                >
-                  {bestLine}
+                <AppText variant="display" tone="gold" center>
+                  {t("parcours.points", { n: result.points })}
                 </AppText>
-              )}
-              {ghostLine !== null && ghost && (
-                <AppText
-                  variant="label"
-                  tone={result.points > ghost.points ? "gold" : "textSecondary"}
-                  center
-                  // Screenreader ohne Emoji
-                  accessibilityLabel={ghostLine.replace("👻", "").trim()}
-                >
-                  {ghostLine}
+                <AppText variant="body" center>
+                  {t("parcours.summary", { right: result.right, tricks: result.tricks })}
                 </AppText>
-              )}
-              <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
-              {isDaily && result.points > 0 && (
-                <Button title={t("game.end.share")} icon="share" variant="secondary" onPress={share} />
-              )}
-              {leaderboardReady && isDaily && result.points > 0 && (
-                <Button
-                  title={t("home.rank")}
-                  icon="award"
-                  variant="secondary"
-                  onPress={() => {
-                    if (Date.now() < rankLock.current) return;
-                    rankLock.current = Date.now() + 900;
-                    router.push({ pathname: "/rangliste", params: { tab: "parcours" } });
-                  }}
-                />
-              )}
-              <Button title={t("parcours.overview")} variant="secondary" onPress={onExit} />
-            </View>
+                {result.wrong > 0 && (
+                  <AppText variant="caption" tone="textSecondary" center>
+                    {t("parcours.wrongCount", { n: result.wrong })}
+                  </AppText>
+                )}
+                {/* Bestwert-Zeile entfällt, wenn der Ghost schon dasselbe sagt (Bestwert = Lauf von heute) */}
+                {(!ghost || rival !== null || ghost.points !== result.best || result.points > result.best) && (
+                  <AppText
+                    variant="label"
+                    tone={result.points > result.best ? "gold" : "textSecondary"}
+                    center
+                    // Screenreader ohne Emoji (🏆)
+                    accessibilityLabel={bestLine.replace("🏆", "").trim()}
+                  >
+                    {bestLine}
+                  </AppText>
+                )}
+                {ghostLine !== null && ghost && (
+                  <AppText
+                    variant="label"
+                    tone={result.points > ghost.points ? "gold" : "textSecondary"}
+                    center
+                    // Screenreader ohne Emoji
+                    accessibilityLabel={ghostLine.replace("👻", "").trim()}
+                  >
+                    {ghostLine}
+                  </AppText>
+                )}
+                <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
+                {isDaily && result.points > 0 && (
+                  <Button title={t("game.end.share")} icon="share" variant="secondary" onPress={share} />
+                )}
+                {leaderboardReady && isDaily && result.points > 0 && (
+                  <Button
+                    title={t("home.rank")}
+                    icon="award"
+                    variant="secondary"
+                    onPress={() => {
+                      if (Date.now() < rankLock.current) return;
+                      rankLock.current = Date.now() + 900;
+                      router.push({ pathname: "/rangliste", params: { tab: "parcours" } });
+                    }}
+                  />
+                )}
+                <Button title={t("parcours.overview")} variant="secondary" onPress={onExit} />
+              </View>
+            </ScrollView>
           </View>
         )}
       </View>
@@ -732,4 +746,6 @@ const styles = StyleSheet.create({
   },
   coverCenter: { justifyContent: "center", backgroundColor: "rgba(0,0,0,0.55)" },
   card: { borderRadius: Radius.xxl, padding: Spacing.lg, gap: Spacing.md },
+  // Nur so hoch wie der Inhalt (höchstens der Platz) – dann scrollbar
+  cardScroll: { flexGrow: 0 },
 });
