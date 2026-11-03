@@ -318,7 +318,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 10 (755ad7b, Tester 8/10, EAS auto + preview): Rangliste-Reiter „Parcours
     des Tages“ (parcours_top, Punkte von heute, wartet ≤ 3 s auf den eigenen Lauf).
     Offen: eigener Platz außerhalb der Top 50 (SQL parcours_my_rank); Einladung bei leerer
-    Liste; über Mitternacht offen → gestrige Liste; Knopf „Rangliste“ auf der Endkarte.
+    Liste; über Mitternacht offen → gestrige Liste.
+  - [x] Teil 11 (c3501e0, Tester 8/10, EAS auto + preview): Parcours-Endkarte hat Knopf
+    „Rangliste“ (nur Parcours des Tages, Punkte > 0) → Reiter Parcours. Offen: Runde über
+    Mitternacht öffnet die Liste des neuen Tages.
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
