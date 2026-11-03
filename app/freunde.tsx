@@ -12,7 +12,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { IconButton } from "@/components/ui/icon-button";
-import { press } from "@/components/ui/press";
+import { press, tapHaptic } from "@/components/ui/press";
 import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
 import { PARCOURS } from "@/game/trick-levels";
@@ -183,8 +183,11 @@ export default function FriendsScreen() {
                 <Pressable
                   key={`${c.code}-${c.mode}`}
                   accessible={false}
-                  onPress={() => takeOn(c)}
-                  style={({ pressed }) => [styles.row, pressed && press.pressed]}
+                  onPress={() => {
+                    tapHaptic();
+                    takeOn(c);
+                  }}
+                  style={({ pressed }) => [styles.row, pressed && press.pressedLarge]}
                 >
                   <View style={styles.flex}>
                     <AppText variant="body" color={colors.onGoldSoft} numberOfLines={1}>
