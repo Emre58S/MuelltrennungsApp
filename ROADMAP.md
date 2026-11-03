@@ -371,7 +371,7 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     5 nächsten zufällig), richtig/falsch rechnet die App nach; Startkarte „🌍 Gegner: …“,
     umschaltbar auf eigenen/Übungs-Ghost, „Suche Gegner …“; nur vor dem Start übernommen.
   - Offen: Seed der Woche statt Tag (mehr Gegner); Server rechnet `correct` nicht nach
-    (nur Auswahl betroffen); Startkarte springt kurz nach der Suche (✓ 914b41c, Tester 8/10: gemeinsamer Platz); Hinweis, wenn
+    (nur Auswahl betroffen); Startkarte springt kurz nach der Suche (✓ 914b41c + 2a170e7–e55f779, Tester 8/10, 5/10 → 7/10: gemeinsamer Platz auch für Freundes-Hinweise, Gegner-Zeile bis 3 Zeilen; Offen: friends.noRun DE kürzen); Hinweis, wenn
     während der Suche gestartet wurde; Gegner auch für das Ghost-Rennen.
 - [ ] **R4e** Freunde: eigener **Freundes-Code** (z. B. EMRE-4821), Freund
   hinzufügen per Code/Link, Liste mit „Herausfordern“ + offenen Herausforderungen.
