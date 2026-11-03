@@ -475,7 +475,7 @@ export const en: Translations = {
   "ghost.again": "Again",
   "ghost.quit.title": "End this run?",
   "ghost.quit.message": "This run won't count.",
-  "sprint.quit.message": "This run won't count. The clock keeps running.",
+  "sprint.quit.message": "This run won't count. Time keeps running.",
   "ghost.friend": "Friend",
   "ghost.rulesFriend": "The same 10 items as {name} had. The run of {name} flies along as a see-through ghost. Most correct wins – if tied, the faster one.",
   "ghost.challenge": "{name} challenges you: {correct} of {total} correct in {time}",

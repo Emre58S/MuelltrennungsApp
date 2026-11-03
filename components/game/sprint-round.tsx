@@ -237,7 +237,7 @@ export function SprintRound({
   const myThrows = useRef<GhostThrow[]>([]);
   /** Vor diesem Zeitpunkt zählt kein neuer Wurf (THROW_GAP_MS). */
   const lockUntil = useRef(0);
-  /** „Lauf beenden?“ ist offen – läuft die Zeit dabei ab, wird nichts gespeichert. */
+  /** Lauf per „Beenden“ verworfen – dann wird nichts gespeichert. */
   const quitting = useRef(false);
   const ids = useRef(0);
   /** Eigene Würfe und Ghost-Würfe in der Luft (für die Landung). */
@@ -487,6 +487,8 @@ export function SprintRound({
         text: t("duel.quit.confirm"),
         style: "destructive",
         onPress: () => {
+          // Lauf ist inzwischen zu Ende (zählt schon) → Ergebnis zeigen statt still verlassen
+          if (phaseRef.current === "end") return;
           quitting.current = true;
           onExit();
         },
