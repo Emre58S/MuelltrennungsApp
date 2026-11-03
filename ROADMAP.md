@@ -582,8 +582,8 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   Entwickler-Fehlerberichte (dev-error-reporter) nur im Dev-Build.
   - [x] Teil 1 (01f1518, Tester 8/10, EAS auto + preview): „Konto/Abmelden“ in den
     Einstellungen ausgeblendet (führte auf Platzhalter-Login). dev-error-reporter ist schon
-    nur `__DEV__` (geprüft). Offen: login/register per Deep-Link noch erreichbar (auf /
-    umleiten); i18n settings.account/logout* ungenutzt; Zielwurf-Reste.
+    nur `__DEV__` (geprüft). ✓ login/register leiten auf /(tabs) um (e098edf, Tester 8/10;
+    Schalter AUTH_ENABLED). Offen: i18n settings.account/logout* ungenutzt; Zielwurf-Reste.
 - [ ] **R7f** Leistung auf älterem iPhone (Ruckeln aus 29.10. prüfen).
 
 ### R8 – Teilen & Viralität (Soll)
