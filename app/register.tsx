@@ -17,7 +17,7 @@ import { useI18n } from "@/providers/app-settings";
 const AUTH_ENABLED = false;
 
 export default function RegisterScreen() {
-  return AUTH_ENABLED ? <RegisterForm /> : <Redirect href="/" />;
+  return AUTH_ENABLED ? <RegisterForm /> : <Redirect href="/(tabs)" />;
 }
 
 /** Platzhalter-Formular für später (echte Anmeldung). */

@@ -17,7 +17,7 @@ import { useI18n } from "@/providers/app-settings";
 const AUTH_ENABLED = false;
 
 export default function LoginScreen() {
-  return AUTH_ENABLED ? <LoginForm /> : <Redirect href="/" />;
+  return AUTH_ENABLED ? <LoginForm /> : <Redirect href="/(tabs)" />;
 }
 
 /** Platzhalter-Formular für später (echte Anmeldung). */
