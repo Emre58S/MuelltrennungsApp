@@ -274,8 +274,11 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 3 (591987e + ebec2db, Tester 8/10, EAS auto + preview): eigener bester Lauf
     von heute je Parcours als Ghost (`ParcoursRun` = Punktestand je Treffer, StorageKeys.
     PARCOURS_TODAY); Kopfleiste „👻 Ghost: N“ zur selben Rundenzeit, Startkarte nennt ihn.
-    Offen: Vorsprung/Rückstand zeigen (nie rot); Endkarte „Ghost geschlagen!“; Screenreader-
-    Label ohne Emoji; HUD-Uhr stoppt bei 0 → letzter Ghost-Treffer evtl. nicht sichtbar;
+  - [x] Teil 4 (330e245 + 0fcdf2d, Tester 8/10, EAS auto + preview): Endkarte „👻 Ghost
+    geschlagen!“ / „Gleich viel“ / „noch N Punkte“; doppelte Bestwert-Zeile entfällt;
+    Kopfleiste liest „Ghost, Punkte: N“ (ohne Emoji).
+    Offen: „1 Punkte“ (Einzahl, auch parcours.gap); Endkarten-Ghost-Zeile mit Label ohne
+    Emoji; Vorsprung/Rückstand in der Kopfleiste (nie rot); HUD-Uhr stoppt bei 0 → letzter Ghost-Treffer evtl. nicht sichtbar;
     Ghost des Gegners/Freundes (Server).
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
