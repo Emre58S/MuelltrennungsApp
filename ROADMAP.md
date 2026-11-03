@@ -3,7 +3,9 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (2.11. spät, Normalmodus):** 5 Zyklen R5 (bis 3.11.), alle freigegeben (8/10),
+**Letzter Lauf (3.11., Normalmodus):** 3 Zyklen R5d (Teil 1–3: Parcours-Runde spielbar, Zeitablauf nach Hintergrund, Lernkarte), alle freigegeben (7–8/10), auf auto + preview. Nächstes: R5d-Rest (Abstand zum Bestwert, Regeln: Lernpause) oder R4c Trick-Battle.
+
+**Lauf davor (2.11. spät, Normalmodus):** 5 Zyklen R5 (bis 3.11.), alle freigegeben (8/10),
 auf auto + preview: R5a Parcours-Datenmodell, R5b Reifenschaukel, R5c Teil 1
 (3 Trampoline), R5c Teil 2 (Torwand), R5c Teil 3 (alle Deckel klappen). Nächstes: R5d Parcours-Runde
 (erst damit im Spiel sichtbar).
@@ -380,7 +382,10 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
     `tip.flapAll`, Endkarte mit Bestwert (StorageKeys.PARCOURS_BEST).
   - [x] Teil 2 (3d1d100, Tester 8/10, EAS auto): Zeitablauf auch nach dem Hintergrund
     (AppState + Prüfung beim Wurf), „Zeit um“ nur einmal.
-  - Offen: Sicherheits-Timeout, falls eine Landung ausbleibt; kurze Vibration, wenn ein Wisch
+  - [x] Teil 3 (54c2b00, Tester 8/10, EAS auto + preview – Teil 1/2 auf preview nachgeliefert):
+    Lernkarte bei falscher Tonne (Begründung je Einstellung), 1,2 s Lernpause danach.
+  - Offen: Lernpause in den Regeln erwähnen; Lernkarte beim nächsten Wurf ausblenden;
+    Sicherheits-Timeout, falls eine Landung ausbleibt; kurze Vibration, wenn ein Wisch
     nach Ablauf verworfen wird; Abstand zum Bestwert auf der Endkarte; Lernkarte statt nur „Gehört in“; Startzeit der
     Szenen-Uhr für den Ghost (R4c) mitschreiben; Parcours in Kampagne/Online einbinden.
 - [x] **R5-Vorlauf (Emre, 02.11.)**: Zielen genauer – Vorschau zeigt beim Halten die
