@@ -66,6 +66,8 @@ export const StorageKeys = {
   CHESTS_OPENED: "muell_chests_opened",
   /** Tag, an dem der Hinweis „Flamme gerettet“ schon gezeigt wurde. */
   FLAME_RESCUE_SEEN: "muell_flame_rescue_seen",
+  /** Parcours-Runde: beste Punkte je Parcours (eigener Schlüssel, nicht die Trick-Sterne). */
+  PARCOURS_BEST: "muell_parcours_best",
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -738,6 +740,34 @@ export function saveTrickDaily(stars: number): Promise<void> {
   return enqueue(async () => {
     if ((await getTrickDaily()) >= stars) return;
     await setItem(StorageKeys.TRICK_DAILY, JSON.stringify({ date: todayKey(), stars }));
+  });
+}
+
+// ── Parcours-Runde: beste Punkte je Parcours ────────────────────────
+
+export async function getParcoursBest(): Promise<Record<number, number>> {
+  const raw = await getItem(StorageKeys.PARCOURS_BEST);
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const best: Record<number, number> = {};
+    for (const [id, v] of Object.entries(parsed)) {
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) best[Number(id)] = v;
+    }
+    return best;
+  } catch {
+    return {};
+  }
+}
+
+/** Speichert nur, wenn es mehr Punkte als bisher sind. */
+export function saveParcoursBest(id: number, points: number): Promise<void> {
+  return enqueue(async () => {
+    const all = await getParcoursBest();
+    if ((all[id] ?? 0) >= points) return;
+    all[id] = points;
+    await setItem(StorageKeys.PARCOURS_BEST, JSON.stringify(all));
   });
 }
 

@@ -570,6 +570,55 @@ export function TrickHud({
   );
 }
 
+/** Kopf der Parcours-Runde: Restzeit, Aufgabe, Punkte. Die Uhr zählt selbst
+ *  (eigene kleine Anzeige, damit nicht die ganze Runde neu zeichnet). */
+export function ParcoursHud({
+  title,
+  task,
+  points,
+  endsAt,
+  total,
+}: {
+  title: string;
+  task: string;
+  points: number;
+  /** Ende der Runde (Date.now()-Zeit); null = noch nicht gestartet. */
+  endsAt: number | null;
+  /** Rundenzeit (s), angezeigt vor dem Start. */
+  total: number;
+}) {
+  const { t } = useI18n();
+  const [now, setNow] = useState(() => Date.now());
+  const left = endsAt === null ? total : Math.max(0, Math.ceil((endsAt - now) / 1000));
+  const running = endsAt !== null && left > 0;
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setNow(Date.now()), 200);
+    return () => clearInterval(id);
+  }, [running]);
+  const pulse = usePulse(points);
+  return (
+    <HudSurface style={styles.trickHud}>
+      <AppText
+        variant="caption"
+        tone={endsAt !== null && left <= 5 ? "warning" : "textMuted"}
+        center
+        accessibilityLabel={`${title}, ${t("parcours.timeLeft", { n: left })}`}
+      >
+        {title} · ⏱ {left} s
+      </AppText>
+      <AppText variant="label" center numberOfLines={2}>
+        {task}
+      </AppText>
+      <Animated.View style={{ transform: [{ scale: pulse }] }}>
+        <AppText variant="label" tone="gold" center style={styles.tabular}>
+          {t("parcours.points", { n: points })}
+        </AppText>
+      </Animated.View>
+    </HudSurface>
+  );
+}
+
 /** Ein Stern, der nacheinander „aufploppt“. */
 export function Star({ filled, delay, n }: { filled: boolean; delay: number; n: 1 | 2 | 3 }) {
   const pop = useEnter(380, Easing.out(Easing.back(2.4)), delay);

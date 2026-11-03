@@ -26,7 +26,8 @@ export type TipId =
   | "fence"
   | "trampoline"
   | "board"
-  | "flap";
+  | "flap"
+  | "flapAll";
 
 /** So lange (ms) bleibt ein Tipp stehen (Tippen schließt ihn früher). */
 const TIP_MS = 4500;

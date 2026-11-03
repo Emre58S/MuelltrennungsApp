@@ -1,7 +1,8 @@
 // Datei: app/tricks.tsx
 // Level-Auswahl der Trickwürfe: oben der Tages-Trick (für alle gleich),
-// darunter die Level nach Schwierigkeit mit Sternen; ein Level wird frei,
-// sobald das vorige geschafft ist.
+// die Parcours (sortieren + tricksen, Punkte statt Sterne), darunter die
+// Level nach Schwierigkeit mit Sternen; ein Level wird frei, sobald das
+// vorige geschafft ist.
 
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -18,12 +19,13 @@ import { Radius, Shadow, Spacing } from "@/constants/theme";
 import {
   difficultyOf,
   levelIcons,
+  PARCOURS,
   TRICK_LEVELS,
   type TrickDifficulty,
 } from "@/game/trick-levels";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
-import { getTrickDaily, getTrickStars, type TrickStars } from "@/utils/storage";
+import { getParcoursBest, getTrickDaily, getTrickStars, type TrickStars } from "@/utils/storage";
 
 const GROUPS: TrickDifficulty[] = ["easy", "medium", "hard"];
 
@@ -33,6 +35,7 @@ export default function TricksScreen() {
   const { t } = useI18n();
   const [stars, setStars] = useState<TrickStars>({});
   const [daily, setDaily] = useState(0);
+  const [parcoursBest, setParcoursBest] = useState<Record<number, number>>({});
   /** Hinweis nach Tipp auf ein gesperrtes Level (welches zuerst schaffen). */
   const [lockHint, setLockHint] = useState<number | null>(null);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,6 +64,9 @@ export default function TricksScreen() {
       getTrickDaily()
         .then((s) => active && setDaily(s))
         .catch(() => undefined);
+      getParcoursBest()
+        .then((b) => active && setParcoursBest(b))
+        .catch(() => undefined);
       return () => {
         active = false;
       };
@@ -83,6 +89,12 @@ export default function TricksScreen() {
     sfx("tap");
     tapHaptic();
     router.push({ pathname: "/runde", params: { mode: "trick", random: "1" } });
+  }
+
+  function openParcours(id: number) {
+    sfx("tap");
+    tapHaptic();
+    router.push({ pathname: "/runde", params: { mode: "parcours", level: String(id) } });
   }
 
   function openDaily() {
@@ -168,6 +180,53 @@ export default function TricksScreen() {
             <Feather name="chevron-right" size={22} color={colors.textMuted} />
           </Pressable>
         </FadeIn>
+
+        {/* Parcours: Gegenstände aller Tonnen – sortieren UND tricksen, auf Zeit */}
+        <View style={styles.group}>
+          <View>
+            <AppText variant="label" tone="textSecondary">
+              {t("parcours.section")}
+            </AppText>
+            <AppText variant="caption" tone="textMuted">
+              {t("parcours.sectionDesc")}
+            </AppText>
+          </View>
+          {PARCOURS.map((p, i) => {
+            const best = parcoursBest[p.id] ?? 0;
+            const sub = best > 0 ? t("parcours.best", { n: best }) : t("parcours.noBest");
+            return (
+              <FadeIn key={p.id} delay={85 + i * 30}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t("parcours.title", { n: p.id })}. ${t(p.task)}. ${t("parcours.time", { n: p.seconds })}. ${sub}`}
+                  onPress={() => openParcours(p.id)}
+                  style={({ pressed }) => [
+                    styles.daily,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    scheme === "light" && Shadow,
+                    pressed && press.pressedLarge,
+                  ]}
+                >
+                  <AppText style={styles.parcoursIcon} importantForAccessibility="no">
+                    {levelIcons(p).join("") || "🎯"}
+                  </AppText>
+                  <View style={styles.flex}>
+                    <AppText variant="label">
+                      {t("parcours.title", { n: p.id })} · {p.seconds} s
+                    </AppText>
+                    <AppText variant="caption" tone="textSecondary" numberOfLines={2}>
+                      {t(p.task)}
+                    </AppText>
+                    <AppText variant="caption" tone={best > 0 ? "gold" : "textMuted"}>
+                      {sub}
+                    </AppText>
+                  </View>
+                  <Feather name="chevron-right" size={22} color={colors.textMuted} />
+                </Pressable>
+              </FadeIn>
+            );
+          })}
+        </View>
 
         {GROUPS.map((group) => (
           <View key={group} style={styles.group}>
@@ -275,6 +334,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "flex-start", gap: Spacing.md },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   icons: { fontSize: 13, lineHeight: 16 },
+  parcoursIcon: { fontSize: 24, lineHeight: 30, minWidth: 30, textAlign: "center" },
   group: { gap: Spacing.sm },
   daily: {
     flexDirection: "row",

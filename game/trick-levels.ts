@@ -572,6 +572,8 @@ export function randomTrick(seed: number): TrickLevel {
 export type ParcoursLevel = Omit<TrickLevel, "id" | "target" | "requires"> & {
   id: number;
   lanes: [number[], number[], number[]];
+  /** Rundenzeit der Parcours-Runde (s). */
+  seconds: 20 | 25 | 30;
 };
 
 /** Der Parcours für einen Gegenstand, der in Tonne `bin` gehört – als
@@ -583,23 +585,25 @@ export function parcoursLane(level: ParcoursLevel, bin: 0 | 1 | 2): TrickLevel {
 
 export const PARCOURS: ParcoursLevel[] = [
   // Reifenschaukel pendelt über alle Tonnen: werfen, wenn sie vor DEINER Tonne ist
-  { id: 1, props: [tire(4.0)], lanes: [[0], [0], [0]], bonus: "firstTry", task: "trick.task.swing" },
+  { id: 1, props: [tire(4.0)], lanes: [[0], [0], [0]], seconds: 30, bonus: "firstTry", task: "trick.task.swing" },
   // Vor jeder Tonne ein Trampolin (schmaler, damit die Rahmen nicht
   // ineinanderstehen): aufs Tuch vor DEINER Tonne werfen
   {
     id: 2,
     props: [-TRAMP_SIDE, 0, TRAMP_SIDE].map((x) => trampoline(x, undefined, 2.3, 0.52)),
     lanes: [[0], [1], [2]],
+    seconds: 20,
     bonus: "swish",
     task: "trick.task.trampolineLanes",
   },
   // Torwand: durchs Loch vor DEINER Tonne
-  { id: 3, props: goalWall(0.42), lanes: [[0], [1], [2]], bonus: "swish", task: "trick.task.board" },
+  { id: 3, props: goalWall(0.42), lanes: [[0], [1], [2]], seconds: 25, bonus: "swish", task: "trick.task.board" },
   // Alle Deckel klappen im Takt: werfen, wenn DEIN Deckel offen ist
   {
     id: 4,
     props: [],
     lanes: [[], [], []],
+    seconds: 25,
     binFlap: { period: 2.6 },
     flapAll: true,
     bonus: "swish",
