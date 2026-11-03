@@ -311,8 +311,10 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Teil 8 (94e1420, Tester 8/10, EAS auto + preview): Gegner von heute (Server,
     random_parcours_run, ähnliche Punkte) ersetzt vor dem Start den eigenen Ghost; Name in
     Kopfleiste/Endkarte, Startkarte „🌍 Gegner von heute: Name (Punkte: N)“.
-    Offen: „Gegner wird gesucht …“ (Karte springt bis 8 s später um); DE „Gleich viel wie
-    Ghost“ holprig; Name in ghostWon doppelt; Ghost-Zeile numberOfLines={1}.
+  - [x] Teil 9 (031ed62 + 98a23ec, Tester 8/10, EAS auto + preview): Startkarte „🌍 Gegner
+    wird gesucht …“ (nur diese Zeile während der Suche), „Geschlagen: Name (N)“ /
+    „Gleichstand mit Name“, Ghost-Zeile einzeilig. Offen: nach erfolgloser Suche kurzer
+    Hinweis „heute noch kein Gegner“; `searching` bei Ausnahme nicht zurückgesetzt.
 - [ ] **R4d** Zufallsgegner: Server liefert einen Lauf ähnlicher Stärke
   (gleicher Modus, Seed der Woche). Neues SQL → Nutzer muss es ausführen.
   Dabei G3-Rest lösen: Server prüft Treffer/Zeit gegen den Code.
