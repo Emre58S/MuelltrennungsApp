@@ -584,7 +584,7 @@ export function ParcoursRound({
         {ready && learn && playing && (
           // Beim nächsten Wurf weich ausblenden (bei „Weniger Bewegung“ sofort weg)
           <Reanimated.View
-            exiting={reduceMotion ? undefined : FadeOut.duration(220)}
+            exiting={reduceMotion ? undefined : FadeOut.duration(160)}
             pointerEvents="none"
             style={[styles.overlayRow, { top: tipTop }]}
           >
