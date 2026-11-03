@@ -147,6 +147,8 @@ export function ParcoursRound({
   // Ghost: eigener bester Lauf von heute – nur vor dem Start übernommen
   const [ghost, setGhost] = useState<ParcoursRun | null>(null);
   const ghostRef = useRef<ParcoursRun | null>(null);
+  /** Punkte des gespeicherten Laufs von heute – auch, wenn er erst nach dem Start geladen ist. */
+  const todayRef = useRef(0);
   /** Eigener Lauf: Punktestand nach jedem Treffer (wird ggf. neuer Ghost). */
   const hits = useRef<[number, number][]>([]);
   useEffect(() => {
@@ -156,8 +158,10 @@ export function ParcoursRound({
         setBinSkin(bus.current, usableSkin(skin, progress));
         bestRef.current = bests[level.id] ?? 0;
         setBest(bestRef.current);
+        const run = parseParcoursRun(today);
+        todayRef.current = run?.points ?? 0;
         if (phaseRef.current !== "ready") return;
-        ghostRef.current = parseParcoursRun(today);
+        ghostRef.current = run;
         setGhost(ghostRef.current);
       })
       .catch(() => undefined);
@@ -189,7 +193,7 @@ export function ParcoursRound({
     phaseRef.current = "end";
     const total = pointsRef.current;
     if (total > bestRef.current) saveParcoursBest(level.id, total).catch(() => undefined);
-    if (total > (ghostRef.current?.points ?? 0)) {
+    if (total > todayRef.current) {
       saveParcoursToday(level.id, { points: total, hits: hits.current } satisfies ParcoursRun, day).catch(() => undefined);
     }
     sfx(total > bestRef.current && total > 0 ? "perfect" : "comboUp");
