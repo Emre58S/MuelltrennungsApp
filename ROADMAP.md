@@ -317,7 +317,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
     deine Freunde“ oben in der Freundesliste: Freunde mit heutigem Lauf ≥ meinem Besten von
     heute (lokal), je Modus eine Zeile + „Antreten“; SQL friend_today (freunde.sql erneut
     ausführen); ohne SQL/Netz unsichtbar.
-  - Offen: Gleichstand bleibt „offen“ (evtl. „noch 1 mehr!“); eigener Bestwert nur lokal
+  - [x] Gleichstand in „Heute offen“: eigene kurze Zeile „Gleichstand – 1 mehr gewinnt!“
+    (5ffc64e + 3cf03ba, Tester 6/10 → 8/10, EAS auto + preview; `tie` in openChallenges).
+  - Offen: Test „0 zu 0 → kein Gleichstand“; eigener Bestwert nur lokal
     (anderes Gerät → 0); Unterschied „+3 vor dir“; Zeile ganz antippbar; Lauf kommt nach
     dem Start an → Hinweis; „nicht mehr befreundet“ eigener Text; nach der Runde
     zurückfordern/teilen; Link statt Code;
