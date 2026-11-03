@@ -3,7 +3,13 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., 21:25–22:36, Normalmodus):** Zyklen 47–52, alle freigegeben
+**Letzter Lauf (3.11., 22:46–23:05, Normalmodus):** R5e als erledigt geprüft (Trick-Schule
+je Welt), R7e Teil 1: „Konto/Abmelden“ ausgeblendet, login/register leiten auf den Start um
+(AUTH_ENABLED) – je 8/10, auf auto + preview. **Was jetzt noch fehlt, braucht den Nutzer:**
+R7a App-Symbol/Startbild (Entwurf), R7b `eas build` + TestFlight, R7c Store-Texte/Bilder,
+R7d Datenschutz + Impressum (Angaben des Betreibers), R7f Leistung auf älterem iPhone (Gerät).
+
+**Lauf davor (3.11., 21:25–22:36, Normalmodus):** Zyklen 47–52, alle freigegeben
 (7–8/10, einer 5 → 8), auf auto + preview: Freunde „Heute offen“ (Zeile antippbar, „Noch N
 mehr als dein Bestes – dann gewinnst du!“), Knopf „Hinzufügen“ volle Breite, „Neue Tonne frei!“
 mit Beispielen + Freischalt-Ton (R6d komplett ✓), Startschirm merkt offene Herausforderungen
