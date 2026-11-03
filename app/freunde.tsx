@@ -241,10 +241,11 @@ export default function FriendsScreen() {
                 icon="user-plus"
                 onPress={add}
                 disabled={adding || !draft.trim()}
-                // Volle Breite – leichter zu treffen (Ladekreis daneben)
+                // Volle Breite – leichter zu treffen
                 style={styles.flex}
               />
-              {adding && <ActivityIndicator color={colors.primary} />}
+              {/* Platz immer frei halten – sonst wird der Knopf beim Laden schmaler */}
+              <ActivityIndicator color={colors.primary} animating={adding} hidesWhenStopped={false} style={{ opacity: adding ? 1 : 0 }} />
             </View>
           </View>
 
