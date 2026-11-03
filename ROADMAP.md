@@ -3,7 +3,7 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11. abends, Normalmodus):** 1 Zyklus R5d Teil 4 (Regel Lernpause, Abstand zum Bestwert), 8/10, auf auto + preview. Nächstes: R5d-Rest (Lernkarte beim nächsten Wurf ausblenden, 0-Punkte-Satz) oder R4c Trick-Battle.
+**Letzter Lauf (3.11. abends, Normalmodus):** 2 Zyklen R5d Teil 4–5 (Regel Lernpause, Abstand zum Bestwert; Lernkarte weg beim nächsten Wurf, Satz bei 0 Punkten), je 8/10, auf auto + preview. Nächstes: R5d-Rest (Sicherheits-Timeout Landung, Parcours in Kampagne/Online) oder R4c Trick-Battle.
 
 **Lauf davor (3.11., Normalmodus):** 3 Zyklen R5d (Teil 1–3: Parcours-Runde spielbar, Zeitablauf nach Hintergrund, Lernkarte), alle freigegeben (7–8/10), auf auto + preview. Nächstes: R5d-Rest (Abstand zum Bestwert, Regeln: Lernpause) oder R4c Trick-Battle.
 
@@ -389,8 +389,9 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   - [x] Teil 4 (cc54d06 + 746ff40, Tester 8/10, EAS auto + preview): Regelzeile
     „❌ Falsche Tonne: kurze Pause zum Lernen“; Endkarte „Dein Bestwert: N · noch X Punkte“
     bzw. „So gut wie dein Bestwert“.
-  - Offen: Lernkarte beim nächsten Wurf ausblenden; 0 Punkte bei Bestwert 0 → freundlicher
-    Satz („Versuch’s nochmal!“); Startkarte mit 4 Regelzeilen auf kleinem iPhone prüfen;
+  - [x] Teil 5 (0867945 + 66910e8, Tester 8/10, EAS auto + preview): Lernkarte verschwindet
+    beim nächsten gültigen Wurf; 0 Punkte ohne Bestwert → „Du schaffst das!“.
+  - Offen: Lernkarte beim Wurf weich ausblenden (außer „Weniger Bewegung“); Startkarte mit 4 Regelzeilen auf kleinem iPhone prüfen;
     Sicherheits-Timeout, falls eine Landung ausbleibt; kurze Vibration, wenn ein Wisch
     nach Ablauf verworfen wird; Lernkarte statt nur „Gehört in“; Startzeit der
     Szenen-Uhr für den Ghost (R4c) mitschreiben; Parcours in Kampagne/Online einbinden.
