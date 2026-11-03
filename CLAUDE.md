@@ -155,3 +155,9 @@ wenig Deutsch, nie strafend.
   (SQL-Regex `…$'` zerstörte online.sql) – `split(a).join(b)` oder Funktion nutzen.
 - `\n` in i18n-Texten: Node-Skript aus Bash-Heredoc schrieb echte Umbrüche (tsc bricht
   mit hunderten Fehlern ab) – solche Texte gleich mit dem Edit-Tool setzen.
+- Schutz-Hook prüft vor `git commit` die Typen und blockt dann den GANZEN verketteten
+  Befehl (auch vorangestellte sed-Edits) – Edits erst einzeln, dann committen.
+- Kein `npx prettier --write` auf ganze Dateien: Projekt ist nicht prettier-formatiert
+  (riesiger Diff); Einrückung gezielt per Skript anpassen.
+- Parcours online: Server-Zeitprüfung (parcours.sql, ≤ 1 Treffer je 0,5 s) hängt an der
+  250-ms-Pause nach Treffern in parcours-round.tsx – nicht verkürzen ohne Prüfung.
