@@ -259,7 +259,9 @@ und fühlt sich gleichzeitig an (Gegner fliegt mit). Technik aus G1–G3 wiederv
   - [x] Beenden-Dialog (a9c654a + bc075ce, Tester 7/10, EAS auto + preview): Uhr läuft
     bewusst weiter (sonst Bedenkzeit → unfair online), Text sagt „Die Zeit läuft weiter“;
     endet der Lauf bei offenem Dialog, zählt er, „Beenden“ zeigt dann das Ergebnis.
-  - Offen: Balken im letzten Drittel evtl. dicker (Rot-Grün-Schwäche); Survival: Hinweis,
+  - [x] Balken im letzten Drittel doppelt so dick (scaleY, nativ) – erkennbar ohne Rot
+    (fa65517, Tester 8/10, EAS auto + preview). Offen: Ecken bei scaleY leicht oval.
+  - Offen: Survival: Hinweis,
     dass man bei offenem Dialog „zu langsam“ ausscheiden kann.
 - [ ] **R4c** Trick-Battle (braucht R5): beide spielen denselben Parcours mit
   denselben Gegenständen (Seed), Zeit je Parcours 20–30 s, Punkte wie in R5
