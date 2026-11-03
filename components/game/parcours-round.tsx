@@ -350,8 +350,11 @@ export function ParcoursRound({
         setShotGuide(bus.current, null);
         if (busy.current || over.current || phaseRef.current !== "play") return;
         const shot = releaseShot(input.current, dx, dy, vy, throwCtx());
-        if (shot) throwShot(shot);
-        else if (dy > 60) float(`👆 ${t("game.swipeHint")}`, screenW / 2, layout.binTops[0].y);
+        if (shot) {
+          // Neuer Wurf: Lernkarte vom letzten Fehlwurf weg, sie verdeckt sonst den Flug
+          setLearn(null);
+          throwShot(shot);
+        } else if (dy > 60) float(`👆 ${t("game.swipeHint")}`, screenW / 2, layout.binTops[0].y);
       },
       cancel: () => setShotGuide(bus.current, null),
       land: handleLand,
@@ -498,7 +501,7 @@ export function ParcoursRound({
                     ? t("parcours.gap", { n: result.best, gap: result.best - result.points })
                     : result.best > 0
                       ? t("parcours.sameBest", { n: result.best })
-                      : t("parcours.oldBest", { n: result.best })}
+                      : t("parcours.tryAgain")}
               </AppText>
               <Button title={t("trick.retry")} icon="rotate-ccw" onPress={onRetry} />
               <Button title={t("parcours.overview")} variant="secondary" onPress={onExit} />
