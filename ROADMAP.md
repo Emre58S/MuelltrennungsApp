@@ -87,10 +87,14 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
 `preview`, wenn der Phasenteil in sich steht (kein halber Umbau für Emre).
 
 ### Phase A – Fundament: eine Navigation, ein Design (zuerst)
-- [ ] **F1 Bausteine „Tonnen-Stil“** – gemeinsame Komponenten in `components/ui/`: Seitenkopf,
+- [x] **F1 Bausteine „Tonnen-Stil“** – gemeinsame Komponenten in `components/ui/`: Seitenkopf,
   Karte, Chip, Segmented-Reiter, Bottom-Sheet, Fortschrittsbalken, Stempelleiste.
   `hub.tsx`/`page-header.tsx`/`card.tsx` zusammenführen, bestehende Seiten umstellen
   (nur Optik, kein Verhalten). *1–2 Sitzungen*
+  ✓ (2770159 + b4cbb2a, Tester 8/10, EAS auto + preview): `constants/areas.ts` (Bereichsfarben),
+  Chip, ProgressBar, StampBar, Sheet; Segmented und PageHeader/HubScreen mit `area`. Alle
+  Bereichsseiten tragen ihre Farbe. Seiten nicht einzeln umgebaut (werden in F5–F8 ohnehin
+  zusammengeführt). Offen: Segmented leitet `onColor` nicht selbst ab.
 - [ ] **F2 Untere Leiste + Wischen** (← #1, #3): eigene Leiste mit 3 Tonnen-Icons, Bereichswechsel
   per Antippen und Wischen, Navigationsregeln (Endscreens und Zurück kehren in den
   Ursprungsbereich zurück; Deep-Links `/runde?mode=…` bleiben abwärtskompatibel). *2 Sitzungen*
