@@ -498,7 +498,7 @@ export function TrickRound({
             bus={bus}
             calm={reduceMotion}
             lang={lang}
-            scene="haus"
+            scene={level.scene ?? "haus"}
             guide={false}
             openLids
             trick={trick}

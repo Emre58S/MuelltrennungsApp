@@ -131,6 +131,8 @@ export type TrickLevel = {
   bonus: TrickBonus;
   /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
+  /** Kulisse der Runde (Standard: Hauswand). Die Küche ist eine eigene Welt. */
+  scene?: "haus" | "kueche";
 };
 
 /** Windrad mit 4 Flügeln; Nabe seitlich der Wurfbahn, die Flügel kreuzen sie. */
@@ -438,10 +440,20 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "swish",
     task: "trick.task.ringFlap",
   },
+  // Küche 1: der einfache Reifen, aber in der Küche (Trick-Küche, ROADMAP F10)
+  {
+    id: 29,
+    target: 1,
+    props: [ring(0, 2.8, 1.5, 0.55)],
+    requires: [0],
+    bonus: "swish",
+    task: "trick.task.ring",
+    scene: "kueche",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
-export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide" | "binFlap">): string[] {
+export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide" | "binFlap" | "scene">): string[] {
   const icons: string[] = [];
   for (const p of level.props) {
     const icon =
@@ -470,6 +482,8 @@ export function levelIcons(level: Pick<TrickLevel, "props" | "binSlide" | "binFl
   }
   if (level.binSlide) icons.unshift("🗑️");
   if (level.binFlap) icons.unshift("⏱️");
+  // Küche: Pfanne vorn, damit man die neue Welt auf der Kachel erkennt
+  if (level.scene === "kueche") icons.unshift("🍳");
   return icons.slice(0, 2);
 }
 

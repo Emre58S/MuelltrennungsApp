@@ -238,8 +238,12 @@ export default function TricksScreen() {
                 (level) => {
                   const index = TRICK_LEVELS.indexOf(level);
                   const got = stars[level.id] ?? 0;
+                  // Die Küche ist eine eigene Reihe: ihr erstes Level ist immer offen
+                  const prev = TRICK_LEVELS[index - 1];
                   const unlocked =
-                    index === 0 || (stars[TRICK_LEVELS[index - 1].id] ?? 0) > 0;
+                    index === 0 ||
+                    (level.scene === "kueche" && prev?.scene !== "kueche") ||
+                    (stars[prev.id] ?? 0) > 0;
                   return (
                     <View key={level.id} style={styles.cell}>
                       <FadeIn delay={90 + index * 40}>

@@ -15,7 +15,8 @@ import * as THREE from "three";
 import { lowpoly } from "./materials";
 import { Baked } from "./model-cache";
 
-export type SceneKind = "haus" | "ziegel" | "garten";
+export type SceneKind = "haus" | "ziegel" | "garten" | "kueche";
+/** Szenen, die von Runde zu Runde wechseln. Die Küche gibt es nur, wenn ein Trick-Level sie verlangt. */
 const ORDER: SceneKind[] = ["haus", "ziegel", "garten"];
 let counter = 0;
 /** Jede neue Runde zeigt die nächste Szene. */
@@ -480,6 +481,133 @@ function GardenScene({ p }: { p: Palette }) {
   );
 }
 
+
+/* ── Küche (Trickwürfe) ─────────────────────────────────────── */
+
+const KITCHEN = {
+  wall: "#F6E7CF",
+  tileA: "#EFE4D2",
+  tileB: "#E0D0B8",
+  backsplash: "#D3E8E6",
+  grout: "#BFD6D3",
+  wood: "#C99B6D",
+  woodDark: "#A27447",
+  counter: "#D8D2C7",
+  glass: "#CDEBFA",
+  frame: "#FFFFFF",
+  pot: "#D9744F",
+  leaf: "#6FBF73",
+  kettle: "#B9C2CC",
+};
+
+/** Boden: helle Grundfläche + dunklere Fliesen im Schachbrett (gebacken, ein Zeichenaufruf). */
+function KitchenFloor() {
+  const tiles: [number, number][] = [];
+  const size = 0.9;
+  for (let ix = -9; ix <= 9; ix++)
+    for (let iz = -3; iz <= 7; iz++) if ((ix + iz) % 2 === 0) tiles.push([ix * size, -1.2 + iz * size]);
+  return (
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 1.5]} material={lowpoly(KITCHEN.tileA)} receiveShadow>
+        <planeGeometry args={[30, 20]} />
+      </mesh>
+      {tiles.map(([x, z]) => (
+        <mesh key={`${x}|${z}`} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.01, z]} material={lowpoly(KITCHEN.tileB)}>
+          <planeGeometry args={[size, size]} />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+/** Hängeschrank an der Seite (hinter den Tonnen bleibt es ruhig). */
+function UpperCabinet({ x }: { x: number }) {
+  return (
+    <group position={[x, 2.95, WALL_Z + 0.42]}>
+      <mesh material={lowpoly(KITCHEN.wood)} castShadow>
+        <boxGeometry args={[2.6, 1.2, 0.5]} />
+      </mesh>
+      <mesh position={[0, 0, 0.26]} material={lowpoly(KITCHEN.woodDark)}>
+        <boxGeometry args={[0.03, 1.1, 0.02]} />
+      </mesh>
+      {[-0.25, 0.25].map((dx) => (
+        <mesh key={dx} position={[dx, -0.35, 0.27]} material={lowpoly(KITCHEN.woodDark)}>
+          <boxGeometry args={[0.04, 0.2, 0.04]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function KitchenScene() {
+  const seams = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
+  return (
+    <>
+      {/* Wand + Fliesenspiegel mit Fugen */}
+      <mesh position={[0, 3, WALL_Z]} material={lowpoly(KITCHEN.wall)} receiveShadow>
+        <boxGeometry args={[18, 6, 0.3]} />
+      </mesh>
+      <mesh position={[0, 1.5, WALL_Z + 0.17]} material={lowpoly(KITCHEN.backsplash)}>
+        <boxGeometry args={[18, 1.1, 0.04]} />
+      </mesh>
+      {[1.17, 1.5, 1.83].map((y) => (
+        <mesh key={y} position={[0, y, WALL_Z + 0.2]} material={lowpoly(KITCHEN.grout)}>
+          <boxGeometry args={[18, 0.025, 0.02]} />
+        </mesh>
+      ))}
+
+      {/* Arbeitsplatte mit Unterschränken */}
+      <mesh position={[0, 0.925, WALL_Z + 0.5]} material={lowpoly(KITCHEN.counter)} castShadow receiveShadow>
+        <boxGeometry args={[18, 0.1, 0.8]} />
+      </mesh>
+      <mesh position={[0, 0.44, WALL_Z + 0.46]} material={lowpoly(KITCHEN.wood)} receiveShadow>
+        <boxGeometry args={[18, 0.88, 0.72]} />
+      </mesh>
+      {seams.map((x) => (
+        <mesh key={x} position={[x, 0.44, WALL_Z + 0.83]} material={lowpoly(KITCHEN.woodDark)}>
+          <boxGeometry args={[0.03, 0.8, 0.02]} />
+        </mesh>
+      ))}
+
+      {/* Hängeschränke an den Seiten, Fenster daneben */}
+      <UpperCabinet x={-4.6} />
+      <UpperCabinet x={4.6} />
+      <group position={[2.5, 2.55, WALL_Z + 0.17]}>
+        <mesh material={lowpoly(KITCHEN.frame)}>
+          <boxGeometry args={[1.3, 1.05, 0.06]} />
+        </mesh>
+        <mesh position={[0, 0, 0.035]} material={lowpoly(KITCHEN.glass, { emissive: "#6FA8C8" })}>
+          <boxGeometry args={[1.14, 0.9, 0.02]} />
+        </mesh>
+        <mesh position={[0, 0, 0.05]} material={lowpoly(KITCHEN.frame)}>
+          <boxGeometry args={[0.05, 0.9, 0.02]} />
+        </mesh>
+      </group>
+
+      {/* Kleinigkeiten auf der Arbeitsplatte: Blumentopf links, Wasserkocher rechts */}
+      <group position={[-3.0, 0.98, WALL_Z + 0.55]}>
+        <mesh position={[0, 0.17, 0]} material={lowpoly(KITCHEN.pot)} castShadow>
+          <cylinderGeometry args={[0.2, 0.15, 0.34, 8]} />
+        </mesh>
+        <mesh position={[0, 0.5, 0]} material={lowpoly(KITCHEN.leaf)} castShadow>
+          <icosahedronGeometry args={[0.26, 0]} />
+        </mesh>
+      </group>
+      <group position={[3.3, 0.98, WALL_Z + 0.55]}>
+        <mesh position={[0, 0.2, 0]} material={lowpoly(KITCHEN.kettle)} castShadow>
+          <cylinderGeometry args={[0.2, 0.24, 0.4, 8]} />
+        </mesh>
+        <mesh position={[0, 0.43, 0]} material={lowpoly(KITCHEN.woodDark)}>
+          <sphereGeometry args={[0.06, 6, 4]} />
+        </mesh>
+        <mesh position={[0.25, 0.28, 0]} rotation={[0, 0, -0.9]} material={lowpoly(KITCHEN.kettle)}>
+          <cylinderGeometry args={[0.03, 0.05, 0.22, 6]} />
+        </mesh>
+      </group>
+    </>
+  );
+}
+
 /* ── Bühne ─────────────────────────────────────────────────── */
 
 export const Stage = memo(function Stage({
@@ -498,6 +626,35 @@ export const Stage = memo(function Stage({
   );
   const p = useMemo(() => (weather === "rain" ? overcast(LIGHT) : LIGHT), [weather]);
   const garden = scene === "garten";
+
+  // Drinnen: kein Himmel, kein Wetter – eine Küche mit Fliesenboden
+  if (scene === "kueche") {
+    return (
+      <>
+        <color attach="background" args={[KITCHEN.wall]} />
+        <fog attach="fog" args={[KITCHEN.wall, 18, 44]} />
+        <hemisphereLight args={["#FFF6E6", "#D8C7AE", 1.15]} />
+        <directionalLight
+          position={[3, 8, 6]}
+          intensity={p.sun}
+          color="#FFF1DC"
+          castShadow
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+          shadow-camera-left={-6}
+          shadow-camera-right={6}
+          shadow-camera-top={6}
+          shadow-camera-bottom={-6}
+          shadow-camera-far={30}
+          shadow-bias={-0.0006}
+        />
+        <Baked>
+          <KitchenFloor />
+          <KitchenScene />
+        </Baked>
+      </>
+    );
+  }
 
   return (
     <>
