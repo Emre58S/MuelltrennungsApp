@@ -300,6 +300,8 @@ export const en: Translations = {
   "tip.flap": "The lid opens and closes. Throw just before it opens.",
   "tip.flapAll": "All lids open and close together. Throw just before they open.",
   "trick.otherTrampoline": "Close! Use the trampoline in front of your bin.",
+  "parcours.kitchen": "Kitchen",
+  "parcours.kitchenDesc": "Sorting with kitchen things: roll, pot, shelf, cart.",
   "parcours.section": "Courses: sort with trick shots",
   "parcours.sectionDesc": "Every item into its bin. Trick shots give more points.",
   "parcours.title": "Course {n}",

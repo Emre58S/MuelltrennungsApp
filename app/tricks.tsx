@@ -7,7 +7,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -194,8 +194,21 @@ export default function TricksScreen() {
           {PARCOURS.map((p, i) => {
             const best = parcoursBest[p.id] ?? 0;
             const sub = best > 0 ? t("parcours.best", { n: best }) : t("parcours.noBest");
+            // Küchen-Parcours (Objekte aus der Küche) beginnen mit einer eigenen Unterüberschrift
+            const kitchenStart = p.scene === "kueche" && PARCOURS[i - 1]?.scene !== "kueche";
             return (
-              <FadeIn key={p.id} delay={85 + i * 30}>
+              <Fragment key={p.id}>
+              {kitchenStart && (
+                <View style={styles.subGroup}>
+                  <AppText variant="label" tone="textSecondary" accessibilityRole="header">
+                    🍳 {t("parcours.kitchen")}
+                  </AppText>
+                  <AppText variant="caption" tone="textMuted">
+                    {t("parcours.kitchenDesc")}
+                  </AppText>
+                </View>
+              )}
+              <FadeIn delay={85 + i * 30}>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`${t("parcours.title", { n: p.id })}. ${t(p.task)}. ${t("parcours.time", { n: p.seconds })}. ${sub}`}
@@ -224,6 +237,7 @@ export default function TricksScreen() {
                   <Feather name="chevron-right" size={22} color={colors.textMuted} />
                 </Pressable>
               </FadeIn>
+              </Fragment>
             );
           })}
         </View>
@@ -318,6 +332,7 @@ export default function TricksScreen() {
 }
 
 const styles = StyleSheet.create({
+  subGroup: { marginTop: Spacing.sm },
   lockHint: {
     position: "absolute",
     alignSelf: "center",
