@@ -6,6 +6,7 @@
 import { Feather } from "@expo/vector-icons";
 import { type ComponentProps, useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
@@ -50,6 +51,7 @@ export default function EinstellungenScreen() {
   } = useAppSettings();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [musicEnabled, setMusicEnabledState] = useState(true);
+  const [navV2, setNavV2] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -58,6 +60,9 @@ export default function EinstellungenScreen() {
     });
     getBoolean(StorageKeys.MUSIC_ENABLED, true).then((music) => {
       if (active) setMusicEnabledState(music);
+    });
+    getBoolean(StorageKeys.NAV_V2, false).then((v) => {
+      if (active) setNavV2(v);
     });
     return () => {
       active = false;
@@ -198,6 +203,20 @@ export default function EinstellungenScreen() {
             subtitle={t("settings.learnReason.desc")}
             value={learnReason}
             onChange={setLearnReason}
+            divider
+          />
+          <SwitchRow
+            icon="layout"
+            title={t("settings.navV2")}
+            subtitle={t("settings.navV2.desc")}
+            value={navV2}
+            onChange={(v) => {
+              setNavV2(v);
+              setBoolean(StorageKeys.NAV_V2, v);
+              // Zum Start zurück: dort wählt app/index.tsx das gewählte Menü
+              router.dismissAll();
+              router.replace("/");
+            }}
             divider
           />
         </Card>

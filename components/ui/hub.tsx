@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
+import { useShell } from "@/components/nav/shell-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { type Area } from "@/constants/areas";
 import { press, tapHaptic } from "@/components/ui/press";
@@ -41,6 +42,7 @@ export function HubScreen({
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
+  const shell = useShell();
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView
@@ -51,11 +53,12 @@ export function HubScreen({
           styles.content,
           {
             paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg),
-            paddingBottom: insets.bottom + Spacing.lg,
+            // In der Hülle sitzt unten die Bereichs-Leiste (hat den Sicherheitsabstand schon)
+            paddingBottom: (shell.inShell ? shell.bottomInset : insets.bottom) + Spacing.lg,
           },
         ]}
       >
-        <PageHeader title={title} subtitle={subtitle} emoji={emoji} area={area} />
+        <PageHeader title={title} subtitle={subtitle} emoji={emoji} area={area} hideBack={shell.inShell} />
         {children}
       </ScrollView>
     </View>

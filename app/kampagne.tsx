@@ -28,6 +28,7 @@ import { HubScreen } from "@/components/ui/hub";
 import { AppText } from "@/components/ui/app-text";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type GameMode, MENU_MODES, startDaily, startGame } from "@/constants/modes";
+import { useShell } from "@/components/nav/shell-context";
 import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef } from "@/game/bins";
@@ -331,6 +332,7 @@ function MissionCard({
   onOpenChest: () => Promise<void>;
 }) {
   const { t } = useI18n();
+  const shell = useShell();
   const { colors } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const next = chest ? nextChestTrail(chest.opened) : null;
@@ -345,7 +347,9 @@ function MissionCard({
     const now = Date.now();
     if (now - goneAt.current < 1000) return;
     goneAt.current = now;
-    router.push("/online");
+    // In der Bereichs-Hülle den Reiter wechseln, sonst die Seite öffnen
+    if (shell.inShell) shell.goArea("online");
+    else router.push("/online");
   };
   const openWithWobble = () => {
     if (busy.current) return;

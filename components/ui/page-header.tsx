@@ -32,6 +32,7 @@ export function PageHeader({
   emoji,
   onBack = goBack,
   area,
+  hideBack,
   children,
 }: {
   title: string;
@@ -41,6 +42,8 @@ export function PageHeader({
   onBack?: () => void;
   /** Bereichsfarbe (Pfad/Online/Regal) statt Himmel-Blau. */
   area?: Area;
+  /** Kein Zurück-Pfeil (Seite steht im Bereichs-Menü, hat nichts dahinter). */
+  hideBack?: boolean;
   /** Zusätzlicher Inhalt unten in der Karte (z. B. Fortschritt). */
   children?: ReactNode;
 }) {
@@ -54,7 +57,7 @@ export function PageHeader({
         <View pointerEvents="none" style={[styles.cloud, styles.cloudB]} />
 
         <View style={styles.top}>
-          <Pressable
+          {hideBack ? <View /> : <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("common.back")}
             hitSlop={8}
@@ -66,7 +69,7 @@ export function PageHeader({
             style={({ pressed }) => [styles.back, pressed && press.pressed]}
           >
             <Feather name="chevron-left" size={24} color={ink} />
-          </Pressable>
+          </Pressable>}
           <View style={styles.badge} importantForAccessibility="no" accessibilityElementsHidden>
             <Text style={styles.emoji}>{emoji}</Text>
           </View>
