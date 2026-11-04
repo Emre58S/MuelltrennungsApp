@@ -350,6 +350,11 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
             {t("rank.myPlace", { rank: result.me.rank })} · {scoreText(result.me.score)}
           </AppText>
         )}
+
+        {/* Ziehen zum Aktualisieren kennt kaum jemand – im Reiter gibt es das nicht, daher ein Knopf */}
+        {leaderboardReady && state === "idle" && result && (
+          <Button title={t("rank.refresh")} icon="refresh-cw" variant="ghost" onPress={refresh} />
+        )}
       </>
     </View>
   );
