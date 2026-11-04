@@ -213,9 +213,10 @@ export default function EinstellungenScreen() {
             onChange={(v) => {
               setNavV2(v);
               setBoolean(StorageKeys.NAV_V2, v);
-              // Zum Start zurück: dort wählt app/index.tsx das gewählte Menü
+              // Direkt ins gewählte Menü ("/" gibt es zweimal: index.tsx und (tabs)/index.tsx).
+              // Beim nächsten App-Start wählt app/index.tsx nach demselben Schalter.
               router.dismissAll();
-              router.replace("/");
+              router.replace(v ? "/bereiche" : "/(tabs)");
             }}
             divider
           />
