@@ -18,7 +18,7 @@ Verständlich auch mit wenig Deutsch, nie strafend (wie bisher).
 | 1 | Menüs hängen lose zusammen, Online wirkt wie eine andere App | Jede Seite (`online`, `sammlung`, `freunde`, `rangliste`, `modi`, `tricks`, `belohnungen`, `sammelbuch`) baut ihren Kopf/ihre Karten selbst; `online.tsx` hat 8 gleich große Karten untereinander |
 | 2 | „An einem Handy“ (Duell) und „Code eingeben“ sind überflüssig/doppelt | Beides eigene Karten in `online.tsx`; Code-Eingabe gehört zu Freunden |
 | 4 | Sammlung leer, Sammelbuch/Belohnung = Extra-Klick | `sammlung.tsx` ist nur eine Weiche mit 2 Karten |
-| 5 | Kampagne-Tippen öffnet erst den Pfad | Nur der **Wurf** startet direkt (`go()` in `index.tsx`), Tippen nicht |
+| 5 | Aus dem Menü startet die Kampagne direkt eine Station, statt den Pfad zu zeigen (du willst: erst Pfad, dann selbst wählen) | Der Wurf auf die Tonne startet über `go()` in `index.tsx` gleich die nächste Station |
 | 10/11 | Szene zu weit weg, UI-Flächen liegen „drüber“ | Schilder/Karten sind RN-Overlays, nicht Teil der 3D-Tonne |
 | 8 | Trickwürfe: lose Hindernisse, kein Ort dazu | 10+ Level auf Hausszenen, Hindernisse nur „da“ |
 
@@ -31,19 +31,20 @@ Der Startschirm bleibt die 3D-Straße mit **3 Tonnen**. Aber:
 - Die **Beschriftung sitzt auf der Tonne** (Schild/Etikett als Teil des 3D-Körpers bzw. exakt
   an die Tonne gepinnt, bewegt sich mit, wackelt mit) statt als Karte darüber (← deine #11).
 - Szene/Kamera **näher** an die Tonnen, Modi-Schilder dicht an ihrer Tonne (← #10).
-- **Tippen = Loslegen.** Wurf oder Tippen führt zum Ziel, nie in ein Zwischenmenü, wenn es
-  einen offensichtlichen nächsten Schritt gibt (← #5).
+- **Ein Wurf oder Tippen führt auf den Zielbildschirm der Tonne** (bei der Kampagne: der Pfad,
+  bei Online: der Online-Hub). Es wird nichts gestartet, bevor du gewählt hast (← #5).
 - Jede Tonne hat **ein kleines Zweitziel** als Chip daneben („Pfad“, „Freunde“, „Buch“) –
   der Hauptweg ist groß, der Nebenweg klein.
 
 ### 2.2 Die drei Tonnen
 **🟢 Kampagne (Lernpfad)**
-- Tippen/Wurf → **sofort die nächste Station** (keine Auswahl). Chip „Pfad“ öffnet die Karte.
+- Tippen/Wurf → **öffnet den Pfad**, dort wählst du die Station selbst. Die nächste Station ist
+  hervorgehoben (Pfeil/Puls), ein Tipp darauf startet sie. Der automatische Direktstart nach dem Wurf entfällt.
 - Pfad-Seite bleibt (gefällt dir), aber die **Tagesmission** wird neu gestaltet (← #6):
   statt KI-typischer Karten im Pfad ein **Stempelzettel** (3 Stempel, hängt wie ein Zettel an
   der Tonne bzw. oben im Pfad als schmale Leiste). Tagesaufgabe/Flamme wandern in den
   Startschirm-Kopf als ein einziger Chip „🔥 4 · 2/3“.
-- Nach einer Station: Endscreen im Tonnen-Stil, „Weiter“ = nächste Station, „Pfad“ = zurück.
+- Nach einer Station: Endscreen im Tonnen-Stil, „Weiter“ = nächste Station, „Pfad“ = zurück zur Auswahl.
 
 **🔵 Online (ein Bildschirm, 3 Reiter statt 8 Karten)**
 - Reiter **Duell · Freunde · Rangliste** (Segmented-Leiste im Tonnen-Stil).
@@ -97,8 +98,9 @@ Schalter und werden erst freigegeben, wenn der ganze Phasenteil steht (kein halb
   vorn, Modus-Schilder und Chips an die Tonne gepinnt (Position aus der 3D-Projektion der
   Tonne, bewegen sich mit). Kopf-Chip „🔥 Flamme · Missionen“. Beachten: Tipp-Flächen der Tonnen
   und Kopf-Regel aus CLAUDE.md („nichts unterhalb des Level-Chips“). *2 Sitzungen*
-- [ ] **F4 Kampagne: Tippen startet sofort** (← #5): Tonne antippen = nächste Station wie beim
-  Wurf; offene Tagesaufgabe bleibt die Ausnahme (zeigt vorher kurz den Hinweis). Chip „Pfad“. *½ Sitzung*
+- [ ] **F4 Kampagne: erst Pfad, dann Station wählen** (← #5): Direktstart in `go()` (`index.tsx`)
+  entfernen, Wurf und Tippen öffnen nur `/kampagne`; nächste Station im Pfad klar hervorheben.
+  „Nächste Station“ im Endscreen bleibt. *½ Sitzung*
 
 ### Phase B – Online aus einem Guss
 - [ ] **F5 Online-Hub mit Reitern** (Duell · Freunde · Rangliste) auf den F1-Bausteinen;
@@ -153,7 +155,7 @@ Szenen-Details (R9a) · Modelle nachschärfen (R9d) · Wochen-Liga.
 ## 4. Meine Ideen on top (alle optional – du streichst, was nicht passt)
 1. **Eine Daily-Schleife:** Flamme + Stempelzettel + Tagesaufgabe zeigen auf **ein** Ziel
    („Heute 2/3“) – ein Grund zum Wiederkommen statt drei Zähler.
-2. **Weiterwerfen statt Menü:** Nach jeder Runde ein großer „Noch eine!“-Knopf in der Tonnenfarbe;
+2. **Weiterwerfen statt Menü (nur nach einer Runde, nicht aus dem Hauptmenü):** Nach jeder Runde ein großer „Noch eine!“-Knopf in der Tonnenfarbe;
    alle anderen Wege (Pfad, Regal, Online) sind kleine Chips.
 3. **Erstes Mal geführt:** Beim ersten Start zeigt eine kleine Figur nur die **grüne** Tonne
    (Kampagne); die anderen beiden sind „zugedeckelt“, bis man 3 Stationen hat – weniger Auswahl
