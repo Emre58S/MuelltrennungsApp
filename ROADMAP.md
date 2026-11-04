@@ -590,13 +590,14 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
 - [ ] **R7c** Store-Eintrag: Name, Untertitel, Beschreibung DE/EN, 5 Bildschirmfotos,
   Altersfreigabe 4+, Datenschutz-Angaben (Name, Spielstände).
 - [ ] **R7d** Datenschutzerklärung + Impressum online, Link in Einstellungen.
-- [ ] **R7e** Aufräumen: Login/Register ausblenden oder ersetzen, Zielwurf-Reste,
+- [x] **R7e** Aufräumen: Login/Register ausblenden oder ersetzen, Zielwurf-Reste,
   Entwickler-Fehlerberichte (dev-error-reporter) nur im Dev-Build.
   - [x] Teil 1 (01f1518, Tester 8/10, EAS auto + preview): „Konto/Abmelden“ in den
     Einstellungen ausgeblendet (führte auf Platzhalter-Login). dev-error-reporter ist schon
     nur `__DEV__` (geprüft). ✓ login/register leiten auf /(tabs) um (e098edf, Tester 8/10;
     Schalter AUTH_ENABLED). ✓ i18n settings.account/logout* entfernt (80a9fa8, Tester 9/10; ohne EAS, nichts
-    sichtbar). Offen: Zielwurf-Reste (Modus „aim“ per Deep-Link noch erreichbar).
+    sichtbar). ✓ Zielwurf per Deep-Link (`/runde?mode=aim`) fällt aufs Üben zurück
+    (e630f1e, Tester 8/10, EAS auto + preview); aim-Code bleibt für eine Rückkehr.
 - [ ] **R7f** Leistung auf älterem iPhone (Ruckeln aus 29.10. prüfen).
 
 ### R8 – Teilen & Viralität (Soll)
