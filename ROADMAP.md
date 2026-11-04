@@ -139,10 +139,15 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   Sprint-Gleichstand nach Zeit, Puls beim ersten Überholen, Gleichstand „knapp“. *2 Sitzungen*
 
 ### Phase C – „Dein Regal“ (Sammlung)
-- [ ] **F8 Regal** (← #4): Kopf (Level/Flamme/Sterne), Reiter Buch · Belohnungen · Heute,
+- [x] **F8 Regal** (← #4): Kopf (Level/Flamme/Sterne), Reiter Buch · Belohnungen · Heute,
   `sammlung.tsx` + `sammelbuch.tsx` + `belohnungen.tsx` zusammenführen (Altrouten leiten um).
   Silhouetten für noch nicht gefundene Gegenstände. Tagesmissionen als Stempelzettel hierher
   (← #6, mit F11). Neu gefundener Gegenstand kommt aus einer animierten Tonne. *2–3 Sitzungen*
+  ✓ (45e7d4d Buch + Belohnungen, 065663f Heute; Tester 8/10, EAS auto + preview): `app/sammlung.tsx` mit Reitern
+  Buch · Belohnungen · Heute (BookPanel/RewardsPanel/TodayPanel), Missionskarte nach `components/areas/today-panel.tsx`,
+  im Pfad schmale Stempelleiste (springt via `goArea("regal","today")`). Offen: neu gefundener Gegenstand aus
+  animierter Tonne (F13); Fallback `/sammlung?tab=today`; Punkt am Reiter „Heute“ bei wartender Truhe; Reiter-Wunsch
+  für Belohnungen (Pfad → „Nächste Belohnung“ öffnet noch /belohnungen).
 
 ### Phase D – Trick-Küche (Workshop zuerst!)
 - [ ] **F9 Workshop „Trick-Küche“** (mit dir, ohne Code): Hindernisliste, Regeln, wie die
