@@ -9,7 +9,7 @@
 // „Zu zweit an einem Handy“ gibt es nicht mehr (Nutzer, 4.11.).
 
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
@@ -45,14 +45,22 @@ export default function OnlineScreen() {
   const [tab, setTab] = useState<Tab>("duel");
   /** Gewählter Modus – öffnet das Blatt „Zufallsgegner · Freund herausfordern“. */
   const [picked, setPicked] = useState<Versus | null>(null);
-  const [friends, setFriends] = useState<Friend[] | null>(null);
-  // Freunde erst laden, wenn das Blatt zum ersten Mal aufgeht
+  /** null: lädt noch · "error": nicht ladbar (kein Netz) – etwas anderes als „keine Freunde“. */
+  const [friends, setFriends] = useState<Friend[] | "error" | null>(null);
+  const [tries, setTries] = useState(0);
+  // Freunde bei jedem Öffnen des Blatts frisch laden (man kann dazwischen welche hinzugefügt haben)
   useEffect(() => {
-    if (!picked || friends !== null || !leaderboardReady) return;
+    if (!picked || !leaderboardReady) return;
+    let active = true;
     fetchFriends()
-      .then(setFriends)
-      .catch(() => setFriends([]));
-  }, [picked, friends]);
+      .then((list) => active && setFriends(list))
+      .catch(() => active && setFriends("error"));
+    return () => {
+      active = false;
+    };
+  }, [picked, tries]);
+  // Sperre gegen Doppeltippen (das Blatt gleitet noch hinaus, sonst zwei Runden übereinander)
+  const lockUntil = useRef(0);
   // Parcours des Tages: Tag beim Öffnen und bei jeder Rückkehr neu (über Mitternacht offen → neuer Parcours)
   const [day, setDay] = useState(todayKey);
   const today = parcoursOfDay(day);
@@ -79,6 +87,8 @@ export default function OnlineScreen() {
     ...(friend ? { friend } : {}),
   });
   const start = (mode: Versus, friend?: string) => {
+    if (Date.now() < lockUntil.current) return;
+    lockUntil.current = Date.now() + 900;
     setPicked(null);
     router.push({ pathname: "/runde", params: startParams(mode, friend) });
   };
@@ -153,6 +163,19 @@ export default function OnlineScreen() {
           <AppText tone="textSecondary">{t("friends.offline")}</AppText>
         ) : friends === null ? (
           <ActivityIndicator color={colors.primary} />
+        ) : friends === "error" ? (
+          <>
+            <AppText tone="textSecondary">{t("rank.error")}</AppText>
+            <Button
+              title={t("common.retry")}
+              icon="refresh-cw"
+              variant="secondary"
+              onPress={() => {
+                setFriends(null);
+                setTries((n) => n + 1);
+              }}
+            />
+          </>
         ) : friends.length === 0 ? (
           <>
             <AppText tone="textSecondary">{t("duel.noFriends")}</AppText>
