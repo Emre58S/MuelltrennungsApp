@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AREA_BAR_HEIGHT, AreaBar } from "@/components/nav/area-bar";
 import { AreaPager } from "@/components/nav/area-pager";
 import { ShellHeader } from "@/components/nav/shell-header";
-import { ShellContext } from "@/components/nav/shell-context";
+import { type Shell, ShellContext } from "@/components/nav/shell-context";
 import { AREA_ORDER, type AreaKey } from "@/constants/areas";
 import { homeHint } from "@/game/home-hint";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
@@ -106,7 +106,14 @@ export default function BereicheScreen() {
     const key = AREA_ORDER[i];
     setWiggles((w) => ({ ...w, [key]: w[key] + 1 }));
   }, []);
-  const goArea = useCallback((key: AreaKey) => select(AREA_ORDER.indexOf(key)), [select]);
+  const [tabs, setTabs] = useState<Shell["tabs"]>({});
+  const goArea = useCallback(
+    (key: AreaKey, tab?: string) => {
+      if (tab) setTabs((old) => ({ ...old, [key]: { tab, n: (old[key]?.n ?? 0) + 1 } }));
+      select(AREA_ORDER.indexOf(key));
+    },
+    [select],
+  );
 
   // Ein Hinweis mit Vorrang-Regel (game/home-hint.ts). „Wirf in eine Tonne“ gibt es hier nicht.
   const h = homeHint({ totalXP, flame, dailyDone, dayBest, friend });
@@ -120,8 +127,8 @@ export default function BereicheScreen() {
         };
 
   const shell = useMemo(
-    () => ({ inShell: true, bottomInset: AREA_BAR_HEIGHT + insets.bottom, goArea }),
-    [insets.bottom, goArea],
+    () => ({ inShell: true, bottomInset: AREA_BAR_HEIGHT + insets.bottom, goArea, tabs }),
+    [insets.bottom, goArea, tabs],
   );
 
   return (

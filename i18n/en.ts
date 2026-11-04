@@ -580,6 +580,7 @@ export const en: Translations = {
   "hub.campaign.title": "Campaign",
   "hub.campaign.subtitle": "Play alone, learn and practise.",
   "online.tab.duel": "Duel",
+  "regal.tab.today": "Today",
   "duel.random": "Random opponent",
   "duel.friend": "Or challenge a friend",
   "duel.noFriends": "You have no friends yet. Add friends under “Friends”.",

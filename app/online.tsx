@@ -10,7 +10,7 @@
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";

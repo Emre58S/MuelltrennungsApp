@@ -579,6 +579,7 @@ export const de = {
   "hub.campaign.title": "Kampagne",
   "hub.campaign.subtitle": "Allein spielen, lernen und üben.",
   "online.tab.duel": "Duell",
+  "regal.tab.today": "Heute",
   "duel.random": "Zufallsgegner",
   "duel.friend": "Oder einen Freund herausfordern",
   "duel.noFriends": "Du hast noch keine Freunde. Füge Freunde unter „Freunde“ hinzu.",

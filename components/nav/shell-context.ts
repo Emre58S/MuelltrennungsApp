@@ -13,11 +13,13 @@ export type Shell = {
   inShell: boolean;
   /** Höhe der unteren Leiste (inkl. Sicherheitsabstand), die der Inhalt frei lässt. */
   bottomInset: number;
-  /** In einen anderen Bereich wechseln. */
-  goArea: (key: AreaKey) => void;
+  /** In einen anderen Bereich wechseln, optional gleich in einen seiner Reiter (z. B. Regal → „today“). */
+  goArea: (key: AreaKey, tab?: string) => void;
+  /** Zuletzt gewünschter Reiter je Bereich; `n` zählt hoch, damit derselbe Wunsch erneut wirkt. */
+  tabs: Partial<Record<AreaKey, { tab: string; n: number }>>;
 };
 
-const OUTSIDE: Shell = { inShell: false, bottomInset: 0, goArea: () => undefined };
+const OUTSIDE: Shell = { inShell: false, bottomInset: 0, goArea: () => undefined, tabs: {} };
 
 export const ShellContext = createContext<Shell>(OUTSIDE);
 
