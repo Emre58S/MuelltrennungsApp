@@ -16,6 +16,7 @@ import { press, tapHaptic } from "@/components/ui/press";
 import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
+import { readCode } from "@/game/ghost-track";
 import { PARCOURS } from "@/game/trick-levels";
 import { type TranslationKey } from "@/i18n";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
@@ -45,7 +46,8 @@ const ERROR_TEXT: Record<FriendError, TranslationKey> = {
   network: "rank.error",
 };
 
-export default function FriendsScreen() {
+/** Inhalt „Freunde“ – ohne Kopf, damit er auch als Reiter im Online-Bereich stehen kann. */
+export function FriendsPanel() {
   const { t } = useI18n();
   const { scheme, colors } = useAppTheme();
   const [code, setCode] = useState<string | null>(null);
@@ -80,6 +82,20 @@ export default function FriendsScreen() {
   const add = async () => {
     // Sperre gegen Doppeltippen
     if (busy.current) return;
+    // Ein Feld für beides: Nachricht mit Herausforderung (Ghost-Code) oder Freundes-Code
+    const challenge = readCode(draft);
+    if (typeof challenge !== "string") {
+      sfx("tap");
+      const code = draft.trim();
+      setDraft("");
+      setNote(null);
+      router.push({ pathname: "/runde", params: { mode: "ghost", code } });
+      return;
+    }
+    if (challenge === "update") {
+      setNote({ text: t("ghost.code.update"), ok: false });
+      return;
+    }
     busy.current = true;
     setAdding(true);
     const result = await addFriend(draft);
@@ -146,7 +162,7 @@ export default function FriendsScreen() {
   const best = (n: number | null) => (n == null ? "–" : String(n));
 
   return (
-    <HubScreen title={t("friends.title")} subtitle={t("friends.subtitle")} emoji="👫" area={AREAS.online}>
+    <View style={styles.panel}>
       {!leaderboardReady ? (
         <AppText tone="textSecondary" center>
           {t("friends.offline")}
@@ -233,8 +249,8 @@ export default function FriendsScreen() {
                 setNote(null);
               }}
               autoCorrect={false}
-              autoCapitalize="characters"
-              maxLength={12}
+              autoCapitalize="none"
+              maxLength={600}
               returnKeyType="done"
               onSubmitEditing={add}
               placeholder={t("friends.placeholder")}
@@ -296,11 +312,21 @@ export default function FriendsScreen() {
           )}
         </>
       )}
+    </View>
+  );
+}
+
+export default function FriendsScreen() {
+  const { t } = useI18n();
+  return (
+    <HubScreen title={t("friends.title")} subtitle={t("friends.subtitle")} emoji="👫" area={AREAS.online}>
+      <FriendsPanel />
     </HubScreen>
   );
 }
 
 const styles = StyleSheet.create({
+  panel: { gap: Spacing.md },
   flex: { flex: 1 },
   center: { alignItems: "center", gap: Spacing.sm },
   row: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
