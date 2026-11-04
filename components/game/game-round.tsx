@@ -119,7 +119,14 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { type BurstStyle } from "./effects";
-import { boardFor, HIGHSCORE_MODE, useCommitRound, useLater } from "./round-hooks";
+import {
+  boardFor,
+  HIGHSCORE_MODE,
+  learnCardMs,
+  learnEndMs,
+  useCommitRound,
+  useLater,
+} from "./round-hooks";
 import { nextScene } from "./stage";
 import { playMusic } from "@/utils/music";
 import {
@@ -776,7 +783,7 @@ export function GameRound({
       setAim(bus.current, null);
       // Nach einem Fehler erst die Lernkarte lesen lassen (wie bei „Ohne Fehler“)
       // … auch wenn der letzte Wurf falsch war (Tagesaufgabe, Stationen)
-      later(() => setFinished(true), bossLost || !ts.hit ? (learnReason ? 2600 : 1900) : 900);
+      later(() => setFinished(true), bossLost || !ts.hit ? learnEndMs(!!learnReason) : 900);
     }
     // Boss: alle paar Würfe tauschen zwei Nachbar-Tonnen die Plätze – nur nach
     // einem Treffer (keine Lernkarte offen) und wenn nichts mehr fliegt
@@ -953,7 +960,7 @@ export function GameRound({
         // Mit Begründung bleibt die Karte etwas länger stehen (zum Lesen)
         later(() => {
           setLearn((v) => (v?.id === id ? null : v));
-        }, learnReason ? 2300 : 1800);
+        }, learnCardMs(!!learnReason));
       }
       setMistakes((m) => [...m, { item: ts.item, bin: correctBin }]);
       if (mode === "survival") {
@@ -962,7 +969,7 @@ export function GameRound({
         setAim(bus.current, null);
         later(() => {
           setFinished(true);
-        }, learnReason ? 2600 : 1900);
+        }, learnEndMs(!!learnReason));
       }
     }
     // XP + Level-Aufstieg lokal berechnen; gespeichert wird gebündelt.

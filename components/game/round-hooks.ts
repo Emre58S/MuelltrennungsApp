@@ -41,6 +41,11 @@ export function boardFor(mode: GameMode, daily: boolean): Board | undefined {
   return daily ? dailyBoard("tagesaufgabe") : BOARD[mode];
 }
 
+/** Lernkarte nach Fehlwurf: mit Begründung bleibt sie länger stehen (zum Lesen). */
+export const learnCardMs = (withReason: boolean) => (withReason ? 2300 : 1800);
+/** Endet die Runde mit einem Fehlwurf, erst kurz nach der Lernkarte. */
+export const learnEndMs = (withReason: boolean) => (withReason ? 2600 : 1900);
+
 /** Wie setTimeout, aber alle offenen Aufrufe fallen beim Abbau weg. */
 export function useLater() {
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());

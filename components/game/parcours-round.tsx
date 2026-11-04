@@ -57,7 +57,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cancelSlowMotion, createFx } from "./fx";
 import { MATERIAL_BURST, MATERIAL_SPARKS, SceneCanvas } from "./game-round";
 import { FloatingText, type FloatText, ItemCard, LearnCard, ParcoursHud, RuleLines, TipCard } from "./hud";
-import { useLater } from "./round-hooks";
+import { learnCardMs, useLater } from "./round-hooks";
 import { type TipId, useTips } from "./tips";
 import { beginThrow, createThrowInput, previewShot, releaseShot, stepClick } from "./throw-input";
 import {
@@ -412,7 +412,7 @@ export function ParcoursRound({
       const id = ++ids.current;
       setLearn({ id, item: thrown, bin: bins[correct] });
       // Mit Begründung bleibt die Karte etwas länger stehen (zum Lesen)
-      later(() => setLearn((v) => (v?.id === id ? null : v)), learnReason ? 2300 : 1800);
+      later(() => setLearn((v) => (v?.id === id ? null : v)), learnCardMs(!!learnReason));
       later(() => queueBinEvent(bus.current, correct, "peek"), 250);
       sfx("plop");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
