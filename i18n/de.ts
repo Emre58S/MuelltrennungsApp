@@ -302,7 +302,7 @@ export const de = {
   "tip.flapAll": "Alle Deckel klappen zusammen auf und zu. Wirf kurz bevor sie aufgehen.",
   "trick.otherTrampoline": "Fast! Nimm das Trampolin vor deiner Tonne.",
   "parcours.kitchen": "Küche",
-  "parcours.kitchenDesc": "Sortieren mit Dingen aus der Küche: Rolle, Topf, Regal, Wagen.",
+  "parcours.kitchenDesc": "Sortieren in der Küche: Saugroboter und klappende Deckel.",
   "parcours.section": "Parcours: sortieren mit Trickwurf",
   "parcours.sectionDesc": "Jeder Gegenstand in seine Tonne. Mit Trickwurf gibt es mehr Punkte.",
   "parcours.title": "Parcours {n}",
