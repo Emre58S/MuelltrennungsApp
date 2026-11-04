@@ -166,26 +166,30 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
     **Umgesetzt:** Wasserhahn-Bogen (Reifen, Hahn seitlich zur Bildmitte – oben/außen fehlt Platz auf 375 pt) und
     Topfdeckel (Trampolin) als Küchen-Optik (`kitchen`-Prop), Level 29 Reifen, 30 Wasserhahn, 31 Topfdeckel.
     **Offen:** Hängeregal, Bratpfanne, Kühlschranktür = Schild-/Bande-Mechanik, in keinem Level erprobt → F10d mit Sonden.
-  - [ ] **F10c** Küchen-Level 1–4 (einfach → mit Tonnenwahl): je Level `npx jest game/__tests__/tricks.test.ts -t "Level N"`
-    (Solver/Fairness-Test 0,6–0,86, nach 3–4 Versuchen verwerfen), Tipp- und noTrick-Texte DE/EN.
-  - [ ] **F10d** weitere Level (5–8) und Tages-/Parcours-Vorlagen mit Küchen-Hindernissen.
-- [ ] **F11 Trick-Tour durch die Szenen** (Nutzer, 4.11.: „nicht nur Küche – es gibt Szenen und zu den Szenen
-  passende Hindernisse, durchgängige Trickwürfe über die Szenen hinweg“). Trickrunden nutzen immer die Grund-Tonnen
-  (`STANDARD_BINS`), die Szene ist rein visuell ⇒ Level lassen sich frei auf Szenen verteilen.
-  **Kapitel = Szene:** 🏠 Hof (haus) · 🧱 Straße (ziegel) · 🌳 Park (garten) · 🍳 Küche (kueche, da) · 💼 Büro (neu).
-  Jedes Kapitel: eigene Kulisse, **zur Szene passende Hindernis-Optik** (gleiche Physik, eigene Skins: z. B. Küche =
-  Wasserhahn/Topfdeckel, Büro = Büroklammer-Ring/Drehstuhl-Trampolin/Tischventilator, Straße = Bauzaun/Laterne,
-  Park = Bank/Windrad …) und 3–7 Level mit steigendem Anspruch.
-  - [ ] **F11a** Kapitel in der Trickwurf-Liste (`app/tricks.tsx`): statt nach Schwierigkeit nach Szene gruppiert
-    (Kapitelkopf mit Symbol + Name DE/EN); die 28 bestehenden Level werden auf Hof/Straße/Park verteilt
-    (`scene` je Level, nur Kulisse), Küche 29–31 als Kapitel; Freischaltung wie bisher (Kette), erstes Level je
-    Kapitel nach dem Vorkapitel. *1 Sitzung*
-  - [ ] **F11b** Büro-Szene (`stage.tsx`: Schreibtische, Aktenregal, Fenster) + Büro-Skins + 3 Level (je Kopie
-    eines bewährten Levels, Solver-Test). *1–2 Sitzungen*
-  - [ ] **F11c** Skins für Hof/Straße/Park (Bauzaun-, Laterne-, Bank-Optik, Gegenstände der Szene), Trick-Schule im
-    Pfad zeigt das Kapitel-Symbol; Online-Trick-Duell (Parcours des Tages) wechselt die Kulisse täglich.
-  - [ ] **F11d** Bande-Hindernisse (Hängeregal, Bratpfanne, Kühlschranktür, Schild, Bank) mit Sonden prüfen –
-    bei fehlender Fairness Ersatz vorschlagen statt erzwingen.
+  - [~] **F10c/F10d** ersetzt durch F11 (Szenen-Parcours statt einzelne Küchen-Level).
+- [ ] **F11 Trick-Tour = Szenen-Parcours** (neu geplant 4.11. nach Nutzer-Kritik an Screenshots Level 1/29/Parcours:
+  „Hindernisse schweben in der Luft, sind nicht erkennbar, und die Position verrät die Zieltonne“).
+  **Entscheidungen:** (1) **Gegenstand bestimmt die Tonne** (wie beim Sortieren) – die Hindernisse spannen sich
+  über/vor **alle drei** Tonnen, jede Tonne ist auf einem Weg erreichbar; der Trick ist der Weg (Tor, Bande,
+  Bewegtes). Das ist das vorhandene Parcours-System (`PARCOURS`, `lanes`, `parcours-round.tsx`, Online „Parcours des
+  Tages“) – hier in die Szene verankert. (2) **Echte Szenen-Objekte**, an Wand/Decke/Boden befestigt, erkennbar –
+  kein freier Reifen, nichts schwebt (Tauhänger über den Bildrand sind ok). (3) Die bisherigen Level 1–31 bleiben
+  vorerst als **„Klassik“**, werden ersetzt, was nicht in die neue Tour passt. (4) **Erst eine Szene komplett – die
+  Küche** –, als Vorlage; weitere Szenen (Büro, Hof, Straße, Park) nach demselben Muster, ggf. nach dem Release.
+  **Küchen-Objekte (Skin auf bewährten Kollidern, Physik gleich):**
+  Pendel-Küchenrolle am Faden über allen Tonnen (= Reifenschaukel; Wurf durchs Papprohr) · Topf mit Deckel vor jeder
+  Tonne (= 3 Trampoline) · Standregal mit drei Fächern (= Torwand) · alle Deckel klappen im Takt (= flapAll) ·
+  Servierwagen mit Tablett rollt vorbei (= Trampolin, fährt) · Standventilator (= Windrad, am Boden verankert) ·
+  später Kühlschranktür/Hängeregal als Bande (Sonden nötig).
+  - [ ] **F11a** Parcours-Runde nimmt die Szene aus dem Level (`scene`, bisher fest „haus“) + `kitchen`-Optik
+    für Parcours; Küchen-Skins für die vier vorhandenen Parcours: Küchenrolle-Pendel, 3× Topf+Deckel, Standregal,
+    Deckel-Takt. Der schwebende Wasserhahn-Reifen fliegt raus (Klassik 29–31 vorerst unverändert). *1–2 Sitzungen*
+  - [ ] **F11b** Neue Küchen-Parcours: Servierwagen (beweglich), Kombinationen (Regal + Pendel, Wagen + Deckel),
+    Standventilator; je Parcours alle 3 Spuren mit Solver-Test (Fairness 0,6–0,86), Texte DE/EN. *2 Sitzungen*
+  - [ ] **F11c** Tour in der App: Rubrik „Küche“ in der Trickwurf-Seite (Parcours) vor „Klassik“; Pfad-Trick-Schule und
+    Online-Trick-Duell (Parcours des Tages) nutzen die Küchen-Parcours; Hinweis „Neue Welt“. *1 Sitzung*
+  - [ ] **F11d** Bande-Hindernisse (Kühlschranktür, Hängeregal) mit Sonden prüfen – ohne Fairness Ersatz vorschlagen.
+  - [ ] **F11e (nach Release möglich)** weitere Szenen nach dem Küchen-Muster: Büro, Hof, Straße, Park.
 
 ### Phase E – Leben & Politur
 - [ ] **F12 Tagesmission im Regal**: Reiter „Heute“ mit denselben Stempeln wie die Pfad-Leiste
