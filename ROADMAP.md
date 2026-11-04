@@ -112,8 +112,13 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   rote Punkte an Pfad (Tagesaufgabe) und Online (Herausforderung), `utils/nav.ts` (`goHome`).
   Offen: Hinweis-Zeile (homeHint) im Pfad zurückholen; login/register auf `goHome`; Punktfarbe als
   Konstante; altes Menü + `menu-scene.tsx` löschen, sobald nichts mehr darauf zeigt.
-- [ ] **F4 Pfad: nächste Station hervorgehoben, Stempelleiste** (← #6): Puls/Pfeil an der
+- [x] **F4 Pfad: nächste Station hervorgehoben, Stempelleiste** (← #6): Puls/Pfeil an der
   nächsten Station, Tagesmission als 3 Stempel oben, Tagesaufgabe/Flamme im Kopf. *1 Sitzung*
+  ✓ 4 Teile, alle Tester 8/10, EAS auto + preview: (1) schmaler Kopf je Bereich (2fd558a), (2) Tagesmissionen
+  mit Stempeln (207768c), (3) Schild „Los!“ an der aktuellen Station + passender Kontrast je Weltfarbe
+  (bb3fb6f), (4) Hinweis-Zeile im Kopf nach `homeHint`-Vorrang (77e5cd4). Offen: Stempelleiste mit
+  „n/3“ als Sammelanzeige; Tagesaufgabe/Texte sagen noch „Kampagne“ (Leiste: „Pfad“) – bei F5/F8
+  vereinheitlichen; Stern beim Erledigen einrasten lassen (Idee).
 
 ### Phase B – Online aus einem Guss
 - [ ] **F5 Online-Hub mit Reitern** (Duell · Freunde · Rangliste) auf den F1-Bausteinen;
