@@ -55,6 +55,7 @@ export function ShellHeader({
         </View>
         <ProgressBar value={progress} height={6} />
       </View>
+      <View style={styles.spacer} />
       <View>
         <IconButton icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
         {loaded && !seenTutorial && <View style={styles.dot} />}
@@ -73,13 +74,15 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
   },
   level: {
-    flex: 1,
+    // Kompakt statt den ganzen Platz zu füllen; der Rest bleibt frei bis zu den Knöpfen
+    minWidth: 112,
     gap: 6,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.lg,
     borderWidth: 1,
   },
+  spacer: { flex: 1 },
   levelTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.sm },
   dot: {
     position: "absolute",
