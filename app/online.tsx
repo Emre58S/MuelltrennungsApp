@@ -9,17 +9,21 @@
 // „Zu zweit an einem Handy“ gibt es nicht mehr (Nutzer, 4.11.).
 
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
-import { StyleSheet } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
+import { Button } from "@/components/ui/button";
 import { HubCard, HubScreen } from "@/components/ui/hub";
+import { press, tapHaptic } from "@/components/ui/press";
 import { Segmented } from "@/components/ui/segmented";
+import { Sheet } from "@/components/ui/sheet";
 import { AREAS } from "@/constants/areas";
-import { Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
 import { levelIcons, PARCOURS } from "@/game/trick-levels";
-import { useI18n } from "@/providers/app-settings";
+import { useAppTheme, useI18n } from "@/providers/app-settings";
+import { type Friend, fetchFriends, leaderboardReady } from "@/utils/leaderboard";
 import { getParcoursBest, todayKey } from "@/utils/storage";
 
 import { FriendsPanel } from "./freunde";
@@ -32,10 +36,23 @@ function parcoursOfDay(day: string) {
 }
 
 type Tab = "duel" | "friends" | "rank";
+/** Modi, die man gegen einen Zufallsgegner oder einen Freund spielen kann. */
+type Versus = "sprint" | "survival" | "parcours";
 
 export default function OnlineScreen() {
   const { t } = useI18n();
+  const { colors } = useAppTheme();
   const [tab, setTab] = useState<Tab>("duel");
+  /** Gewählter Modus – öffnet das Blatt „Zufallsgegner · Freund herausfordern“. */
+  const [picked, setPicked] = useState<Versus | null>(null);
+  const [friends, setFriends] = useState<Friend[] | null>(null);
+  // Freunde erst laden, wenn das Blatt zum ersten Mal aufgeht
+  useEffect(() => {
+    if (!picked || friends !== null || !leaderboardReady) return;
+    fetchFriends()
+      .then(setFriends)
+      .catch(() => setFriends([]));
+  }, [picked, friends]);
   // Parcours des Tages: Tag beim Öffnen und bei jeder Rückkehr neu (über Mitternacht offen → neuer Parcours)
   const [day, setDay] = useState(todayKey);
   const today = parcoursOfDay(day);
@@ -54,6 +71,19 @@ export default function OnlineScreen() {
       };
     }, []),
   );
+
+  /** Parcours des Tages hat eine feste Stufe, die anderen Modi nicht. */
+  const startParams = (mode: Versus, friend?: string) => ({
+    mode,
+    ...(mode === "parcours" ? { level: String(today.id) } : {}),
+    ...(friend ? { friend } : {}),
+  });
+  const start = (mode: Versus, friend?: string) => {
+    setPicked(null);
+    router.push({ pathname: "/runde", params: startParams(mode, friend) });
+  };
+  const pickedTitle = picked === "sprint" ? t("sprint.title") : picked === "survival" ? t("survival.title") : t("hub.parcours.title");
+  const best = (n: number | null) => (n == null ? "–" : String(n));
 
   return (
     <HubScreen title={t("hub.online.title")} subtitle={t("hub.online.subtitle")} emoji="🌍" area={AREAS.online}>
@@ -80,7 +110,7 @@ export default function OnlineScreen() {
             color="#2BB673"
             title={t("sprint.title")}
             desc={t("hub.sprint.desc")}
-            onPress={() => router.push({ pathname: "/runde", params: { mode: "sprint" } })}
+            onPress={() => setPicked("sprint")}
           />
           <HubCard
             index={1}
@@ -88,7 +118,7 @@ export default function OnlineScreen() {
             color="#E2574C"
             title={t("survival.title")}
             desc={t("hub.survival.desc")}
-            onPress={() => router.push({ pathname: "/runde", params: { mode: "survival" } })}
+            onPress={() => setPicked("survival")}
           />
           <HubCard
             index={2}
@@ -97,7 +127,7 @@ export default function OnlineScreen() {
             title={t("hub.parcours.title")}
             desc={t("hub.parcours.desc", { task: t(today.task), s: today.seconds })}
             info={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : null}
-            onPress={() => router.push({ pathname: "/runde", params: { mode: "parcours", level: String(today.id) } })}
+            onPress={() => setPicked("parcours")}
           />
           <HubCard
             index={3}
@@ -113,6 +143,60 @@ export default function OnlineScreen() {
       {tab === "friends" && <FriendsPanel />}
 
       {tab === "rank" && <RankingPanel />}
+
+      <Sheet visible={picked !== null} title={pickedTitle} onClose={() => setPicked(null)}>
+        <Button title={t("duel.random")} icon="shuffle" size="lg" onPress={() => picked && start(picked)} />
+        <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
+          {t("duel.friend")}
+        </AppText>
+        {!leaderboardReady ? (
+          <AppText tone="textSecondary">{t("friends.offline")}</AppText>
+        ) : friends === null ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : friends.length === 0 ? (
+          <>
+            <AppText tone="textSecondary">{t("duel.noFriends")}</AppText>
+            <Button
+              title={t("duel.toFriends")}
+              icon="users"
+              variant="secondary"
+              onPress={() => {
+                setPicked(null);
+                setTab("friends");
+              }}
+            />
+          </>
+        ) : (
+          <ScrollView style={styles.friendList} keyboardShouldPersistTaps="handled">
+            {friends.map((f, i) => (
+              <Pressable
+                key={f.code}
+                accessibilityRole="button"
+                accessibilityLabel={t("friends.challenge", { name: f.name })}
+                onPress={() => {
+                  tapHaptic();
+                  if (picked) start(picked, f.code);
+                }}
+                style={({ pressed }) => [
+                  styles.friendRow,
+                  i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+                  pressed && press.pressedLarge,
+                ]}
+              >
+                <AppText variant="label" style={styles.friendName} numberOfLines={1}>
+                  {f.name}
+                </AppText>
+                {picked !== "parcours" && (
+                  <AppText variant="caption" tone="textSecondary">
+                    {picked === "sprint" ? `⏱️ ${best(f.sprint)}` : `🛡️ ${best(f.survival)}`}
+                  </AppText>
+                )}
+                <AppText>▶</AppText>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
+      </Sheet>
     </HubScreen>
   );
 }
@@ -120,4 +204,14 @@ export default function OnlineScreen() {
 const styles = StyleSheet.create({
   // Überschrift einer Gruppe: wenige, klare Abschnitte statt vieler gleicher Karten
   group: { marginTop: Spacing.sm },
+  friendList: { maxHeight: 260 },
+  friendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    minHeight: 52,
+    paddingHorizontal: Spacing.xs,
+    borderRadius: Radius.md,
+  },
+  friendName: { flex: 1 },
 });
