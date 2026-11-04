@@ -64,6 +64,33 @@ function hoop(radius: number, tube: number): THREE.Object3D {
   return baked;
 }
 
+/** Küche: Wasserhahn-Bogen – Chrom-Ring (gleiche Maße wie die Physik), darüber der
+ *  Hahn mit blauem Griff. Mitte im Ursprung; der Hahn sitzt über dem Ring. */
+function faucet(radius: number, tube: number): THREE.Object3D {
+  const g = new THREE.Group();
+  const chrome = lowpoly("#C7D0D9");
+  const shine = lowpoly("#EEF1F4");
+  const arc = (Math.PI * 2) / STRIPES;
+  for (let i = 0; i < STRIPES; i++) {
+    const part = new THREE.Mesh(new THREE.TorusGeometry(radius, tube * 1.15, 8, 5, arc), i % 2 ? shine : chrome);
+    part.rotation.z = i * arc;
+    g.add(part);
+  }
+  // Hahnkörper senkrecht über dem Ring, Griff oben, Auslauf zum Ring hin
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8), chrome);
+  stem.position.set(0, radius + 0.45, 0);
+  g.add(stem);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), shine);
+  cap.position.set(0, radius + 0.92, 0);
+  g.add(cap);
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.05), lowpoly("#3D82D9"));
+  handle.position.set(0, radius + 0.82, 0);
+  g.add(handle);
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
 /** Reifenschaukel: Autoreifen (Mitte im Ursprung), Seil vom oberen Rand bis
  *  zum Aufhängepunkt `length` darüber (liegt über dem Bildrand – kein Ast
  *  nötig), Knoten am Reifen. Pendelt als Ganzes. */
@@ -94,14 +121,19 @@ function swingTire(radius: number, tube: number, length: number): THREE.Object3D
   return baked;
 }
 
-const Ring = memo(function Ring({ ring, bus }: { ring: RingCollider; bus: BusRef }) {
+const Ring = memo(function Ring({ ring, bus, kitchen }: { ring: RingCollider; bus: BusRef; kitchen?: boolean }) {
   const group = useRef<THREE.Group>(null);
   const glow = useRef<THREE.Mesh>(null);
   const swing = ring.motion?.kind === "swing" ? ring.motion : undefined;
   const length = swing?.length ?? 0;
   const model = useMemo(
-    () => (length ? swingTire(ring.radius, ring.tube, length) : hoop(ring.radius, ring.tube)),
-    [ring.radius, ring.tube, length],
+    () =>
+      length
+        ? swingTire(ring.radius, ring.tube, length)
+        : kitchen
+          ? faucet(ring.radius, ring.tube)
+          : hoop(ring.radius, ring.tube),
+    [ring.radius, ring.tube, length, kitchen],
   );
   const glowGeo = useMemo(
     () => new THREE.TorusGeometry(ring.radius, ring.tube * (length ? 1.4 : 2.2), 8, 36),
@@ -511,8 +543,30 @@ const Fence = memo(function Fence({ fence }: { fence: SignCollider }) {
 /** Trampolin-Gestell (Beine + Polsterring), einmal gebaut und gebacken. Das
  *  Tuch ist ein eigenes Teil – es federt beim Aufprall. Rund gezeichnet, in
  *  der Tiefe auf die Maße der Physik (halfW × halfD) gestaucht. */
-function trampolineFrame(t: TrampolineCollider): THREE.Object3D {
+function trampolineFrame(t: TrampolineCollider, kitchen?: boolean): THREE.Object3D {
   const g = new THREE.Group();
+  if (kitchen) {
+    // Küche: Topf mit Deckel statt Trampolin (Physik und Maße bleiben gleich)
+    const pot = new THREE.Mesh(
+      new THREE.CylinderGeometry(t.halfW * 0.96, t.halfW * 0.86, t.y, 16),
+      lowpoly("#4B5563"),
+    );
+    pot.position.y = t.y / 2;
+    g.add(pot);
+    for (const side of [-1, 1]) {
+      const handle = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.06), lowpoly("#2E2E32"));
+      handle.position.set(side * (t.halfW * 0.96 + 0.07), t.y * 0.7, 0);
+      g.add(handle);
+    }
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(t.halfW, 0.045, 6, 20), lowpoly("#E3E8ED"));
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = t.y;
+    g.add(rim);
+    g.scale.z = t.halfD / t.halfW;
+    const bakedPot = bake(g);
+    g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+    return bakedPot;
+  }
   const metal = lowpoly("#6B7280");
   for (let k = 0; k < 4; k++) {
     const a = Math.PI / 4 + (k * Math.PI) / 2;
@@ -541,10 +595,18 @@ function trampolineFrame(t: TrampolineCollider): THREE.Object3D {
 /** So lange (s) federt das Tuch nach einem Aufprall nach. */
 const BOUNCE = 0.45;
 
-const Trampoline = memo(function Trampoline({ tramp, bus }: { tramp: TrampolineCollider; bus: BusRef }) {
+const Trampoline = memo(function Trampoline({
+  tramp,
+  bus,
+  kitchen,
+}: {
+  tramp: TrampolineCollider;
+  bus: BusRef;
+  kitchen?: boolean;
+}) {
   const group = useRef<THREE.Group>(null);
   const mat = useRef<THREE.Mesh>(null);
-  const model = useMemo(() => trampolineFrame(tramp), [tramp]);
+  const model = useMemo(() => trampolineFrame(tramp, kitchen), [tramp, kitchen]);
   const matGeo = useMemo(() => new THREE.CylinderGeometry(tramp.halfW - 0.04, tramp.halfW - 0.04, 0.02, 20), [tramp]);
   useEffect(
     () => () => {
@@ -569,7 +631,7 @@ const Trampoline = memo(function Trampoline({ tramp, bus }: { tramp: TrampolineC
       <mesh
         ref={mat}
         geometry={matGeo}
-        material={lowpoly("#26324A")}
+        material={lowpoly(kitchen ? "#CDD5DD" : "#26324A")}
         position={[0, tramp.y - 0.03, 0]}
         scale={[1, 1, tramp.halfD / tramp.halfW]}
       />
@@ -582,16 +644,19 @@ export const TrickProps = memo(function TrickProps({
   props,
   bus,
   calm,
+  kitchen,
 }: {
   props: PropCollider[];
   bus: BusRef;
   calm: boolean;
+  /** Küchen-Optik für Reifen (Wasserhahn) und Trampolin (Topfdeckel). */
+  kitchen?: boolean;
 }) {
   return (
     <>
       {props.map((prop) =>
         prop.kind === "ring" ? (
-          <Ring key={prop.id} ring={prop} bus={bus} />
+          <Ring key={prop.id} ring={prop} bus={bus} kitchen={kitchen} />
         ) : prop.kind === "windmill" ? (
           <Windmill key={prop.id} mill={prop} bus={bus} />
         ) : prop.kind === "sign" && prop.look === "fence" ? (
@@ -601,7 +666,7 @@ export const TrickProps = memo(function TrickProps({
         ) : prop.kind === "lamp" ? (
           <Lamp key={prop.id} lamp={prop} />
         ) : prop.kind === "trampoline" ? (
-          <Trampoline key={prop.id} tramp={prop} bus={bus} />
+          <Trampoline key={prop.id} tramp={prop} bus={bus} kitchen={kitchen} />
         ) : prop.kind === "board" ? (
           <Board key={prop.id} board={prop} bus={bus} />
         ) : (

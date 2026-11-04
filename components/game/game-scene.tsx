@@ -252,7 +252,7 @@ export const GameScene = memo(function GameScene({
         binSlide={trick?.binSlide}
       />
 
-      {trick && <TrickProps props={trick.colliders} bus={bus} calm={calm} />}
+      {trick && <TrickProps props={trick.colliders} bus={bus} calm={calm} kitchen={scene === "kueche"} />}
 
       {/* Zielwurf und Trickwürfe: Flugbahn beim Zielen (der Anfang davon) */}
       {(openLids || trick) && (

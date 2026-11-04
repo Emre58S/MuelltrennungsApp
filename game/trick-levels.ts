@@ -450,6 +450,26 @@ export const TRICK_LEVELS: TrickLevel[] = [
     task: "trick.task.ring",
     scene: "kueche",
   },
+  // Küche 2: Wasserhahn-Bogen links (wie Level 2)
+  {
+    id: 30,
+    target: 0,
+    props: [ring(-1.0, 2.8, 1.5, 0.55)],
+    requires: [0],
+    bonus: "swish",
+    task: "trick.task.ring",
+    scene: "kueche",
+  },
+  // Küche 3: Topfdeckel (wie das Trampolin in Level 19) – kurz werfen, aufs Deckel
+  {
+    id: 31,
+    target: 1,
+    props: [trampoline(0)],
+    requires: [0],
+    bonus: "swish",
+    task: "trick.task.trampoline",
+    scene: "kueche",
+  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
