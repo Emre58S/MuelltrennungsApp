@@ -169,8 +169,23 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   - [ ] **F10c** Küchen-Level 1–4 (einfach → mit Tonnenwahl): je Level `npx jest game/__tests__/tricks.test.ts -t "Level N"`
     (Solver/Fairness-Test 0,6–0,86, nach 3–4 Versuchen verwerfen), Tipp- und noTrick-Texte DE/EN.
   - [ ] **F10d** weitere Level (5–8) und Tages-/Parcours-Vorlagen mit Küchen-Hindernissen.
-- [ ] **F11 Trick-Einstieg einbinden**: Küche als Welt in der Kampagne **und** als Online-Duell-Modus
-  (Parcours des Tages ← R4c/R5d), gleicher Endscreen wie überall. *1 Sitzung*
+- [ ] **F11 Trick-Tour durch die Szenen** (Nutzer, 4.11.: „nicht nur Küche – es gibt Szenen und zu den Szenen
+  passende Hindernisse, durchgängige Trickwürfe über die Szenen hinweg“). Trickrunden nutzen immer die Grund-Tonnen
+  (`STANDARD_BINS`), die Szene ist rein visuell ⇒ Level lassen sich frei auf Szenen verteilen.
+  **Kapitel = Szene:** 🏠 Hof (haus) · 🧱 Straße (ziegel) · 🌳 Park (garten) · 🍳 Küche (kueche, da) · 💼 Büro (neu).
+  Jedes Kapitel: eigene Kulisse, **zur Szene passende Hindernis-Optik** (gleiche Physik, eigene Skins: z. B. Küche =
+  Wasserhahn/Topfdeckel, Büro = Büroklammer-Ring/Drehstuhl-Trampolin/Tischventilator, Straße = Bauzaun/Laterne,
+  Park = Bank/Windrad …) und 3–7 Level mit steigendem Anspruch.
+  - [ ] **F11a** Kapitel in der Trickwurf-Liste (`app/tricks.tsx`): statt nach Schwierigkeit nach Szene gruppiert
+    (Kapitelkopf mit Symbol + Name DE/EN); die 28 bestehenden Level werden auf Hof/Straße/Park verteilt
+    (`scene` je Level, nur Kulisse), Küche 29–31 als Kapitel; Freischaltung wie bisher (Kette), erstes Level je
+    Kapitel nach dem Vorkapitel. *1 Sitzung*
+  - [ ] **F11b** Büro-Szene (`stage.tsx`: Schreibtische, Aktenregal, Fenster) + Büro-Skins + 3 Level (je Kopie
+    eines bewährten Levels, Solver-Test). *1–2 Sitzungen*
+  - [ ] **F11c** Skins für Hof/Straße/Park (Bauzaun-, Laterne-, Bank-Optik, Gegenstände der Szene), Trick-Schule im
+    Pfad zeigt das Kapitel-Symbol; Online-Trick-Duell (Parcours des Tages) wechselt die Kulisse täglich.
+  - [ ] **F11d** Bande-Hindernisse (Hängeregal, Bratpfanne, Kühlschranktür, Schild, Bank) mit Sonden prüfen –
+    bei fehlender Fairness Ersatz vorschlagen statt erzwingen.
 
 ### Phase E – Leben & Politur
 - [ ] **F12 Tagesmission im Regal**: Reiter „Heute“ mit denselben Stempeln wie die Pfad-Leiste
