@@ -121,12 +121,20 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   vereinheitlichen; Stern beim Erledigen einrasten lassen (Idee).
 
 ### Phase B – Online aus einem Guss
-- [ ] **F5 Online-Hub mit Reitern** (Duell · Freunde · Rangliste) auf den F1-Bausteinen;
+- [x] **F5 Online-Hub mit Reitern** (Duell · Freunde · Rangliste) auf den F1-Bausteinen;
   `freunde.tsx` und `rangliste.tsx` werden Reiter-Inhalt statt eigener Seiten. *2 Sitzungen*
-- [ ] **F6 Duell-Karten + Gegner-Blatt**: 3 Modi, „Zufallsgegner/Freund“ im Blatt; „An einem
+  ✓ (871dd4e + 88bed13 Teil a, 32ddef8 Teil b; Tester 8/10, EAS auto + preview): `app/online.tsx` mit Reitern
+  Duell · Freunde · Rangliste; `FriendsPanel` (freunde.tsx) und `RankingPanel` (rangliste.tsx) als Panels, die
+  Seiten `/freunde` und `/rangliste?tab=…` bleiben (Endscreens). Ein Feld für Freundes- und Herausforderungs-Code.
+  Rangliste-Chips umbrechen statt waagrecht zu scrollen. „An einem Handy“ entfernt. Offen: Ziehen zum
+  Aktualisieren fehlt im Reiter.
+- [x] **F6 Duell-Karten + Gegner-Blatt**: 3 Modi, „Zufallsgegner/Freund“ im Blatt; „An einem
   Handy“, doppelte Code-Karte und `ghost.code.enter`-Karte entfernen, „Code eingeben“ in
   Freunde. Tests für Duell-Reste anpassen, nichts löschen, was Ghost/Code braucht. *1–2 Sitzungen*
-- [ ] **F7 Offene Online-Reste** (← R4d–f): Seed der Woche für mehr Gegner (neues SQL, **Nutzer
+  ✓ (7ad8cfa + 60739bf, Tester 6/10 → 8/10, EAS auto + preview): Blatt `Sheet` mit „Zufallsgegner“ und
+  „Freund herausfordern“ (Liste, lädt bei jedem Öffnen, Netzfehler mit Knopf, Doppeltipp-Sperre).
+  Offen: Blatt-Titel springt beim Hinausgleiten kurz; Ghost-Rennen bleibt eigene 4. Karte.
+- [ ] **F7 Offene Online-Reste (zurückgestellt hinter F8: brauchen meist SQL oder sind kaum sichtbar)** (← R4d–f): Seed der Woche für mehr Gegner (neues SQL, **Nutzer
   führt SQL aus**), „Platz X von N“, Sortierung nach Abstand, eigener Bestwert serverseitig,
   Sprint-Gleichstand nach Zeit, Puls beim ersten Überholen, Gleichstand „knapp“. *2 Sitzungen*
 
