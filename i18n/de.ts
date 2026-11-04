@@ -151,6 +151,7 @@ export const de = {
   "trick.task.swingKitchen": "Durchs Papprohr der Küchenrolle – wirf, wenn sie vor deiner Tonne ist",
   "trick.task.potLanes": "Auf den Topfdeckel vor deiner Tonne",
   "trick.task.shelf": "Durchs Regalfach vor deiner Tonne",
+  "trick.task.cart": "Aufs Tablett – wenn der Servierwagen vor deiner Tonne ist",
   "trick.task.flapAll": "Alle Deckel klappen – wirf, wenn sie offen sind",
   "trick.task.trampolineRing": "Aufs Trampolin, dann durch den Reifen",
   "trick.task.trampolineMoving": "Triff das Trampolin vor der Tonne",

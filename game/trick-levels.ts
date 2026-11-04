@@ -631,6 +631,16 @@ export const PARCOURS: ParcoursLevel[] = [
   inKitchen(CLASSIC_PARCOURS[0], 5, "trick.task.swingKitchen"),
   inKitchen(CLASSIC_PARCOURS[1], 6, "trick.task.potLanes"),
   inKitchen(CLASSIC_PARCOURS[2], 7, "trick.task.shelf"),
+  // Servierwagen rollt über alle Tonnen: aufs Tablett werfen, wenn er vor DEINER Tonne ist
+  {
+    id: 8,
+    props: [trampoline(0, { amp: TRAMP_SIDE, period: 5.2 }, 2.3, 0.52)],
+    lanes: [[0], [0], [0]],
+    seconds: 30,
+    bonus: "swish",
+    task: "trick.task.cart",
+    scene: "kueche",
+  },
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */

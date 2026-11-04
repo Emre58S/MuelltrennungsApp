@@ -152,6 +152,7 @@ export const en: Translations = {
   "trick.task.swingKitchen": "Through the roll's tube – throw when it's in front of your bin",
   "trick.task.potLanes": "Onto the pot lid in front of your bin",
   "trick.task.shelf": "Through the shelf hole in front of your bin",
+  "trick.task.cart": "Onto the tray – when the cart is in front of your bin",
   "trick.task.flapAll": "All lids flap – throw when they're open",
   "trick.task.trampolineRing": "Trampoline, then through the hoop",
   "trick.task.trampolineMoving": "Hit the trampoline in front of the bin",
