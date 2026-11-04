@@ -45,6 +45,12 @@ export default function OnlineScreen() {
   const [tab, setTab] = useState<Tab>("duel");
   /** Gewählter Modus – öffnet das Blatt „Zufallsgegner · Freund herausfordern“. */
   const [picked, setPicked] = useState<Versus | null>(null);
+  /** Zuletzt gewählter Modus – bleibt für Titel und Anzeige, solange das Blatt hinausgleitet. */
+  const [lastMode, setLastMode] = useState<Versus>("sprint");
+  const openSheet = (mode: Versus) => {
+    setLastMode(mode);
+    setPicked(mode);
+  };
   /** null: lädt noch · "error": nicht ladbar (kein Netz) – etwas anderes als „keine Freunde“. */
   const [friends, setFriends] = useState<Friend[] | "error" | null>(null);
   const [tries, setTries] = useState(0);
@@ -92,7 +98,7 @@ export default function OnlineScreen() {
     setPicked(null);
     router.push({ pathname: "/runde", params: startParams(mode, friend) });
   };
-  const pickedTitle = picked === "sprint" ? t("sprint.title") : picked === "survival" ? t("survival.title") : t("hub.parcours.title");
+  const pickedTitle = lastMode === "sprint" ? t("sprint.title") : lastMode === "survival" ? t("survival.title") : t("hub.parcours.title");
   const best = (n: number | null) => (n == null ? "–" : String(n));
 
   return (
@@ -120,7 +126,7 @@ export default function OnlineScreen() {
             color="#2BB673"
             title={t("sprint.title")}
             desc={t("hub.sprint.desc")}
-            onPress={() => setPicked("sprint")}
+            onPress={() => openSheet("sprint")}
           />
           <HubCard
             index={1}
@@ -128,7 +134,7 @@ export default function OnlineScreen() {
             color="#E2574C"
             title={t("survival.title")}
             desc={t("hub.survival.desc")}
-            onPress={() => setPicked("survival")}
+            onPress={() => openSheet("survival")}
           />
           <HubCard
             index={2}
@@ -137,7 +143,7 @@ export default function OnlineScreen() {
             title={t("hub.parcours.title")}
             desc={t("hub.parcours.desc", { task: t(today.task), s: today.seconds })}
             info={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : null}
-            onPress={() => setPicked("parcours")}
+            onPress={() => openSheet("parcours")}
           />
           <HubCard
             index={3}
@@ -209,9 +215,9 @@ export default function OnlineScreen() {
                 <AppText variant="label" style={styles.friendName} numberOfLines={1}>
                   {f.name}
                 </AppText>
-                {picked !== "parcours" && (
+                {lastMode !== "parcours" && (
                   <AppText variant="caption" tone="textSecondary">
-                    {picked === "sprint" ? `⏱️ ${best(f.sprint)}` : `🛡️ ${best(f.survival)}`}
+                    {lastMode === "sprint" ? `⏱️ ${best(f.sprint)}` : `🛡️ ${best(f.survival)}`}
                   </AppText>
                 )}
                 <AppText>▶</AppText>
