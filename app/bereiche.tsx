@@ -15,8 +15,9 @@ import { AreaPager } from "@/components/nav/area-pager";
 import { ShellHeader } from "@/components/nav/shell-header";
 import { ShellContext } from "@/components/nav/shell-context";
 import { AREA_ORDER, type AreaKey } from "@/constants/areas";
-import { useAppSettings, useAppTheme } from "@/providers/app-settings";
-import { fetchOpenChallenges } from "@/utils/leaderboard";
+import { homeHint } from "@/game/home-hint";
+import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { type DayGhost, fetchDayGhost, fetchOpenChallenges } from "@/utils/leaderboard";
 import { playMusic, refreshMusicSetting } from "@/utils/music";
 import { refreshSfxSetting } from "@/utils/sfx";
 import {
@@ -28,6 +29,7 @@ import {
   getTodayDaily,
   StorageKeys,
   takeRescueNotice,
+  todayKey,
 } from "@/utils/storage";
 import type { FlameStatus } from "@/utils/streak";
 
@@ -50,7 +52,8 @@ export default function BereicheScreen() {
   const [flame, setFlame] = useState<FlameStatus>("none");
   const [seenTutorial, setSeenTutorial] = useState(true);
   const [dailyDone, setDailyDone] = useState(true);
-  const [friendOpen, setFriendOpen] = useState(false);
+  const [friend, setFriend] = useState<{ name: string } | null>(null);
+  const [dayBest, setDayBest] = useState<DayGhost | null>(null);
   useFocusEffect(
     useCallback(() => {
       let active = true;
@@ -84,7 +87,11 @@ export default function BereicheScreen() {
         .finally(() => active && setLoaded(true));
       // Offene Herausforderung eines Freundes (still, falls offline; höchstens 1 min alt)
       fetchOpenChallenges(60_000)
-        .then((open) => active && setFriendOpen(open.length > 0))
+        .then((open) => active && setFriend(open[0] ? { name: open[0].name } : null))
+        .catch(() => undefined);
+      // Tagesbester im Ghost-Rennen (still, falls offline)
+      fetchDayGhost(todayKey())
+        .then((best) => active && setDayBest(best))
         .catch(() => undefined);
       return () => {
         active = false;
@@ -92,6 +99,7 @@ export default function BereicheScreen() {
     }, []),
   );
   const { level, progress } = getLevelProgress(totalXP);
+  const { t } = useI18n();
 
   const select = useCallback((i: number) => {
     setIndex(i);
@@ -99,6 +107,17 @@ export default function BereicheScreen() {
     setWiggles((w) => ({ ...w, [key]: w[key] + 1 }));
   }, []);
   const goArea = useCallback((key: AreaKey) => select(AREA_ORDER.indexOf(key)), [select]);
+
+  // Ein Hinweis mit Vorrang-Regel (game/home-hint.ts). „Wirf in eine Tonne“ gibt es hier nicht.
+  const h = homeHint({ totalXP, flame, dailyDone, dayBest, friend });
+  const toOnline = h.key === "home.hintFriend" || h.key === "home.hintDayBest" || h.key === "home.hintDayBestMe";
+  const hint =
+    !loaded || h.key === "home.throwHint"
+      ? null
+      : {
+          text: h.key === "home.hintDayBest" || h.key === "home.hintFriend" ? t(h.key, { name: h.name }) : t(h.key),
+          onPress: () => goArea(toOnline ? "online" : "pfad"),
+        };
 
   const shell = useMemo(
     () => ({ inShell: true, bottomInset: AREA_BAR_HEIGHT + insets.bottom, goArea }),
@@ -115,6 +134,7 @@ export default function BereicheScreen() {
           streak={streak}
           flame={flame}
           seenTutorial={seenTutorial}
+          hint={hint}
         />
         <AreaPager index={index} onIndexChange={select} reduceMotion={reduceMotion}>
           {[
@@ -126,7 +146,7 @@ export default function BereicheScreen() {
         <AreaBar
           active={AREA_ORDER[index]}
           wiggles={wiggles}
-          dots={{ pfad: loaded && !dailyDone, online: friendOpen }}
+          dots={{ pfad: loaded && !dailyDone, online: friend !== null }}
           onSelect={goArea}
         />
       </View>

@@ -4,11 +4,12 @@
 // rechts Hilfe (roter Punkt, solange die Anleitung ungesehen ist) und Einstellungen.
 
 import { router } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { IconButton } from "@/components/ui/icon-button";
+import { press, tapHaptic } from "@/components/ui/press";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Radius, Spacing } from "@/constants/theme";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
@@ -21,6 +22,7 @@ export function ShellHeader({
   streak,
   flame,
   seenTutorial,
+  hint,
 }: {
   loaded: boolean;
   level: number;
@@ -29,6 +31,8 @@ export function ShellHeader({
   streak: number;
   flame: FlameStatus;
   seenTutorial: boolean;
+  /** Ein Hinweis (Flamme, Tagesaufgabe, Freund …); Tippen führt in den passenden Bereich. */
+  hint?: { text: string; onPress: () => void } | null;
 }) {
   const { colors } = useAppTheme();
   const { t } = useI18n();
@@ -37,6 +41,7 @@ export function ShellHeader({
     flame === "atRisk" ? `. ${t("home.flameAtRisk")}` : ""
   }`;
   return (
+    <View>
     <View style={[styles.row, { paddingTop: insets.top + Spacing.sm }]}>
       <View
         accessible
@@ -64,6 +69,26 @@ export function ShellHeader({
       </View>
       <IconButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
     </View>
+    {hint && (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={hint.text}
+        onPress={() => {
+          tapHaptic();
+          hint.onPress();
+        }}
+        style={({ pressed }) => [
+          styles.hint,
+          { backgroundColor: colors.goldSoft },
+          pressed && press.pressed,
+        ]}
+      >
+        <AppText variant="caption" color={colors.onGoldSoft} numberOfLines={2}>
+          {hint.text}
+        </AppText>
+      </Pressable>
+    )}
+    </View>
   );
 }
 
@@ -88,6 +113,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   spacer: { flex: 1 },
+  hint: {
+    marginHorizontal: Spacing.md + 4,
+    marginBottom: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+  },
   levelTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.sm },
   dot: {
     position: "absolute",
