@@ -16,6 +16,7 @@ import { AppText } from "@/components/ui/app-text";
 import { PageHeader } from "@/components/ui/page-header";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type Category, type Item, ITEMS } from "@/constants/items";
+import { AREAS } from "@/constants/areas";
 import { BinColors, type BinKey, Radius, Spacing } from "@/constants/theme";
 import { type TranslationKey } from "@/i18n";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
@@ -83,7 +84,7 @@ export default function CollectionScreen() {
           },
         ]}
       >
-        <PageHeader title={t("book.title")} subtitle={t("book.subtitle")} emoji="📖" />
+        <PageHeader title={t("book.title")} subtitle={t("book.subtitle")} emoji="📖" area={AREAS.regal} />
 
         {/* Fortschritt */}
         <View

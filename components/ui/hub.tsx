@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
+import { type Area } from "@/constants/areas";
 import { press, tapHaptic } from "@/components/ui/press";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
@@ -25,12 +26,15 @@ export function HubScreen({
   title,
   subtitle,
   emoji,
+  area,
   scrollRef,
   children,
 }: {
   title: string;
   subtitle: string;
   emoji: string;
+  /** Bereichsfarbe für den Kopf. */
+  area?: Area;
   /** Zum Hinscrollen, z. B. zur aktuellen Station im Lernpfad. */
   scrollRef?: Ref<ComponentRef<typeof ScrollView>>;
   children: ReactNode;
@@ -51,7 +55,7 @@ export function HubScreen({
           },
         ]}
       >
-        <PageHeader title={title} subtitle={subtitle} emoji={emoji} />
+        <PageHeader title={title} subtitle={subtitle} emoji={emoji} area={area} />
         {children}
       </ScrollView>
     </View>

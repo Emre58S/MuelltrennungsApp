@@ -14,6 +14,7 @@ import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
 import { press, tapHaptic } from "@/components/ui/press";
+import { AREAS } from "@/constants/areas";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import {
   BIN_SKINS,
@@ -108,7 +109,7 @@ export default function RewardsScreen() {
           },
         ]}
       >
-        <PageHeader title={t("reward.title")} subtitle={t("reward.subtitle")} emoji="🎁" />
+        <PageHeader title={t("reward.title")} subtitle={t("reward.subtitle")} emoji="🎁" area={AREAS.regal} />
 
         <FadeIn delay={60}>
           <AppText variant="label" tone="textSecondary">

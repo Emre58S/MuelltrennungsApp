@@ -13,6 +13,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
 import { press, tapHaptic } from "@/components/ui/press";
+import { type Area } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
@@ -30,6 +31,7 @@ export function PageHeader({
   subtitle,
   emoji,
   onBack = goBack,
+  area,
   children,
 }: {
   title: string;
@@ -37,13 +39,16 @@ export function PageHeader({
   /** Großes Symbol rechts oben (z. B. „🏆“). */
   emoji: string;
   onBack?: () => void;
+  /** Bereichsfarbe (Pfad/Online/Regal) statt Himmel-Blau. */
+  area?: Area;
   /** Zusätzlicher Inhalt unten in der Karte (z. B. Fortschritt). */
   children?: ReactNode;
 }) {
   const { t } = useI18n();
+  const ink = area?.on ?? "#FFFFFF";
   return (
     <FadeIn>
-      <LinearGradient colors={SKY} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
+      <LinearGradient colors={area?.sky ?? SKY} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
         {/* Weiche Wolken als Deko */}
         <View pointerEvents="none" style={[styles.cloud, styles.cloudA]} />
         <View pointerEvents="none" style={[styles.cloud, styles.cloudB]} />
@@ -60,18 +65,18 @@ export function PageHeader({
             }}
             style={({ pressed }) => [styles.back, pressed && press.pressed]}
           >
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <Feather name="chevron-left" size={24} color={ink} />
           </Pressable>
           <View style={styles.badge} importantForAccessibility="no" accessibilityElementsHidden>
             <Text style={styles.emoji}>{emoji}</Text>
           </View>
         </View>
 
-        <AppText variant="title" color="#FFFFFF" accessibilityRole="header" style={styles.title}>
+        <AppText variant="title" color={ink} accessibilityRole="header" style={styles.title}>
           {title}
         </AppText>
         {subtitle ? (
-          <AppText color="rgba(255,255,255,0.94)" style={styles.subtitle}>
+          <AppText color={ink} style={styles.subtitle}>
             {subtitle}
           </AppText>
         ) : null}

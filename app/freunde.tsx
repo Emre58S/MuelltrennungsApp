@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { IconButton } from "@/components/ui/icon-button";
 import { press, tapHaptic } from "@/components/ui/press";
+import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
 import { PARCOURS } from "@/game/trick-levels";
@@ -145,7 +146,7 @@ export default function FriendsScreen() {
   const best = (n: number | null) => (n == null ? "–" : String(n));
 
   return (
-    <HubScreen title={t("friends.title")} subtitle={t("friends.subtitle")} emoji="👫">
+    <HubScreen title={t("friends.title")} subtitle={t("friends.subtitle")} emoji="👫" area={AREAS.online}>
       {!leaderboardReady ? (
         <AppText tone="textSecondary" center>
           {t("friends.offline")}

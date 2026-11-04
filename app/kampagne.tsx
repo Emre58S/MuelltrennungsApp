@@ -28,6 +28,7 @@ import { HubScreen } from "@/components/ui/hub";
 import { AppText } from "@/components/ui/app-text";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type GameMode, MENU_MODES, startDaily, startGame } from "@/constants/modes";
+import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef } from "@/game/bins";
 import { dailyParcoursId } from "@/game/parcours";
@@ -175,6 +176,7 @@ export default function KampagneScreen() {
       title={t("hub.campaign.title")}
       subtitle={t("hub.campaign.subtitle")}
       emoji="🎓"
+      area={AREAS.pfad}
       scrollRef={scroll}
     >
       {/* Bisherige Spielarten – klein, damit der Pfad im Mittelpunkt steht */}

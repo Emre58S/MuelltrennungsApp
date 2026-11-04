@@ -12,6 +12,7 @@ import { StyleSheet, TextInput, View } from "react-native";
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { HubCard, HubScreen } from "@/components/ui/hub";
+import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { readCode } from "@/game/ghost-track";
 import { dailyParcoursId } from "@/game/parcours";
@@ -77,7 +78,7 @@ export default function OnlineScreen() {
   );
 
   return (
-    <HubScreen title={t("hub.online.title")} subtitle={t("hub.online.subtitle")} emoji="🌍">
+    <HubScreen title={t("hub.online.title")} subtitle={t("hub.online.subtitle")} emoji="🌍" area={AREAS.online}>
       <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
         {t("hub.group.quick")}
       </AppText>

@@ -53,6 +53,7 @@ import {
 import { AppText } from "@/components/ui/app-text";
 import { press, tapHaptic } from "@/components/ui/press";
 import { Scrim } from "@/components/ui/scrim";
+import { AREAS } from "@/constants/areas";
 import { type Item } from "@/constants/items";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef, getItemsForBins, light, STANDARD_BINS } from "@/game/bins";
@@ -114,9 +115,9 @@ type Hub = {
 
 /** Die drei Bereiche – je eine Tonne (nicht nur Farbe: Symbol + Name). */
 const HUBS: Hub[] = [
-  { route: "/kampagne", titleKey: "hub.campaign.title", descKey: "hub.campaign.bin", icon: "map", fill: "#2FA86E", sign: "#1E7A4C", on: "#FFFFFF" },
-  { route: "/online", titleKey: "hub.online.title", descKey: "hub.online.bin", icon: "globe", fill: "#3D82D9", sign: "#245E9E", on: "#FFFFFF" },
-  { route: "/sammlung", titleKey: "hub.collection.title", descKey: "hub.collection.bin", icon: "book-open", fill: "#E3A92E", sign: "#7A5600", on: "#2B1D00" },
+  { route: "/kampagne", titleKey: "hub.campaign.title", descKey: "hub.campaign.bin", icon: "map", fill: AREAS.pfad.fill, sign: AREAS.pfad.sign, on: AREAS.pfad.on },
+  { route: "/online", titleKey: "hub.online.title", descKey: "hub.online.bin", icon: "globe", fill: AREAS.online.fill, sign: AREAS.online.sign, on: AREAS.online.on },
+  { route: "/sammlung", titleKey: "hub.collection.title", descKey: "hub.collection.bin", icon: "book-open", fill: AREAS.regal.fill, sign: AREAS.regal.sign, on: AREAS.regal.on },
 ];
 
 /** Die Menü-Tonnen: echte Tonnen-Modelle in Bereichs-Farben, Reihenfolge wie HUBS. */

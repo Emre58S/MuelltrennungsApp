@@ -11,10 +11,16 @@ export function Segmented<T extends string>({
   options,
   value,
   onChange,
+  color,
+  onColor,
 }: {
   options: { value: T; label: string }[];
   value: T;
   onChange: (value: T) => void;
+  /** Farbe des gewählten Reiters (Standard: Grün), z. B. Bereichsfarbe. */
+  color?: string;
+  /** Schriftfarbe auf `color`. */
+  onColor?: string;
 }) {
   const { colors } = useAppTheme();
 
@@ -37,12 +43,13 @@ export function Segmented<T extends string>({
             }}
             style={[
               styles.option,
-              selected && { backgroundColor: colors.primary },
+              selected && { backgroundColor: color ?? colors.primary },
             ]}
           >
             <AppText
               variant="label"
-              tone={selected ? "onPrimary" : "textSecondary"}
+              tone={selected && !onColor ? "onPrimary" : "textSecondary"}
+              color={selected && onColor ? onColor : undefined}
               numberOfLines={1}
               adjustsFontSizeToFit
             >

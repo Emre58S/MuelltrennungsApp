@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
 import { PARCOURS } from "@/game/trick-levels";
@@ -192,7 +193,7 @@ export default function LeaderboardScreen() {
         }
         keyboardShouldPersistTaps="handled"
       >
-        <PageHeader title={t("rank.title")} subtitle={t("rank.subtitle")} emoji="🏆" />
+        <PageHeader title={t("rank.title")} subtitle={t("rank.subtitle")} emoji="🏆" area={AREAS.online} />
 
         {/* Eigener Spitzname */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>

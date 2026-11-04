@@ -6,12 +6,13 @@
 import { router } from "expo-router";
 
 import { HubCard, HubScreen } from "@/components/ui/hub";
+import { AREAS } from "@/constants/areas";
 import { useI18n } from "@/providers/app-settings";
 
 export default function SammlungScreen() {
   const { t } = useI18n();
   return (
-    <HubScreen title={t("hub.collection.title")} subtitle={t("hub.collection.subtitle")} emoji="🎒">
+    <HubScreen title={t("hub.collection.title")} subtitle={t("hub.collection.subtitle")} emoji="🎒" area={AREAS.regal}>
       <HubCard
         index={0}
         emoji="📖"
