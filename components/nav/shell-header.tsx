@@ -44,9 +44,11 @@ export function ShellHeader({
         style={[styles.level, { backgroundColor: colors.surface, borderColor: colors.border }]}
       >
         <View style={styles.levelTop}>
-          <AppText variant="label">Lv {loaded ? level : "—"}</AppText>
+          <AppText variant="label" numberOfLines={1}>
+            Lv {loaded ? level : "—"}
+          </AppText>
           {streak > 0 && (
-            <AppText variant="caption" tone="textSecondary">
+            <AppText variant="caption" tone="textSecondary" numberOfLines={1}>
               {/* ⏳ = gestern Pause, heute spielen rettet die Flamme */}
               🔥 {streak}
               {flame === "atRisk" ? " ⏳" : ""}
@@ -76,6 +78,8 @@ const styles = StyleSheet.create({
   level: {
     // Kompakt statt den ganzen Platz zu füllen; der Rest bleibt frei bis zu den Knöpfen
     minWidth: 112,
+    // Bei großer Systemschrift schrumpfen statt die Knöpfe aus dem Bild zu drücken
+    flexShrink: 1,
     gap: 6,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
