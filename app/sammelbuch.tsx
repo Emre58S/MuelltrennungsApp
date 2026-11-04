@@ -9,11 +9,11 @@
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
-import { PageHeader } from "@/components/ui/page-header";
+import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type Category, type Item, ITEMS } from "@/constants/items";
 import { AREAS } from "@/constants/areas";
@@ -44,8 +44,8 @@ function masteryOf(stat: ItemStat): Mastery {
   return "known";
 }
 
-export default function CollectionScreen() {
-  const insets = useSafeAreaInsets();
+/** Inhalt „Sammelbuch“ – ohne Kopf, damit er auch als Reiter im Regal stehen kann. */
+export function BookPanel() {
   const { width } = useWindowDimensions();
   const { colors } = useAppTheme();
   const { t, itemName } = useI18n();
@@ -70,22 +70,12 @@ export default function CollectionScreen() {
   const golds = useMemo(() => goldCount(stats), [stats]);
   // 4 Kacheln pro Zeile (5 auf breiten Geräten)
   const columns = width >= 600 ? 6 : width >= 400 ? 5 : 4;
-  const tileSize = (width - Spacing.md * 2 - Spacing.sm * (columns - 1)) / columns;
+  // Seitenrand wie in HubScreen (Spacing.md + 4)
+  const tileSize = (width - (Spacing.md + 4) * 2 - Spacing.sm * (columns - 1)) / columns;
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg),
-            paddingBottom: insets.bottom + Spacing.lg,
-          },
-        ]}
-      >
-        <PageHeader title={t("book.title")} subtitle={t("book.subtitle")} emoji="📖" area={AREAS.regal} />
-
+    <View style={styles.panel}>
+      <>
         {/* Fortschritt */}
         <View
           style={[styles.progressCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -173,10 +163,19 @@ export default function CollectionScreen() {
             </View>
           );
         })}
-      </ScrollView>
+      </>
 
       <DetailSheet item={selected} stat={selected ? stats[selected.name] : undefined} onClose={() => setSelected(null)} />
     </View>
+  );
+}
+
+export default function CollectionScreen() {
+  const { t } = useI18n();
+  return (
+    <HubScreen title={t("book.title")} subtitle={t("book.subtitle")} emoji="📖" area={AREAS.regal}>
+      <BookPanel />
+    </HubScreen>
   );
 }
 
@@ -313,6 +312,7 @@ function DetailSheet({
 }
 
 const styles = StyleSheet.create({
+  panel: { gap: Spacing.lg },
   screen: { flex: 1 },
   flex: { flex: 1 },
   content: { paddingHorizontal: Spacing.md, gap: Spacing.lg },

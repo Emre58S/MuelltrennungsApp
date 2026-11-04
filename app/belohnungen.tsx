@@ -7,12 +7,11 @@
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { FadeIn } from "@/components/ui/fade-in";
-import { PageHeader } from "@/components/ui/page-header";
+import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
 import { AREAS } from "@/constants/areas";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
@@ -58,8 +57,8 @@ const SWATCH: Record<TrailId, string[]> = {
   neon: ["#FF2BD6", "#1FF2F2", "#FF2BD6", "#1FF2F2"],
 };
 
-export default function RewardsScreen() {
-  const insets = useSafeAreaInsets();
+/** Inhalt „Belohnungen“ – ohne Kopf, damit er auch als Reiter im Regal stehen kann. */
+export function RewardsPanel() {
   const { colors, scheme } = useAppTheme();
   const { t } = useI18n();
   const [progress, setProgress] = useState<Progress>({ stars: 0, level: 0 });
@@ -99,18 +98,8 @@ export default function RewardsScreen() {
   }
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg),
-            paddingBottom: insets.bottom + Spacing.lg,
-          },
-        ]}
-      >
-        <PageHeader title={t("reward.title")} subtitle={t("reward.subtitle")} emoji="🎁" area={AREAS.regal} />
-
+    <View style={styles.panel}>
+      <>
         <FadeIn delay={60}>
           <AppText variant="label" tone="textSecondary">
             {t("reward.progress", { stars: progress.stars, level: progress.level })}
@@ -232,12 +221,22 @@ export default function RewardsScreen() {
             </FadeIn>
           );
         })}
-      </ScrollView>
+      </>
     </View>
   );
 }
 
+export default function RewardsScreen() {
+  const { t } = useI18n();
+  return (
+    <HubScreen title={t("reward.title")} subtitle={t("reward.subtitle")} emoji="🎁" area={AREAS.regal}>
+      <RewardsPanel />
+    </HubScreen>
+  );
+}
+
 const styles = StyleSheet.create({
+  panel: { gap: Spacing.md },
   screen: { flex: 1 },
   content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.md },
   flex: { flex: 1 },
