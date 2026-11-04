@@ -28,7 +28,7 @@ export function StampBar({
   const { colors, scheme } = useAppTheme();
   const stamp = color ?? colors.gold;
   // Gold ist im Hellmodus dunkel (weißer Stern), im Dunkelmodus hell (dunkler Stern)
-  const star = color || scheme === "light" ? "#FFFFFF" : "#2B1D00";
+  const star = (color || scheme === "light") ? "#FFFFFF" : "#2B1D00";
   return (
     <View
       accessible={!!accessibilityLabel}
