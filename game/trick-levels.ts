@@ -645,6 +645,16 @@ export const KITCHEN_PARCOURS: ParcoursLevel[] = [
 /** Küchen-Parcours in Arbeit – bewusst NICHT in der Liste (Nutzer, 4.11.: Küchenrolle, Töpfe und Regal wirken
  *  unnatürlich/verdecken die Tonnen). Per Direktlink erreichbar, bis eine bessere Fassung steht. */
 export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
+  // Wind vom offenen Fenster (rechts) durch die Küche: Wurf gegen den Wind abstimmen (Stärke 4–7 ist für alle Tonnen fair)
+  {
+    id: 11,
+    props: [fan(0, -6)],
+    lanes: [[], [], []],
+    seconds: 30,
+    bonus: "firstTry",
+    task: "trick.task.windWindow",
+    scene: "kueche",
+  },
   inKitchen(CLASSIC_PARCOURS[0], 7, "trick.task.swingKitchen"),
   inKitchen(CLASSIC_PARCOURS[1], 8, "trick.task.potLanes"),
   inKitchen(CLASSIC_PARCOURS[2], 9, "trick.task.shelf"),
