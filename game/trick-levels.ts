@@ -626,15 +626,12 @@ const CLASSIC_PARCOURS: ParcoursLevel[] = [
 /** Küchen-Parcours: dieselben vier Prüfungen, aber mit Objekten, die in die Küche gehören
  *  (Küchenrolle am Faden, Töpfe mit Deckel, Standregal mit Fächern). Der Deckel-Takt hat kein
  *  Objekt und bleibt ohne Küchen-Kopie. */
-/** Küchen-Parcours – in Arbeit, bewusst NICHT in der Liste (Nutzer, 4.11.: wirken unnatürlich, werden
- *  neu gebaut, siehe ROADMAP F11). Der Code bleibt, bis die neue Fassung steht. */
-export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
-  inKitchen(CLASSIC_PARCOURS[0], 5, "trick.task.swingKitchen"),
-  inKitchen(CLASSIC_PARCOURS[1], 6, "trick.task.potLanes"),
-  inKitchen(CLASSIC_PARCOURS[2], 7, "trick.task.shelf"),
-  // Saugroboter rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist (fahrendes Trampolin)
+/** Küchen-Parcours, die das Spiel zeigt: Saugroboter (fahrendes Trampolin, natürlich auf dem Boden) und
+ *  klappende Deckel in der Küchenszene (kein Hindernis nötig – die Tonnen selbst sind die Aufgabe). */
+export const KITCHEN_PARCOURS: ParcoursLevel[] = [
+  // Saugroboter rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist
   {
-    id: 8,
+    id: 5,
     props: [trampoline(0, { amp: TRAMP_SIDE, period: 5.2 }, 2.3, 0.52)],
     lanes: [[0], [0], [0]],
     seconds: 30,
@@ -642,9 +639,18 @@ export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
     task: "trick.task.cart",
     scene: "kueche",
   },
+  inKitchen(CLASSIC_PARCOURS[3], 6, "trick.task.flapAll"),
+];
+
+/** Küchen-Parcours in Arbeit – bewusst NICHT in der Liste (Nutzer, 4.11.: Küchenrolle, Töpfe und Regal wirken
+ *  unnatürlich/verdecken die Tonnen). Per Direktlink erreichbar, bis eine bessere Fassung steht. */
+export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
+  inKitchen(CLASSIC_PARCOURS[0], 7, "trick.task.swingKitchen"),
+  inKitchen(CLASSIC_PARCOURS[1], 8, "trick.task.potLanes"),
+  inKitchen(CLASSIC_PARCOURS[2], 9, "trick.task.shelf"),
   // Töpfe mit Deckel vor allen Tonnen UND alle Tonnendeckel klappen im Takt
   {
-    id: 9,
+    id: 10,
     props: [-TRAMP_SIDE, 0, TRAMP_SIDE].map((x) => trampoline(x, undefined, 2.3, 0.52)),
     lanes: [[0], [1], [2]],
     seconds: 25,
@@ -657,7 +663,7 @@ export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
 ];
 
 /** Die Parcours, die das Spiel anzeigt und für den Tages-Parcours zieht. */
-export const PARCOURS: ParcoursLevel[] = CLASSIC_PARCOURS;
+export const PARCOURS: ParcoursLevel[] = [...CLASSIC_PARCOURS, ...KITCHEN_PARCOURS];
 
 /* ── Physik und Wertung ───────────────────────────────────── */
 
