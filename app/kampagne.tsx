@@ -29,6 +29,7 @@ import { AppText } from "@/components/ui/app-text";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type GameMode, MENU_MODES, startDaily, startGame } from "@/constants/modes";
 import { useShell } from "@/components/nav/shell-context";
+import { StampBar } from "@/components/ui/stamp-bar";
 import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef } from "@/game/bins";
@@ -411,12 +412,15 @@ function MissionCard({
             accessibilityRole={go ? "button" : undefined}
             accessibilityLabel={`${text(m)}: ${done ? t("mission.doneA11y") : `${n}/${m.goal}`}`}
           >
+            <StampBar done={done ? 1 : 0} total={1} size={28} />
             <AppText variant="caption" style={styles.missionText} tone={done ? "textMuted" : go ? "primary" : undefined}>
               {emoji} {text(m)}{go ? " ›" : ""}
             </AppText>
-            <AppText variant="caption" style={{ fontWeight: "700" }} tone={done ? "primary" : "textSecondary"}>
-              {done ? "✓" : `${n}/${m.goal}`}
-            </AppText>
+            {!done && (
+              <AppText variant="caption" style={{ fontWeight: "700" }} tone="textSecondary">
+                {`${n}/${m.goal}`}
+              </AppText>
+            )}
           </Pressable>
         );
       })}
