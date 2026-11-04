@@ -181,13 +181,20 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   Tonne (= 3 Trampoline) · Standregal mit drei Fächern (= Torwand) · alle Deckel klappen im Takt (= flapAll) ·
   Servierwagen mit Tablett rollt vorbei (= Trampolin, fährt) · Standventilator (= Windrad, am Boden verankert) ·
   später Kühlschranktür/Hängeregal als Bande (Sonden nötig).
-  - [ ] **F11a** Parcours-Runde nimmt die Szene aus dem Level (`scene`, bisher fest „haus“) + `kitchen`-Optik
+  - [x] **F11a** (c236c92 + c5d5df9, Tester 6 → 8/10) Parcours-Runde nimmt die Szene aus dem Level (`scene`, bisher fest „haus“) + `kitchen`-Optik
     für Parcours; Küchen-Skins für die vier vorhandenen Parcours: Küchenrolle-Pendel, 3× Topf+Deckel, Standregal,
     Deckel-Takt. Der schwebende Wasserhahn-Reifen fliegt raus (Klassik 29–31 vorerst unverändert). *1–2 Sitzungen*
-  - [ ] **F11b** Neue Küchen-Parcours: Servierwagen (beweglich), Kombinationen (Regal + Pendel, Wagen + Deckel),
+    ✓ Küchenrolle-Pendel (Parcours 5), 3× Topf+Deckel (6), Standregal auf Holzbeinen (7); Klassik-Küchenlevel 29–31
+    und Wasserhahn entfernt (Sterne dafür verwaist, harmlos). Offen: Küchenrolle hängt am Faden über den Bildrand
+    (keine sichtbare Aufhängung); Regal-Unterkante nur ≈ 9 px über der Tonnenöffnung (Maße der Torwand).
+  - [~] **F11b** (55cc358 + 210df75, Tester 7/10) Neue Küchen-Parcours: Servierwagen (beweglich), Kombinationen (Regal + Pendel, Wagen + Deckel),
     Standventilator; je Parcours alle 3 Spuren mit Solver-Test (Fairness 0,6–0,86), Texte DE/EN. *2 Sitzungen*
-  - [ ] **F11c** Tour in der App: Rubrik „Küche“ in der Trickwurf-Seite (Parcours) vor „Klassik“; Pfad-Trick-Schule und
+    ✓ Parcours 8 Servierwagen (fahrendes Trampolin über alle Tonnen, Tablett/Rollen/Griff). Offen: Kombinationen
+    (Regal + Pendel), Standventilator; Tablett wippt beim Treffer nicht.
+  - [~] **F11c** (6087673, Tester 9/10) Tour in der App: Rubrik „Küche“ in der Trickwurf-Seite (Parcours) vor „Klassik“; Pfad-Trick-Schule und
     Online-Trick-Duell (Parcours des Tages) nutzen die Küchen-Parcours; Hinweis „Neue Welt“. *1 Sitzung*
+    ✓ Küchen-Parcours mit Unterüberschrift „🍳 Küche“ in den Trickwürfen. Offen: Pfad-Trick-Schule/Online-Duell
+    zeigen Parcours des Tages (jetzt 8 statt 4 → ändert sich für alle; alte App-Versionen kurz abweichend).
   - [ ] **F11d** Bande-Hindernisse (Kühlschranktür, Hängeregal) mit Sonden prüfen – ohne Fairness Ersatz vorschlagen.
   - [ ] **F11e (nach Release möglich)** weitere Szenen nach dem Küchen-Muster: Büro, Hof, Straße, Park.
 
