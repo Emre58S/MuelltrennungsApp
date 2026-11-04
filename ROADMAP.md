@@ -150,13 +150,22 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   für Belohnungen (Pfad → „Nächste Belohnung“ öffnet noch /belohnungen).
 
 ### Phase D – Trick-Küche (Workshop zuerst!)
-- [ ] **F9 Workshop „Trick-Küche“** (mit dir, ohne Code): Hindernisliste, Regeln, wie die
-  Tonnen unterscheidbar bleiben (siehe Fragen), wie viele Level, Punkte. Ergebnis: eine Seite
-  Design hier in der Roadmap. *½ Sitzung, aber zuerst deine Antworten*
-- [ ] **F10 Küchen-Szene + Hindernisse**: neue Szene (`stage.tsx`), 6–8 Küchen-Hindernisse als
-  Modelle (Erkennbarkeit vor Details), Physik nutzt die vorhandenen Bausteine
-  (`trick-props.tsx`, `trick-solver.ts` prüft Lösbarkeit je Level). Alte Level werden
-  übernommen/umgebaut, nicht blind gelöscht. *3–4 Sitzungen, jeder Level einzeln getestet*
+- [x] **F9 Workshop „Trick-Küche“** (4.11., Entscheidungen des Nutzers):
+  - **Wo:** beides – Kampagnen-Welt „Zuhause/Küche“ im Pfad **und** Online-Duell-Modus „Trick“.
+  - **Tonnen unterscheidbar:** Hindernisse **lenken** den Wurf, die richtige der drei Tonnen wählt man danach
+    selbst (der Gegenstand entscheidet die Tonne; kein Hindernis sperrt eine Tonne).
+  - **Hindernisse (alltäglich, glaubwürdig):** Hängeregal · Bratpfanne + Topfdeckel (Prallfläche/Trampolin) ·
+    Kühlschranktür (offen, als Bande) · Spüle mit Wasserhahn (Bogen/Engstelle). Erkennbarkeit vor Details.
+  - **Termin:** Trick-Küche **im Release** (nicht erst 1.1). ⇒ Der Termin „Fr 6.11.“ ist damit nicht zu halten;
+    Vorschlag: Entwicklung fertig Ende nächster Woche (≈ 13.11.), danach TestFlight/Prüfung durch Apple.
+- [ ] **F10 Küchen-Szene + Hindernisse** (zerlegt; Bausteine existieren: `TrickProp` mit ring/board/sign/trampoline/
+  windmill/fence/lamp/fan, `levelColliders`, `trick-solver.ts`, Szenen in `stage.tsx`):
+  - [ ] **F10a** Küchen-Szene in `stage.tsx` (Fliesenwand, Arbeitsplatte/Schränke, Fenster), wählbar für Trick-Runden.
+  - [ ] **F10b** Hindernis-Modelle als neue `look`s auf vorhandenen Kollidern: Hängeregal (board), Pfanne + Topfdeckel
+    (trampoline/board), Kühlschranktür (sign), Wasserhahn-Bogen (ring). Kein neues Physik-Verhalten nötig.
+  - [ ] **F10c** Küchen-Level 1–4 (einfach → mit Tonnenwahl): je Level `npx jest game/__tests__/tricks.test.ts -t "Level N"`
+    (Solver/Fairness-Test 0,6–0,86, nach 3–4 Versuchen verwerfen), Tipp- und noTrick-Texte DE/EN.
+  - [ ] **F10d** weitere Level (5–8) und Tages-/Parcours-Vorlagen mit Küchen-Hindernissen.
 - [ ] **F11 Trick-Einstieg einbinden**: Küche als Welt in der Kampagne **und** als Online-Duell-Modus
   (Parcours des Tages ← R4c/R5d), gleicher Endscreen wie überall. *1 Sitzung*
 
