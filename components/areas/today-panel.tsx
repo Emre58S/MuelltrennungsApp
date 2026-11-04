@@ -211,6 +211,7 @@ export function MissionCard({
 }
 
 export function TodayPanel() {
+  const shell = useShell();
   const [missions, setMissions] = useState<MissionDay | null>(null);
   const [chests, setChests] = useState({ earned: 0, opened: 0 });
   /** Gerade geöffnete Truhe (nur diese Sitzung). */
@@ -250,6 +251,8 @@ export function TodayPanel() {
             sfx(res.levelUp !== null ? "levelup" : "unlock");
             setChest(res);
             setChests((c) => ({ ...c, opened: res.opened }));
+            // Leiste und Reiter im Regal sollen den Punkt gleich zurücknehmen
+            shell.setChestWaiting(chests.earned - res.opened > 0);
           })
           .catch(() => undefined)
       }

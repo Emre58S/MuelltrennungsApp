@@ -585,6 +585,7 @@ export const de = {
   "hub.campaign.title": "Kampagne",
   "hub.campaign.subtitle": "Allein spielen, lernen und üben.",
   "online.tab.duel": "Duell",
+  "nav.news": "Neues wartet",
   "regal.tab.today": "Heute",
   "duel.random": "Zufallsgegner",
   "duel.friend": "Oder einen Freund herausfordern",

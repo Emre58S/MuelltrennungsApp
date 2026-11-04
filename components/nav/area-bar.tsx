@@ -56,7 +56,7 @@ export function AreaBar({
             key={key}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
-            accessibilityLabel={label}
+            accessibilityLabel={dots?.[key] ? `${label}, ${t("nav.news")}` : label}
             onPress={() => {
               sfx("tap");
               tapHaptic();

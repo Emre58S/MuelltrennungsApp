@@ -132,8 +132,15 @@ export default function BereicheScreen() {
         };
 
   const shell = useMemo(
-    () => ({ inShell: true, bottomInset: AREA_BAR_HEIGHT + insets.bottom, goArea, tabs }),
-    [insets.bottom, goArea, tabs],
+    () => ({
+      inShell: true,
+      bottomInset: AREA_BAR_HEIGHT + insets.bottom,
+      goArea,
+      tabs,
+      chestWaiting,
+      setChestWaiting,
+    }),
+    [insets.bottom, goArea, tabs, chestWaiting],
   );
 
   return (

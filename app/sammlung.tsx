@@ -24,23 +24,27 @@ type Tab = "book" | "rewards" | "today";
 
 export default function SammlungScreen() {
   const { t } = useI18n();
+  const shell = useShell();
   // Wunsch von außen (z. B. Pfad → „Heute“): beim ersten Aufbau und bei jedem neuen Wunsch übernehmen
-  const wish = useShell().tabs.regal;
+  const wish = shell.tabs.regal;
   const [tab, setTab] = useState<Tab>((wish?.tab as Tab | undefined) ?? "book");
   const [seen, setSeen] = useState(wish?.n ?? 0);
-  /** Wartet eine verdiente, noch nicht geöffnete Truhe? (Punkt am Reiter „Heute“) */
-  const [chestWaiting, setChestWaiting] = useState(false);
+  // Wartet eine Truhe? (Punkt am Reiter „Heute“) In der Hülle gibt es dafür eine gemeinsame Quelle,
+  // sonst (eigene Seite im alten Menü) laden wir es selbst.
+  const [ownWaiting, setOwnWaiting] = useState(false);
   useFocusEffect(
     useCallback(() => {
+      if (shell.inShell) return undefined;
       let active = true;
       getChests()
-        .then((c) => active && setChestWaiting(c.earned - c.opened > 0))
+        .then((c) => active && setOwnWaiting(c.earned - c.opened > 0))
         .catch(() => undefined);
       return () => {
         active = false;
       };
-    }, []),
+    }, [shell.inShell]),
   );
+  const chestWaiting = shell.inShell ? shell.chestWaiting : ownWaiting;
   if (wish && wish.n !== seen) {
     setSeen(wish.n);
     setTab(wish.tab as Tab);
@@ -55,7 +59,7 @@ export default function SammlungScreen() {
         options={[
           { value: "book", label: t("hub.book.title") },
           { value: "rewards", label: t("home.rewards") },
-          { value: "today", label: t("regal.tab.today"), dot: chestWaiting && tab !== "today" },
+          { value: "today", label: t("regal.tab.today"), dot: chestWaiting && tab !== "today", dotLabel: t("chest.open") },
         ]}
       />
       {tab === "book" ? <BookPanel /> : tab === "rewards" ? <RewardsPanel /> : <TodayPanel />}

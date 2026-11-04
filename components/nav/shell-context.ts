@@ -17,9 +17,16 @@ export type Shell = {
   goArea: (key: AreaKey, tab?: string) => void;
   /** Zuletzt gewünschter Reiter je Bereich; `n` zählt hoch, damit derselbe Wunsch erneut wirkt. */
   tabs: Partial<Record<AreaKey, { tab: string; n: number }>>;
+  /** Wartet eine verdiente, noch nicht geöffnete Truhe? Eine Quelle für Leiste, Reiter und Karte. */
+  chestWaiting: boolean;
+  setChestWaiting: (waiting: boolean) => void;
 };
 
-const OUTSIDE: Shell = { inShell: false, bottomInset: 0, goArea: () => undefined, tabs: {} };
+const OUTSIDE: Shell = { inShell: false, bottomInset: 0, goArea: () => undefined,
+  tabs: {},
+  chestWaiting: false,
+  setChestWaiting: () => undefined,
+};
 
 export const ShellContext = createContext<Shell>(OUTSIDE);
 

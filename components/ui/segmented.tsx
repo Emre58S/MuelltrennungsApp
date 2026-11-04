@@ -14,7 +14,12 @@ export function Segmented<T extends string>({
   color,
   onColor,
 }: {
-  options: { value: T; label: string; /** Roter Punkt: hier wartet etwas. */ dot?: boolean }[];
+  options: { value: T; label: string;
+    /** Roter Punkt: hier wartet etwas. */
+    dot?: boolean;
+    /** Für VoiceOver, wenn der Punkt zu sehen ist (z. B. „Truhe öffnen“). */
+    dotLabel?: string;
+  }[];
   value: T;
   onChange: (value: T) => void;
   /** Farbe des gewählten Reiters (Standard: Grün), z. B. Bereichsfarbe. */
@@ -36,7 +41,7 @@ export function Segmented<T extends string>({
             key={opt.value}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
-            accessibilityLabel={opt.label}
+            accessibilityLabel={opt.dot && opt.dotLabel ? `${opt.label}, ${opt.dotLabel}` : opt.label}
             onPress={() => {
               Haptics.selectionAsync().catch(() => undefined);
               onChange(opt.value);
@@ -44,6 +49,8 @@ export function Segmented<T extends string>({
             style={[
               styles.option,
               selected && { backgroundColor: color ?? colors.primary },
+              // Platz für den Punkt, damit er das Wortende nicht berührt
+              opt.dot && { paddingRight: 14 },
             ]}
           >
             <AppText
