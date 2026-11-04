@@ -64,37 +64,31 @@ function hoop(radius: number, tube: number): THREE.Object3D {
   return baked;
 }
 
-/** Küche: Wasserhahn-Bogen – Chrom-Ring (gleiche Maße wie die Physik). Der Hahn steht
- *  seitlich am Ring, zur Bildmitte hin (außen fehlt am Rand der Platz): Stiel, blauer Griff
- *  oben, Auslauf zum Ring. Bleibt unter der Ringoberkante, denn darüber ist auf kleinen
- *  Handys kaum Platz im Bild. Mitte im Ursprung. */
-function faucet(radius: number, tube: number, side: 1 | -1): THREE.Object3D {
+/** Ring mit Loch (Küche: Küchenrolle, Wurf durchs Papprohr). Mitte im Ursprung, Normale entlang z. */
+function annulus(outer: number, inner: number, depth: number): THREE.BufferGeometry {
+  const shape = new THREE.Shape();
+  shape.absarc(0, 0, outer, 0, Math.PI * 2, false);
+  const hole = new THREE.Path();
+  hole.absarc(0, 0, inner, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 24 });
+  geo.translate(0, 0, -depth / 2);
+  return geo;
+}
+
+/** Küche: Küchenrolle am Faden – das Pendel über allen Tonnen. Papier (weiß) um ein Papprohr
+ *  (braun); das Rohr ist die Öffnung (gleiche Maße wie die Physik: Mitte der Röhre = radius). */
+function kitchenRoll(radius: number, tube: number, length: number): THREE.Object3D {
   const g = new THREE.Group();
-  const chrome = lowpoly("#C7D0D9");
-  const shine = lowpoly("#EEF1F4");
-  const arc = (Math.PI * 2) / STRIPES;
-  for (let i = 0; i < STRIPES; i++) {
-    const part = new THREE.Mesh(new THREE.TorusGeometry(radius, tube * 1.15, 8, 5, arc), i % 2 ? shine : chrome);
-    part.rotation.z = i * arc;
-    g.add(part);
-  }
-  const sx = side * (radius + 0.14);
-  const top = radius * 0.8;
-  const bottom = -radius * 0.25;
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, top - bottom, 8), chrome);
-  stem.position.set(sx, (top + bottom) / 2, 0);
-  g.add(stem);
-  // Auslauf: waagrecht vom Stiel zum Ring
-  const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.16, 8), chrome);
-  spout.rotation.z = Math.PI / 2;
-  spout.position.set(side * (radius + 0.06), bottom + 0.05, 0);
-  g.add(spout);
-  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), shine);
-  cap.position.set(sx, top + 0.02, 0);
-  g.add(cap);
-  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.05), lowpoly("#3D82D9"));
-  handle.position.set(sx, top - 0.04, 0);
-  g.add(handle);
+  g.add(new THREE.Mesh(annulus(radius + tube, radius, 0.28), lowpoly("#F7F7F2")));
+  g.add(new THREE.Mesh(annulus(radius, radius - tube, 0.34), lowpoly("#B98A5B")));
+  const top = radius + tube;
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, length - top + 0.05, 6), lowpoly("#C9A46A"));
+  rope.position.y = (length + top) / 2;
+  g.add(rope);
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 4), lowpoly("#B08D55"));
+  knot.position.y = top + 0.03;
+  g.add(knot);
   const baked = bake(g);
   g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
   return baked;
@@ -138,11 +132,11 @@ const Ring = memo(function Ring({ ring, bus, kitchen }: { ring: RingCollider; bu
   const model = useMemo(
     () =>
       length
-        ? swingTire(ring.radius, ring.tube, length)
-        : kitchen
-          ? faucet(ring.radius, ring.tube, ring.x <= 0 ? 1 : -1)
-          : hoop(ring.radius, ring.tube),
-    [ring.radius, ring.tube, ring.x, length, kitchen],
+        ? kitchen
+          ? kitchenRoll(ring.radius, ring.tube, length)
+          : swingTire(ring.radius, ring.tube, length)
+        : hoop(ring.radius, ring.tube),
+    [ring.radius, ring.tube, length, kitchen],
   );
   const glowGeo = useMemo(
     () => new THREE.TorusGeometry(ring.radius, ring.tube * (length ? 1.4 : 2.2), 8, 36),
@@ -386,7 +380,7 @@ const Sign = memo(function Sign({ sign, bus }: { sign: SignCollider; bus: BusRef
 
 /** Torwand-Feld: Tafel mit Loch (Dicke wie die Physik), weißer Lochrand auf
  *  der Vorderseite, Pfosten außen bis zum Boden. Mitte im Ursprung. */
-function boardModel(b: BoardCollider): THREE.Object3D {
+function boardModel(b: BoardCollider, kitchen?: boolean): THREE.Object3D {
   const g = new THREE.Group();
   const shape = new THREE.Shape();
   shape.moveTo(-b.halfW, -b.halfH);
@@ -399,17 +393,21 @@ function boardModel(b: BoardCollider): THREE.Object3D {
   shape.holes.push(hole);
   const geo = new THREE.ExtrudeGeometry(shape, { depth: SIGN_THICK * 2, bevelEnabled: false, curveSegments: 20 });
   geo.translate(0, 0, -SIGN_THICK);
-  g.add(new THREE.Mesh(geo, lowpoly("#2F8F4E")));
+  // Küche: Holzfront eines Standregals mit runden Fächern statt der grünen Torwand
+  g.add(new THREE.Mesh(geo, lowpoly(kitchen ? "#C99B6D" : "#2F8F4E")));
   // Weiße Kante oben und unten (Felder stoßen seitlich aneinander)
   for (const side of [1, -1]) {
-    const edge = new THREE.Mesh(new THREE.BoxGeometry(b.halfW * 2, 0.06, SIGN_THICK * 2 + 0.01), lowpoly("#F4F4F0"));
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(b.halfW * 2, 0.06, SIGN_THICK * 2 + 0.01), lowpoly(kitchen ? "#A27447" : "#F4F4F0"));
     edge.position.y = side * (b.halfH - 0.03);
     g.add(edge);
   }
   if (b.post) {
     // vom Boden (y = 0) bis zur Oberkante der Tafel
     const height = b.y + b.halfH;
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, height, 8), lowpoly("#D9DDE1"));
+    const post = new THREE.Mesh(
+      kitchen ? new THREE.BoxGeometry(0.09, height, 0.09) : new THREE.CylinderGeometry(0.045, 0.045, height, 8),
+      lowpoly(kitchen ? "#A27447" : "#D9DDE1"),
+    );
     post.position.set(b.post * (b.halfW + 0.045), height / 2 - b.y, 0);
     g.add(post);
   }
@@ -418,10 +416,10 @@ function boardModel(b: BoardCollider): THREE.Object3D {
   return baked;
 }
 
-const Board = memo(function Board({ board, bus }: { board: BoardCollider; bus: BusRef }) {
+const Board = memo(function Board({ board, bus, kitchen }: { board: BoardCollider; bus: BusRef; kitchen?: boolean }) {
   const rim = useRef<THREE.Group>(null);
   const glow = useRef<THREE.Mesh>(null);
-  const model = useMemo(() => boardModel(board), [board]);
+  const model = useMemo(() => boardModel(board, kitchen), [board, kitchen]);
   // Lochrand: Rohr halb in der Vorderseite, innen bündig mit dem Loch
   const rimGeo = useMemo(() => new THREE.TorusGeometry(board.hole.r + 0.03, 0.03, 6, 28), [board]);
   const glowGeo = useMemo(() => new THREE.TorusGeometry(board.hole.r + 0.03, 0.07, 6, 28), [board]);
@@ -658,7 +656,7 @@ export const TrickProps = memo(function TrickProps({
   props: PropCollider[];
   bus: BusRef;
   calm: boolean;
-  /** Küchen-Optik für Reifen (Wasserhahn) und Trampolin (Topfdeckel). */
+  /** Küchen-Optik: Reifenschaukel = Küchenrolle, Trampolin = Topf mit Deckel, Torwand = Standregal. */
   kitchen?: boolean;
 }) {
   return (
@@ -677,7 +675,7 @@ export const TrickProps = memo(function TrickProps({
         ) : prop.kind === "trampoline" ? (
           <Trampoline key={prop.id} tramp={prop} bus={bus} kitchen={kitchen} />
         ) : prop.kind === "board" ? (
-          <Board key={prop.id} board={prop} bus={bus} />
+          <Board key={prop.id} board={prop} bus={bus} kitchen={kitchen} />
         ) : (
           <Fan key={prop.id} fan={prop} calm={calm} />
         ),

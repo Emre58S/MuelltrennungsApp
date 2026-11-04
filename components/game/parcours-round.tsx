@@ -570,7 +570,7 @@ export function ParcoursRound({
             bus={bus}
             calm={reduceMotion}
             lang={lang}
-            scene="haus"
+            scene={level.scene ?? "haus"}
             guide={false}
             openLids
             trick={trick}

@@ -440,36 +440,6 @@ export const TRICK_LEVELS: TrickLevel[] = [
     bonus: "swish",
     task: "trick.task.ringFlap",
   },
-  // Küche 1: der einfache Reifen, aber in der Küche (Trick-Küche, ROADMAP F10)
-  {
-    id: 29,
-    target: 1,
-    props: [ring(0, 2.8, 1.5, 0.55)],
-    requires: [0],
-    bonus: "swish",
-    task: "trick.task.ring",
-    scene: "kueche",
-  },
-  // Küche 2: Wasserhahn-Bogen links (wie Level 2)
-  {
-    id: 30,
-    target: 0,
-    props: [ring(-1.0, 2.8, 1.5, 0.55)],
-    requires: [0],
-    bonus: "swish",
-    task: "trick.task.ring",
-    scene: "kueche",
-  },
-  // Küche 3: Topfdeckel (wie das Trampolin in Level 19) – kurz werfen, aufs Deckel
-  {
-    id: 31,
-    target: 1,
-    props: [trampoline(0)],
-    requires: [0],
-    bonus: "swish",
-    task: "trick.task.trampoline",
-    scene: "kueche",
-  },
 ];
 
 /** Kleine Symbole für die Level-Kachel: was einen erwartet (höchstens zwei). */
@@ -617,7 +587,15 @@ export function parcoursLane(level: ParcoursLevel, bin: 0 | 1 | 2): TrickLevel {
   return { ...rest, target: bin, requires: lanes[bin] };
 }
 
-export const PARCOURS: ParcoursLevel[] = [
+/** Kopie eines Parcours in der Küche: gleiche Physik und Spuren, eigene Kulisse und Aufgabentext. */
+const inKitchen = (p: ParcoursLevel, id: number, task: TranslationKey): ParcoursLevel => ({
+  ...p,
+  id,
+  task,
+  scene: "kueche",
+});
+
+const CLASSIC_PARCOURS: ParcoursLevel[] = [
   // Reifenschaukel pendelt über alle Tonnen: werfen, wenn sie vor DEINER Tonne ist
   { id: 1, props: [tire(4.0)], lanes: [[0], [0], [0]], seconds: 30, bonus: "firstTry", task: "trick.task.swing" },
   // Vor jeder Tonne ein Trampolin (schmaler, damit die Rahmen nicht
@@ -643,6 +621,16 @@ export const PARCOURS: ParcoursLevel[] = [
     bonus: "swish",
     task: "trick.task.flapAll",
   },
+];
+
+/** Küchen-Parcours: dieselben vier Prüfungen, aber mit Objekten, die in die Küche gehören
+ *  (Küchenrolle am Faden, Töpfe mit Deckel, Standregal mit Fächern, Deckel-Takt). */
+export const PARCOURS: ParcoursLevel[] = [
+  ...CLASSIC_PARCOURS,
+  inKitchen(CLASSIC_PARCOURS[0], 5, "trick.task.swingKitchen"),
+  inKitchen(CLASSIC_PARCOURS[1], 6, "trick.task.potLanes"),
+  inKitchen(CLASSIC_PARCOURS[2], 7, "trick.task.shelf"),
+  inKitchen(CLASSIC_PARCOURS[3], 8, "trick.task.flapAll"),
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */
