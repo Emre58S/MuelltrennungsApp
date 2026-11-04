@@ -41,6 +41,7 @@ import {
 } from "@/game/physics";
 
 import { lowpoly } from "./materials";
+import { KITCHEN_WINDOW_X } from "./stage";
 import { bake } from "./model-cache";
 import { type BusRef } from "./scene-bus";
 
@@ -241,6 +242,54 @@ const Windmill = memo(function Windmill({ mill, bus }: { mill: WindmillCollider;
 const STREAKS = 16;
 const STREAK_GEO = new THREE.BoxGeometry(0.32, 0.018, 0.018);
 
+
+/* ── Küchen-Wind: Böen, Papierschnipsel, Vorhang am offenen Fenster ───────────── */
+
+const K_STREAKS = 26;
+const K_STREAK_GEO = new THREE.BoxGeometry(0.55, 0.012, 0.012);
+const K_BITS = 9;
+const K_BIT_GEO = new THREE.BoxGeometry(0.1, 0.07, 0.004);
+const CURTAIN_W = 1.45;
+const CURTAIN_H = 1.55;
+const CURTAIN_COLS = 8;
+const CURTAIN_ROWS = 12;
+
+/** Vorhang am Küchenfenster, vom Wind aufgebauscht (der Wind kommt vom Fenster und zieht nach `dir`). */
+const WindowCurtain = memo(function WindowCurtain({ dir, strength, calm }: { dir: number; strength: number; calm: boolean }) {
+  const geo = useMemo(() => new THREE.PlaneGeometry(CURTAIN_W, CURTAIN_H, CURTAIN_COLS, CURTAIN_ROWS), []);
+  const base = useMemo(() => Float32Array.from(geo.attributes.position.array as ArrayLike<number>), [geo]);
+  const cloth = useMemo(() => new THREE.MeshBasicMaterial({ color: "#F6ECD9", side: THREE.DoubleSide }), []);
+  const rod = useMemo(() => new THREE.CylinderGeometry(0.025, 0.025, CURTAIN_W + 0.3, 8), []);
+  useEffect(
+    () => () => {
+      geo.dispose();
+      cloth.dispose();
+      rod.dispose();
+    },
+    [geo, cloth, rod],
+  );
+  useFrame((state) => {
+    const pos = geo.attributes.position as THREE.BufferAttribute;
+    const t = calm ? 0 : state.clock.elapsedTime;
+    const amp = (calm ? 0.1 : 0.16) + strength * 0.025;
+    for (let i = 0; i < pos.count; i++) {
+      const bx = base[i * 3];
+      const by = base[i * 3 + 1];
+      const v = (CURTAIN_H / 2 - by) / CURTAIN_H; // 0 oben (an der Stange) bis 1 unten
+      const gust = 0.55 + 0.45 * Math.sin(t * 1.5 + bx * 2.4);
+      const flutter = Math.sin(t * 3.3 + bx * 5 + v * 4) * 0.045 * v;
+      pos.setXYZ(i, bx + dir * amp * v * v * gust + flutter * 0.4, by, 0.22 * v * Math.sin(t * 1.1 + bx * 3) * 0.7 + flutter);
+    }
+    pos.needsUpdate = true;
+  });
+  return (
+    <group position={[KITCHEN_WINDOW_X, 3.5, -2.16]}>
+      <mesh geometry={geo} material={cloth} position={[0, -CURTAIN_H / 2, 0]} />
+      <mesh geometry={rod} material={lowpoly("#A27447")} rotation={[0, 0, Math.PI / 2]} />
+    </group>
+  );
+});
+
 function fanParts(f: FanCollider) {
   const body = new THREE.Group();
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, f.y, 8), lowpoly("#6B7280"));
@@ -266,11 +315,17 @@ function fanParts(f: FanCollider) {
   return { body: bakedBody, blades: bakedBlades };
 }
 
-const Fan = memo(function Fan({ fan, calm }: { fan: FanCollider; calm: boolean }) {
+const Fan = memo(function Fan({ fan, calm, kitchen }: { fan: FanCollider; calm: boolean; kitchen?: boolean }) {
   const dir = Math.sign(fan.force) || 1;
   const blades = useRef<THREE.Group>(null);
   const streaks = useRef<THREE.InstancedMesh>(null);
+  const bits = useRef<THREE.InstancedMesh>(null);
   const parts = useMemo(() => fanParts(fan), [fan]);
+  const bitMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#FFF3D6", side: THREE.DoubleSide }), []);
+  const pos = useMemo(() => new THREE.Vector3(), []);
+  const scl = useMemo(() => new THREE.Vector3(), []);
+  const quat = useMemo(() => new THREE.Quaternion(), []);
+  const euler = useMemo(() => new THREE.Euler(), []);
   const mat = useMemo(
     () => new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.55, depthWrite: false }),
     [],
@@ -284,12 +339,56 @@ const Fan = memo(function Fan({ fan, calm }: { fan: FanCollider; calm: boolean }
   useEffect(
     () => () => {
       mat.dispose();
+      bitMat.dispose();
       for (const o of [parts.body, parts.blades]) o.traverse((c) => (c as THREE.Mesh).geometry?.dispose());
     },
-    [mat, parts],
+    [mat, bitMat, parts],
   );
   useFrame((state) => {
     const t = state.clock.elapsedTime;
+    if (kitchen) {
+      // Küche: weiche Böen (blenden ein und aus, schwingen leicht, unterschiedlich lang und schnell)
+      // und mitgetragene Papierschnipsel – kein Ventilator, der Wind kommt durchs Fenster
+      const sp = calm ? 0 : 0.22 + Math.abs(fan.force) * 0.035;
+      const km = streaks.current;
+      if (km) {
+        for (let i = 0; i < K_STREAKS; i++) {
+          const s = seeds[i % seeds.length];
+          const w = 0.7 + ((i * 0.37) % 0.6);
+          const u = (s.u + i * 0.173 + t * sp * w) % 1;
+          const fade = Math.sin(Math.PI * u);
+          pos.set(
+            fan.x + dir * (u * 2 - 1) * fan.halfW,
+            fan.y + s.y * fan.halfH + Math.sin(u * 6.28 + i) * 0.07,
+            fan.z + s.z * fan.halfD,
+          );
+          scl.set(Math.max(fade, 0.001) * (0.6 + ((i * 0.53) % 0.8)), 1, 1);
+          quat.identity();
+          m.compose(pos, quat, scl);
+          km.setMatrixAt(i, m);
+        }
+        km.instanceMatrix.needsUpdate = true;
+      }
+      const bm = bits.current;
+      if (bm) {
+        for (let i = 0; i < K_BITS; i++) {
+          const s = seeds[(i * 3) % seeds.length];
+          const u = (s.u + i * 0.29 + t * sp * 0.55) % 1;
+          pos.set(
+            fan.x + dir * (u * 2 - 1) * (fan.halfW + 0.2),
+            fan.y + s.y * fan.halfH * 0.9 - u * 0.5 + Math.sin(t * 2 + i * 2) * 0.06,
+            fan.z + s.z * fan.halfD,
+          );
+          euler.set(t * (1.4 + i * 0.2), t * (1 + i * 0.15), i);
+          quat.setFromEuler(euler);
+          scl.set(1, 1, 1);
+          m.compose(pos, quat, scl);
+          bm.setMatrixAt(i, m);
+        }
+        bm.instanceMatrix.needsUpdate = true;
+      }
+      return;
+    }
     if (blades.current) blades.current.rotation.x = t * 14 * dir;
     const mesh = streaks.current;
     if (!mesh) return;
@@ -304,6 +403,15 @@ const Fan = memo(function Fan({ fan, calm }: { fan: FanCollider; calm: boolean }
     mesh.instanceMatrix.needsUpdate = true;
   });
   const fx = fan.x - dir * (fan.halfW + 0.35);
+  if (kitchen) {
+    return (
+      <>
+        <instancedMesh ref={streaks} args={[K_STREAK_GEO, mat, K_STREAKS]} frustumCulled={false} />
+        <instancedMesh ref={bits} args={[K_BIT_GEO, bitMat, K_BITS]} frustumCulled={false} />
+        {dir < 0 && <WindowCurtain dir={dir} strength={Math.abs(fan.force)} calm={calm} />}
+      </>
+    );
+  }
   return (
     <>
       <group position={[fx, fan.y, fan.z]} rotation={[0, dir > 0 ? 0 : Math.PI, 0]}>
@@ -720,7 +828,7 @@ export const TrickProps = memo(function TrickProps({
         ) : prop.kind === "board" ? (
           <Board key={prop.id} board={prop} bus={bus} kitchen={kitchen} />
         ) : (
-          <Fan key={prop.id} fan={prop} calm={calm} />
+          <Fan key={prop.id} fan={prop} calm={calm} kitchen={kitchen} />
         ),
       )}
     </>

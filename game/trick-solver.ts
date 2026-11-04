@@ -9,10 +9,10 @@ import * as THREE from "three";
 import { BIN_OPENING_Y, computeLayout, shotLanding } from "./layout";
 import { FULL_SWIPE_SHARE, swipeShot } from "./logic";
 import { type Mass, MASS_FEEL } from "./item-mass";
-import { type BinCollider, lobVelocity, simulateShot } from "./physics";
+import { type BinCollider, lobVelocity, simulateShot, waveSlide } from "./physics";
 import { levelColliders, levelPeriod, meetsRequirement, type TrickLevel } from "./trick-levels";
 
-type SolverLevel = Pick<TrickLevel, "props" | "binSlide" | "binFlap" | "flapAll">;
+type SolverLevel = Pick<TrickLevel, "props" | "binSlide" | "binFlap" | "flapAll" | "slideAll">;
 
 /** Deckel stehen im Trick-Modus offen (wie im Zielwurf). */
 const LID_OPEN = 1.85;
@@ -29,7 +29,9 @@ export function createSolver(width = 390, height = 844) {
       x: b.x,
       z: b.z,
       lid: LID_OPEN,
-      ...(level.binSlide && i === target ? { slide: level.binSlide, baseX: b.x, baseZ: b.z } : {}),
+      ...(level.binSlide && (i === target || level.slideAll)
+        ? { slide: level.slideAll ? waveSlide(level.binSlide, i) : level.binSlide, baseX: b.x, baseZ: b.z }
+        : {}),
       ...(level.binFlap && (i === target || level.flapAll) ? { flap: level.binFlap } : {}),
     }));
 

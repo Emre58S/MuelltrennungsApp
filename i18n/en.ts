@@ -155,6 +155,7 @@ export const en: Translations = {
   "trick.task.cart": "Onto the robot vacuum – when it's in front of your bin",
   "trick.task.potFlap": "Onto the pot lid – when your bin lid is open",
   "trick.task.windWindow": "Wind from the open window – aim against it",
+  "trick.task.rollBins": "The bins are rolling – throw when yours is close",
   "trick.task.flapAll": "All lids flap – throw when they're open",
   "trick.task.trampolineRing": "Trampoline, then through the hoop",
   "trick.task.trampolineMoving": "Hit the trampoline in front of the bin",

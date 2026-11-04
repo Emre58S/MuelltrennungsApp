@@ -23,7 +23,7 @@ import { type FxRef, stepFx } from "./fx";
 import { type BinSlide, type PropCollider, slideOffset } from "@/game/physics";
 import { type TrickProp } from "@/game/trick-levels";
 
-import { AimGuide, type BinSlideSpec, flapOf, PreviewItem, ShotGuideDots, ThrowLayer } from "./items";
+import { AimGuide, type BinSlideSpec, flapOf, PreviewItem, ShotGuideDots, slideOf, ThrowLayer } from "./items";
 import { TrickProps } from "./trick-props";
 import { ModelWarmup } from "./model-cache";
 import { type BusRef } from "./scene-bus";
@@ -219,9 +219,10 @@ export const GameScene = memo(function GameScene({
             flap={flapOf(trick?.binSlide, i)}
           />
         );
-        // Fahrende Zieltonne (Trickwürfe): bewegt sich genau wie in der Physik
-        return trick?.binSlide?.bin === i && trick.binSlide.slide ? (
-          <SlidingBin key={bin.key} slide={trick.binSlide.slide} bus={bus}>
+        // Fahrende Tonne (Trickwürfe: Zieltonne, oder alle bei slideAll): bewegt sich genau wie in der Physik
+        const rolling = slideOf(trick?.binSlide, i);
+        return rolling ? (
+          <SlidingBin key={bin.key} slide={rolling} bus={bus}>
             {tonne}
           </SlidingBin>
         ) : (

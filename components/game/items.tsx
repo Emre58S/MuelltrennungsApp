@@ -30,6 +30,7 @@ import {
   throwArc,
   TRACE_POINTS,
   traceShot,
+  waveSlide,
 } from "@/game/physics";
 import { itemMaterial } from "@/game/item-mass";
 import { type TrailId } from "@/game/rewards";
@@ -158,11 +159,25 @@ const NO_PROPS: PropCollider[] = [];
 
 /** Bewegte Zieltonne (Trickwürfe): welche Tonne, wie sie fährt und ob ihr
  *  Deckel von selbst auf- und zuklappt (`flapAll`: alle Deckel). */
-export type BinSlideSpec = { bin: number; slide?: BinSlide; flap?: LidFlap; flapAll?: boolean };
+export type BinSlideSpec = {
+  bin: number;
+  slide?: BinSlide;
+  flap?: LidFlap;
+  flapAll?: boolean;
+  /** Alle Tonnen rollen (je um einen Takt versetzt), nicht nur die Zieltonne. */
+  slideAll?: boolean;
+};
 
 /** Klappt der Deckel von Tonne `i`? */
 export function flapOf(spec: BinSlideSpec | undefined, i: number): LidFlap | undefined {
   return spec && (spec.bin === i || spec.flapAll) ? spec.flap : undefined;
+}
+
+/** Fahrt der Tonne `i` (Zieltonne, oder alle mit `slideAll`). */
+export function slideOf(spec: BinSlideSpec | undefined, i: number): BinSlide | undefined {
+  if (!spec?.slide) return undefined;
+  if (spec.slideAll) return waveSlide(spec.slide, i);
+  return spec.bin === i ? spec.slide : undefined;
 }
 
 /** Physik-Tonnen aus den Öffnungen (gleitende Tonne mit Ruhelage). */
@@ -171,7 +186,8 @@ function binColliders(openings: THREE.Vector3[], binSlide?: BinSlideSpec): BinCo
     const c: BinCollider = { x: o.x, z: o.z - 0.05, lid: 0 };
     const flap = flapOf(binSlide, i);
     if (flap) c.flap = flap;
-    if (binSlide?.bin === i && binSlide.slide) Object.assign(c, { slide: binSlide.slide, baseX: o.x, baseZ: o.z - 0.05 });
+    const slide = slideOf(binSlide, i);
+    if (slide) Object.assign(c, { slide, baseX: o.x, baseZ: o.z - 0.05 });
     return c;
   });
 }

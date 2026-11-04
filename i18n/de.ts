@@ -154,6 +154,7 @@ export const de = {
   "trick.task.cart": "Auf den Saugroboter – wenn er vor deiner Tonne ist",
   "trick.task.potFlap": "Auf den Topfdeckel – wenn dein Tonnendeckel offen ist",
   "trick.task.windWindow": "Wind vom offenen Fenster – wirf gegen den Wind",
+  "trick.task.rollBins": "Die Tonnen rollen – wirf, wenn deine Tonne nah ist",
   "trick.task.flapAll": "Alle Deckel klappen – wirf, wenn sie offen sind",
   "trick.task.trampolineRing": "Aufs Trampolin, dann durch den Reifen",
   "trick.task.trampolineMoving": "Triff das Trampolin vor der Tonne",

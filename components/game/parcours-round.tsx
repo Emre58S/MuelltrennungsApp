@@ -110,7 +110,7 @@ export function ParcoursRound({
       colliders: levelColliders(level),
       binSlide:
         level.binSlide || level.binFlap
-          ? { bin: 0, slide: level.binSlide, flap: level.binFlap, flapAll: level.flapAll }
+          ? { bin: 0, slide: level.binSlide, flap: level.binFlap, flapAll: level.flapAll, slideAll: level.slideAll }
           : undefined,
     }),
     [level],

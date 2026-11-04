@@ -484,6 +484,9 @@ function GardenScene({ p }: { p: Palette }) {
 
 /* ── Küche (Trickwürfe) ─────────────────────────────────────── */
 
+/** Lage des Küchenfensters (x): so, dass es auf kleinen Handys im Bild liegt (Vorhang im Wind-Parcours). */
+export const KITCHEN_WINDOW_X = 1.7;
+
 const KITCHEN = {
   wall: "#F6E7CF",
   tileA: "#EFE4D2",
@@ -572,7 +575,7 @@ function KitchenScene() {
       {/* Hängeschränke an den Seiten, Fenster daneben */}
       <UpperCabinet x={-4.6} />
       <UpperCabinet x={4.6} />
-      <group position={[2.5, 2.55, WALL_Z + 0.17]}>
+      <group position={[KITCHEN_WINDOW_X, 2.55, WALL_Z + 0.17]}>
         <mesh material={lowpoly(KITCHEN.frame)}>
           <boxGeometry args={[1.3, 1.05, 0.06]} />
         </mesh>

@@ -274,6 +274,14 @@ export function slideOffset(slide: BinSlide, time: number) {
   return (slide.shift ?? 0) + Math.sin((time / slide.period) * TAU + (slide.phase ?? 0)) * slide.amp;
 }
 
+/** Phasenabstand zwischen benachbarten Tonnen, wenn alle rollen (≈ 120°: eine Welle). */
+export const SLIDE_WAVE = 2.1;
+
+/** Fahrt der Tonne `i`, wenn alle Tonnen rollen: gleiche Bewegung, je Tonne um `SLIDE_WAVE` versetzt. */
+export function waveSlide(slide: BinSlide, i: number): BinSlide {
+  return { ...slide, phase: (slide.phase ?? 0) + i * SLIDE_WAVE };
+}
+
 /** Deckel klappt von selbst auf und zu (Trickwürfe) – rein zeitabhängig. */
 export type LidFlap = { period: number; phase?: number };
 

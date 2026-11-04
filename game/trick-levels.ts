@@ -128,6 +128,8 @@ export type TrickLevel = {
   /** Alle Deckel klappen im selben Takt wie `binFlap` (Parcours: für jede
    *  Spur gleich). */
   flapAll?: boolean;
+  /** Alle Tonnen rollen (je um einen Takt versetzt, wie eine Welle) – nicht nur die Zieltonne. */
+  slideAll?: boolean;
   bonus: TrickBonus;
   /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
@@ -645,6 +647,18 @@ export const KITCHEN_PARCOURS: ParcoursLevel[] = [
 /** Küchen-Parcours in Arbeit – bewusst NICHT in der Liste (Nutzer, 4.11.: Küchenrolle, Töpfe und Regal wirken
  *  unnatürlich/verdecken die Tonnen). Per Direktlink erreichbar, bis eine bessere Fassung steht. */
 export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
+  // Tonnen auf Rollen: alle fahren vor und zurück, jede im eigenen Takt (Welle)
+  {
+    id: 12,
+    props: [],
+    lanes: [[], [], []],
+    binSlide: { axis: "z", amp: 0.4, shift: 0.4, period: 6 },
+    slideAll: true,
+    seconds: 30,
+    bonus: "swish",
+    task: "trick.task.rollBins",
+    scene: "kueche",
+  },
   // Wind vom offenen Fenster (rechts) durch die Küche: Wurf gegen den Wind abstimmen (Stärke 4–7 ist für alle Tonnen fair)
   {
     id: 11,
