@@ -3,7 +3,12 @@
 **Ziel:** Veröffentlichung, sobald die Inhalte fertig sind (angepeilt Ende der Woche ab 2.11.; Release-Arbeit R7 ganz am Ende).
 **Leitbild:** kompakt, gut fürs Auge, „noch eine Runde“-Gefühl, leicht zu teilen.
 
-**Letzter Lauf (3.11., bis 24 Uhr, Normalmodus):** 3 Zyklen (dazu R7e: ungenutzte Konto-Texte raus, 9/10), beide freigegeben, auf auto + preview:
+**Letzter Lauf (4.11. vormittags, Normalmodus):** R7e fertig – Zielwurf-Link fällt aufs Üben
+zurück (8/10, auto + preview); R10-Rest: Lernkarten-Zeiten als Konstante (8/10, ohne EAS).
+GitHub-Pushes schlugen mehrfach mit Serverfehler fehl – Stand bei Bedarf nachpushen.
+Offen ohne Nutzer kaum noch Großes: R4d „Seed der Woche“ (SQL), R6b Dose knautscht.
+
+**Lauf davor (3.11., bis 24 Uhr, Normalmodus):** 3 Zyklen (dazu R7e: ungenutzte Konto-Texte raus, 9/10), beide freigegeben, auf auto + preview:
 Survival-Beenden-Dialog „Der Balken läuft weiter – ist er leer, endet die Runde.“ (R4b, 8/10);
 Sprint/Survival: Gegner, der im 3-2-1 noch gefunden wird, fliegt mit (R4d, 7 → 8/10). Offen
 wie zuvor: R7a–d/f brauchen den Nutzer; R4d „Seed der Woche“ (neues SQL).
@@ -633,7 +638,8 @@ Lernkarte · richtige Tonne = 1 · richtig mit Trick = 3 · Swish +1.
   Rechnung stimmt (×6 gilt ab dem nächsten Wurf), Text jetzt „Ab jetzt ×N!“.
 - [x] Tagesaufgabe: Endbildschirm überdeckt im letzten Wurf die Fehlerrückmeldung.
   (ef4c485, Tester 8/10): falscher letzter Wurf → Ende nach 1,9/2,6 s wie „Ohne Fehler“.
-  Offen: Zeiten 1800/2300 + 1900/2600 als gemeinsame Konstante.
+  ✓ Zeiten als `learnCardMs`/`learnEndMs` in round-hooks.ts (7f84ab0, Tester 8/10; ohne EAS,
+  nichts sichtbar). Idee: Ende aus Kartenzeit ableiten (ohne Begründung nur 100 ms Abstand).
 - [x] „Ohne Fehler“: Lernkarte länger sichtbar. (schon so: 1,8/2,3 s, Ende 1,9/2,6 s)
 - [x] „Abgelaufene Medikamente“ steht als Sondermüll – meist Restmüll (UBA), Apotheke
   freiwillig. Kategorie/Fakt prüfen (in Kampagne vorerst ausgelassen). (02ce44d, Tester
