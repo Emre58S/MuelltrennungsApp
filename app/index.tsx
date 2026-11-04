@@ -3,18 +3,16 @@
 import { type Href, Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 
-import { getBoolean, StorageKeys } from "@/utils/storage";
+import { homeRoute } from "@/utils/nav";
 
 export default function IndexScreen() {
   // PLAYTESTING:
   // Login vorübergehend überspringen und direkt zur App. Mit dem Schalter
-  // „Neues Menü“ (Einstellungen) startet die Bereichs-Hülle statt der Menü-Tonnen.
+  // Standard ist die Bereichs-Hülle; wer „Neues Menü“ (Einstellungen) abschaltet, bekommt die Menü-Tonnen.
   const [target, setTarget] = useState<Href | null>(null);
   useEffect(() => {
     let active = true;
-    getBoolean(StorageKeys.NAV_V2, false)
-      .then((v) => active && setTarget(v ? "/bereiche" : "/(tabs)"))
-      .catch(() => active && setTarget("/(tabs)"));
+    homeRoute().then((href) => active && setTarget(href));
     return () => {
       active = false;
     };

@@ -15,6 +15,7 @@ import { ModeThemes } from "@/constants/mode-themes";
 import { type ModeConfig, MODES, startGame } from "@/constants/modes";
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
+import { goHome } from "@/utils/nav";
 
 export default function ModiScreen() {
   const insets = useSafeAreaInsets();
@@ -25,7 +26,7 @@ export default function ModiScreen() {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/");
+      goHome();
     }
   }
 

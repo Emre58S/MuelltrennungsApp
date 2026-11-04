@@ -20,6 +20,7 @@ import { getStation, nextStation, parseFreeBins, stationMode } from "@/game/camp
 import { dailyTrick, PARCOURS, randomTrick, TRICK_LEVELS } from "@/game/trick-levels";
 import { type GameMode } from "@/constants/modes";
 import { useAppTheme } from "@/providers/app-settings";
+import { goHome } from "@/utils/nav";
 import {
   flushThrowRecords,
   getLevelFromXP,
@@ -115,7 +116,7 @@ export default function GameScreen() {
   );
   const goBack = useCallback(() => {
     if (router.canGoBack()) router.back();
-    else router.replace("/");
+    else goHome();
   }, [router]);
   const playAgain = useCallback(() => {
     setXp(null);

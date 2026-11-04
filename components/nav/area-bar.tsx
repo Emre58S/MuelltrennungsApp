@@ -20,11 +20,14 @@ export const AREA_BAR_HEIGHT = 64;
 export function AreaBar({
   active,
   wiggles,
+  dots,
   onSelect,
 }: {
   active: AreaKey;
   /** Wackel-Zähler je Bereich (Tippen auf das Icon). */
   wiggles: Record<AreaKey, number>;
+  /** Roter Punkt am Icon: hier wartet etwas (Tagesaufgabe, Herausforderung). */
+  dots?: Partial<Record<AreaKey, boolean>>;
   onSelect: (key: AreaKey) => void;
 }) {
   const { colors } = useAppTheme();
@@ -65,6 +68,7 @@ export function AreaBar({
             <View style={{ opacity: selected ? 1 : 0.5 }}>
               <BinIcon color={area.fill} size={30} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
             </View>
+            {dots?.[key] && <View style={styles.dot} />}
             <AppText
               variant="caption"
               color={selected ? area.sign : colors.textMuted}
@@ -84,5 +88,16 @@ const styles = StyleSheet.create({
   bar: { flexDirection: "row", borderTopWidth: 1 },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: Spacing.xs },
   mark: { position: "absolute", top: 0, width: 36, height: 4, borderRadius: 2 },
+  dot: {
+    position: "absolute",
+    top: 8,
+    right: "30%",
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#FF4D4D",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
   selectedLabel: { fontWeight: "700" },
 });

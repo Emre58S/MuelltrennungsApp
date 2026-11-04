@@ -30,6 +30,7 @@ import {
   setBoolean,
   StorageKeys,
 } from "@/utils/storage";
+import { NAV_V2_DEFAULT } from "@/utils/nav";
 import { setSfxEnabled } from "@/utils/sfx";
 import { setMusicEnabled } from "@/utils/music";
 
@@ -51,7 +52,7 @@ export default function EinstellungenScreen() {
   } = useAppSettings();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [musicEnabled, setMusicEnabledState] = useState(true);
-  const [navV2, setNavV2] = useState(false);
+  const [navV2, setNavV2] = useState(NAV_V2_DEFAULT);
 
   useEffect(() => {
     let active = true;
@@ -61,7 +62,7 @@ export default function EinstellungenScreen() {
     getBoolean(StorageKeys.MUSIC_ENABLED, true).then((music) => {
       if (active) setMusicEnabledState(music);
     });
-    getBoolean(StorageKeys.NAV_V2, false).then((v) => {
+    getBoolean(StorageKeys.NAV_V2, NAV_V2_DEFAULT).then((v) => {
       if (active) setNavV2(v);
     });
     return () => {

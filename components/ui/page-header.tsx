@@ -16,6 +16,7 @@ import { press, tapHaptic } from "@/components/ui/press";
 import { type Area } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { useI18n } from "@/providers/app-settings";
+import { goHome } from "@/utils/nav";
 import { sfx } from "@/utils/sfx";
 
 /** Himmel wie in der Spielszene (components/game/stage.tsx → LIGHT). */
@@ -23,7 +24,7 @@ const SKY = ["#4FA9E6", "#74C3F2", "#A9DCF5"] as const;
 
 function goBack() {
   if (router.canGoBack()) router.back();
-  else router.replace("/");
+  else goHome();
 }
 
 export function PageHeader({

@@ -52,7 +52,8 @@ export function HubScreen({
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg),
+            // In der Hülle sitzt die Kopfzeile (mit Sicherheitsabstand) schon darüber
+            paddingTop: shell.inShell ? Spacing.sm : Math.max(insets.top + Spacing.md, Spacing.lg),
             // In der Hülle sitzt unten die Bereichs-Leiste (hat den Sicherheitsabstand schon)
             paddingBottom: (shell.inShell ? shell.bottomInset : insets.bottom) + Spacing.lg,
           },

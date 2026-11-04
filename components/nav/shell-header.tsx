@@ -1,0 +1,95 @@
+// Datei: components/nav/shell-header.tsx
+//
+// Schmale Kopfzeile über den Bereichen: Level mit Fortschritt und Flamme links,
+// rechts Hilfe (roter Punkt, solange die Anleitung ungesehen ist) und Einstellungen.
+
+import { router } from "expo-router";
+import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { AppText } from "@/components/ui/app-text";
+import { IconButton } from "@/components/ui/icon-button";
+import { ProgressBar } from "@/components/ui/progress-bar";
+import { Radius, Spacing } from "@/constants/theme";
+import { useAppTheme, useI18n } from "@/providers/app-settings";
+import type { FlameStatus } from "@/utils/streak";
+
+export function ShellHeader({
+  loaded,
+  level,
+  progress,
+  streak,
+  flame,
+  seenTutorial,
+}: {
+  loaded: boolean;
+  level: number;
+  /** 0 … 1 bis zum nächsten Level. */
+  progress: number;
+  streak: number;
+  flame: FlameStatus;
+  seenTutorial: boolean;
+}) {
+  const { colors } = useAppTheme();
+  const { t } = useI18n();
+  const insets = useSafeAreaInsets();
+  const label = `${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}${
+    flame === "atRisk" ? `. ${t("home.flameAtRisk")}` : ""
+  }`;
+  return (
+    <View style={[styles.row, { paddingTop: insets.top + Spacing.sm }]}>
+      <View
+        accessible
+        accessibilityLabel={label}
+        style={[styles.level, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      >
+        <View style={styles.levelTop}>
+          <AppText variant="label">Lv {loaded ? level : "—"}</AppText>
+          {streak > 0 && (
+            <AppText variant="caption" tone="textSecondary">
+              {/* ⏳ = gestern Pause, heute spielen rettet die Flamme */}
+              🔥 {streak}
+              {flame === "atRisk" ? " ⏳" : ""}
+            </AppText>
+          )}
+        </View>
+        <ProgressBar value={progress} height={6} />
+      </View>
+      <View>
+        <IconButton icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
+        {loaded && !seenTutorial && <View style={styles.dot} />}
+      </View>
+      <IconButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md + 4,
+    paddingBottom: Spacing.sm,
+  },
+  level: {
+    flex: 1,
+    gap: 6,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+  },
+  levelTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.sm },
+  dot: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 13,
+    height: 13,
+    borderRadius: 7,
+    backgroundColor: "#FF4D4D",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+});
