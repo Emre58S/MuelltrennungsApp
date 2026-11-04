@@ -65,8 +65,9 @@ function hoop(radius: number, tube: number): THREE.Object3D {
 }
 
 /** Küche: Wasserhahn-Bogen – Chrom-Ring (gleiche Maße wie die Physik). Der Hahn steht
- *  seitlich am Ring (Stiel außen, blauer Griff oben, Auslauf zum Ring) und bleibt unter
- *  der Ringoberkante: darüber ist auf kleinen Handys kaum Platz im Bild. Mitte im Ursprung. */
+ *  seitlich am Ring, zur Bildmitte hin (außen fehlt am Rand der Platz): Stiel, blauer Griff
+ *  oben, Auslauf zum Ring. Bleibt unter der Ringoberkante, denn darüber ist auf kleinen
+ *  Handys kaum Platz im Bild. Mitte im Ursprung. */
 function faucet(radius: number, tube: number, side: 1 | -1): THREE.Object3D {
   const g = new THREE.Group();
   const chrome = lowpoly("#C7D0D9");
@@ -139,7 +140,7 @@ const Ring = memo(function Ring({ ring, bus, kitchen }: { ring: RingCollider; bu
       length
         ? swingTire(ring.radius, ring.tube, length)
         : kitchen
-          ? faucet(ring.radius, ring.tube, ring.x < 0 ? -1 : 1)
+          ? faucet(ring.radius, ring.tube, ring.x <= 0 ? 1 : -1)
           : hoop(ring.radius, ring.tube),
     [ring.radius, ring.tube, ring.x, length, kitchen],
   );
