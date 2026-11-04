@@ -69,9 +69,10 @@ export default function GameScreen() {
   const [randomSeed, setRandomSeed] = useState(() => Math.floor(Math.random() * 1e9));
   // Tagesaufgabe: feste Items für alle, Ablauf wie „Üben“, endet nach 10 Würfen
   const daily = rawDaily === "1";
+  // Zielwurf („aim“) ist ausgeblendet – alte Links landen im Üben
   const mode: GameMode = daily
     ? "endless"
-    : rawMode === "survival" || rawMode === "time" || rawMode === "aim"
+    : rawMode === "survival" || rawMode === "time"
       ? rawMode
       : "endless";
   const router = useRouter();
