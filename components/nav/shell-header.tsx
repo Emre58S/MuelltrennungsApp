@@ -83,7 +83,7 @@ export function ShellHeader({
           pressed && press.pressed,
         ]}
       >
-        <AppText variant="caption" color={colors.onGoldSoft} numberOfLines={2}>
+        <AppText variant="caption" color={colors.onGoldSoft} numberOfLines={3}>
           {hint.text}
         </AppText>
       </Pressable>
@@ -116,6 +116,8 @@ const styles = StyleSheet.create({
   hint: {
     marginHorizontal: Spacing.md + 4,
     marginBottom: Spacing.sm,
+    minHeight: 44,
+    justifyContent: "center",
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.md,
