@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     minWidth: 112,
     // Bei großer Systemschrift schrumpfen statt die Knöpfe aus dem Bild zu drücken
     flexShrink: 1,
+    overflow: "hidden",
     gap: 6,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
