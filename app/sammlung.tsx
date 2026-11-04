@@ -6,7 +6,8 @@
 //  · Heute       – Tagesmissionen mit Stempeln und Truhe
 // Die eigenen Seiten /sammelbuch und /belohnungen bleiben (Links, Altes Menü).
 
-import { useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 
 import { TodayPanel } from "@/components/areas/today-panel";
 import { useShell } from "@/components/nav/shell-context";
@@ -14,6 +15,7 @@ import { HubScreen } from "@/components/ui/hub";
 import { Segmented } from "@/components/ui/segmented";
 import { AREAS } from "@/constants/areas";
 import { useI18n } from "@/providers/app-settings";
+import { getChests } from "@/utils/storage";
 
 import { RewardsPanel } from "./belohnungen";
 import { BookPanel } from "./sammelbuch";
@@ -26,6 +28,19 @@ export default function SammlungScreen() {
   const wish = useShell().tabs.regal;
   const [tab, setTab] = useState<Tab>((wish?.tab as Tab | undefined) ?? "book");
   const [seen, setSeen] = useState(wish?.n ?? 0);
+  /** Wartet eine verdiente, noch nicht geöffnete Truhe? (Punkt am Reiter „Heute“) */
+  const [chestWaiting, setChestWaiting] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      getChests()
+        .then((c) => active && setChestWaiting(c.earned - c.opened > 0))
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
   if (wish && wish.n !== seen) {
     setSeen(wish.n);
     setTab(wish.tab as Tab);
@@ -40,7 +55,7 @@ export default function SammlungScreen() {
         options={[
           { value: "book", label: t("hub.book.title") },
           { value: "rewards", label: t("home.rewards") },
-          { value: "today", label: t("regal.tab.today") },
+          { value: "today", label: t("regal.tab.today"), dot: chestWaiting && tab !== "today" },
         ]}
       />
       {tab === "book" ? <BookPanel /> : tab === "rewards" ? <RewardsPanel /> : <TodayPanel />}

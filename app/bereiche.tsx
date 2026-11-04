@@ -23,6 +23,7 @@ import { refreshSfxSetting } from "@/utils/sfx";
 import {
   flushThrowRecords,
   getBoolean,
+  getChests,
   getFlame,
   getLevelProgress,
   getNumber,
@@ -52,6 +53,7 @@ export default function BereicheScreen() {
   const [flame, setFlame] = useState<FlameStatus>("none");
   const [seenTutorial, setSeenTutorial] = useState(true);
   const [dailyDone, setDailyDone] = useState(true);
+  const [chestWaiting, setChestWaiting] = useState(false);
   const [friend, setFriend] = useState<{ name: string } | null>(null);
   const [dayBest, setDayBest] = useState<DayGhost | null>(null);
   useFocusEffect(
@@ -85,6 +87,9 @@ export default function BereicheScreen() {
         })
         .catch((error) => console.warn("[Bereiche] Fortschritt konnte nicht geladen werden:", error))
         .finally(() => active && setLoaded(true));
+      getChests()
+        .then((c) => active && setChestWaiting(c.earned - c.opened > 0))
+        .catch(() => undefined);
       // Offene Herausforderung eines Freundes (still, falls offline; höchstens 1 min alt)
       fetchOpenChallenges(60_000)
         .then((open) => active && setFriend(open[0] ? { name: open[0].name } : null))
@@ -153,7 +158,7 @@ export default function BereicheScreen() {
         <AreaBar
           active={AREA_ORDER[index]}
           wiggles={wiggles}
-          dots={{ pfad: loaded && !dailyDone, online: friend !== null }}
+          dots={{ pfad: loaded && !dailyDone, online: friend !== null, regal: chestWaiting }}
           onSelect={goArea}
         />
       </View>

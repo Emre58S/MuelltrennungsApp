@@ -121,6 +121,7 @@ export default function KampagneScreen() {
   /** Gerade Vorsprung nach Level bekommen – einmal erklären (nur diese Sitzung). */
   const [headStart, setHeadStart] = useState(false);
   const { colors } = useAppTheme();
+  const shell = useShell();
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
   const worldY = useRef<Record<number, number>>({});
@@ -198,7 +199,9 @@ export default function KampagneScreen() {
           accessibilityLabel={`${t("reward.next", { name: t(nextReward.reward.name) })}. ${t("reward.nextLeft", { n: nextReward.left })}`}
           onPress={() => {
             tapHaptic();
-            router.push("/belohnungen");
+            // In der Bereichs-Hülle gleich den Reiter „Belohnungen“ im Regal zeigen
+            if (shell.inShell) shell.goArea("regal", "rewards");
+            else router.push("/belohnungen");
           }}
           style={({ pressed }) => [styles.nextReward, { backgroundColor: colors.goldSoft }, pressed && press.pressed]}
         >

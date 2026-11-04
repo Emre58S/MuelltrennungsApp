@@ -14,7 +14,7 @@ export function Segmented<T extends string>({
   color,
   onColor,
 }: {
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; /** Roter Punkt: hier wartet etwas. */ dot?: boolean }[];
   value: T;
   onChange: (value: T) => void;
   /** Farbe des gewählten Reiters (Standard: Grün), z. B. Bereichsfarbe. */
@@ -55,6 +55,7 @@ export function Segmented<T extends string>({
             >
               {opt.label}
             </AppText>
+            {opt.dot && <View style={styles.dot} />}
           </Pressable>
         );
       })}
@@ -63,6 +64,17 @@ export function Segmented<T extends string>({
 }
 
 const styles = StyleSheet.create({
+  dot: {
+    position: "absolute",
+    top: 4,
+    right: 6,
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    backgroundColor: "#FF4D4D",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
   wrap: { flexDirection: "row", borderRadius: Radius.lg, padding: 4, gap: 4 },
   option: {
     flex: 1,
