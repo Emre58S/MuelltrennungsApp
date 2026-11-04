@@ -632,7 +632,7 @@ export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
   inKitchen(CLASSIC_PARCOURS[0], 5, "trick.task.swingKitchen"),
   inKitchen(CLASSIC_PARCOURS[1], 6, "trick.task.potLanes"),
   inKitchen(CLASSIC_PARCOURS[2], 7, "trick.task.shelf"),
-  // Servierwagen rollt über alle Tonnen: aufs Tablett werfen, wenn er vor DEINER Tonne ist
+  // Saugroboter rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist (fahrendes Trampolin)
   {
     id: 8,
     props: [trampoline(0, { amp: TRAMP_SIDE, period: 5.2 }, 2.3, 0.52)],

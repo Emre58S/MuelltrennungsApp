@@ -555,45 +555,42 @@ const Fence = memo(function Fence({ fence }: { fence: SignCollider }) {
 function trampolineFrame(t: TrampolineCollider, kitchen?: boolean): THREE.Object3D {
   const g = new THREE.Group();
   if (kitchen && t.slide) {
-    // Küche, fahrend: Servierwagen – Tablett oben (dort prallt der Gegenstand ab), Zwischenboden,
-    // vier Stützen und vier Rollen auf dem Boden. Maße wie die Physik (halfW × halfD, Oberkante y).
-    const steel = lowpoly("#9AA3AC");
+    // Küche, fahrend: Saugroboter. Oberseite (dort prallt der Gegenstand ab) liegt bei y der Physik,
+    // darunter ein dunkler Sockel mit Stoßfänger-Ring – er rollt flach über den Boden.
     const hw = t.halfW;
-    const hd = t.halfD;
-    const tray = new THREE.Mesh(new THREE.BoxGeometry(hw * 2, 0.04, hd * 2), lowpoly("#E3E8ED"));
-    tray.position.y = t.y - 0.02;
-    g.add(tray);
-    for (const side of [-1, 1]) {
-      const rim = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.05, hd * 2), lowpoly("#CDD5DD"));
-      rim.position.set(side * (hw - 0.015), t.y + 0.01, 0);
-      g.add(rim);
+    const top = t.y;
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(hw, hw, 0.16, 28), lowpoly("#F3F5F8"));
+    body.position.y = top - 0.08;
+    g.add(body);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(hw * 0.94, hw * 0.94, top - 0.16 - 0.04, 28), lowpoly("#2B2F36"));
+    base.position.y = 0.04 + (top - 0.2) / 2;
+    g.add(base);
+    const bumper = new THREE.Mesh(new THREE.TorusGeometry(hw * 0.97, 0.035, 8, 28), lowpoly("#59616D"));
+    bumper.rotation.x = Math.PI / 2;
+    bumper.position.y = top - 0.2;
+    g.add(bumper);
+    // Obere Platte mit Knopf und Anzeige
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(hw * 0.62, hw * 0.62, 0.012, 28), lowpoly("#DDE2E8"));
+    ring.position.y = top + 0.004;
+    g.add(ring);
+    const button = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 20), lowpoly("#3D82D9"));
+    button.position.y = top + 0.012;
+    g.add(button);
+    for (const k of [-1, 0, 1]) {
+      const led = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.014, 8), lowpoly(k === 0 ? "#2FA86E" : "#9AA3AC"));
+      led.position.set(k * 0.07, top + 0.01, hw * 0.46);
+      g.add(led);
     }
-    const shelf = new THREE.Mesh(new THREE.BoxGeometry(hw * 2 - 0.06, 0.03, hd * 2 - 0.06), lowpoly("#C7D0D9"));
-    shelf.position.y = t.y * 0.42;
-    g.add(shelf);
-    for (const sx of [-1, 1])
-      for (const sz of [-1, 1]) {
-        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, t.y - 0.08, 6), steel);
-        post.position.set(sx * (hw - 0.05), (t.y + 0.08) / 2 - 0.02, sz * (hd - 0.05));
-        g.add(post);
-        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8), lowpoly("#2E2E32"));
-        // Achse in z: der Wagen fährt in x
-        wheel.rotation.x = Math.PI / 2;
-        wheel.position.set(sx * (hw - 0.05), 0.04, sz * (hd - 0.05));
-        g.add(wheel);
-      }
-    // Griff an der Längsseite, mit zwei Haltern auf dem Tablett
-    const handle = new THREE.Mesh(new THREE.BoxGeometry(hw * 1.2, 0.03, 0.03), steel);
-    handle.position.set(0, t.y + 0.14, hd * 0.9);
-    g.add(handle);
-    for (const side of [-1, 1]) {
-      const stay = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.14, 6), steel);
-      stay.position.set(side * hw * 0.6, t.y + 0.07, hd * 0.9);
-      g.add(stay);
+    // Zwei Seitenbürsten vorn
+    for (const k of [-1, 1]) {
+      const brush = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.02, 10), lowpoly("#E2483A"));
+      brush.position.set(k * hw * 0.78, 0.045, hw * 0.74);
+      g.add(brush);
     }
-    const cart = bake(g);
+    g.scale.z = t.halfD / t.halfW;
+    const robotModel = bake(g);
     g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
-    return cart;
+    return robotModel;
   }
   if (kitchen) {
     // Küche: Topf mit Deckel statt Trampolin (Physik und Maße bleiben gleich)
