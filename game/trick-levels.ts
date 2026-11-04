@@ -628,8 +628,9 @@ const CLASSIC_PARCOURS: ParcoursLevel[] = [
 /** Küchen-Parcours: dieselben vier Prüfungen, aber mit Objekten, die in die Küche gehören
  *  (Küchenrolle am Faden, Töpfe mit Deckel, Standregal mit Fächern). Der Deckel-Takt hat kein
  *  Objekt und bleibt ohne Küchen-Kopie. */
-/** Küchen-Parcours, die das Spiel zeigt: Saugroboter (fahrendes Trampolin, natürlich auf dem Boden) und
- *  klappende Deckel in der Küchenszene (kein Hindernis nötig – die Tonnen selbst sind die Aufgabe). */
+/** Küchen-Parcours, die das Spiel zeigt – Tricks kommen aus der Szene (Nutzer, 4.11.), nichts schwebt:
+ *  5 Saugroboter (fahrendes Trampolin am Boden) · 6 klappende Deckel · 7 Wind vom offenen Fenster
+ *  (Vorhang, Böen, Papierschnipsel) · 8 rollende Tonnen (jede im eigenen Takt, wie eine Welle). */
 export const KITCHEN_PARCOURS: ParcoursLevel[] = [
   // Saugroboter rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist
   {
@@ -642,14 +643,19 @@ export const KITCHEN_PARCOURS: ParcoursLevel[] = [
     scene: "kueche",
   },
   inKitchen(CLASSIC_PARCOURS[3], 6, "trick.task.flapAll"),
-];
-
-/** Küchen-Parcours in Arbeit – bewusst NICHT in der Liste (Nutzer, 4.11.: Küchenrolle, Töpfe und Regal wirken
- *  unnatürlich/verdecken die Tonnen). Per Direktlink erreichbar, bis eine bessere Fassung steht. */
-export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
-  // Tonnen auf Rollen: alle fahren vor und zurück, jede im eigenen Takt (Welle)
+  // Wind vom offenen Fenster (rechts) durch die Küche: Wurf gegen den Wind abstimmen (Stärke 4–7 ist für alle Tonnen fair)
   {
-    id: 12,
+    id: 7,
+    props: [fan(0, -6)],
+    lanes: [[], [], []],
+    seconds: 30,
+    bonus: "firstTry",
+    task: "trick.task.windWindow",
+    scene: "kueche",
+  },
+  // Tonnen auf Rollen: alle fahren vor und zurück, jede im eigenen Takt (Stärke 0,4 / Takt 6 s ist für alle fair)
+  {
+    id: 8,
     props: [],
     lanes: [[], [], []],
     binSlide: { axis: "z", amp: 0.4, shift: 0.4, period: 6 },
@@ -659,22 +665,17 @@ export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
     task: "trick.task.rollBins",
     scene: "kueche",
   },
-  // Wind vom offenen Fenster (rechts) durch die Küche: Wurf gegen den Wind abstimmen (Stärke 4–7 ist für alle Tonnen fair)
-  {
-    id: 11,
-    props: [fan(0, -6)],
-    lanes: [[], [], []],
-    seconds: 30,
-    bonus: "firstTry",
-    task: "trick.task.windWindow",
-    scene: "kueche",
-  },
-  inKitchen(CLASSIC_PARCOURS[0], 7, "trick.task.swingKitchen"),
-  inKitchen(CLASSIC_PARCOURS[1], 8, "trick.task.potLanes"),
-  inKitchen(CLASSIC_PARCOURS[2], 9, "trick.task.shelf"),
+];
+
+/** Küchen-Parcours in Arbeit – bewusst NICHT in der Liste (Nutzer, 4.11.: Küchenrolle, Töpfe und Regal wirken
+ *  unnatürlich/verdecken die Tonnen). Per Direktlink erreichbar, bis eine bessere Fassung steht. */
+export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
+  inKitchen(CLASSIC_PARCOURS[0], 9, "trick.task.swingKitchen"),
+  inKitchen(CLASSIC_PARCOURS[1], 10, "trick.task.potLanes"),
+  inKitchen(CLASSIC_PARCOURS[2], 11, "trick.task.shelf"),
   // Töpfe mit Deckel vor allen Tonnen UND alle Tonnendeckel klappen im Takt
   {
-    id: 10,
+    id: 12,
     props: [-TRAMP_SIDE, 0, TRAMP_SIDE].map((x) => trampoline(x, undefined, 2.3, 0.52)),
     lanes: [[0], [1], [2]],
     seconds: 25,
