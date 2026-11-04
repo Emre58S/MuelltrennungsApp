@@ -5,6 +5,17 @@ Die alte Roadmap (R1–R10, mit allen Commit-Kürzeln) liegt unverändert in
 und in welcher Reihenfolge wir dahin kommen. Aufgaben heißen jetzt **F1…**; übernommene
 alte Punkte stehen mit ihrer alten Nummer (z. B. „← R6b“).
 
+**Stand 4.11., 18:30 (Normalmodus, selbstständiger Lauf):** Phasen A–C fertig und auf `auto` + `preview`
+(F1–F6, F8: untere Leiste mit Wischen, Pfad, Online mit Reitern + Duell-Blatt, Regal mit Reitern, Tagesmissionen
+im Regal, Truhen-Punkt). Trick-Tour: Küchen-Szene + **Küchen-Parcours 5–9** (Küchenrolle-Pendel, Töpfe+Deckel,
+Standregal auf Beinen, Servierwagen, Töpfe+Deckel-Takt); R6b Dose knautscht. **Verworfen:** F11a-Kapitel (Zweig
+`verworfen-f11a-kapitel`), Wasserhahn-Reifen, Standventilator-Parcours, Servierwagen+Deckel-Takt (nicht fair lösbar).
+**Auf dem Handy ansehen (nur im Code geprüft):** Online-Reiter + Duell-Blatt + Code-Feld, Regal-Reiter/Heute/Punkt,
+Küchen-Parcours (Optik, Lesbarkeit), Servierwagen. **Offen:** F7 (Online-Reste, meist SQL), F10d/F11d Bande-Hindernisse
+(Kühlschranktür, Hängeregal – brauchen Sonden/Entscheidung), F11e weitere Szenen (Büro, Hof, Straße, Park),
+F13 lebendige Tonnen, F15 Kampagne-Reste, F16–F20 Release (Symbol, Store, Datenschutz, TestFlight – brauchen den
+Nutzer). Termin: Trick-Küche „im Release“ ⇒ Fr 6.11. nicht zu halten, Vorschlag ≈ 13.11. fertig.
+
 **Leitbild:** Ein Spiel, kein Menü-Sammelsurium. Alles, was man antippt, fühlt sich an wie
 „an der Tonne“: gleicher Stil, gleiche Bausteine, immer klar, wo man herkommt und wohin man geht.
 Verständlich auch mit wenig Deutsch, nie strafend (wie bisher).
