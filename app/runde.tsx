@@ -17,7 +17,7 @@ import { ParcoursRound } from "@/components/game/parcours-round";
 import { SprintRound } from "@/components/game/sprint-round";
 import { TrickRound } from "@/components/game/trick-round";
 import { getStation, nextStation, parseFreeBins, stationMode } from "@/game/campaign";
-import { dailyTrick, PARCOURS, randomTrick, TRICK_LEVELS } from "@/game/trick-levels";
+import { dailyTrick, KITCHEN_PARCOURS_WIP, PARCOURS, randomTrick, TRICK_LEVELS } from "@/game/trick-levels";
 import { type GameMode } from "@/constants/modes";
 import { useAppTheme } from "@/providers/app-settings";
 import { goHome } from "@/utils/nav";
@@ -181,7 +181,10 @@ export default function GameScreen() {
       {isParcours && (
         <ParcoursRound
           key={`${round}-parcours-${rawLevel}`}
-          level={PARCOURS.find((p) => p.id === Number(rawLevel)) ?? PARCOURS[0]}
+          // Küchen-Parcours (in Arbeit) stehen nicht in der Liste, sind aber per Link erreichbar (zum Ansehen)
+          level={
+            [...PARCOURS, ...KITCHEN_PARCOURS_WIP].find((p) => p.id === Number(rawLevel)) ?? PARCOURS[0]
+          }
           friend={rawFriend ? (cleanFriendCode(rawFriend) ?? undefined) : undefined}
           onExit={goBack}
           onRetry={retryTrick}
