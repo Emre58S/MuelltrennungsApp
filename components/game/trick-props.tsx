@@ -64,9 +64,10 @@ function hoop(radius: number, tube: number): THREE.Object3D {
   return baked;
 }
 
-/** Küche: Wasserhahn-Bogen – Chrom-Ring (gleiche Maße wie die Physik), darüber der
- *  Hahn mit blauem Griff. Mitte im Ursprung; der Hahn sitzt über dem Ring. */
-function faucet(radius: number, tube: number): THREE.Object3D {
+/** Küche: Wasserhahn-Bogen – Chrom-Ring (gleiche Maße wie die Physik). Der Hahn steht
+ *  seitlich am Ring (Stiel außen, blauer Griff oben, Auslauf zum Ring) und bleibt unter
+ *  der Ringoberkante: darüber ist auf kleinen Handys kaum Platz im Bild. Mitte im Ursprung. */
+function faucet(radius: number, tube: number, side: 1 | -1): THREE.Object3D {
   const g = new THREE.Group();
   const chrome = lowpoly("#C7D0D9");
   const shine = lowpoly("#EEF1F4");
@@ -76,15 +77,22 @@ function faucet(radius: number, tube: number): THREE.Object3D {
     part.rotation.z = i * arc;
     g.add(part);
   }
-  // Hahnkörper senkrecht über dem Ring, Griff oben, Auslauf zum Ring hin
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8), chrome);
-  stem.position.set(0, radius + 0.45, 0);
+  const sx = side * (radius + 0.14);
+  const top = radius * 0.8;
+  const bottom = -radius * 0.25;
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, top - bottom, 8), chrome);
+  stem.position.set(sx, (top + bottom) / 2, 0);
   g.add(stem);
-  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), shine);
-  cap.position.set(0, radius + 0.92, 0);
+  // Auslauf: waagrecht vom Stiel zum Ring
+  const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.16, 8), chrome);
+  spout.rotation.z = Math.PI / 2;
+  spout.position.set(side * (radius + 0.06), bottom + 0.05, 0);
+  g.add(spout);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), shine);
+  cap.position.set(sx, top + 0.02, 0);
   g.add(cap);
-  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.05), lowpoly("#3D82D9"));
-  handle.position.set(0, radius + 0.82, 0);
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.05), lowpoly("#3D82D9"));
+  handle.position.set(sx, top - 0.04, 0);
   g.add(handle);
   const baked = bake(g);
   g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
@@ -131,9 +139,9 @@ const Ring = memo(function Ring({ ring, bus, kitchen }: { ring: RingCollider; bu
       length
         ? swingTire(ring.radius, ring.tube, length)
         : kitchen
-          ? faucet(ring.radius, ring.tube)
+          ? faucet(ring.radius, ring.tube, ring.x < 0 ? -1 : 1)
           : hoop(ring.radius, ring.tube),
-    [ring.radius, ring.tube, length, kitchen],
+    [ring.radius, ring.tube, ring.x, length, kitchen],
   );
   const glowGeo = useMemo(
     () => new THREE.TorusGeometry(ring.radius, ring.tube * (length ? 1.4 : 2.2), 8, 36),
