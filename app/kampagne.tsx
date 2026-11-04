@@ -92,6 +92,12 @@ function worldColor(world: World): string {
   return (key && binDef(key)?.color) || TRICKY_COLOR;
 }
 
+/** Schriftfarbe auf der Weltfarbe (Gelb braucht dunkle Schrift, sonst ~2:1). */
+function worldOnColor(world: World): string {
+  const key = world.newBins[world.newBins.length - 1];
+  return (key && binDef(key)?.onColor) || "#FFFFFF";
+}
+
 /** Freies Spiel (früher „Üben“): ohne Ziel, mit den Tonnen der aktuellen Welt. */
 function startFreePlay(stars: CampaignStars) {
   router.push({ pathname: "/runde", params: { mode: "endless", bins: freePlayBins(stars).join(",") } });
@@ -254,6 +260,7 @@ export default function KampagneScreen() {
                   station={station}
                   offset={ZIGZAG[i % ZIGZAG.length]}
                   color={worldColor(world)}
+                  onColor={worldOnColor(world)}
                   stars={stars[station.id] ?? 0}
                   unlocked={isUnlocked(stars, station.id)}
                   isCurrent={station.id === current.id}
@@ -692,6 +699,7 @@ function StationDot({
   station,
   offset,
   color,
+  onColor,
   stars,
   unlocked,
   isCurrent,
@@ -700,6 +708,8 @@ function StationDot({
   station: Station;
   offset: number;
   color: string;
+  /** Schriftfarbe auf `color`. */
+  onColor: string;
   stars: number;
   unlocked: boolean;
   isCurrent: boolean;
@@ -784,19 +794,19 @@ function StationDot({
             pressed && press.pressedLarge,
           ]}
         >
-          <AppText variant="heading" color={unlocked ? "#FFFFFF" : colors.textMuted}>
+          <AppText variant="heading" color={unlocked ? onColor : colors.textMuted}>
             {unlocked ? station.id : "🔒"}
           </AppText>
         </Pressable>
         {/* „Los!“ neben der aktuellen Station – auf der Seite, die im Zickzack frei bleibt */}
-        {isCurrent && unlocked && (
+        {isCurrent && unlocked && stars < 3 && (
           <View
             pointerEvents="none"
             importantForAccessibility="no"
             accessibilityElementsHidden
             style={[styles.goBadge, { backgroundColor: color }, offset > 0 ? styles.goBadgeLeft : styles.goBadgeRight]}
           >
-            <AppText variant="label" color="#FFFFFF" numberOfLines={1}>
+            <AppText variant="label" color={onColor} numberOfLines={1}>
               {t("campaign.go")}
             </AppText>
           </View>
