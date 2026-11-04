@@ -85,6 +85,11 @@ export function FriendsPanel() {
     // Ein Feld für beides: Nachricht mit Herausforderung (Ghost-Code) oder Freundes-Code
     const challenge = readCode(draft);
     if (typeof challenge !== "string") {
+      // Sperre gegen Doppeltippen (sonst zwei Rennen übereinander)
+      busy.current = true;
+      setTimeout(() => {
+        busy.current = false;
+      }, 900);
       sfx("tap");
       const code = draft.trim();
       setDraft("");
