@@ -103,10 +103,15 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   in den Einstellungen (NAV_V2, Standard aus) – F3 macht es zum Start. **Auf dem Gerät noch nicht
   geprüft** (Wisch-Gefühl, Übergang beim Schalter). Ideen: Haptik beim Wisch-Wechsel, leerer
   Frame in `app/index.tsx`, einmaliger Hinweis „wischen oder antippen“.
-- [ ] **F3 Pfad als Startbereich** (← #5, #10, #11): Startschirm mit 3D-Tonnen wird durch den
+- [x] **F3 Pfad als Startbereich** (← #5, #10, #11): Startschirm mit 3D-Tonnen wird durch den
   Pfad ersetzt; Kopf-Chips (Level, Flamme, ⚙️ ❓); Direktstart nach dem Wurf (`go()` in
   `index.tsx`) entfällt. Die 3D-Menü-Szene (`menu-scene.tsx`) wird nicht mehr geladen (Code
   bleibt, bis alles verifiziert ist). *1–2 Sitzungen*
+  ✓ (8e17426, Tester 8/10, EAS auto + preview): Hülle ist der Start (`NAV_V2_DEFAULT = true`, Schalter
+  in den Einstellungen bleibt als Rückfall aufs alte Menü), Kopfzeile Level/Flamme/Hilfe/Einstellungen,
+  rote Punkte an Pfad (Tagesaufgabe) und Online (Herausforderung), `utils/nav.ts` (`goHome`).
+  Offen: Hinweis-Zeile (homeHint) im Pfad zurückholen; login/register auf `goHome`; Punktfarbe als
+  Konstante; altes Menü + `menu-scene.tsx` löschen, sobald nichts mehr darauf zeigt.
 - [ ] **F4 Pfad: nächste Station hervorgehoben, Stempelleiste** (← #6): Puls/Pfeil an der
   nächsten Station, Tagesmission als 3 Stempel oben, Tagesaufgabe/Flamme im Kopf. *1 Sitzung*
 
