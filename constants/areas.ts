@@ -31,7 +31,7 @@ export const AREAS: Record<AreaKey, Area> = {
     fill: "#2FA86E",
     sign: "#1E7A4C",
     on: "#FFFFFF",
-    sky: ["#1E7A4C", "#2FA86E", "#5CC794"],
+    sky: ["#1E7A4C", "#2FA86E", "#3FB87F"],
   },
   online: {
     key: "online",
@@ -40,7 +40,7 @@ export const AREAS: Record<AreaKey, Area> = {
     fill: "#3D82D9",
     sign: "#245E9E",
     on: "#FFFFFF",
-    sky: ["#245E9E", "#3D82D9", "#77AAE8"],
+    sky: ["#245E9E", "#3D82D9", "#5A97E0"],
   },
   regal: {
     key: "regal",
