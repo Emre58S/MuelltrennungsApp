@@ -23,6 +23,7 @@ import { useI18n } from "@/providers/app-settings";
 import { getParcoursBest, todayKey } from "@/utils/storage";
 
 import { FriendsPanel } from "./freunde";
+import { RankingPanel } from "./rangliste";
 
 /** Parcours des Tages zu einem Tag (für alle gleich). */
 function parcoursOfDay(day: string) {
@@ -111,17 +112,7 @@ export default function OnlineScreen() {
 
       {tab === "friends" && <FriendsPanel />}
 
-      {/* Vorläufig: die Rangliste öffnet noch als eigene Seite (kommt als Reiter-Inhalt, F5b) */}
-      {tab === "rank" && (
-        <HubCard
-          index={0}
-          emoji="🏆"
-          color="#E3A92E"
-          title={t("home.rank")}
-          desc={t("rank.subtitle")}
-          onPress={() => router.push("/rangliste")}
-        />
-      )}
+      {tab === "rank" && <RankingPanel />}
     </HubScreen>
   );
 }

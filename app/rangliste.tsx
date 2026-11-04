@@ -12,17 +12,14 @@ import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  RefreshControl,
-  ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/page-header";
+import { HubScreen } from "@/components/ui/hub";
 import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
@@ -71,12 +68,10 @@ const TABS: Tab[] = [
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
-export default function LeaderboardScreen() {
-  const insets = useSafeAreaInsets();
+/** Inhalt „Rangliste“ – ohne Kopf, damit er auch als Reiter im Online-Bereich stehen kann. */
+export function RankingPanel({ startTab }: { startTab?: string }) {
   const { colors, scheme } = useAppTheme();
   const { t, formatNumber } = useI18n();
-  // ?tab=sprint|survival: aus dem Endbildschirm direkt zur passenden Liste
-  const { tab: startTab } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState(() => TABS.find((x) => x.key === startTab) ?? TABS[0]);
   const [name, setName] = useState("");
   const [editing, setEditing] = useState(false);
@@ -177,24 +172,8 @@ export default function LeaderboardScreen() {
   const meVisible = result?.rows.some((r) => r.isMe) ?? false;
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: Math.max(insets.top + Spacing.md, Spacing.lg),
-            paddingBottom: insets.bottom + Spacing.lg,
-          },
-        ]}
-        refreshControl={
-          leaderboardReady ? (
-            <RefreshControl refreshing={state === "loading"} onRefresh={refresh} />
-          ) : undefined
-        }
-        keyboardShouldPersistTaps="handled"
-      >
-        <PageHeader title={t("rank.title")} subtitle={t("rank.subtitle")} emoji="🏆" area={AREAS.online} />
-
+    <View style={styles.panel}>
+      <>
         {/* Eigener Spitzname */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {editing ? (
@@ -255,7 +234,7 @@ export default function LeaderboardScreen() {
         </View>
 
         {/* Welche Liste */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+        <View style={styles.tabs}>
           {TABS.map((item) => {
             const active = item.key === tab.key;
             return (
@@ -279,7 +258,7 @@ export default function LeaderboardScreen() {
               </Pressable>
             );
           })}
-        </ScrollView>
+        </View>
 
         {/* Online-Modi: diese Woche (ab Montag) oder Allzeit */}
         {tab.online && (
@@ -371,14 +350,24 @@ export default function LeaderboardScreen() {
             {t("rank.myPlace", { rank: result.me.rank })} · {scoreText(result.me.score)}
           </AppText>
         )}
-      </ScrollView>
+      </>
     </View>
   );
 }
 
+export default function LeaderboardScreen() {
+  const { t } = useI18n();
+  // ?tab=sprint|survival: aus dem Endbildschirm direkt zur passenden Liste
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  return (
+    <HubScreen title={t("rank.title")} subtitle={t("rank.subtitle")} emoji="🏆" area={AREAS.online}>
+      <RankingPanel startTab={tab} />
+    </HubScreen>
+  );
+}
+
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.md },
+  panel: { gap: Spacing.md },
   flex: { flex: 1 },
   header: { flexDirection: "row", alignItems: "flex-start", gap: Spacing.md },
   card: { padding: Spacing.md, borderRadius: Radius.lg, borderWidth: 1, gap: Spacing.sm },
@@ -390,7 +379,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     fontSize: 17,
   },
-  tabs: { gap: Spacing.sm, paddingVertical: 2 },
+  // Umbrechen statt waagrecht scrollen (Wischen zwischen den Bereichen bleibt frei)
+  tabs: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, paddingVertical: 2 },
   tab: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
