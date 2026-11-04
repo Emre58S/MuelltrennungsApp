@@ -163,6 +163,15 @@ wenig Deutsch, nie strafend.
   (riesiger Diff); Einrückung gezielt per Skript anpassen.
 - Parcours online: Server-Zeitprüfung (parcours.sql, ≤ 1 Treffer je 0,5 s) hängt an der
   250-ms-Pause nach Treffern in parcours-round.tsx – nicht verkürzen ohne Prüfung.
+- **3D-Änderungen immer mit Bild prüfen:** `node tools/shot.mjs …` (headless Chrome gegen die Expo-Web-App,
+  Aufruf im Kopf der Datei) rendert Runden, klickt „Los geht's!“ weg und speichert ein PNG; mit `Read` ansehen,
+  Bilder für den Nutzer in `.expo/shots/` ablegen (von Git ausgenommen). Blind aus Zahlen gebaute Hindernisse
+  wirkten unnatürlich (Küchenrolle, Töpfe, Regal verworfen).
+- Trick-Hindernisse: kein „Kostüm“ über abstrakte Mechaniken (Ring, Torwand, Trampolin) – sie sind durch die
+  Fairness in Größe/Lage festgelegt und decken sonst die Tonnen. Besser Tricks **aus der Szene** (rollende
+  Tonnen, klappende Deckel, Wind mit Vorhang/Böen) oder kleine bewegliche Boden-Objekte (Saugroboter). Gegenstand
+  bestimmt die Tonne; Hindernis darf die Zieltonne nicht verraten. Neue Parcours erst als `KITCHEN_PARCOURS_WIP`,
+  dem Nutzer per Bild zeigen, dann in die Liste.
 - Lange Test-/Build-Läufe nur mit `run_in_background` starten (ein `&` im Shell-Aufruf stirbt mit dem
   Aufruf, Ausgabe bleibt leer); Ergebnis erst nach der Fertigmeldung lesen. Ein `ps`-Check sieht
   Windows-Prozesse nicht. EAS-Update scheiterte einmal im Metro-Export (Exit 1) – gleicher Befehl

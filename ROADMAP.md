@@ -5,6 +5,14 @@ Die alte Roadmap (R1–R10, mit allen Commit-Kürzeln) liegt unverändert in
 und in welcher Reihenfolge wir dahin kommen. Aufgaben heißen jetzt **F1…**; übernommene
 alte Punkte stehen mit ihrer alten Nummer (z. B. „← R6b“).
 
+**Stand 5.11., 00:10:** Trick-Tour neu nach Nutzer-Kritik („unnatürlich, schwebt, verrät die Zieltonne“): Hindernisse
+kommen jetzt aus der Szene. **Ausgeliefert (auto + preview): Küchen-Parcours 5 Saugroboter, 6 klappende Deckel,
+7 Wind vom Fenster (Vorhang, Böen, Papierschnipsel), 8 rollende Tonnen (Welle, `slideAll`).** Küchenrolle/Töpfe/Regal
+(9–12) ausgeblendet (`KITCHEN_PARCOURS_WIP`, nur per Link). Neues Werkzeug `tools/shot.mjs` (3D per Foto prüfen).
+**Nächste Schritte:** weitere Szenen nach diesem Muster (Büro: Bürostuhl als fahrendes Trampolin, Büro-Tonnen auf
+Rollen, Jalousie-Wind; Hof/Straße/Park), jeweils erst Bild an den Nutzer; die ausgeblendeten Küchen-Parcours
+entweder neu denken oder streichen; Klassik-Level (28) auf natürliche Hindernisse prüfen.
+
 **Stand 4.11., 18:30 (Normalmodus, selbstständiger Lauf):** Phasen A–C fertig und auf `auto` + `preview`
 (F1–F6, F8: untere Leiste mit Wischen, Pfad, Online mit Reitern + Duell-Blatt, Regal mit Reitern, Tagesmissionen
 im Regal, Truhen-Punkt). Trick-Tour: Küchen-Szene + **Küchen-Parcours 5–9** (Küchenrolle-Pendel, Töpfe+Deckel,
