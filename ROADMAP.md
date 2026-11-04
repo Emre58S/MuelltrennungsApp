@@ -160,9 +160,12 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
     Vorschlag: Entwicklung fertig Ende nächster Woche (≈ 13.11.), danach TestFlight/Prüfung durch Apple.
 - [ ] **F10 Küchen-Szene + Hindernisse** (zerlegt; Bausteine existieren: `TrickProp` mit ring/board/sign/trampoline/
   windmill/fence/lamp/fan, `levelColliders`, `trick-solver.ts`, Szenen in `stage.tsx`):
-  - [ ] **F10a** Küchen-Szene in `stage.tsx` (Fliesenwand, Arbeitsplatte/Schränke, Fenster), wählbar für Trick-Runden.
-  - [ ] **F10b** Hindernis-Modelle als neue `look`s auf vorhandenen Kollidern: Hängeregal (board), Pfanne + Topfdeckel
+  - [x] **F10a** (d02eea4 + 830d74d, Tester 8/10, EAS auto + preview) Küchen-Szene in `stage.tsx` (Fliesenboden, Arbeitsplatte/Schränke, Fenster), vom Level gewählt (`scene: "kueche"`); Level 29 = Reifen.
+  - [~] **F10b** (f445b70→4da67c6, Tester 6 → 4 → 8/10, EAS auto + preview; Teilumfang) Hindernis-Modelle als neue `look`s auf vorhandenen Kollidern: Hängeregal (board), Pfanne + Topfdeckel
     (trampoline/board), Kühlschranktür (sign), Wasserhahn-Bogen (ring). Kein neues Physik-Verhalten nötig.
+    **Umgesetzt:** Wasserhahn-Bogen (Reifen, Hahn seitlich zur Bildmitte – oben/außen fehlt Platz auf 375 pt) und
+    Topfdeckel (Trampolin) als Küchen-Optik (`kitchen`-Prop), Level 29 Reifen, 30 Wasserhahn, 31 Topfdeckel.
+    **Offen:** Hängeregal, Bratpfanne, Kühlschranktür = Schild-/Bande-Mechanik, in keinem Level erprobt → F10d mit Sonden.
   - [ ] **F10c** Küchen-Level 1–4 (einfach → mit Tonnenwahl): je Level `npx jest game/__tests__/tricks.test.ts -t "Level N"`
     (Solver/Fairness-Test 0,6–0,86, nach 3–4 Versuchen verwerfen), Tipp- und noTrick-Texte DE/EN.
   - [ ] **F10d** weitere Level (5–8) und Tages-/Parcours-Vorlagen mit Küchen-Hindernissen.
