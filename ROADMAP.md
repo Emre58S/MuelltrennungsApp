@@ -95,9 +95,14 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   Chip, ProgressBar, StampBar, Sheet; Segmented und PageHeader/HubScreen mit `area`. Alle
   Bereichsseiten tragen ihre Farbe. Seiten nicht einzeln umgebaut (werden in F5–F8 ohnehin
   zusammengeführt). Offen: Segmented leitet `onColor` nicht selbst ab.
-- [ ] **F2 Untere Leiste + Wischen** (← #1, #3): eigene Leiste mit 3 Tonnen-Icons, Bereichswechsel
+- [x] **F2 Untere Leiste + Wischen** (← #1, #3): eigene Leiste mit 3 Tonnen-Icons, Bereichswechsel
   per Antippen und Wischen, Navigationsregeln (Endscreens und Zurück kehren in den
   Ursprungsbereich zurück; Deep-Links `/runde?mode=…` bleiben abwärtskompatibel). *2 Sitzungen*
+  ✓ (5261335, Tester 8/10, EAS auto + preview): Hülle `app/bereiche.tsx` + `components/nav/`
+  (AreaBar, AreaPager mit Fingerfolge, ShellContext), BinIcon. **Hinter Schalter** „Neues Menü (Test)“
+  in den Einstellungen (NAV_V2, Standard aus) – F3 macht es zum Start. **Auf dem Gerät noch nicht
+  geprüft** (Wisch-Gefühl, Übergang beim Schalter). Ideen: Haptik beim Wisch-Wechsel, leerer
+  Frame in `app/index.tsx`, einmaliger Hinweis „wischen oder antippen“.
 - [ ] **F3 Pfad als Startbereich** (← #5, #10, #11): Startschirm mit 3D-Tonnen wird durch den
   Pfad ersetzt; Kopf-Chips (Level, Flamme, ⚙️ ❓); Direktstart nach dem Wurf (`go()` in
   `index.tsx`) entfällt. Die 3D-Menü-Szene (`menu-scene.tsx`) wird nicht mehr geladen (Code
