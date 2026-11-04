@@ -24,83 +24,82 @@ Verständlich auch mit wenig Deutsch, nie strafend (wie bisher).
 
 ---
 
-## 2. Zielbild (mein Vorschlag – bitte gegenlesen)
+## 2. Zielbild (entschieden 4.11.: untere Leiste + Wischen, Tonnen als Icons)
 
-### 2.1 Das Prinzip „Tonnen-Welt“
-Der Startschirm bleibt die 3D-Straße mit **3 Tonnen**. Aber:
-- Die **Beschriftung sitzt auf der Tonne** (Schild/Etikett als Teil des 3D-Körpers bzw. exakt
-  an die Tonne gepinnt, bewegt sich mit, wackelt mit) statt als Karte darüber (← deine #11).
-- Szene/Kamera **näher** an die Tonnen, Modi-Schilder dicht an ihrer Tonne (← #10).
-- **Ein Wurf oder Tippen führt auf den Zielbildschirm der Tonne** (bei der Kampagne: der Pfad,
-  bei Online: der Online-Hub). Es wird nichts gestartet, bevor du gewählt hast (← #5).
-- Jede Tonne hat **ein kleines Zweitziel** als Chip daneben („Pfad“, „Freunde“, „Buch“) –
-  der Hauptweg ist groß, der Nebenweg klein.
+### 2.1 Navigation: eine feste untere Leiste
+```
+┌──────────────────────────────┐
+│ Lv7 ▓▓▓░  🔥4          ⚙️ ❓ │  ← Kopf: Level, Flamme, Einstellungen, Hilfe
+│  Heute ●●○                   │  ← Tagesleiste (Stempel), nur im Pfad
+│  ── Lernpfad ──              │
+│   ①──②──③                    │  ← Inhalt füllt den Platz
+│        ④ ◄ nächste           │
+├──────────────────────────────┤
+│  🟢Pfad    🔵Online    🟡Regal │  ← feste Leiste mit 3 Tonnen-Icons
+└──────────────────────────────┘
+        ◄── Wischen ──►
+```
+- **3 Bereiche:** Pfad (Start beim Öffnen) · Online · Regal. Einstellungen/Hilfe oben rechts.
+- **Wischen links/rechts** wechselt den Bereich; innerhalb von Online/Regal wechseln Reiter
+  nur per Antippen (keine kollidierenden Gesten).
+- **Tonnen als Icons** in der Leiste (grün/blau/gelb, wackeln kurz beim Antippen). Die
+  3D-Menü-Szene entfällt: schneller, ruhiger, mehr Platz, weniger Leistungsrisiko.
+- **Während einer Runde keine Leiste.** Endscreen und Zurück führen in den Bereich, aus dem
+  man kam.
+- Eigene Leiste mit dem vorhandenen gesture-handler (keine neue Abhängigkeit; die fertige
+  expo-router-Tab-Ansicht lief in Expo Go nicht).
+- Die Tonnen leben **im Spiel**: Deckel, Wackeln, Partikel in der Runde und im Endscreen;
+  ein neu gefundener Gegenstand kommt aus einer animierten Tonne (Regal/Freischalt-Moment).
 
-### 2.2 Die drei Tonnen
-**🟢 Kampagne (Lernpfad)**
-- Tippen/Wurf → **öffnet den Pfad**, dort wählst du die Station selbst. Die nächste Station ist
-  hervorgehoben (Pfeil/Puls), ein Tipp darauf startet sie. Der automatische Direktstart nach dem Wurf entfällt.
-- Pfad-Seite bleibt (gefällt dir), aber die **Tagesmission** wird neu gestaltet (← #6):
-  statt KI-typischer Karten im Pfad ein **Stempelzettel** (3 Stempel, hängt wie ein Zettel an
-  der Tonne bzw. oben im Pfad als schmale Leiste). Tagesaufgabe/Flamme wandern in den
-  Startschirm-Kopf als ein einziger Chip „🔥 4 · 2/3“.
-- Nach einer Station: Endscreen im Tonnen-Stil, „Weiter“ = nächste Station, „Pfad“ = zurück zur Auswahl.
+### 2.2 Die drei Bereiche
+**🟢 Pfad (Kampagne)**
+- Öffnet beim Start. Der Lernpfad wie jetzt; die **nächste Station ist hervorgehoben**, du
+  wählst selbst und tippst zum Starten (kein Direktstart, ← #5).
+- Tagesmission als **Stempelleiste (3 Stempel)** oben im Pfad statt der Karte (← #6).
+- Nach einer Station: Endscreen mit „Nächste Station“ und „Pfad“ (zurück zur Auswahl).
 
 **🔵 Online (ein Bildschirm, 3 Reiter statt 8 Karten)**
-- Reiter **Duell · Freunde · Rangliste** (Segmented-Leiste im Tonnen-Stil).
-- **Duell:** 3 große Modus-Karten (Sprint · Survival · Trick-Küche/Parcours). Antippen →
-  kleines Blatt unten: „Zufallsgegner“ · „Freund herausfordern“. Kein extra Bildschirm.
-- **Freunde:** eigener Code groß oben, Freundesliste, **„Code eingeben“ hier drin** (← #2),
-  „Heute offen“ (Herausforderungen) darunter.
-- **Rangliste:** pro Modus, Woche/Allzeit, eigener Platz fix unten.
-- **Entfällt:** „An einem Handy“ (Duell lokal) komplett, doppelte Code-Karte, `modi.tsx`-Reste.
-  Der Ghost-Code-Wettkampf bleibt – als „Freund herausfordern“.
+- Reiter **Duell · Freunde · Rangliste**.
+- **Duell:** 3 große Modus-Karten (Sprint · Survival · Trick/Parcours; später Trick-Küche).
+  Antippen → Blatt unten „Zufallsgegner“ · „Freund herausfordern“, dann geht es los.
+- **Freunde:** eigener Code groß, **„Code eingeben“ hier drin**, Freundesliste, „Heute offen“.
+- **Rangliste:** je Modus, Woche/Allzeit, eigener Platz fix unten.
+- **Entfällt:** „An einem Handy“, doppelte Code-Karte, `modi.tsx`-Reste.
 
-**🟡 Sammlung → „Dein Regal“ (gefüllt, nicht leer)**
-Eine Seite statt Weiche + 2 Unterseiten (← #4):
-- **Kopf:** Level + XP-Balken, Flamme, Sterne gesamt, Medaillen-Zähler.
-- **Reiter Buch** (Standard, sofort sichtbar): Raster aller Gegenstände – gefunden = Modell
-  + Medaille, noch nicht = Silhouette „?“. Tippen → Detail (Tonne, Begründung, Fakt).
-- **Reiter Belohnungen:** Wurfspuren, Sticker, Truhen.
-- **Reiter Heute:** Tagesmissionen (der Stempelzettel) + Tagesaufgabe.
-- Die gelbe Tonne zeigt oben **das zuletzt gefundene Gegenstandsmodell** herausschauen
-  (lebendig statt leer, ← #7).
+**🟡 Regal (statt leerer Sammlung)**
+- Kopf: Level + XP-Balken, Flamme, Sterne gesamt, Medaillen.
+- Reiter **Buch** (Standard: Raster, gefunden = Modell + Medaille, sonst Silhouette „?“) ·
+  **Belohnungen** (Wurfspuren, Sticker, Truhen) · **Heute** (Missionen, Tagesaufgabe).
+- „12 von 60 Gegenständen“ als Sammelreiz.
 
 ### 2.3 Trickwürfe neu (← #8) – eigener Workshop
-Nicht mehr „Hindernisse auf dem Hausplatz“, sondern **eine Szene mit Sinn: die Küche**
-(Arbeitsplatte, Spüle, Hängeregal, Herd/Pfanne, Kühlschranktür …). Hindernisse sind
-alltäglich und glaubwürdig, **die 3 Tonnen stehen trotzdem davor/daneben und müssen
-unterschieden werden** (Hindernis lenkt, aber entscheidet nicht die Tonne).
-Das planen wir **gemeinsam** (siehe F9, Fragen unten), bevor ich Code anfasse.
-
-### 2.4 Lebendige Tonnen (← #7)
-Tonnen bekommen Leben: Deckel klappt beim Antippen, sie wackeln beim Treffer, und es kommt
-etwas **heraus** – Papierschnipsel, Dosenklang-Blitz, Blätter, ein Gegenstand lugt aus der
-Sammlung-Tonne. Erst nach dem Gerüst (Phase E), weil es Politur ist.
+**Küche** als Szene (Arbeitsplatte, Spüle, Hängeregal, Herd/Pfanne, Kühlschranktür …),
+alltägliche, glaubwürdige Hindernisse; **die 3 Tonnen stehen trotzdem davor/daneben und müssen
+unterschieden werden** (Hindernis lenkt, entscheidet aber nicht die Tonne). Wird gemeinsam
+geplant (F9), bevor Code entsteht.
 
 ---
 
-## 3. Phasen (Reihenfolge, Aufwand in „Sitzungen“ ≈ ein Arbeitslauf mit Test)
+## 3. Phasen (Aufwand in „Sitzungen“ ≈ ein Arbeitslauf mit Test)
 
-Regel wie bisher: je Aufgabe klein, getestet (tsc, eslint, jest, `gameplay-tester`),
-Normalmodus = Push + EAS `auto` und `preview`. Größere Umbauten laufen hinter einem
-Schalter und werden erst freigegeben, wenn der ganze Phasenteil steht (kein halber Umbau auf `preview`).
+Regel wie bisher: klein, getestet (tsc, eslint, jest, `gameplay-tester`), Normalmodus = Push +
+EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen erst auf
+`preview`, wenn der Phasenteil in sich steht (kein halber Umbau für Emre).
 
-### Phase A – Fundament: ein Design, eine Navigation (zuerst, alles baut darauf auf)
-- [ ] **F1 Bausteine „Tonnen-Stil“** – gemeinsame Komponenten in `components/ui/`:
-  Seitenkopf mit Tonnenfarbe + Zurück, Karte, Chip, Segmented-Reiter, Bottom-Sheet,
-  Fortschrittsbalken. `hub.tsx`/`page-header.tsx`/`card.tsx` zusammenführen, alle
-  bestehenden Seiten darauf umstellen (nur Optik, kein Verhalten). *1–2 Sitzungen*
-- [ ] **F2 Navigationsregeln**: ein Zurück-Weg, Endscreens kehren dorthin zurück, wo man
-  gestartet hat (Online-Duell → Online-Reiter Duell; Station → Pfad; Buch → Regal).
-  Deep-Links (`/runde?mode=…`) bleiben abwärtskompatibel. *1 Sitzung*
-- [ ] **F3 Startschirm näher & Schilder an die Tonne** (← #10, #11): Kamera/Szene weiter nach
-  vorn, Modus-Schilder und Chips an die Tonne gepinnt (Position aus der 3D-Projektion der
-  Tonne, bewegen sich mit). Kopf-Chip „🔥 Flamme · Missionen“. Beachten: Tipp-Flächen der Tonnen
-  und Kopf-Regel aus CLAUDE.md („nichts unterhalb des Level-Chips“). *2 Sitzungen*
-- [ ] **F4 Kampagne: erst Pfad, dann Station wählen** (← #5): Direktstart in `go()` (`index.tsx`)
-  entfernen, Wurf und Tippen öffnen nur `/kampagne`; nächste Station im Pfad klar hervorheben.
-  „Nächste Station“ im Endscreen bleibt. *½ Sitzung*
+### Phase A – Fundament: eine Navigation, ein Design (zuerst)
+- [ ] **F1 Bausteine „Tonnen-Stil“** – gemeinsame Komponenten in `components/ui/`: Seitenkopf,
+  Karte, Chip, Segmented-Reiter, Bottom-Sheet, Fortschrittsbalken, Stempelleiste.
+  `hub.tsx`/`page-header.tsx`/`card.tsx` zusammenführen, bestehende Seiten umstellen
+  (nur Optik, kein Verhalten). *1–2 Sitzungen*
+- [ ] **F2 Untere Leiste + Wischen** (← #1, #3): eigene Leiste mit 3 Tonnen-Icons, Bereichswechsel
+  per Antippen und Wischen, Navigationsregeln (Endscreens und Zurück kehren in den
+  Ursprungsbereich zurück; Deep-Links `/runde?mode=…` bleiben abwärtskompatibel). *2 Sitzungen*
+- [ ] **F3 Pfad als Startbereich** (← #5, #10, #11): Startschirm mit 3D-Tonnen wird durch den
+  Pfad ersetzt; Kopf-Chips (Level, Flamme, ⚙️ ❓); Direktstart nach dem Wurf (`go()` in
+  `index.tsx`) entfällt. Die 3D-Menü-Szene (`menu-scene.tsx`) wird nicht mehr geladen (Code
+  bleibt, bis alles verifiziert ist). *1–2 Sitzungen*
+- [ ] **F4 Pfad: nächste Station hervorgehoben, Stempelleiste** (← #6): Puls/Pfeil an der
+  nächsten Station, Tagesmission als 3 Stempel oben, Tagesaufgabe/Flamme im Kopf. *1 Sitzung*
 
 ### Phase B – Online aus einem Guss
 - [ ] **F5 Online-Hub mit Reitern** (Duell · Freunde · Rangliste) auf den F1-Bausteinen;
@@ -113,10 +112,10 @@ Schalter und werden erst freigegeben, wenn der ganze Phasenteil steht (kein halb
   Sprint-Gleichstand nach Zeit, Puls beim ersten Überholen, Gleichstand „knapp“. *2 Sitzungen*
 
 ### Phase C – „Dein Regal“ (Sammlung)
-- [ ] **F8 Regal-Seite** (← #4): Kopf (Level/Flamme/Sterne), Reiter Buch · Belohnungen · Heute,
+- [ ] **F8 Regal** (← #4): Kopf (Level/Flamme/Sterne), Reiter Buch · Belohnungen · Heute,
   `sammlung.tsx` + `sammelbuch.tsx` + `belohnungen.tsx` zusammenführen (Altrouten leiten um).
   Silhouetten für noch nicht gefundene Gegenstände. Tagesmissionen als Stempelzettel hierher
-  (← #6, mit F11). Gelbe Tonne zeigt zuletzt gefundenes Modell. *2–3 Sitzungen*
+  (← #6, mit F11). Neu gefundener Gegenstand kommt aus einer animierten Tonne. *2–3 Sitzungen*
 
 ### Phase D – Trick-Küche (Workshop zuerst!)
 - [ ] **F9 Workshop „Trick-Küche“** (mit dir, ohne Code): Hindernisliste, Regeln, wie die
@@ -130,10 +129,11 @@ Schalter und werden erst freigegeben, wenn der ganze Phasenteil steht (kein halb
   (Parcours des Tages ← R4c/R5d), gleicher Endscreen wie überall. *1 Sitzung*
 
 ### Phase E – Leben & Politur
-- [ ] **F12 Tagesmission neu gestalten** (← #6): Stempelzettel-Komponente, Startschirm-Chip,
-  im Pfad nur eine schmale Leiste. *1 Sitzung* (ggf. vor F8, weil beide es brauchen)
-- [ ] **F13 Lebendige Tonnen** (← #7): Deckel-/Wackel-Animation, Partikel „kommt etwas heraus“
-  je Tonne (Hot-Path-Regel beachten: keine Objekte pro Frame), Sammlung-Tonne mit Gegenstand. *2 Sitzungen*
+- [ ] **F12 Tagesmission im Regal**: Reiter „Heute“ mit denselben Stempeln wie die Pfad-Leiste
+  (Bausteine aus F4), Tagesaufgabe darunter. *½ Sitzung*
+- [ ] **F13 Lebendige Tonnen im Spiel** (← #7): Deckel-/Wackel-Animation, Partikel „kommt etwas
+  heraus“ je Tonne in der Runde und im Endscreen, neu gefundener Gegenstand aus animierter
+  Tonne (Hot-Path-Regel beachten: keine Objekte pro Frame). *2 Sitzungen*
 - [ ] **F14 Material-Effekte fertig** (← R6b): Dose knautscht beim Einwurf, Effekte auch in
   Trick-/Sprint-Runden, Gold-Spur bei Perfekt-Treffern, Boss-Sieg/-Tausch wackelt. *1–2 Sitzungen*
 - [ ] **F15 Kampagne-Reste** (← R2/R3, „Offen (klein)“): übersprungene Stationen markieren,
@@ -157,9 +157,8 @@ Szenen-Details (R9a) · Modelle nachschärfen (R9d) · Wochen-Liga.
    („Heute 2/3“) – ein Grund zum Wiederkommen statt drei Zähler.
 2. **Weiterwerfen statt Menü (nur nach einer Runde, nicht aus dem Hauptmenü):** Nach jeder Runde ein großer „Noch eine!“-Knopf in der Tonnenfarbe;
    alle anderen Wege (Pfad, Regal, Online) sind kleine Chips.
-3. **Erstes Mal geführt:** Beim ersten Start zeigt eine kleine Figur nur die **grüne** Tonne
-   (Kampagne); die anderen beiden sind „zugedeckelt“, bis man 3 Stationen hat – weniger Auswahl
-   am Anfang, mehr Entdeckung später. Hilft besonders Spielern mit wenig Deutsch.
+3. **Erstes Mal geführt:** Beim ersten Start sind nur Pfad (und Hilfe) offen; Online und Regal
+   erscheinen nach 3 Stationen – weniger Auswahl am Anfang, besonders gut bei wenig Deutsch.
 4. **Küche als Kampagnen-Welt „Zuhause“:** Sortier-Stationen (Küchenabfälle) und Trick-Stationen
    in derselben Szene – dann ist Trick kein Fremdkörper.
 5. **Tonnen sprechen:** Mini-Reaktionen (Emoji-Blase, kein Text) statt Meldungstexten – gut für
@@ -170,24 +169,21 @@ Szenen-Details (R9a) · Modelle nachschärfen (R9d) · Wochen-Liga.
 
 ---
 
-## 5. Offene Fragen an dich (bitte kurz antworten, dann arbeite ich weiter)
-1. **Release-Termin:** Gilt noch „Ende der Woche“? Der Umbau (A–E) sind realistisch **8–12 Sitzungen**
-   plus Trick-Küche 4–6. Ich würde den Termin um ca. 1–2 Wochen schieben und Phase F zuletzt machen.
-   Oder Trick-Küche erst in 1.1?
-2. **Trick-Workshop – dein Gefühl:**
-   - Soll Trick-Küche ein **eigener Modus** sein oder eine **Kampagnen-Welt**? (Ich: beides, s. Idee 4.)
-   - Wie bleiben die Tonnen **unterscheidbar**? (a) Hindernis steht *vor* nur einer Tonne und
-     lenkt zur falschen, (b) Hindernis lenkt den Wurf, aber die Tonne muss man weiter selbst
-     wählen, (c) Pflicht-Prellfläche *und* danach Zieltonne wählen. Ich würde (b)+(c) mischen.
-   - Welche Küchen-Hindernisse sollen rein? (Vorschlag: Hängeregal, Bratpfanne, Topfdeckel
-     als Trampolin, Kühlschranktür offen, Spülbecken-Bogen, Gewürzregal, fahrender Brotkorb.)
-3. **Online-Modi:** Reichen Sprint · Survival · Trick-Küche als drei Duelle?
-4. **Tonnen-Schilder:** lieber **echte 3D-Etiketten** (sehr „aus einem Guss“, aber Text auf Textur,
-   Schrift schwerer lesbar/übersetzbar) oder **gepinnte UI-Schilder** (scharf, einfach, leicht
-   anders)? Ich schlage gepinnte UI-Schilder im Tonnen-Look vor.
-5. **Tagesmission:** Stempelzettel (Idee) oder lieber ganz weglassen und nur Flamme + Tagesaufgabe?
-6. **Reihenfolge-Wunsch:** Ich würde mit **Phase A (F1–F4)** starten (löst #1, #3, #5, #10, #11
-   auf einen Schlag und ist Basis für alles). Okay?
+## 5. Entschieden / noch offen
+**Entschieden (4.11.):** Navigation = untere Leiste mit 3 Bereichen + Wischen; Tonnen nur als
+Icons in der Leiste und lebendig im Spiel (keine 3D-Menü-Szene); Pfad ist der Startbereich,
+Station wird dort selbst gewählt; Tagesmission als 3 Stempel; „An einem Handy“ und doppelte
+Code-Karte entfallen; Online mit Reitern Duell · Freunde · Rangliste.
+
+**Noch offen:**
+1. **Release-Termin:** A–E sind realistisch 8–12 Sitzungen, Trick-Küche 4–6. Vorschlag: Termin
+   1–2 Wochen schieben, Phase F zuletzt – oder Trick-Küche erst in 1.1.
+2. **Trick-Workshop (F9):** eigener Modus oder Kampagnen-Welt (Vorschlag: beides)? Tonnen
+   unterscheidbar: (a) Hindernis vor nur einer Tonne, (b) Hindernis lenkt, Tonne wählt man
+   selbst, (c) Pflicht-Prellfläche + Zieltonne (Vorschlag: b + c). Hindernisse (Vorschlag:
+   Hängeregal, Bratpfanne, Topfdeckel als Trampolin, offene Kühlschranktür, Spülbecken-Bogen,
+   Gewürzregal, fahrender Brotkorb).
+3. **Online-Duelle:** Reichen Sprint · Survival · Trick als drei Modi?
 
 ---
 
