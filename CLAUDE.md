@@ -163,6 +163,12 @@ wenig Deutsch, nie strafend.
   (riesiger Diff); Einrückung gezielt per Skript anpassen.
 - Parcours online: Server-Zeitprüfung (parcours.sql, ≤ 1 Treffer je 0,5 s) hängt an der
   250-ms-Pause nach Treffern in parcours-round.tsx – nicht verkürzen ohne Prüfung.
+- Lange Test-/Build-Läufe nur mit `run_in_background` starten (ein `&` im Shell-Aufruf stirbt mit dem
+  Aufruf, Ausgabe bleibt leer); Ergebnis erst nach der Fertigmeldung lesen. Ein `ps`-Check sieht
+  Windows-Prozesse nicht. EAS-Update scheiterte einmal im Metro-Export (Exit 1) – gleicher Befehl
+  nochmal lief durch.
+- Trick-Level: Hindernis ohne feste Zieltonne (Parcours) braucht Fairness für ALLE drei Tonnen; ein
+  Windrad mitten vor den Tonnen blockiert die Mitte (nicht lösbar) – nach 3–4 Varianten verwerfen.
 - React-Compiler „immutability“: Ein Ref, das ein früherer Effekt schon nutzt, darf kein
   späterer Effekt setzen, wenn es erst danach deklariert ist – useRef vor den ersten Effekt ziehen.
   Zeitgeber (later) lesen Render-Werte vom Start → Ghost & Co. über Ref, sonst veraltet.

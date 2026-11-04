@@ -190,7 +190,9 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   - [~] **F11b** (55cc358 + 210df75, Tester 7/10) Neue Küchen-Parcours: Servierwagen (beweglich), Kombinationen (Regal + Pendel, Wagen + Deckel),
     Standventilator; je Parcours alle 3 Spuren mit Solver-Test (Fairness 0,6–0,86), Texte DE/EN. *2 Sitzungen*
     ✓ Parcours 8 Servierwagen (fahrendes Trampolin über alle Tonnen, Tablett/Rollen/Griff). Offen: Kombinationen
-    (Regal + Pendel), Standventilator; Tablett wippt beim Treffer nicht.
+    (Regal + Pendel); Tablett wippt beim Treffer nicht. **Standventilator-Parcours verworfen** (4 Varianten: Mitte, y 2,8–3,4,
+    Periode 4,5–6, x 0,5 – je mindestens eine Tonne nicht fair lösbar); Idee: Ventilator seitlich + Wind statt Blätter
+    in der Bahn, oder nur als Dekoration.
   - [~] **F11c** (6087673, Tester 9/10) Tour in der App: Rubrik „Küche“ in der Trickwurf-Seite (Parcours) vor „Klassik“; Pfad-Trick-Schule und
     Online-Trick-Duell (Parcours des Tages) nutzen die Küchen-Parcours; Hinweis „Neue Welt“. *1 Sitzung*
     ✓ Küchen-Parcours mit Unterüberschrift „🍳 Küche“ in den Trickwürfen. Offen: Pfad-Trick-Schule/Online-Duell
