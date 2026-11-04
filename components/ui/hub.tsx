@@ -59,7 +59,7 @@ export function HubScreen({
           },
         ]}
       >
-        <PageHeader title={title} subtitle={subtitle} emoji={emoji} area={area} hideBack={shell.inShell} />
+        <PageHeader title={title} subtitle={subtitle} emoji={emoji} area={area} hideBack={shell.inShell} compact={shell.inShell} />
         {children}
       </ScrollView>
     </View>

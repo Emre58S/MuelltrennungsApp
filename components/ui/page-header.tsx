@@ -34,6 +34,7 @@ export function PageHeader({
   onBack = goBack,
   area,
   hideBack,
+  compact,
   children,
 }: {
   title: string;
@@ -45,11 +46,32 @@ export function PageHeader({
   area?: Area;
   /** Kein Zurück-Pfeil (Seite steht im Bereichs-Menü, hat nichts dahinter). */
   hideBack?: boolean;
+  /** Eine schmale Zeile (Titel + Symbol) ohne Untertitel – für die Bereiche mit fester Leiste. */
+  compact?: boolean;
   /** Zusätzlicher Inhalt unten in der Karte (z. B. Fortschritt). */
   children?: ReactNode;
 }) {
   const { t } = useI18n();
   const ink = area?.on ?? "#FFFFFF";
+  if (compact) {
+    return (
+      <FadeIn>
+        <LinearGradient
+          colors={area?.sky ?? SKY}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.compactCard}
+        >
+          <AppText variant="title" color={ink} accessibilityRole="header" style={styles.compactTitle}>
+            {title}
+          </AppText>
+          <View style={styles.compactBadge} importantForAccessibility="no" accessibilityElementsHidden>
+            <Text style={styles.compactEmoji}>{emoji}</Text>
+          </View>
+        </LinearGradient>
+      </FadeIn>
+    );
+  }
   return (
     <FadeIn>
       <LinearGradient colors={area?.sky ?? SKY} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
@@ -91,6 +113,26 @@ export function PageHeader({
 }
 
 const styles = StyleSheet.create({
+  compactCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+    borderRadius: Radius.lg + 6,
+    paddingVertical: Spacing.sm + 2,
+    paddingLeft: Spacing.md + 4,
+    paddingRight: Spacing.sm + 2,
+  },
+  compactTitle: { flexShrink: 1 },
+  compactBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+  },
+  compactEmoji: { fontSize: 24 },
   card: {
     borderRadius: Radius.lg + 6,
     padding: Spacing.md + 4,
