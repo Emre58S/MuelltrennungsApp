@@ -328,6 +328,10 @@ export function trickTarget(
   const open = levels.find((l) => (trickStars[l] ?? 0) < 1);
   const level =
     open ?? levels.reduce((a, b) => ((trickStars[b] ?? 0) < (trickStars[a] ?? 0) ? b : a));
-  const locked = level > 1 && (trickStars[level - 1] ?? 0) < 1;
+  // Die Küche ist eine eigene Reihe: ihr erstes Level ist immer offen (wie in der Trickwurf-Liste)
+  const kitchenStart =
+    TRICK_LEVELS.find((l) => l.id === level)?.scene === "kueche" &&
+    TRICK_LEVELS.find((l) => l.id === level - 1)?.scene !== "kueche";
+  const locked = level > 1 && !kitchenStart && (trickStars[level - 1] ?? 0) < 1;
   return { level, locked };
 }
