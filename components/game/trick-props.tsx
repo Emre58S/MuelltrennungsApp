@@ -577,14 +577,20 @@ function trampolineFrame(t: TrampolineCollider, kitchen?: boolean): THREE.Object
         post.position.set(sx * (hw - 0.05), (t.y + 0.08) / 2 - 0.02, sz * (hd - 0.05));
         g.add(post);
         const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8), lowpoly("#2E2E32"));
-        wheel.rotation.z = Math.PI / 2;
+        // Achse in z: der Wagen fährt in x
+        wheel.rotation.x = Math.PI / 2;
         wheel.position.set(sx * (hw - 0.05), 0.04, sz * (hd - 0.05));
         g.add(wheel);
       }
-    // Griff an der Längsseite
+    // Griff an der Längsseite, mit zwei Haltern auf dem Tablett
     const handle = new THREE.Mesh(new THREE.BoxGeometry(hw * 1.2, 0.03, 0.03), steel);
     handle.position.set(0, t.y + 0.14, hd * 0.9);
     g.add(handle);
+    for (const side of [-1, 1]) {
+      const stay = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.14, 6), steel);
+      stay.position.set(side * hw * 0.6, t.y + 0.07, hd * 0.9);
+      g.add(stay);
+    }
     const cart = bake(g);
     g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
     return cart;
