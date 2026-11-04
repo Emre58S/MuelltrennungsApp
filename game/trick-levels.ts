@@ -624,13 +624,13 @@ const CLASSIC_PARCOURS: ParcoursLevel[] = [
 ];
 
 /** Küchen-Parcours: dieselben vier Prüfungen, aber mit Objekten, die in die Küche gehören
- *  (Küchenrolle am Faden, Töpfe mit Deckel, Standregal mit Fächern, Deckel-Takt). */
+ *  (Küchenrolle am Faden, Töpfe mit Deckel, Standregal mit Fächern). Der Deckel-Takt hat kein
+ *  Objekt und bleibt ohne Küchen-Kopie. */
 export const PARCOURS: ParcoursLevel[] = [
   ...CLASSIC_PARCOURS,
   inKitchen(CLASSIC_PARCOURS[0], 5, "trick.task.swingKitchen"),
   inKitchen(CLASSIC_PARCOURS[1], 6, "trick.task.potLanes"),
   inKitchen(CLASSIC_PARCOURS[2], 7, "trick.task.shelf"),
-  inKitchen(CLASSIC_PARCOURS[3], 8, "trick.task.flapAll"),
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */

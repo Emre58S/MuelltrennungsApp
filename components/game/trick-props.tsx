@@ -401,14 +401,16 @@ function boardModel(b: BoardCollider, kitchen?: boolean): THREE.Object3D {
     edge.position.y = side * (b.halfH - 0.03);
     g.add(edge);
   }
-  if (b.post) {
-    // vom Boden (y = 0) bis zur Oberkante der Tafel
+  // Pfosten vom Boden (y = 0) bis zur Oberkante der Tafel. Küche: jedes Feld steht auf zwei
+  // Holzbeinen (an den Nachbarfeldern fallen sie zusammen) – das Regal schwebt nicht.
+  const posts: (1 | -1)[] = kitchen ? [-1, 1] : b.post ? [b.post] : [];
+  for (const side of posts) {
     const height = b.y + b.halfH;
     const post = new THREE.Mesh(
       kitchen ? new THREE.BoxGeometry(0.09, height, 0.09) : new THREE.CylinderGeometry(0.045, 0.045, height, 8),
       lowpoly(kitchen ? "#A27447" : "#D9DDE1"),
     );
-    post.position.set(b.post * (b.halfW + 0.045), height / 2 - b.y, 0);
+    post.position.set(side * (b.halfW + 0.045), height / 2 - b.y, 0);
     g.add(post);
   }
   const baked = bake(g);
