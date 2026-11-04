@@ -942,7 +942,14 @@ export const ThrowLayer = memo(function ThrowLayer({
       } else if (s.phase === "sink") {
         s.p = Math.min(s.p + delta / 0.22, 1);
         g.position.set(s.target.x, s.target.y - s.p * 0.6, s.target.z);
-        g.scale.setScalar(endScale * (1 - s.p * 0.85));
+        const sunk = endScale * (1 - s.p * 0.85);
+        if (!fx.current.calm && itemMaterial(s.spec.item) === "metall") {
+          // Metall (Dose, Alufolie …) wird beim Einwurf kurz zusammengedrückt: breiter und flacher
+          const squash = Math.sin(Math.min(s.p * 2, 1) * Math.PI);
+          g.scale.set(sunk * (1 + 0.3 * squash), sunk * (1 - 0.5 * squash), sunk * (1 + 0.3 * squash));
+        } else {
+          g.scale.setScalar(sunk);
+        }
         g.rotation.y += delta * 4;
         if (s.p >= 1) s.phase = "fade";
       } else if (s.phase === "bounce") {
