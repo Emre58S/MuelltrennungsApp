@@ -641,6 +641,18 @@ export const PARCOURS: ParcoursLevel[] = [
     task: "trick.task.cart",
     scene: "kueche",
   },
+  // Töpfe mit Deckel vor allen Tonnen UND alle Tonnendeckel klappen im Takt
+  {
+    id: 9,
+    props: [-TRAMP_SIDE, 0, TRAMP_SIDE].map((x) => trampoline(x, undefined, 2.3, 0.52)),
+    lanes: [[0], [1], [2]],
+    seconds: 25,
+    binFlap: { period: 2.8 },
+    flapAll: true,
+    bonus: "firstTry",
+    task: "trick.task.potFlap",
+    scene: "kueche",
+  },
 ];
 
 /* ── Physik und Wertung ───────────────────────────────────── */

@@ -152,6 +152,7 @@ export const de = {
   "trick.task.potLanes": "Auf den Topfdeckel vor deiner Tonne",
   "trick.task.shelf": "Durchs Regalfach vor deiner Tonne",
   "trick.task.cart": "Aufs Tablett – wenn der Servierwagen vor deiner Tonne ist",
+  "trick.task.potFlap": "Auf den Topfdeckel – wenn dein Tonnendeckel offen ist",
   "trick.task.flapAll": "Alle Deckel klappen – wirf, wenn sie offen sind",
   "trick.task.trampolineRing": "Aufs Trampolin, dann durch den Reifen",
   "trick.task.trampolineMoving": "Triff das Trampolin vor der Tonne",
