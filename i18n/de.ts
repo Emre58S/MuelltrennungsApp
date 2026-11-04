@@ -575,6 +575,7 @@ export const de = {
   "duel.quit.title": "Duell beenden?",
   "duel.quit.message": "Der Spielstand wird nicht gespeichert.",
   "duel.quit.confirm": "Beenden",
+  "campaign.go": "Los!",
   "hub.campaign.title": "Kampagne",
   "hub.campaign.subtitle": "Allein spielen, lernen und üben.",
   "hub.group.quick": "Schnell spielen – gegen andere",

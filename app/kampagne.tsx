@@ -788,6 +788,19 @@ function StationDot({
             {unlocked ? station.id : "🔒"}
           </AppText>
         </Pressable>
+        {/* „Los!“ neben der aktuellen Station – auf der Seite, die im Zickzack frei bleibt */}
+        {isCurrent && unlocked && (
+          <View
+            pointerEvents="none"
+            importantForAccessibility="no"
+            accessibilityElementsHidden
+            style={[styles.goBadge, { backgroundColor: color }, offset > 0 ? styles.goBadgeLeft : styles.goBadgeRight]}
+          >
+            <AppText variant="label" color="#FFFFFF" numberOfLines={1}>
+              {t("campaign.go")}
+            </AppText>
+          </View>
+        )}
         {station.kind && (
           <View pointerEvents="none" style={[styles.kind, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <AppText style={styles.kindEmoji}>{KIND_EMOJI[station.kind]}</AppText>
@@ -902,6 +915,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  goBadge: {
+    position: "absolute",
+    top: (DOT + 12) / 2 - 15,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    borderWidth: 2,
+    borderColor: "#FFD54A",
+  },
+  goBadgeRight: { left: DOT + 18 },
+  goBadgeLeft: { right: DOT + 18 },
   dotCurrent: { width: DOT + 12, height: DOT + 12, borderRadius: (DOT + 12) / 2, borderWidth: 4 },
   kind: {
     position: "absolute",

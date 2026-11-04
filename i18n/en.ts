@@ -576,6 +576,7 @@ export const en: Translations = {
   "duel.quit.title": "End the duel?",
   "duel.quit.message": "The score will not be saved.",
   "duel.quit.confirm": "End",
+  "campaign.go": "Go!",
   "hub.campaign.title": "Campaign",
   "hub.campaign.subtitle": "Play alone, learn and practise.",
   "hub.group.quick": "Quick play – against others",
