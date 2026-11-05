@@ -181,3 +181,18 @@ wenig Deutsch, nie strafend.
 - React-Compiler „immutability“: Ein Ref, das ein früherer Effekt schon nutzt, darf kein
   späterer Effekt setzen, wenn es erst danach deklariert ist – useRef vor den ersten Effekt ziehen.
   Zeitgeber (later) lesen Render-Werte vom Start → Ghost & Co. über Ref, sonst veraltet.
+- Trick-Hindernisse brauchen einen **Bezug zur Szene** (Nutzer, 5.11.): nichts hängt „aus dem Nichts“
+  (Reifen/Rahmen an Seilen), kein Objekt, dessen Form nicht zur Fläche passt (Fahrrad/Bollerwagen verworfen: lang,
+  oben nichts Flaches). Hindernisse lieber **in der Luft oder hinter den Tonnen** statt Boden-Trampoline (kurze
+  Würfe sind schwer); **Durchwurf-Dinge, die zerbrechen**, sind erwünscht. Der Kamerarahmen zeigt nur ca. y ≤ 5,6 –
+  Aufhängungen (Kranarm) liegen außerhalb: Mast/Umgebung zeigen, Seil führt nach oben. Immer erst Bild an den Nutzer.
+- React-Compiler „immutability“: Eine neue Komponente mit `useFrame`, die `geometry.attributes…needsUpdate` setzt und von
+  einer Elternkomponente gerendert wird, ließ **sechs Fehler in alten Komponenten derselben Datei** erscheinen
+  (trick-props.tsx). Abhilfe: in eigene Datei auslagern (z. B. wash-line.tsx, glass-pane.tsx) und die eine Zeile mit
+  `// eslint-disable-next-line react-hooks/immutability` begründen.
+- Web-Server für `tools/shot.mjs` läuft nur, solange er gestartet ist: `npx expo start --web --port 8081` mit
+  run_in_background; nach Codeänderungen kommt manchmal „Server Error: Requiring unknown module“ oder „Bundling…“ im
+  Bild – Aufruf einfach wiederholen. Port-Check mit `curl` hängt, solange gebündelt wird.
+- Szenen-Bausteine: SceneKind (stage.tsx) + SCENE_BINS (bins.ts) + `scene` in ParcoursLevel + Prop an `TrickProps`;
+  Parcours-Ids ≤ 20 gehen online in die Rangliste (parcours.sql), darüber nicht. Szenen-Kopien bekannter Parcours
+  (flapAll, Pendel, Wind, slideAll) sind ohne neue Physik fair – Test nur `-t "Parcours (N|M)"`.

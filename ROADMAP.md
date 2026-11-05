@@ -15,6 +15,9 @@ Tricks komplett als Allerletztes.** F12 (Reiter „Heute“ im Regal) ist umgese
 Tonnen, F14 Material-Effekte, F15 Kampagne-Reste (frische Sitzung!), F7 (braucht SQL), F16–F20 Release (brauchen den
 Nutzer). **Offen bei Tricks (zuletzt):** Park (Drachen im Wind u. a.), fahrende Autos, zerbrechliche Ziele (Flaschen auf
 Mauer), ausgeblendete Küchen-Parcours 20–23 neu denken oder streichen, 28 Klassik-Level auf natürliche Hindernisse.
+Kleine Tester-Funde Straße: „Weniger Bewegung“ (`calm`) lässt die Scherben trotzdem fliegen (besser nur ausblenden);
+Ampel passt nur bei `flapAll` (gleiche Phase für alle Deckel); Ampel hinten rechts auf kleinem Handy prüfen; Hof-Parcours
+15/16 sind Kopien von Büro 11/12 (nur Kulisse) – ggf. eigener Trick (Wäsche als echtes Hindernis, Variante 2).
 
 **Stand 5.11., 00:10:** Trick-Tour neu nach Nutzer-Kritik („unnatürlich, schwebt, verrät die Zieltonne“): Hindernisse
 kommen jetzt aus der Szene. **Ausgeliefert (auto + preview): Küchen-Parcours 5 Saugroboter, 6 klappende Deckel,
