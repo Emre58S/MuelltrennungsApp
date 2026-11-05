@@ -77,6 +77,36 @@ function annulus(outer: number, inner: number, depth: number): THREE.BufferGeome
   return geo;
 }
 
+/** Büro: LED-Ringleuchte an zwei Kabeln von der Decke – das Pendel über allen Tonnen. Der leuchtende Ring ist
+ *  die Öffnung (gleiche Maße wie die Physik: Mitte der Röhre = radius), die Kabel laufen oben aus dem Bild
+ *  (Aufhängung an der Decke). Mitte im Ursprung. */
+function ledRing(radius: number, tube: number, length: number): THREE.Object3D {
+  const g = new THREE.Group();
+  // Leuchtender Ring (hell, mit Eigenleuchten) auf einem schmalen dunklen Träger dahinter
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(radius, tube * 0.8, 10, 36), lowpoly("#FFFFFF", { emissive: "#E4F1FF" })));
+  const carrier = new THREE.Mesh(new THREE.TorusGeometry(radius, tube * 0.45, 8, 36), lowpoly("#3A4149"));
+  carrier.position.z = -tube * 0.55;
+  g.add(carrier);
+  // Zwei Kabel von den oberen Ringseiten zu einem Aufhängepunkt `length` über der Mitte
+  const top = radius + tube;
+  for (const side of [-1, 1]) {
+    const x0 = side * radius * 0.55;
+    const y0 = Math.sqrt(Math.max(radius * radius - x0 * x0, 0)) + tube * 0.4;
+    const len = Math.hypot(0 - x0, length - y0);
+    const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, len, 5), lowpoly("#2E3338"));
+    cable.position.set(x0 / 2, (length + y0) / 2, 0);
+    cable.rotation.z = Math.atan2(x0, length - y0);
+    g.add(cable);
+  }
+  const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 8), lowpoly("#2E3338"));
+  mount.position.y = length + 0.02;
+  g.add(mount);
+  void top;
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
 /** Küche: Küchenrolle am Faden – das Pendel über allen Tonnen. Papier (weiß) um ein Papprohr
  *  (braun); das Rohr ist die Öffnung (gleiche Maße wie die Physik: Mitte der Röhre = radius). */
 function kitchenRoll(radius: number, tube: number, length: number): THREE.Object3D {
@@ -125,7 +155,7 @@ function swingTire(radius: number, tube: number, length: number): THREE.Object3D
   return baked;
 }
 
-const Ring = memo(function Ring({ ring, bus, kitchen }: { ring: RingCollider; bus: BusRef; kitchen?: boolean }) {
+const Ring = memo(function Ring({ ring, bus, kitchen, office }: { ring: RingCollider; bus: BusRef; kitchen?: boolean; office?: boolean }) {
   const group = useRef<THREE.Group>(null);
   const glow = useRef<THREE.Mesh>(null);
   const swing = ring.motion?.kind === "swing" ? ring.motion : undefined;
@@ -133,11 +163,13 @@ const Ring = memo(function Ring({ ring, bus, kitchen }: { ring: RingCollider; bu
   const model = useMemo(
     () =>
       length
-        ? kitchen
-          ? kitchenRoll(ring.radius, ring.tube, length)
-          : swingTire(ring.radius, ring.tube, length)
+        ? office
+          ? ledRing(ring.radius, ring.tube, length)
+          : kitchen
+            ? kitchenRoll(ring.radius, ring.tube, length)
+            : swingTire(ring.radius, ring.tube, length)
         : hoop(ring.radius, ring.tube),
-    [ring.radius, ring.tube, length, kitchen],
+    [ring.radius, ring.tube, length, kitchen, office],
   );
   const glowGeo = useMemo(
     () => new THREE.TorusGeometry(ring.radius, ring.tube * (length ? 1.4 : 2.2), 8, 36),
@@ -850,7 +882,7 @@ export const TrickProps = memo(function TrickProps({
     <>
       {props.map((prop) =>
         prop.kind === "ring" ? (
-          <Ring key={prop.id} ring={prop} bus={bus} kitchen={kitchen} />
+          <Ring key={prop.id} ring={prop} bus={bus} kitchen={kitchen} office={office} />
         ) : prop.kind === "windmill" ? (
           <Windmill key={prop.id} mill={prop} bus={bus} />
         ) : prop.kind === "sign" && prop.look === "fence" ? (

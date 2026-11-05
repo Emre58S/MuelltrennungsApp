@@ -670,12 +670,12 @@ export const KITCHEN_PARCOURS: ParcoursLevel[] = [
 /** Küchen-Parcours in Arbeit – bewusst NICHT in der Liste (Nutzer, 4.11.: Küchenrolle, Töpfe und Regal wirken
  *  unnatürlich/verdecken die Tonnen). Per Direktlink erreichbar, bis eine bessere Fassung steht. */
 export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
-  inKitchen(CLASSIC_PARCOURS[0], 9, "trick.task.swingKitchen"),
-  inKitchen(CLASSIC_PARCOURS[1], 10, "trick.task.potLanes"),
-  inKitchen(CLASSIC_PARCOURS[2], 11, "trick.task.shelf"),
+  inKitchen(CLASSIC_PARCOURS[0], 20, "trick.task.swingKitchen"),
+  inKitchen(CLASSIC_PARCOURS[1], 21, "trick.task.potLanes"),
+  inKitchen(CLASSIC_PARCOURS[2], 22, "trick.task.shelf"),
   // Töpfe mit Deckel vor allen Tonnen UND alle Tonnendeckel klappen im Takt
   {
-    id: 12,
+    id: 23,
     props: [-TRAMP_SIDE, 0, TRAMP_SIDE].map((x) => trampoline(x, undefined, 2.3, 0.52)),
     lanes: [[0], [1], [2]],
     seconds: 25,
@@ -687,11 +687,33 @@ export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
   },
 ];
 
-/** Büro-Parcours in Arbeit (Nutzer, 5.11.: nächste Szene nach der Küche) – nicht in der Liste, per Link erreichbar. */
-export const OFFICE_PARCOURS_WIP: ParcoursLevel[] = [
+/** Büro-Parcours, die das Spiel zeigt (Nutzer, 5.11.: nächste Szene nach der Küche, Tricks aus der Szene):
+ *  9 Rollhocker (fahrendes Trampolin am Boden) · 10 Zugluft (Papierschnipsel) · 11 rollende Tonnen ·
+ *  12 klappende Deckel. */
+export const OFFICE_PARCOURS: ParcoursLevel[] = [
+  // Rollhocker rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist
+  {
+    id: 9,
+    props: [trampoline(0, { amp: TRAMP_SIDE, period: 5.2 }, 2.3, 0.52)],
+    lanes: [[0], [0], [0]],
+    seconds: 30,
+    bonus: "swish",
+    task: "trick.task.stool",
+    scene: "buero",
+  },
+  // Zugluft im Büro: Papierschnipsel fliegen von rechts, Wurf gegen den Wind abstimmen
+  {
+    id: 10,
+    props: [fan(0, -6)],
+    lanes: [[], [], []],
+    seconds: 30,
+    bonus: "firstTry",
+    task: "trick.task.draft",
+    scene: "buero",
+  },
   // Büro-Tonnen auf Rollen: alle fahren vor und zurück, jede im eigenen Takt
   {
-    id: 20,
+    id: 11,
     props: [],
     lanes: [[], [], []],
     binSlide: { axis: "z", amp: 0.4, shift: 0.4, period: 6 },
@@ -702,31 +724,17 @@ export const OFFICE_PARCOURS_WIP: ParcoursLevel[] = [
     scene: "buero",
   },
   // Alle Tonnendeckel klappen im Takt (Büro-Kulisse)
-  { ...CLASSIC_PARCOURS[3], id: 21, scene: "buero" },
-  // Rollhocker rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist
-  {
-    id: 22,
-    props: [trampoline(0, { amp: TRAMP_SIDE, period: 5.2 }, 2.3, 0.52)],
-    lanes: [[0], [0], [0]],
-    seconds: 30,
-    bonus: "swish",
-    task: "trick.task.stool",
-    scene: "buero",
-  },
-  // Zugluft im Büro: Papierschnipsel fliegen von rechts, Wurf gegen den Wind abstimmen
-  {
-    id: 23,
-    props: [fan(0, -6)],
-    lanes: [[], [], []],
-    seconds: 30,
-    bonus: "firstTry",
-    task: "trick.task.draft",
-    scene: "buero",
-  },
+  { ...CLASSIC_PARCOURS[3], id: 12, scene: "buero" },
+];
+
+/** Büro-Parcours in Arbeit – noch nicht in der Liste (Nutzer sieht sie erst als Bild), per Link erreichbar. */
+export const OFFICE_PARCOURS_WIP: ParcoursLevel[] = [
+  // LED-Ringleuchte pendelt von der Decke über alle Tonnen: durchwerfen, wenn sie vor DEINER Tonne ist
+  { ...CLASSIC_PARCOURS[0], id: 30, scene: "buero", task: "trick.task.ringLamp" },
 ];
 
 /** Die Parcours, die das Spiel anzeigt und für den Tages-Parcours zieht. */
-export const PARCOURS: ParcoursLevel[] = [...CLASSIC_PARCOURS, ...KITCHEN_PARCOURS];
+export const PARCOURS: ParcoursLevel[] = [...CLASSIC_PARCOURS, ...KITCHEN_PARCOURS, ...OFFICE_PARCOURS];
 
 /* ── Physik und Wertung ───────────────────────────────────── */
 

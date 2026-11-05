@@ -194,17 +194,17 @@ export default function TricksScreen() {
           {PARCOURS.map((p, i) => {
             const best = parcoursBest[p.id] ?? 0;
             const sub = best > 0 ? t("parcours.best", { n: best }) : t("parcours.noBest");
-            // Küchen-Parcours (Objekte aus der Küche) beginnen mit einer eigenen Unterüberschrift
-            const kitchenStart = p.scene === "kueche" && PARCOURS[i - 1]?.scene !== "kueche";
+            // Parcours einer Szene (Küche, Büro) beginnen mit einer eigenen Unterüberschrift
+            const sceneStart = (p.scene === "kueche" || p.scene === "buero") && PARCOURS[i - 1]?.scene !== p.scene;
             return (
               <Fragment key={p.id}>
-              {kitchenStart && (
+              {sceneStart && (
                 <View style={styles.subGroup}>
                   <AppText variant="label" tone="textSecondary" accessibilityRole="header">
-                    🍳 {t("parcours.kitchen")}
+                    {p.scene === "buero" ? `💼 ${t("parcours.office")}` : `🍳 ${t("parcours.kitchen")}`}
                   </AppText>
                   <AppText variant="caption" tone="textMuted">
-                    {t("parcours.kitchenDesc")}
+                    {t(p.scene === "buero" ? "parcours.officeDesc" : "parcours.kitchenDesc")}
                   </AppText>
                 </View>
               )}
