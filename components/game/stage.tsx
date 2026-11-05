@@ -15,7 +15,7 @@ import * as THREE from "three";
 import { lowpoly } from "./materials";
 import { Baked } from "./model-cache";
 
-export type SceneKind = "haus" | "ziegel" | "garten" | "kueche";
+export type SceneKind = "haus" | "ziegel" | "garten" | "kueche" | "buero";
 /** Szenen, die von Runde zu Runde wechseln. Die Küche gibt es nur, wenn ein Trick-Level sie verlangt. */
 const ORDER: SceneKind[] = ["haus", "ziegel", "garten"];
 let counter = 0;
@@ -611,6 +611,178 @@ function KitchenScene() {
   );
 }
 
+/* ── Büro (Trickwürfe) ──────────────────────────────────────── */
+
+const OFFICE = {
+  wall: "#E9EDF2",
+  wainscot: "#CBD3DD",
+  carpetA: "#B9C1CC",
+  carpetB: "#ACB5C1",
+  deskTop: "#D9C3A1",
+  deskBody: "#5F6B7C",
+  screen: "#2B2F36",
+  glow: "#6FA8D8",
+  keys: "#C9CFD8",
+  shelf: "#7B5E3C",
+  glass: "#CDEBFA",
+  frame: "#FFFFFF",
+  slat: "#F2F4F7",
+  pot: "#D9744F",
+  leaf: "#6FBF73",
+  board: "#FFFFFF",
+};
+const FOLDERS = ["#E2574C", "#3D82D9", "#2FA86E", "#F5B800", "#8E5BD6", "#E2574C", "#3D82D9"];
+
+/** Boden: Teppichfliesen im Schachbrett (gebacken, ein Zeichenaufruf). */
+function OfficeFloor() {
+  const tiles: [number, number][] = [];
+  const size = 1.1;
+  for (let ix = -8; ix <= 8; ix++)
+    for (let iz = -3; iz <= 6; iz++) if ((ix + iz) % 2 === 0) tiles.push([ix * size, -1.3 + iz * size]);
+  return (
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 1.5]} material={lowpoly(OFFICE.carpetA)} receiveShadow>
+        <planeGeometry args={[30, 20]} />
+      </mesh>
+      {tiles.map(([x, z]) => (
+        <mesh key={`${x}|${z}`} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.01, z]} material={lowpoly(OFFICE.carpetB)}>
+          <planeGeometry args={[size, size]} />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+/** Monitor auf dem Schreibtisch (Fuß, Rahmen, leuchtender Bildschirm). */
+function OfficeMonitor({ x }: { x: number }) {
+  return (
+    <group position={[x, 1.0, WALL_Z + 0.5]}>
+      <mesh position={[0, 0.03, 0]} material={lowpoly("#3A3F47")}>
+        <boxGeometry args={[0.34, 0.03, 0.22]} />
+      </mesh>
+      <mesh position={[0, 0.17, 0]} material={lowpoly("#3A3F47")}>
+        <boxGeometry args={[0.05, 0.26, 0.05]} />
+      </mesh>
+      <mesh position={[0, 0.5, 0]} material={lowpoly(OFFICE.screen)} castShadow>
+        <boxGeometry args={[0.95, 0.56, 0.05]} />
+      </mesh>
+      <mesh position={[0, 0.5, 0.03]} material={lowpoly(OFFICE.glow, { emissive: "#3B6C94" })}>
+        <boxGeometry args={[0.86, 0.47, 0.01]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Aktenregal an der Seite: Bretter mit bunten Ordnern. */
+function OfficeShelf({ x }: { x: number }) {
+  return (
+    <group position={[x, 2.15, WALL_Z + 0.32]}>
+      <mesh material={lowpoly(OFFICE.shelf)} castShadow>
+        <boxGeometry args={[2.1, 2.4, 0.04]} />
+      </mesh>
+      {[-0.95, -0.35, 0.25, 0.85].map((y) => (
+        <group key={y}>
+          <mesh position={[0, y, 0.15]} material={lowpoly(OFFICE.shelf)}>
+            <boxGeometry args={[2.1, 0.04, 0.3]} />
+          </mesh>
+          {FOLDERS.map((c, i) => (
+            <mesh key={i} position={[-0.8 + i * 0.27, y + 0.2, 0.15]} material={lowpoly(c)}>
+              <boxGeometry args={[0.13, 0.36, 0.22]} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+      <mesh position={[-1.03, 0, 0.15]} material={lowpoly(OFFICE.shelf)}>
+        <boxGeometry args={[0.04, 2.4, 0.3]} />
+      </mesh>
+      <mesh position={[1.03, 0, 0.15]} material={lowpoly(OFFICE.shelf)}>
+        <boxGeometry args={[0.04, 2.4, 0.3]} />
+      </mesh>
+    </group>
+  );
+}
+
+function OfficeScene() {
+  return (
+    <>
+      {/* Wand mit helleren Paneelen unten und einer Leiste */}
+      <mesh position={[0, 3, WALL_Z]} material={lowpoly(OFFICE.wall)} receiveShadow>
+        <boxGeometry args={[18, 6, 0.3]} />
+      </mesh>
+      <mesh position={[0, 0.55, WALL_Z + 0.17]} material={lowpoly(OFFICE.wainscot)}>
+        <boxGeometry args={[18, 1.1, 0.04]} />
+      </mesh>
+      <mesh position={[0, 1.12, WALL_Z + 0.2]} material={lowpoly("#9FA9B6")}>
+        <boxGeometry args={[18, 0.04, 0.06]} />
+      </mesh>
+
+      {/* Schreibtisch über die ganze Breite */}
+      <mesh position={[0, 0.96, WALL_Z + 0.5]} material={lowpoly(OFFICE.deskTop)} castShadow receiveShadow>
+        <boxGeometry args={[18, 0.06, 0.8]} />
+      </mesh>
+      <mesh position={[0, 0.46, WALL_Z + 0.42]} material={lowpoly(OFFICE.deskBody)} receiveShadow>
+        <boxGeometry args={[18, 0.9, 0.6]} />
+      </mesh>
+      {[-6, -4, -2, 0, 2, 4, 6].map((x) => (
+        <mesh key={x} position={[x, 0.46, WALL_Z + 0.73]} material={lowpoly("#4C5766")}>
+          <boxGeometry args={[0.03, 0.82, 0.02]} />
+        </mesh>
+      ))}
+
+      {/* Details nur an den Seiten (hinter den Tonnen bleibt es ruhig) */}
+      <OfficeMonitor x={-2.3} />
+      <OfficeMonitor x={3.6} />
+      <mesh position={[-2.3, 0.99, WALL_Z + 0.85]} material={lowpoly(OFFICE.keys)}>
+        <boxGeometry args={[0.55, 0.025, 0.18]} />
+      </mesh>
+      <OfficeShelf x={-4.7} />
+
+      {/* Whiteboard */}
+      <group position={[-2.1, 2.5, WALL_Z + 0.17]}>
+        <mesh material={lowpoly("#B7C0CC")}>
+          <boxGeometry args={[1.5, 0.98, 0.04]} />
+        </mesh>
+        <mesh position={[0, 0, 0.025]} material={lowpoly(OFFICE.board)}>
+          <boxGeometry args={[1.4, 0.88, 0.01]} />
+        </mesh>
+        {[0.25, 0.05, -0.15].map((y, i) => (
+          <mesh key={y} position={[-0.2 + i * 0.05, y, 0.035]} material={lowpoly(i === 1 ? "#3D82D9" : "#9AA3AC")}>
+            <boxGeometry args={[0.8 - i * 0.12, 0.03, 0.005]} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Fenster mit Jalousie (gleiche Stelle wie in der Küche) */}
+      <group position={[KITCHEN_WINDOW_X, 2.55, WALL_Z + 0.17]}>
+        <mesh material={lowpoly(OFFICE.frame)}>
+          <boxGeometry args={[1.3, 1.05, 0.06]} />
+        </mesh>
+        <mesh position={[0, 0, 0.035]} material={lowpoly(OFFICE.glass, { emissive: "#6FA8C8" })}>
+          <boxGeometry args={[1.14, 0.9, 0.02]} />
+        </mesh>
+        {[0.34, 0.2, 0.06].map((y) => (
+          <mesh key={y} position={[0, y, 0.055]} material={lowpoly(OFFICE.slat)}>
+            <boxGeometry args={[1.14, 0.05, 0.01]} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Zimmerpflanze rechts */}
+      <group position={[2.35, 0, WALL_Z + 0.75]}>
+        <mesh position={[0, 0.25, 0]} material={lowpoly(OFFICE.pot)} castShadow>
+          <cylinderGeometry args={[0.26, 0.2, 0.5, 8]} />
+        </mesh>
+        <mesh position={[0, 0.85, 0]} material={lowpoly(OFFICE.leaf)} castShadow>
+          <icosahedronGeometry args={[0.45, 0]} />
+        </mesh>
+        <mesh position={[0.18, 1.2, 0.05]} material={lowpoly("#58A85D")} castShadow>
+          <icosahedronGeometry args={[0.3, 0]} />
+        </mesh>
+      </group>
+    </>
+  );
+}
+
 /* ── Bühne ─────────────────────────────────────────────────── */
 
 export const Stage = memo(function Stage({
@@ -630,12 +802,13 @@ export const Stage = memo(function Stage({
   const p = useMemo(() => (weather === "rain" ? overcast(LIGHT) : LIGHT), [weather]);
   const garden = scene === "garten";
 
-  // Drinnen: kein Himmel, kein Wetter – eine Küche mit Fliesenboden
-  if (scene === "kueche") {
+  // Drinnen: kein Himmel, kein Wetter – Küche mit Fliesenboden oder Büro mit Teppichfliesen
+  if (scene === "kueche" || scene === "buero") {
+    const wall = scene === "buero" ? OFFICE.wall : KITCHEN.wall;
     return (
       <>
-        <color attach="background" args={[KITCHEN.wall]} />
-        <fog attach="fog" args={[KITCHEN.wall, 18, 44]} />
+        <color attach="background" args={[wall]} />
+        <fog attach="fog" args={[wall, 18, 44]} />
         <hemisphereLight args={["#FFF6E6", "#D8C7AE", 1.15]} />
         <directionalLight
           position={[3, 8, 6]}
@@ -652,8 +825,8 @@ export const Stage = memo(function Stage({
           shadow-bias={-0.0006}
         />
         <Baked>
-          <KitchenFloor />
-          <KitchenScene />
+          {scene === "buero" ? <OfficeFloor /> : <KitchenFloor />}
+          {scene === "buero" ? <OfficeScene /> : <KitchenScene />}
         </Baked>
       </>
     );

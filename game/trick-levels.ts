@@ -134,7 +134,7 @@ export type TrickLevel = {
   /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
   /** Kulisse der Runde (Standard: Hauswand). Die Küche ist eine eigene Welt. */
-  scene?: "haus" | "kueche";
+  scene?: "haus" | "kueche" | "buero";
 };
 
 /** Windrad mit 4 Flügeln; Nabe seitlich der Wurfbahn, die Flügel kreuzen sie. */
@@ -684,6 +684,44 @@ export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
     bonus: "firstTry",
     task: "trick.task.potFlap",
     scene: "kueche",
+  },
+];
+
+/** Büro-Parcours in Arbeit (Nutzer, 5.11.: nächste Szene nach der Küche) – nicht in der Liste, per Link erreichbar. */
+export const OFFICE_PARCOURS_WIP: ParcoursLevel[] = [
+  // Büro-Tonnen auf Rollen: alle fahren vor und zurück, jede im eigenen Takt
+  {
+    id: 20,
+    props: [],
+    lanes: [[], [], []],
+    binSlide: { axis: "z", amp: 0.4, shift: 0.4, period: 6 },
+    slideAll: true,
+    seconds: 30,
+    bonus: "swish",
+    task: "trick.task.rollBins",
+    scene: "buero",
+  },
+  // Alle Tonnendeckel klappen im Takt (Büro-Kulisse)
+  { ...CLASSIC_PARCOURS[3], id: 21, scene: "buero" },
+  // Rollhocker rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist
+  {
+    id: 22,
+    props: [trampoline(0, { amp: TRAMP_SIDE, period: 5.2 }, 2.3, 0.52)],
+    lanes: [[0], [0], [0]],
+    seconds: 30,
+    bonus: "swish",
+    task: "trick.task.stool",
+    scene: "buero",
+  },
+  // Zugluft im Büro: Papierschnipsel fliegen von rechts, Wurf gegen den Wind abstimmen
+  {
+    id: 23,
+    props: [fan(0, -6)],
+    lanes: [[], [], []],
+    seconds: 30,
+    bonus: "firstTry",
+    task: "trick.task.draft",
+    scene: "buero",
   },
 ];
 

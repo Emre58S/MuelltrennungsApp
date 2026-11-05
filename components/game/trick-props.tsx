@@ -315,7 +315,7 @@ function fanParts(f: FanCollider) {
   return { body: bakedBody, blades: bakedBlades };
 }
 
-const Fan = memo(function Fan({ fan, calm, kitchen }: { fan: FanCollider; calm: boolean; kitchen?: boolean }) {
+const Fan = memo(function Fan({ fan, calm, kitchen, office }: { fan: FanCollider; calm: boolean; kitchen?: boolean; office?: boolean }) {
   const dir = Math.sign(fan.force) || 1;
   const blades = useRef<THREE.Group>(null);
   const streaks = useRef<THREE.InstancedMesh>(null);
@@ -346,8 +346,8 @@ const Fan = memo(function Fan({ fan, calm, kitchen }: { fan: FanCollider; calm: 
   );
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    if (kitchen) {
-      // Küche: weiche Böen (blenden ein und aus, schwingen leicht, unterschiedlich lang und schnell)
+    if (kitchen || office) {
+      // Küche/Büro: weiche Böen (blenden ein und aus, schwingen leicht, unterschiedlich lang und schnell)
       // und mitgetragene Papierschnipsel – kein Ventilator, der Wind kommt durchs Fenster
       const sp = calm ? 0 : 0.22 + Math.abs(fan.force) * 0.035;
       const km = streaks.current;
@@ -403,12 +403,12 @@ const Fan = memo(function Fan({ fan, calm, kitchen }: { fan: FanCollider; calm: 
     mesh.instanceMatrix.needsUpdate = true;
   });
   const fx = fan.x - dir * (fan.halfW + 0.35);
-  if (kitchen) {
+  if (kitchen || office) {
     return (
       <>
         <instancedMesh ref={streaks} args={[K_STREAK_GEO, mat, K_STREAKS]} frustumCulled={false} />
         <instancedMesh ref={bits} args={[K_BIT_GEO, bitMat, K_BITS]} frustumCulled={false} />
-        {dir < 0 && <WindowCurtain dir={dir} strength={Math.abs(fan.force)} calm={calm} />}
+        {kitchen && dir < 0 && <WindowCurtain dir={dir} strength={Math.abs(fan.force)} calm={calm} />}
       </>
     );
   }
@@ -660,8 +660,39 @@ const Fence = memo(function Fence({ fence }: { fence: SignCollider }) {
 /** Trampolin-Gestell (Beine + Polsterring), einmal gebaut und gebacken. Das
  *  Tuch ist ein eigenes Teil – es federt beim Aufprall. Rund gezeichnet, in
  *  der Tiefe auf die Maße der Physik (halfW × halfD) gestaucht. */
-function trampolineFrame(t: TrampolineCollider, kitchen?: boolean): THREE.Object3D {
+function trampolineFrame(t: TrampolineCollider, kitchen?: boolean, office?: boolean): THREE.Object3D {
   const g = new THREE.Group();
+  if (office && t.slide) {
+    // Büro, fahrend: Rollhocker – runder Sitz (dort prallt der Gegenstand ab, Oberkante bei y der Physik),
+    // Gasfeder, fünfarmiger Fuß mit Rollen. Ohne hohe Lehne, damit er die Tonnen nicht verdeckt.
+    const hw = t.halfW;
+    const top = t.y;
+    const chrome = lowpoly("#C7D0D9");
+    const seat = new THREE.Mesh(new THREE.CylinderGeometry(hw, hw * 0.96, 0.1, 28), lowpoly("#3D82D9"));
+    seat.position.y = top - 0.05;
+    g.add(seat);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(hw * 0.98, 0.025, 6, 28), lowpoly("#2B63A8"));
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = top - 0.08;
+    g.add(rim);
+    const lift = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, top - 0.1 - 0.12, 10), chrome);
+    lift.position.y = 0.12 + (top - 0.22) / 2;
+    g.add(lift);
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2 + 0.3;
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(hw * 0.78, 0.035, 0.07), lowpoly("#2E3338"));
+      arm.position.set(Math.cos(a) * hw * 0.39, 0.115, Math.sin(a) * hw * 0.39);
+      arm.rotation.y = -a;
+      g.add(arm);
+      const wheel = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), lowpoly("#15181C"));
+      wheel.position.set(Math.cos(a) * hw * 0.78, 0.05, Math.sin(a) * hw * 0.78);
+      g.add(wheel);
+    }
+    g.scale.z = t.halfD / t.halfW;
+    const stoolModel = bake(g);
+    g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+    return stoolModel;
+  }
   if (kitchen && t.slide) {
     // Küche, fahrend: Saugroboter. Oberseite (dort prallt der Gegenstand ab) liegt bei y der Physik,
     // darunter ein dunkler Sockel mit Stoßfänger-Ring – er rollt flach über den Boden.
@@ -754,14 +785,16 @@ const Trampoline = memo(function Trampoline({
   tramp,
   bus,
   kitchen,
+  office,
 }: {
   tramp: TrampolineCollider;
   bus: BusRef;
   kitchen?: boolean;
+  office?: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
   const mat = useRef<THREE.Mesh>(null);
-  const model = useMemo(() => trampolineFrame(tramp, kitchen), [tramp, kitchen]);
+  const model = useMemo(() => trampolineFrame(tramp, kitchen, office), [tramp, kitchen, office]);
   const matGeo = useMemo(() => new THREE.CylinderGeometry(tramp.halfW - 0.04, tramp.halfW - 0.04, 0.02, 20), [tramp]);
   useEffect(
     () => () => {
@@ -784,7 +817,7 @@ const Trampoline = memo(function Trampoline({
     <group ref={group} position={[tramp.x, 0, tramp.z]}>
       <primitive object={model} />
       {/* Servierwagen hat sein festes Tablett im Modell – kein rundes Tuch darüber */}
-      {!(kitchen && tramp.slide) && (
+      {!((kitchen || office) && tramp.slide) && (
         <mesh
           ref={mat}
           geometry={matGeo}
@@ -803,10 +836,13 @@ export const TrickProps = memo(function TrickProps({
   bus,
   calm,
   kitchen,
+  office,
 }: {
   props: PropCollider[];
   bus: BusRef;
   calm: boolean;
+  /** Büro-Optik: fahrendes Trampolin = Rollhocker, Wind ohne Vorhang. */
+  office?: boolean;
   /** Küchen-Optik: Reifenschaukel = Küchenrolle, Trampolin = Topf mit Deckel, Torwand = Standregal. */
   kitchen?: boolean;
 }) {
@@ -824,11 +860,11 @@ export const TrickProps = memo(function TrickProps({
         ) : prop.kind === "lamp" ? (
           <Lamp key={prop.id} lamp={prop} />
         ) : prop.kind === "trampoline" ? (
-          <Trampoline key={prop.id} tramp={prop} bus={bus} kitchen={kitchen} />
+          <Trampoline key={prop.id} tramp={prop} bus={bus} kitchen={kitchen} office={office} />
         ) : prop.kind === "board" ? (
           <Board key={prop.id} board={prop} bus={bus} kitchen={kitchen} />
         ) : (
-          <Fan key={prop.id} fan={prop} calm={calm} kitchen={kitchen} />
+          <Fan key={prop.id} fan={prop} calm={calm} kitchen={kitchen} office={office} />
         ),
       )}
     </>
