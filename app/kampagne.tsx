@@ -588,7 +588,7 @@ function StationDot({
     : `${t("campaign.station", { id: station.id })}${kind}, ${t("campaign.locked")}`;
   const goal =
     station.kind === "time"
-      ? t("campaign.goalTime", { goal: station.goal })
+      ? t("campaign.goalTime", { goal: station.goal, total: station.total })
       : station.kind === "survival"
         ? t("campaign.goalSurvival", { goal: station.goal })
         : station.kind === "boss"

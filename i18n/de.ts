@@ -651,7 +651,7 @@ export const de = {
   "campaign.trickReach": "Frei ab Station {id}",
   "campaign.trickStars": "{n} von {max} Sternen",
   "campaign.progressTime": "✓ {n} · Ziel {goal}",
-  "campaign.goalTime": "⏱️ 60 s · Ziel: {goal} richtig",
+  "campaign.goalTime": "⏱️ 60 s · Ziel: {goal} richtig · 3 ★: {total}",
   "campaign.goalSurvival": "🛡️ Ohne Fehler · Ziel: {goal} in Folge",
   "campaign.kind.time": "gegen die Zeit",
   "campaign.kind.survival": "ohne Fehler",

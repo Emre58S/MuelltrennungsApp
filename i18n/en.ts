@@ -652,7 +652,7 @@ export const en: Translations = {
   "campaign.trickReach": "Opens at stage {id}",
   "campaign.trickStars": "{n} of {max} stars",
   "campaign.progressTime": "✓ {n} · goal {goal}",
-  "campaign.goalTime": "⏱️ 60 s · Goal: {goal} right",
+  "campaign.goalTime": "⏱️ 60 s · Goal: {goal} right · 3 ★: {total}",
   "campaign.goalSurvival": "🛡️ No mistakes · Goal: {goal} in a row",
   "campaign.kind.time": "against the clock",
   "campaign.kind.survival": "no mistakes",
