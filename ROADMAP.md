@@ -236,9 +236,12 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
 ### Phase E – Leben & Politur
 - [x] **F12 Tagesmission im Regal**: Reiter „Heute“ mit denselben Stempeln wie die Pfad-Leiste
   (Bausteine aus F4), Tagesaufgabe darunter. *½ Sitzung*
-- [ ] **F13 Lebendige Tonnen im Spiel** (← #7): Deckel-/Wackel-Animation, Partikel „kommt etwas
+- [~] **F13 Lebendige Tonnen im Spiel** (← #7): Deckel-/Wackel-Animation, Partikel „kommt etwas
   heraus“ je Tonne in der Runde und im Endscreen, neu gefundener Gegenstand aus animierter
   Tonne (Hot-Path-Regel beachten: keine Objekte pro Frame). *2 Sitzungen*
+  ✓ Teil (fcf1b18, Tester 8/10, EAS auto + preview): Tonnen federn/Deckel/Partikel in der Runde gab es schon;
+  neu: Banner „📖 Neu im Sammelbuch: …“ beim ersten richtigen Wurf je Gegenstand.
+  Offen: Fund „aus animierter Tonne“ im Buch, Endscreen-Partikel; Tipp: Banner antippbar → Sammelbuch.
 - [ ] **F14 Material-Effekte fertig** (← R6b): Dose knautscht beim Einwurf, Effekte auch in
   Trick-/Sprint-Runden, Gold-Spur bei Perfekt-Treffern, Boss-Sieg/-Tausch wackelt. *1–2 Sitzungen*
 - [ ] **F15 Kampagne-Reste** (← R2/R3, „Offen (klein)“): übersprungene Stationen markieren,
