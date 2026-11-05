@@ -79,6 +79,7 @@ export const en: Translations = {
   "book.subtitle": "Every item you sort correctly gets unlocked.",
   "book.progress": "{n} of {total} discovered",
   "book.locked": "Not discovered yet",
+  "book.newItem": "New in your book: {item}",
   "book.lockedHint": "Sort this item correctly in the game to unlock it.",
   "book.mastered": "Mastered",
   "book.practice": "Keep practising",

@@ -773,6 +773,14 @@ export function GameRound({
           }, 3500);
       }
     }
+    // Erster richtiger Wurf mit diesem Gegenstand: er zieht ins Sammelbuch ein
+    if (ts.hit && old.correct === 0 && !medal) {
+      const name = itemName(ts.item);
+      later(() => {
+        sfx("unlock");
+        showBanner(`📖 ${t("book.newItem", { item: name })}`, 2200);
+      }, 700);
+    }
     // Boss: 10 in Folge → sofort geschafft (sonst nach der festen Zahl Würfe)
     const isBoss = station?.kind === "boss";
     const bossWon = isBoss && after.streak >= station.goal;
