@@ -591,9 +591,18 @@ function StationDot({
         : station.kind === "boss"
           ? t("campaign.goalBoss", { goal: station.goal, total: station.total })
           : t("campaign.goal", { goal: station.goal, total: station.total });
-  // Vorleser: Ziel gehört dazu (sehend steht es nur an der aktuellen Station)
+  // Vorleser: Ziel gehört dazu (sehend steht es nur an der aktuellen Station) –
+  // eigene Texte ohne Emojis und ★, sonst liest VoiceOver Symbolnamen vor
+  const spoken =
+    station.kind === "time"
+      ? t("campaign.a11y.goalTime", { goal: station.goal, total: station.total })
+      : station.kind === "survival"
+        ? t("campaign.a11y.goalSurvival", { goal: station.goal })
+        : station.kind === "boss"
+          ? t("campaign.a11y.goalBoss", { goal: station.goal, total: station.total })
+          : goal;
   const label = unlocked
-    ? `${t("campaign.station", { id: station.id })}${kind}, ${t("common.starsOf", { n: stars })}, ${goal}`
+    ? `${t("campaign.station", { id: station.id })}${kind}, ${t("common.starsOf", { n: stars })}, ${spoken}`
     : `${t("campaign.station", { id: station.id })}${kind}, ${t("campaign.locked")}`;
   return (
     <View
