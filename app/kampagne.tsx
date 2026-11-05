@@ -583,9 +583,6 @@ function StationDot({
   }, [stars, reduceMotion, pop]);
 
   const kind = station.kind ? `, ${t(`campaign.kind.${station.kind}`)}` : "";
-  const label = unlocked
-    ? `${t("campaign.station", { id: station.id })}${kind}, ${t("common.starsOf", { n: stars })}`
-    : `${t("campaign.station", { id: station.id })}${kind}, ${t("campaign.locked")}`;
   const goal =
     station.kind === "time"
       ? t("campaign.goalTime", { goal: station.goal, total: station.total })
@@ -594,6 +591,10 @@ function StationDot({
         : station.kind === "boss"
           ? t("campaign.goalBoss", { goal: station.goal, total: station.total })
           : t("campaign.goal", { goal: station.goal, total: station.total });
+  // Vorleser: Ziel gehört dazu (sehend steht es nur an der aktuellen Station)
+  const label = unlocked
+    ? `${t("campaign.station", { id: station.id })}${kind}, ${t("common.starsOf", { n: stars })}, ${goal}`
+    : `${t("campaign.station", { id: station.id })}${kind}, ${t("campaign.locked")}`;
   return (
     <View
       style={[styles.stationWrap, { transform: [{ translateX: offset }] }]}
