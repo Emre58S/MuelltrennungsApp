@@ -134,7 +134,7 @@ export type TrickLevel = {
   /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
   /** Kulisse der Runde (Standard: Hauswand). Die Küche ist eine eigene Welt. */
-  scene?: "haus" | "kueche" | "buero";
+  scene?: "haus" | "kueche" | "buero" | "hof";
 };
 
 /** Windrad mit 4 Flügeln; Nabe seitlich der Wurfbahn, die Flügel kreuzen sie. */
@@ -729,8 +729,37 @@ export const OFFICE_PARCOURS: ParcoursLevel[] = [
   { ...CLASSIC_PARCOURS[0], id: 13, scene: "buero", task: "trick.task.ringLamp" },
 ];
 
+/** Hof-Parcours (Nutzer, 5.11.: nächste Szene nach Küche und Büro, Ziegelwand mit Wäscheleine):
+ *  14 Wind an der Wäscheleine · 15 rollende Tonnen · 16 klappende Deckel. */
+export const YARD_PARCOURS: ParcoursLevel[] = [
+  // Wind an der Wäscheleine: Laken und Hemden blähen sich, Wurf gegen den Wind abstimmen
+  {
+    id: 14,
+    props: [fan(0, -6)],
+    lanes: [[], [], []],
+    seconds: 30,
+    bonus: "firstTry",
+    task: "trick.task.washLine",
+    scene: "hof",
+  },
+  // Mülltonnen auf Rollen vor der Ziegelwand
+  {
+    id: 15,
+    props: [],
+    lanes: [[], [], []],
+    binSlide: { axis: "z", amp: 0.4, shift: 0.4, period: 6 },
+    slideAll: true,
+    seconds: 30,
+    bonus: "swish",
+    task: "trick.task.rollBins",
+    scene: "hof",
+  },
+  // Alle Tonnendeckel klappen im Takt (Hof-Kulisse)
+  { ...CLASSIC_PARCOURS[3], id: 16, scene: "hof" },
+];
+
 /** Die Parcours, die das Spiel anzeigt und für den Tages-Parcours zieht. */
-export const PARCOURS: ParcoursLevel[] = [...CLASSIC_PARCOURS, ...KITCHEN_PARCOURS, ...OFFICE_PARCOURS];
+export const PARCOURS: ParcoursLevel[] = [...CLASSIC_PARCOURS, ...KITCHEN_PARCOURS, ...OFFICE_PARCOURS, ...YARD_PARCOURS];
 
 /* ── Physik und Wertung ───────────────────────────────────── */
 

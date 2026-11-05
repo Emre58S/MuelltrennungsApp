@@ -21,6 +21,8 @@ import { useFrame } from "@react-three/fiber/native";
 import { memo, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
+import { WashLine } from "./wash-line";
+
 import {
   BLADE_THICK,
   type FanCollider,
@@ -347,13 +349,13 @@ function fanParts(f: FanCollider) {
   return { body: bakedBody, blades: bakedBlades };
 }
 
-const Fan = memo(function Fan({ fan, calm, kitchen, office }: { fan: FanCollider; calm: boolean; kitchen?: boolean; office?: boolean }) {
+const Fan = memo(function Fan({ fan, calm, kitchen, office, yard }: { fan: FanCollider; calm: boolean; kitchen?: boolean; office?: boolean; yard?: boolean }) {
   const dir = Math.sign(fan.force) || 1;
   const blades = useRef<THREE.Group>(null);
   const streaks = useRef<THREE.InstancedMesh>(null);
   const bits = useRef<THREE.InstancedMesh>(null);
   const parts = useMemo(() => fanParts(fan), [fan]);
-  const bitMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#FFF3D6", side: THREE.DoubleSide }), []);
+  const bitMat = useMemo(() => new THREE.MeshBasicMaterial({ color: yard ? "#8FC46A" : "#FFF3D6", side: THREE.DoubleSide }), [yard]);
   const pos = useMemo(() => new THREE.Vector3(), []);
   const scl = useMemo(() => new THREE.Vector3(), []);
   const quat = useMemo(() => new THREE.Quaternion(), []);
@@ -378,8 +380,8 @@ const Fan = memo(function Fan({ fan, calm, kitchen, office }: { fan: FanCollider
   );
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    if (kitchen || office) {
-      // Küche/Büro: weiche Böen (blenden ein und aus, schwingen leicht, unterschiedlich lang und schnell)
+    if (kitchen || office || yard) {
+      // Küche/Büro/Hof: weiche Böen (blenden ein und aus, schwingen leicht, unterschiedlich lang und schnell)
       // und mitgetragene Papierschnipsel – kein Ventilator, der Wind kommt durchs Fenster
       const sp = calm ? 0 : 0.22 + Math.abs(fan.force) * 0.035;
       const km = streaks.current;
@@ -435,12 +437,13 @@ const Fan = memo(function Fan({ fan, calm, kitchen, office }: { fan: FanCollider
     mesh.instanceMatrix.needsUpdate = true;
   });
   const fx = fan.x - dir * (fan.halfW + 0.35);
-  if (kitchen || office) {
+  if (kitchen || office || yard) {
     return (
       <>
         <instancedMesh ref={streaks} args={[K_STREAK_GEO, mat, K_STREAKS]} frustumCulled={false} />
         <instancedMesh ref={bits} args={[K_BIT_GEO, bitMat, K_BITS]} frustumCulled={false} />
         {kitchen && dir < 0 && <WindowCurtain dir={dir} strength={Math.abs(fan.force)} calm={calm} />}
+        {yard && <WashLine dir={dir} strength={Math.abs(fan.force)} calm={calm} />}
       </>
     );
   }
@@ -869,8 +872,11 @@ export const TrickProps = memo(function TrickProps({
   calm,
   kitchen,
   office,
+  yard,
 }: {
   props: PropCollider[];
+  /** Hof-Optik: Wind mit Wäscheleine und Laub. */
+  yard?: boolean;
   bus: BusRef;
   calm: boolean;
   /** Büro-Optik: fahrendes Trampolin = Rollhocker, Wind ohne Vorhang. */
@@ -896,7 +902,7 @@ export const TrickProps = memo(function TrickProps({
         ) : prop.kind === "board" ? (
           <Board key={prop.id} board={prop} bus={bus} kitchen={kitchen} />
         ) : (
-          <Fan key={prop.id} fan={prop} calm={calm} kitchen={kitchen} office={office} />
+          <Fan key={prop.id} fan={prop} calm={calm} kitchen={kitchen} office={office} yard={yard} />
         ),
       )}
     </>

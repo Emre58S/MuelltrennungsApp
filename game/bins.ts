@@ -77,6 +77,8 @@ const SCENE_BINS: Record<SceneKind, BinKey[]> = {
   kueche: ["bio", "gelb", "rest"],
   // Büro (Trickwürfe): die Grund-Tonnen
   buero: ["bio", "gelb", "rest"],
+  // Hof (Trickwürfe): die Grund-Tonnen
+  hof: ["bio", "gelb", "rest"],
 };
 
 /** Ab Level 7: Haus-Szene mit Sondermüll statt Bio (Bio bleibt im Garten). */

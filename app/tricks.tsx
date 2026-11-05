@@ -195,16 +195,16 @@ export default function TricksScreen() {
             const best = parcoursBest[p.id] ?? 0;
             const sub = best > 0 ? t("parcours.best", { n: best }) : t("parcours.noBest");
             // Parcours einer Szene (Küche, Büro) beginnen mit einer eigenen Unterüberschrift
-            const sceneStart = (p.scene === "kueche" || p.scene === "buero") && PARCOURS[i - 1]?.scene !== p.scene;
+            const sceneStart = (p.scene === "kueche" || p.scene === "buero" || p.scene === "hof") && PARCOURS[i - 1]?.scene !== p.scene;
             return (
               <Fragment key={p.id}>
               {sceneStart && (
                 <View style={styles.subGroup}>
                   <AppText variant="label" tone="textSecondary" accessibilityRole="header">
-                    {p.scene === "buero" ? `💼 ${t("parcours.office")}` : `🍳 ${t("parcours.kitchen")}`}
+                    {p.scene === "hof" ? `🧱 ${t("parcours.yard")}` : p.scene === "buero" ? `💼 ${t("parcours.office")}` : `🍳 ${t("parcours.kitchen")}`}
                   </AppText>
                   <AppText variant="caption" tone="textMuted">
-                    {t(p.scene === "buero" ? "parcours.officeDesc" : "parcours.kitchenDesc")}
+                    {t(p.scene === "hof" ? "parcours.yardDesc" : p.scene === "buero" ? "parcours.officeDesc" : "parcours.kitchenDesc")}
                   </AppText>
                 </View>
               )}

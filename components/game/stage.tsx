@@ -15,7 +15,7 @@ import * as THREE from "three";
 import { lowpoly } from "./materials";
 import { Baked } from "./model-cache";
 
-export type SceneKind = "haus" | "ziegel" | "garten" | "kueche" | "buero";
+export type SceneKind = "haus" | "ziegel" | "garten" | "kueche" | "buero" | "hof";
 /** Szenen, die von Runde zu Runde wechseln. Die Küche gibt es nur, wenn ein Trick-Level sie verlangt. */
 const ORDER: SceneKind[] = ["haus", "ziegel", "garten"];
 let counter = 0;
@@ -458,6 +458,25 @@ function BrickScene({ p }: { p: Palette }) {
   );
 }
 
+/** Hinterhof (Trickwürfe): Ziegelwand mit Fallrohr, Wandlampe, Baum und Busch – Kulisse für Wind, rollende Tonnen und Deckel. */
+function YardScene({ p }: { p: Palette }) {
+  return (
+    <>
+      <mesh position={[0, 1.9, WALL_Z]} material={lowpoly(p.mortar)}>
+        <boxGeometry args={[14, 3.8, 0.24]} />
+      </mesh>
+      <BrickWall p={p} />
+      <mesh position={[0, 3.86, WALL_Z + 0.1]} material={lowpoly(p.plinth)} castShadow>
+        <boxGeometry args={[14, 0.16, 0.5]} />
+      </mesh>
+      <Drainpipe x={-3.1} p={p} />
+      <WallLamp x={3.0} y={2.7} p={p} />
+      <Tree x={-3.6} z={-1.7} s={1.15} p={p} />
+      <Bush x={3.4} z={-1.9} s={0.9} p={p} />
+    </>
+  );
+}
+
 function GardenScene({ p }: { p: Palette }) {
   return (
     <>
@@ -887,6 +906,7 @@ export const Stage = memo(function Stage({
         {!garden && <Gully />}
         {scene === "haus" && <HouseScene p={p} />}
         {scene === "ziegel" && <BrickScene p={p} />}
+        {scene === "hof" && <YardScene p={p} />}
         {garden && <GardenScene p={p} />}
       </Baked>
 
