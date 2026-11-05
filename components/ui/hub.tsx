@@ -105,7 +105,7 @@ export function HubCard({
   onPress: () => void;
 }) {
   // Farbfläche etwas dunkler, damit weiße Schrift gut lesbar bleibt
-  const face = tone(color, -0.25);
+  const face = tone(color, -0.32);
   return (
     <FadeIn delay={60 + index * 60}>
       <Chunky
@@ -136,9 +136,9 @@ export function HubCard({
           <AppText variant="heading" color="#FFFFFF">
             {title}
           </AppText>
-          <AppText color="rgba(255,255,255,0.92)">{desc}</AppText>
+          <AppText color="#FFFFFF">{desc}</AppText>
           {info ? (
-            <AppText variant="label" color="rgba(255,255,255,0.85)" style={styles.info}>
+            <AppText variant="label" color="#FFFFFF" style={styles.info}>
               {info}
             </AppText>
           ) : null}

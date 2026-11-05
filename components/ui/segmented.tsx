@@ -95,5 +95,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 6,
+    // Gleiche Höhe gewählt/nicht gewählt (die Unterkante des gewählten Reiters ist farbig)
+    borderBottomWidth: 4,
+    borderBottomColor: "transparent",
   },
 });
