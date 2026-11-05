@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
+import { tone } from "@/components/ui/chunky";
 import { IconButton } from "@/components/ui/icon-button";
 import { press, tapHaptic } from "@/components/ui/press";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -22,6 +23,7 @@ export function ShellHeader({
   streak,
   flame,
   seenTutorial,
+  stars,
   hint,
 }: {
   loaded: boolean;
@@ -31,43 +33,52 @@ export function ShellHeader({
   streak: number;
   flame: FlameStatus;
   seenTutorial: boolean;
+  /** Gesammelte Kampagnen-Sterne. */
+  stars: number;
   /** Ein Hinweis (Flamme, Tagesaufgabe, Freund …); Tippen führt in den passenden Bereich. */
   hint?: { text: string; onPress: () => void } | null;
 }) {
   const { colors } = useAppTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const GOLD = "#F2B632";
   const label = `${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}${
     flame === "atRisk" ? `. ${t("home.flameAtRisk")}` : ""
   }`;
   return (
     <View>
     <View style={[styles.row, { paddingTop: insets.top + Spacing.sm }]}>
-      <View
-        accessible
-        accessibilityLabel={label}
-        style={[styles.level, { backgroundColor: colors.surface, borderColor: colors.border }]}
-      >
-        <View style={styles.levelTop}>
-          <AppText variant="label" numberOfLines={1}>
-            Lv {loaded ? level : "—"}
+      {/* Links: Level-Abzeichen mit Fortschrittsbalken (wie die Spielerkarte bei Clash Royale) */}
+      <View accessible accessibilityLabel={label} style={styles.levelWrap}>
+        <View style={[styles.badge, { backgroundColor: GOLD, borderColor: tone(GOLD, -0.35) }]}>
+          <AppText variant="label" color="#3A2A00" style={styles.badgeText}>
+            {loaded ? level : "–"}
           </AppText>
-          {streak > 0 && (
-            <AppText variant="caption" tone="textSecondary" numberOfLines={1}>
-              {/* ⏳ = gestern Pause, heute spielen rettet die Flamme */}
-              🔥 {streak}
-              {flame === "atRisk" ? " ⏳" : ""}
-            </AppText>
-          )}
         </View>
-        <ProgressBar value={progress} height={6} />
+        <View style={[styles.xp, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ProgressBar value={progress} height={10} />
+        </View>
       </View>
       <View style={styles.spacer} />
+      {/* Mitte/rechts: Stand-Pillen (Flamme, Sterne) wie die Währungen bei Duolingo */}
+      {streak > 0 && (
+        <View style={[styles.pill, { backgroundColor: colors.surface, borderColor: flame === "atRisk" ? colors.warning : colors.border }]}>
+          <AppText variant="label" numberOfLines={1}>
+            🔥 {streak}
+            {flame === "atRisk" ? " ⏳" : ""}
+          </AppText>
+        </View>
+      )}
+      <View style={[styles.pill, { backgroundColor: colors.surface, borderColor: colors.border }]} accessible accessibilityLabel={`${stars} ${t("common.stars")}`}>
+        <AppText variant="label" numberOfLines={1}>
+          ⭐ {stars}
+        </AppText>
+      </View>
       <View>
-        <IconButton icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} />
+        <IconButton icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} style={styles.small} />
         {loaded && !seenTutorial && <View style={styles.dot} />}
       </View>
-      <IconButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} />
+      <IconButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} style={styles.small} />
     </View>
     {hint && (
       <Pressable
@@ -100,18 +111,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md + 4,
     paddingBottom: Spacing.sm,
   },
-  level: {
-    // Kompakt statt den ganzen Platz zu füllen; der Rest bleibt frei bis zu den Knöpfen
-    minWidth: 112,
-    // Bei großer Systemschrift schrumpfen statt die Knöpfe aus dem Bild zu drücken
+  levelWrap: { flexDirection: "row", alignItems: "center", flexShrink: 1, minWidth: 96 },
+  badge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
+  badgeText: { fontWeight: "800", fontSize: 17, lineHeight: 22 },
+  // Balken schiebt sich unter das Abzeichen
+  xp: {
     flexShrink: 1,
-    overflow: "hidden",
-    gap: 6,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.lg,
+    minWidth: 60,
+    maxWidth: 84,
+    marginLeft: -14,
+    paddingLeft: 18,
+    paddingRight: 8,
+    paddingVertical: 5,
+    borderRadius: 12,
     borderWidth: 1,
   },
+  pill: {
+    height: 36,
+    justifyContent: "center",
+    paddingHorizontal: 10,
+    borderRadius: 18,
+    borderWidth: 2,
+  },
+  small: { width: 40, height: 40, borderRadius: 20 },
   spacer: { flex: 1 },
   hint: {
     marginHorizontal: Spacing.md + 4,

@@ -23,6 +23,7 @@ import { refreshSfxSetting } from "@/utils/sfx";
 import {
   flushThrowRecords,
   getBoolean,
+  getCampaignStars,
   getChests,
   getFlame,
   getLevelProgress,
@@ -54,6 +55,7 @@ export default function BereicheScreen() {
   const [seenTutorial, setSeenTutorial] = useState(true);
   const [dailyDone, setDailyDone] = useState(true);
   const [chestWaiting, setChestWaiting] = useState(false);
+  const [starTotal, setStarTotal] = useState(0);
   const [friend, setFriend] = useState<{ name: string } | null>(null);
   const [dayBest, setDayBest] = useState<DayGhost | null>(null);
   useFocusEffect(
@@ -87,6 +89,9 @@ export default function BereicheScreen() {
         })
         .catch((error) => console.warn("[Bereiche] Fortschritt konnte nicht geladen werden:", error))
         .finally(() => active && setLoaded(true));
+      getCampaignStars()
+        .then((s) => active && setStarTotal(Object.values(s).reduce((a, b) => a + b, 0)))
+        .catch(() => undefined);
       getChests()
         .then((c) => active && setChestWaiting(c.earned - c.opened > 0))
         .catch(() => undefined);
@@ -153,6 +158,7 @@ export default function BereicheScreen() {
           streak={streak}
           flame={flame}
           seenTutorial={seenTutorial}
+          stars={starTotal}
           hint={hint}
         />
         <AreaPager index={index} onIndexChange={select} reduceMotion={reduceMotion}>

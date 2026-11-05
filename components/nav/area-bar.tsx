@@ -15,7 +15,7 @@ import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
 /** Höhe der Leiste ohne Sicherheitsabstand unten. */
-export const AREA_BAR_HEIGHT = 64;
+export const AREA_BAR_HEIGHT = 70;
 
 export function AreaBar({
   active,
@@ -30,7 +30,7 @@ export function AreaBar({
   dots?: Partial<Record<AreaKey, boolean>>;
   onSelect: (key: AreaKey) => void;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, scheme } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -64,19 +64,26 @@ export function AreaBar({
             }}
             style={styles.item}
           >
-            <View style={[styles.mark, selected && { backgroundColor: area.fill }]} />
-            <View style={{ opacity: selected ? 1 : 0.5 }}>
-              <BinIcon color={area.fill} size={30} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
+            {/* Gewählt: farbiger Rahmen, Tonne hebt sich heraus (wie Duolingo/Clash Royale) */}
+            <View
+              style={[
+                styles.tab,
+                selected && { backgroundColor: area.fill + "26", borderColor: area.fill, transform: [{ translateY: -6 }] },
+              ]}
+            >
+              <View style={{ opacity: selected ? 1 : 0.55, transform: [{ scale: selected ? 1.18 : 1 }] }}>
+                <BinIcon color={area.fill} size={30} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
+              </View>
+              <AppText
+                variant="caption"
+                color={selected ? (scheme === "dark" ? area.fill : area.sign) : colors.textMuted}
+                style={selected && styles.selectedLabel}
+                numberOfLines={1}
+              >
+                {label}
+              </AppText>
             </View>
             {dots?.[key] && <View style={styles.dot} />}
-            <AppText
-              variant="caption"
-              color={selected ? area.sign : colors.textMuted}
-              style={selected && styles.selectedLabel}
-              numberOfLines={1}
-            >
-              {label}
-            </AppText>
           </Pressable>
         );
       })}
@@ -85,13 +92,23 @@ export function AreaBar({
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", borderTopWidth: 1 },
+  bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "flex-end" },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: Spacing.xs },
-  mark: { position: "absolute", top: 0, width: 36, height: 4, borderRadius: 2 },
+  tab: {
+    minWidth: 84,
+    alignItems: "center",
+    gap: 2,
+    paddingTop: 6,
+    paddingBottom: 5,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
   dot: {
     position: "absolute",
-    top: 8,
-    right: "30%",
+    top: 4,
+    right: "26%",
     width: 12,
     height: 12,
     borderRadius: 6,

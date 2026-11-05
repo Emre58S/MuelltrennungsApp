@@ -5,6 +5,7 @@ import type { Translations } from "./de";
 export const en: Translations = {
   "common.back": "Back",
   "common.close": "Close",
+  "common.stars": "stars",
   "common.starsOf": "{n} of 3 stars",
   "common.tapToClose": "Tap to close",
   "common.cancel": "Cancel",
@@ -599,6 +600,7 @@ export const en: Translations = {
   "duel.quit.title": "End the duel?",
   "duel.quit.message": "The score will not be saved.",
   "duel.quit.confirm": "End",
+  "campaign.info": "What goes in?",
   "campaign.go": "Go!",
   "hub.campaign.title": "Campaign",
   "hub.campaign.subtitle": "Play alone, learn and practise.",

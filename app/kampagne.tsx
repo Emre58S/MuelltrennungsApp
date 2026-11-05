@@ -11,6 +11,7 @@
 // Alle 3 Missionen → Truhe, die man auf der Missionskarte öffnet (R3c).
 
 import { router, useFocusEffect } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { type ComponentRef, Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import * as Haptics from "expo-haptics";
 import {
@@ -18,19 +19,21 @@ import {
   Animated,
   Easing,
   Pressable,
-  type ScrollView,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
 } from "react-native";
 
-import { HubScreen } from "@/components/ui/hub";
+import { MissionSlots } from "@/components/areas/mission-slots";
+import { BinIcon } from "@/components/ui/bin-icon";
+import { Chunky, tone } from "@/components/ui/chunky";
 import { AppText } from "@/components/ui/app-text";
 import { press, tapHaptic } from "@/components/ui/press";
-import { type GameMode, MENU_MODES, startDaily, startGame } from "@/constants/modes";
+import { MENU_MODES, startDaily, startGame } from "@/constants/modes";
 import { useShell } from "@/components/nav/shell-context";
-import { StampBar } from "@/components/ui/stamp-bar";
-import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef } from "@/game/bins";
 import { dailyParcoursId } from "@/game/parcours";
@@ -64,15 +67,15 @@ import {
 } from "@/utils/storage";
 import { sfx } from "@/utils/sfx";
 
-const MODE_LOOK: Partial<Record<GameMode, string>> = {
-  endless: "🌱",
-  survival: "🛡️",
-  time: "⏱️",
-};
+/** Farben der Schnellstart-Kacheln (dunkel genug für weiße Schrift). */
+const TILE_COLOR = { endless: "#1E8A57", time: "#2F6FC4", survival: "#C4532B", tricks: "#6B49C4" } as const;
+const TILE_EMOJI = { endless: "🌱", time: "⏱️", survival: "🛡️", tricks: "🎯" } as const;
 
 /** Zickzack des Pfads: seitlicher Versatz je Station (in px). */
 const ZIGZAG = [-56, 0, 56, 0];
 const DOT = 64;
+/** Abstand der Begleiter-Tonne zur aktuellen Station (Mitte zu Mitte, px). */
+const MASCOT_GAP = 96;
 /** Kennzeichen der Stations-Arten (klein am Kreis). */
 const KIND_EMOJI = { survival: "🛡️", time: "⏱️", boss: "👑" } as const;
 /** Farbe der Trick-Schule (wie die Trickwürfe). */
@@ -120,8 +123,11 @@ export default function KampagneScreen() {
   const [nextReward, setNextReward] = useState<ReturnType<typeof nextStarReward>>(null);
   /** Gerade Vorsprung nach Level bekommen – einmal erklären (nur diese Sitzung). */
   const [headStart, setHeadStart] = useState(false);
+  /** Welt, die im Band oben steht (null = die der aktuellen Station). */
+  const [shownWorld, setShownWorld] = useState<number | null>(null);
   const { colors } = useAppTheme();
   const shell = useShell();
+  const insets = useSafeAreaInsets();
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
   const worldY = useRef<Record<number, number>>({});
@@ -176,205 +182,216 @@ export default function KampagneScreen() {
     if (target > 0) scroll.current?.scrollTo({ y: target, animated: false });
   };
 
+  const shownIndex =
+    shownWorld ?? WORLDS.find((w) => current && w.stations.some((st) => st.id === current.id))?.index ?? WORLDS[0].index;
+  const bannerWorld = WORLDS.find((w) => w.index === shownIndex) ?? WORLDS[0];
+  /** Das Band zeigt die Welt, in der man gerade scrollt (wie bei Duolingo). */
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y + 160;
+    let idx = WORLDS[0].index;
+    for (const w of WORLDS) {
+      const top = worldY.current[w.index];
+      if (top !== undefined && top <= y) idx = w.index;
+    }
+    if (idx !== shownIndex) setShownWorld(idx);
+  };
+
   return (
-    <HubScreen
-      title={t("hub.campaign.title")}
-      subtitle={t("hub.campaign.subtitle")}
-      emoji="🎓"
-      area={AREAS.pfad}
-      scrollRef={scroll}
-    >
-      {/* Bisherige Spielarten – klein, damit der Pfad im Mittelpunkt steht */}
-      <View style={styles.chips}>
-        <Chip emoji="🌱" label={t("campaign.freePlay")} onPress={() => stars && startFreePlay(stars)} />
-        {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
-          <Chip key={m.mode} emoji={MODE_LOOK[m.mode] ?? "🎮"} label={t(m.titleKey)} onPress={() => startGame(m.mode)} />
-        ))}
-        <Chip emoji="🎯" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
-      </View>
-
-      {nextReward && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t("reward.next", { name: t(nextReward.reward.name) })}. ${t("reward.nextLeft", { n: nextReward.left })}`}
-          onPress={() => {
-            tapHaptic();
-            // In der Bereichs-Hülle gleich den Reiter „Belohnungen“ im Regal zeigen
-            if (shell.inShell) shell.goArea("regal", "rewards");
-            else router.push("/belohnungen");
-          }}
-          style={({ pressed }) => [styles.nextReward, { backgroundColor: colors.goldSoft }, pressed && press.pressed]}
-        >
-          <AppText style={styles.nextRewardEmoji}>🎁</AppText>
-          <View style={styles.flex}>
-            <AppText variant="label" color={colors.onGoldSoft}>
-              {t("reward.next", { name: t(nextReward.reward.name) })}
-            </AppText>
-            <AppText variant="caption" color={colors.onGoldSoft}>
-              {t("reward.nextLeft", { n: nextReward.left })}
-            </AppText>
-          </View>
-        </Pressable>
-      )}
-
-      {missions && <MissionStrip day={missions} chestsWaiting={chests.earned - chests.opened} />}
-
-      {headStart && (
-        <View style={[styles.headStart, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <AppText variant="caption">🎉 {t("campaign.headStart")}</AppText>
-        </View>
-      )}
-
-      {stars &&
-        current &&
-        WORLDS.map((world) => (
-          <View
-            key={world.index}
-            onLayout={(e) => {
-              worldY.current[world.index] = e.nativeEvent.layout.y;
-              scrollToCurrent();
-            }}
-          >
-            <WorldHeader world={world} />
-            {world.stations.map((station, i) => (
-              <Fragment key={station.id}>
-                <StationDot
-                  station={station}
-                  offset={ZIGZAG[i % ZIGZAG.length]}
-                  color={worldColor(world)}
-                  onColor={worldOnColor(world)}
-                  stars={stars[station.id] ?? 0}
-                  unlocked={isUnlocked(stars, station.id)}
-                  isCurrent={station.id === current.id}
-                  onCurrentLayout={(y) => {
-                    currentAt.current = { world: world.index, y };
-                    scrollToCurrent();
-                  }}
-                />
-                {/* Tagesaufgabe gleich dort, wo man weiterspielt */}
-                {station.id === current.id && daily !== undefined && <DailyStation result={daily} />}
-              </Fragment>
-            ))}
-            <TrickSchool
-              world={world}
-              reached={isUnlocked(stars, world.stations[0].id)}
-              trickStars={trickStars}
+    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+      {stars && current && <WorldBanner key={bannerWorld.index} world={bannerWorld} />}
+      <ScrollView
+        ref={scroll}
+        onScroll={onScroll}
+        scrollEventThrottle={64}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: (shell.inShell ? shell.bottomInset : insets.bottom) + Spacing.lg },
+        ]}
+      >
+        {/* Schnellstart: die bisherigen Spielarten als dicke Kacheln */}
+        <View style={styles.tiles}>
+          <PlayTile kind="endless" label={t("campaign.freePlay")} onPress={() => stars && startFreePlay(stars)} />
+          {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
+            <PlayTile
+              key={m.mode}
+              kind={m.mode === "time" ? "time" : "survival"}
+              label={t(m.titleKey)}
+              onPress={() => startGame(m.mode)}
             />
-            {/* Am Ende des Pfads: Parcours des Tages (sortieren mit Trickwurf, alle Tonnen) */}
-            {world.index === WORLDS[WORLDS.length - 1].index && isUnlocked(stars, world.stations[0].id) && (
-              <ParcoursStation best={parcoursBest} />
-            )}
+          ))}
+          <PlayTile kind="tricks" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
+        </View>
+
+        {nextReward && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${t("reward.next", { name: t(nextReward.reward.name) })}. ${t("reward.nextLeft", { n: nextReward.left })}`}
+            onPress={() => {
+              tapHaptic();
+              // In der Bereichs-Hülle gleich den Reiter „Belohnungen“ im Regal zeigen
+              if (shell.inShell) shell.goArea("regal", "rewards");
+              else router.push("/belohnungen");
+            }}
+            style={({ pressed }) => [styles.nextReward, { backgroundColor: colors.goldSoft }, pressed && press.pressed]}
+          >
+            <AppText style={styles.nextRewardEmoji}>🎁</AppText>
+            <View style={styles.flex}>
+              <AppText variant="label" color={colors.onGoldSoft}>
+                {t("reward.next", { name: t(nextReward.reward.name) })}
+              </AppText>
+              <AppText variant="caption" color={colors.onGoldSoft}>
+                {t("reward.nextLeft", { n: nextReward.left })}
+              </AppText>
+            </View>
+          </Pressable>
+        )}
+
+        {missions && <MissionSlots day={missions} chestsWaiting={chests.earned - chests.opened} />}
+
+        {headStart && (
+          <View style={[styles.headStart, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <AppText variant="caption">🎉 {t("campaign.headStart")}</AppText>
           </View>
-        ))}
-    </HubScreen>
+        )}
+
+        {stars &&
+          current &&
+          WORLDS.map((world) => (
+            <View
+              key={world.index}
+              onLayout={(e) => {
+                worldY.current[world.index] = e.nativeEvent.layout.y;
+                scrollToCurrent();
+              }}
+            >
+              <WorldHeader world={world} />
+              {world.stations.map((station, i) => (
+                <Fragment key={station.id}>
+                  <StationDot
+                    station={station}
+                    offset={ZIGZAG[i % ZIGZAG.length]}
+                    color={worldColor(world)}
+                    onColor={worldOnColor(world)}
+                    stars={stars[station.id] ?? 0}
+                    unlocked={isUnlocked(stars, station.id)}
+                    isCurrent={station.id === current.id}
+                    onCurrentLayout={(y) => {
+                      currentAt.current = { world: world.index, y };
+                      scrollToCurrent();
+                    }}
+                  />
+                  {/* Tagesaufgabe gleich dort, wo man weiterspielt */}
+                  {station.id === current.id && daily !== undefined && <DailyStation result={daily} />}
+                </Fragment>
+              ))}
+              <TrickSchool
+                world={world}
+                reached={isUnlocked(stars, world.stations[0].id)}
+                trickStars={trickStars}
+              />
+              {/* Am Ende des Pfads: Parcours des Tages (sortieren mit Trickwurf, alle Tonnen) */}
+              {world.index === WORLDS[WORLDS.length - 1].index && isUnlocked(stars, world.stations[0].id) && (
+                <ParcoursStation best={parcoursBest} />
+              )}
+            </View>
+          ))}
+      </ScrollView>
+    </View>
   );
 }
 
-function Chip({
-  emoji,
+/** Schnellstart-Kachel: dicker Knopf mit Symbol und Name. */
+function PlayTile({
+  kind,
   label,
   onPress,
 }: {
-  emoji: string;
+  kind: keyof typeof TILE_COLOR;
   label: string;
   onPress: () => void;
 }) {
-  const { colors } = useAppTheme();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={() => {
-        sfx("tap");
-        tapHaptic();
-        onPress();
-      }}
-      style={({ pressed }) => [
-        styles.chip,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-        pressed && press.pressed,
-      ]}
+    <Chunky
+      color={TILE_COLOR[kind]}
+      depth={5}
+      radius={16}
+      label={label}
+      onPress={onPress}
+      style={styles.tile}
+      faceStyle={styles.tileFace}
     >
-      <AppText variant="label">
-        {emoji} {label}
+      <AppText style={styles.tileEmoji}>{TILE_EMOJI[kind]}</AppText>
+      <AppText variant="caption" color="#FFFFFF" center numberOfLines={2} style={styles.tileText}>
+        {label}
       </AppText>
-    </Pressable>
+    </Chunky>
   );
 }
 
-/** Schmale Leiste im Pfad: Tagesmissionen als Stempel, Tippen öffnet sie im Regal (Reiter „Heute“). */
-function MissionStrip({ day, chestsWaiting }: { day: MissionDay; chestsWaiting: number }) {
+/** Band oben: die Welt, in der man gerade ist – Name, Tonnen, Buch für „Was gehört hinein?“. */
+function WorldBanner({ world }: { world: World }) {
   const { t } = useI18n();
-  const { colors } = useAppTheme();
-  const shell = useShell();
-  const done = day.done.length;
-  const total = day.missions.length;
+  const [open, setOpen] = useState(false);
+  const color = worldColor(world);
+  const on = worldOnColor(world);
+  const bins = world.bins.map(binDef).filter((b): b is BinDef => !!b);
+  const tricky = world.newBins.length === 0;
+  const title = tricky ? `🧩 ${t("campaign.tricky")}` : t("campaign.world", { n: world.index });
+  const sub = tricky ? t("campaign.trickyDesc") : bins.map((b) => t(b.labelKey)).join(" · ");
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${t("mission.title")}: ${done}/${total}${chestsWaiting > 0 ? `. ${t("chest.open")}` : ""}`}
-      onPress={() => {
-        sfx("tap");
-        tapHaptic();
-        if (shell.inShell) shell.goArea("regal", "today");
-        else router.push("/sammlung");
-      }}
-      style={({ pressed }) => [
-        styles.strip,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-        pressed && press.pressed,
-      ]}
-    >
-      <AppText variant="label" style={styles.flex}>
-        📋 {t("mission.title")}
-      </AppText>
-      {chestsWaiting > 0 && <AppText style={styles.stripChest}>🎁</AppText>}
-      <StampBar done={done} total={total} size={26} />
-      <AppText variant="label" tone="textMuted">
-        ›
-      </AppText>
-    </Pressable>
+    <View style={[styles.banner, { backgroundColor: color, borderBottomColor: tone(color, -0.3) }]}>
+      <View style={styles.bannerRow}>
+        <View style={styles.flex}>
+          <AppText variant="overline" color={on} style={styles.bannerTitle}>
+            {title.toUpperCase()}
+          </AppText>
+          <AppText variant="heading" color={on} numberOfLines={2}>
+            {sub}
+          </AppText>
+        </View>
+        {!tricky && (
+          <Chunky
+            color={tone(color, -0.16)}
+            edge={tone(color, -0.42)}
+            depth={4}
+            radius={12}
+            label={t("campaign.info")}
+            onPress={() => setOpen((o) => !o)}
+            faceStyle={styles.bookFace}
+          >
+            <AppText style={styles.bookEmoji}>{open ? "✕" : "📖"}</AppText>
+          </Chunky>
+        )}
+      </View>
+      {open &&
+        world.newBins.map((key) => {
+          const b = binDef(key);
+          if (!b) return null;
+          return (
+            <AppText key={key} variant="caption" color={on}>
+              <AppText variant="caption" color={on} style={styles.bold}>
+                {t("campaign.new", { bin: t(b.labelKey) })}
+              </AppText>{" "}
+              {t(`bin.${key}.examples`)}
+            </AppText>
+          );
+        })}
+    </View>
   );
 }
 
-/** Kopf einer Welt: Nummer, Tonnen der Welt, neue Tonne mit Beispielen. */
+/** Trenner im Pfad: Linie, Weltname, Linie (die Erklärung steht im Band oben). */
 function WorldHeader({ world }: { world: World }) {
   const { t } = useI18n();
-  const { colors } = useAppTheme();
-  const bins = world.bins.map(binDef).filter((b): b is BinDef => !!b);
-  const isNew = (b: BinDef) => world.newBins.includes(b.key);
+  const color = worldColor(world);
+  const title = world.newBins.length === 0 ? `🧩 ${t("campaign.tricky")}` : t("campaign.world", { n: world.index });
   return (
-    <View style={[styles.world, { backgroundColor: colors.surface, borderColor: worldColor(world) }]}>
-      <AppText variant="heading">
-        {world.newBins.length === 0 ? `🧩 ${t("campaign.tricky")}` : t("campaign.world", { n: world.index })}
+    <View style={styles.ribbon} accessible accessibilityRole="header" accessibilityLabel={title}>
+      <View style={[styles.ribbonLine, { backgroundColor: color }]} />
+      <AppText variant="label" tone="textSecondary">
+        {title}
       </AppText>
-      <View style={styles.binRow} accessible accessibilityLabel={bins.map((b) => t(b.labelKey)).join(", ")}>
-        {bins.map((b) => (
-          <View
-            key={b.key}
-            style={[styles.bin, { backgroundColor: b.color }, isNew(b) && styles.binNew]}
-          >
-            <AppText style={styles.binIcon}>{b.icon}</AppText>
-          </View>
-        ))}
-      </View>
-      {world.newBins.map((key) => {
-        const b = binDef(key);
-        if (!b) return null;
-        return (
-          <AppText key={key} variant="caption" tone="textSecondary">
-            <AppText variant="caption" style={{ fontWeight: "700" }}>
-              {t("campaign.new", { bin: t(b.labelKey) })}
-            </AppText>{" "}
-            {t(`bin.${key}.examples`)}
-          </AppText>
-        );
-      })}
-      {world.newBins.length === 0 && (
-        <AppText variant="caption" tone="textSecondary">
-          {t("campaign.trickyDesc")}
-        </AppText>
-      )}
+      <View style={[styles.ribbonLine, { backgroundColor: color }]} />
     </View>
   );
 }
@@ -550,6 +567,13 @@ function StationDot({
   const { colors } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const [hop] = useState(() => new Animated.Value(0));
+  // Begleiter-Tonne wackelt alle paar Sekunden kurz
+  const [wiggle, setWiggle] = useState(0);
+  useEffect(() => {
+    if (!isCurrent || reduceMotion) return;
+    const id = setInterval(() => setWiggle((w) => w + 1), 3500);
+    return () => clearInterval(id);
+  }, [isCurrent, reduceMotion]);
   // Aktuelle Station hüpft sanft („hier geht's weiter“)
   useEffect(() => {
     if (!isCurrent || reduceMotion) return;
@@ -615,43 +639,50 @@ function StationDot({
           <View key={k} style={[styles.trailDot, { backgroundColor: unlocked ? color : colors.border }]} />
         ))}
       </View>
-      <Animated.View style={{ transform: [{ translateY: hop }] }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          accessibilityState={{ disabled: !unlocked }}
-          disabled={!unlocked}
-          onPress={() => {
-            sfx("tap");
-            tapHaptic();
-            startStation(station);
-          }}
-          style={({ pressed }) => [
-            styles.dot,
-            unlocked
-              ? { backgroundColor: color, borderColor: isCurrent ? "#FFD54A" : "rgba(255,255,255,0.6)" }
-              : { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
-            isCurrent && styles.dotCurrent,
-            pressed && press.pressedLarge,
-          ]}
+      {/* Begleiter: die Tonne der Welt steht neben der aktuellen Station */}
+      {isCurrent && unlocked && (
+        <View
+          pointerEvents="none"
+          importantForAccessibility="no"
+          accessibilityElementsHidden
+          style={[styles.mascot, { marginLeft: offset > 0 ? -(MASCOT_GAP + 28) : MASCOT_GAP - 28 }]}
         >
-          <AppText variant="heading" color={unlocked ? onColor : colors.textMuted}>
-            {unlocked ? station.id : "🔒"}
-          </AppText>
-        </Pressable>
-        {/* „Los!“ neben der aktuellen Station – auf der Seite, die im Zickzack frei bleibt */}
+          <BinIcon color={color} size={56} wiggle={wiggle} reduceMotion={reduceMotion} />
+        </View>
+      )}
+      <Animated.View style={{ transform: [{ translateY: hop }] }}>
+        {/* Sprechblase „Los!“ über der aktuellen Station */}
         {isCurrent && unlocked && stars < 3 && (
           <View
             pointerEvents="none"
             importantForAccessibility="no"
             accessibilityElementsHidden
-            style={[styles.goBadge, { backgroundColor: color }, offset > 0 ? styles.goBadgeLeft : styles.goBadgeRight]}
+            style={styles.startWrap}
           >
-            <AppText variant="label" color={onColor} numberOfLines={1}>
-              {t("campaign.go")}
-            </AppText>
+            <View style={[styles.startBubble, { backgroundColor: colors.surface, borderColor: color }]}>
+              <AppText variant="label" color={colors.text}>
+                {t("campaign.go").toUpperCase()}
+              </AppText>
+            </View>
+            <View style={[styles.startCaret, { backgroundColor: colors.surface, borderColor: color }]} />
           </View>
         )}
+        <View style={isCurrent && unlocked ? [styles.ring, { borderColor: "#FFD54A" }] : undefined}>
+          <Chunky
+            color={unlocked ? color : colors.surfaceAlt}
+            edge={unlocked ? tone(color, -0.32) : colors.border}
+            depth={7}
+            radius={DOT}
+            label={label}
+            disabled={!unlocked}
+            onPress={() => startStation(station)}
+            faceStyle={styles.dotFace}
+          >
+            <AppText variant="heading" color={unlocked ? onColor : colors.textMuted}>
+              {unlocked ? station.id : "🔒"}
+            </AppText>
+          </Chunky>
+        </View>
         {station.kind && (
           <View pointerEvents="none" style={[styles.kind, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <AppText style={styles.kindEmoji}>{KIND_EMOJI[station.kind]}</AppText>
@@ -689,7 +720,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     borderWidth: 1,
   },
-  stripChest: { fontSize: 20, lineHeight: 26 },
   nextReward: {
     flexDirection: "row",
     alignItems: "center",
@@ -699,16 +729,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
   },
   nextRewardEmoji: { fontSize: 26, lineHeight: 32 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
+  screen: { flex: 1 },
+  content: { paddingHorizontal: Spacing.md + 4, paddingTop: Spacing.sm, gap: Spacing.md },
+  bold: { fontWeight: "700" },
+  tiles: { flexDirection: "row", gap: Spacing.sm },
+  tile: { flex: 1 },
+  tileFace: { minHeight: 88, gap: 2, paddingVertical: 10, paddingHorizontal: 4 },
+  tileEmoji: { fontSize: 26, lineHeight: 32 },
+  tileText: { fontWeight: "700" },
+  banner: {
+    paddingHorizontal: Spacing.md + 4,
+    paddingVertical: Spacing.sm + 2,
+    gap: Spacing.xs + 2,
+    borderBottomWidth: 4,
+  },
+  bannerRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  bannerTitle: { opacity: 0.85 },
+  bookFace: { width: 44, height: 40 },
+  bookEmoji: { fontSize: 20, lineHeight: 26 },
+  ribbon: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginTop: Spacing.md },
+  ribbonLine: { flex: 1, height: 3, borderRadius: 2, opacity: 0.7 },
+  mascot: { position: "absolute", left: "50%", top: 44 },
+  startWrap: { position: "absolute", top: -34, left: 0, right: 0, alignItems: "center", zIndex: 2 },
+  startBubble: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 4,
+    borderRadius: Radius.md,
+    borderWidth: 2,
+  },
+  startCaret: {
+    width: 12,
+    height: 12,
+    marginTop: -7,
+    borderRightWidth: 2,
+    borderBottomWidth: 2,
+    transform: [{ rotate: "45deg" }],
+  },
+  ring: { padding: 4, borderWidth: 3, borderRadius: DOT },
+  dotFace: { width: DOT, height: DOT },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
   daily: { marginTop: Spacing.sm, borderStyle: "solid", borderWidth: 2 },
   dailyDot: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  chip: {
-    paddingHorizontal: Spacing.md - 4,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
-  },
   /** Roter Punkt „hier wartet etwas“ (Tagesaufgabe offen). */
   chipDot: {
     position: "absolute",
@@ -721,14 +782,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
-  world: {
-    marginTop: Spacing.md,
-    padding: Spacing.md,
-    borderRadius: Radius.xl,
-    borderWidth: 2,
-    gap: Spacing.xs + 2,
-  },
-  binRow: { flexDirection: "row", gap: Spacing.xs + 2 },
   bin: {
     width: 34,
     height: 34,
@@ -739,7 +792,7 @@ const styles = StyleSheet.create({
   },
   binNew: { opacity: 1, borderWidth: 2, borderColor: "#FFD54A" },
   binIcon: { fontSize: 18, lineHeight: 22 },
-  stationWrap: { alignItems: "center", paddingTop: Spacing.xs },
+  stationWrap: { alignItems: "center", paddingTop: Spacing.lg },
   flex: { flex: 1 },
   trick: {
     flexDirection: "row",

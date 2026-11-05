@@ -4,6 +4,7 @@
 export const de = {
   "common.back": "Zurück",
   "common.close": "Schließen",
+  "common.stars": "Sterne",
   "common.starsOf": "{n} von 3 Sternen",
   "common.tapToClose": "Tippen zum Schließen",
   "common.cancel": "Abbrechen",
@@ -598,6 +599,7 @@ export const de = {
   "duel.quit.title": "Duell beenden?",
   "duel.quit.message": "Der Spielstand wird nicht gespeichert.",
   "duel.quit.confirm": "Beenden",
+  "campaign.info": "Was gehört hinein?",
   "campaign.go": "Los!",
   "hub.campaign.title": "Kampagne",
   "hub.campaign.subtitle": "Allein spielen, lernen und üben.",
