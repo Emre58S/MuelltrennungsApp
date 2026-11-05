@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, View } from "react-native";
 
+import { tone } from "@/components/ui/chunky";
 import { Radius, TOUCH_MIN } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
 
@@ -48,7 +49,11 @@ export function Segmented<T extends string>({
             }}
             style={[
               styles.option,
-              selected && { backgroundColor: color ?? colors.primary },
+              selected && {
+                backgroundColor: color ?? colors.primary,
+                borderBottomWidth: 4,
+                borderBottomColor: tone(color ?? colors.primary, -0.3),
+              },
               // Platz für den Punkt, damit er das Wortende nicht berührt
               opt.dot && { paddingRight: 14 },
             ]}

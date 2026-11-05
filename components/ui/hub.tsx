@@ -5,18 +5,17 @@
 
 import { Feather } from "@expo/vector-icons";
 import { type ComponentRef, type ReactNode, type Ref } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
+import { Chunky, tone } from "@/components/ui/chunky";
 import { FadeIn } from "@/components/ui/fade-in";
 import { useShell } from "@/components/nav/shell-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { type Area } from "@/constants/areas";
-import { press, tapHaptic } from "@/components/ui/press";
-import { Radius, Shadow, Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
-import { sfx } from "@/utils/sfx";
 
 /** Sperre gegen Doppeltippen: Ein schneller zweiter Tipp würde sonst z. B.
  *  zwei Runden übereinander öffnen. */
@@ -45,6 +44,17 @@ export function HubScreen({
   const shell = useShell();
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+      {/* In der Hülle: Band in der Bereichsfarbe (wie der Pfad), steht fest über dem Inhalt */}
+      {shell.inShell && area && (
+        <View style={[styles.banner, { backgroundColor: area.fill, borderBottomColor: tone(area.fill, -0.3) }]}>
+          <AppText variant="overline" color={area.on} style={styles.bannerTitle} accessibilityRole="header">
+            {`${emoji} ${title}`.toUpperCase()}
+          </AppText>
+          <AppText variant="heading" color={area.on} numberOfLines={2}>
+            {subtitle}
+          </AppText>
+        </View>
+      )}
       <ScrollView
         ref={scrollRef}
         keyboardShouldPersistTaps="handled"
@@ -59,7 +69,9 @@ export function HubScreen({
           },
         ]}
       >
-        <PageHeader title={title} subtitle={subtitle} emoji={emoji} area={area} hideBack={shell.inShell} compact={shell.inShell} />
+        {!(shell.inShell && area) && (
+          <PageHeader title={title} subtitle={subtitle} emoji={emoji} area={area} hideBack={shell.inShell} compact={shell.inShell} />
+        )}
         {children}
       </ScrollView>
     </View>
@@ -92,49 +104,47 @@ export function HubCard({
   index: number;
   onPress: () => void;
 }) {
-  const { colors, scheme } = useAppTheme();
+  // Farbfläche etwas dunkler, damit weiße Schrift gut lesbar bleibt
+  const face = tone(color, -0.25);
   return (
     <FadeIn delay={60 + index * 60}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={[title, desc, info].filter(Boolean).join(". ")}
+      <Chunky
+        color={face}
+        depth={6}
+        radius={Radius.xl}
+        label={[title, desc, info].filter(Boolean).join(". ")}
         onPress={() => {
           const now = Date.now();
           if (now < lockedUntil) return;
           lockedUntil = now + TAP_LOCK_MS;
-          sfx("tap");
-          tapHaptic();
           onPress();
         }}
-        style={({ pressed }) => [
-          styles.card,
-          { backgroundColor: colors.surface, borderColor: badge ? color : colors.border },
-          scheme === "light" && Shadow,
-          pressed && press.pressedLarge,
-        ]}
+        faceStyle={styles.card}
       >
-        <View style={[styles.icon, { backgroundColor: color }]}>
+        <View style={styles.icon}>
           <AppText style={styles.emoji}>{emoji}</AppText>
           {dot && <View style={styles.dot} />}
         </View>
         <View style={styles.flex}>
           {badge && (
-            <View style={[styles.badge, { backgroundColor: color }]}>
+            <View style={styles.badge}>
               <AppText variant="overline" color="#FFFFFF">
                 {badge.toUpperCase()}
               </AppText>
             </View>
           )}
-          <AppText variant="heading">{title}</AppText>
-          <AppText tone="textSecondary">{desc}</AppText>
+          <AppText variant="heading" color="#FFFFFF">
+            {title}
+          </AppText>
+          <AppText color="rgba(255,255,255,0.92)">{desc}</AppText>
           {info ? (
-            <AppText variant="label" tone="textMuted" style={styles.info}>
+            <AppText variant="label" color="rgba(255,255,255,0.85)" style={styles.info}>
               {info}
             </AppText>
           ) : null}
         </View>
-        <Feather name="chevron-right" size={22} color={colors.textMuted} />
-      </Pressable>
+        <Feather name="chevron-right" size={24} color="#FFFFFF" />
+      </Chunky>
     </FadeIn>
   );
 }
@@ -143,20 +153,28 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.md },
   flex: { flex: 1 },
+  banner: {
+    paddingHorizontal: Spacing.md + 4,
+    paddingVertical: Spacing.sm + 2,
+    gap: 2,
+    borderBottomWidth: 4,
+  },
+  bannerTitle: { opacity: 0.85 },
   card: {
     flexDirection: "row",
+    alignSelf: "stretch",
     alignItems: "center",
+    justifyContent: "flex-start",
     gap: Spacing.md,
     minHeight: 96,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
-    borderRadius: Radius.xl,
-    borderWidth: 2,
   },
   icon: {
     width: 56,
     height: 56,
     borderRadius: Radius.lg,
+    backgroundColor: "rgba(255,255,255,0.22)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -177,6 +195,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.sm,
+    backgroundColor: "rgba(0,0,0,0.28)",
     marginBottom: 2,
   },
   info: { marginTop: 2 },

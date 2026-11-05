@@ -5,6 +5,15 @@ Die alte Roadmap (R1–R10, mit allen Commit-Kürzeln) liegt unverändert in
 und in welcher Reihenfolge wir dahin kommen. Aufgaben heißen jetzt **F1…**; übernommene
 alte Punkte stehen mit ihrer alten Nummer (z. B. „← R6b“).
 
+**Stand 5.11., spät (Menü im Spielstil, Vorlagen Duolingo + Clash Royale, Nutzerwunsch „perfekt abgestimmt, maximal
+ansprechend“):** Teil 1 ausgeliefert (a74a009, Tester 8/10, EAS auto + preview): Baustein `components/ui/chunky.tsx`
+(dicker Knopf mit Unterkante), Pfad mit Weltband (wechselt beim Scrollen, Buch = „Was gehört hinein?“), Schnellstart-
+Kacheln, Mission-Plätze (`components/areas/mission-slots.tsx`), Stationen als dicke Knöpfe mit „LOS!“-Blase und
+Begleiter-Tonne, neue untere Leiste (gewählte Tonne hebt sich heraus), Kopf mit Level-Abzeichen + Flamme/Sterne.
+**Offen (Teil 2+):** Online und Regal im selben Stil (Band, dicke Karten), Tagesaufgabe/„Nächste Belohnung“ im
+Pfad angleichen (Tagesaufgabe unterbricht den Pfad – besser darüber), Hellmodus + 375 pt per Bild prüfen,
+altes Menü + Schalter „Neues Menü“ entfernen (Nutzer entscheidet), Kontrast der Kachelfarben nachrechnen.
+
 **Stand 5.11., abends:** Trick-Szenen ausgeliefert (auto + preview): Küche 5–8, Büro 9–13, **Hof 14–16** (Wind mit
 Wäscheleine, rollende Tonnen, klappende Deckel – mechanisch wie Küche/Büro, nur Kulisse), **Straße 17–18** (Ampel im
 Deckel-Takt; Glasscheibe am Kran, zerspringt beim Durchwurf; Straße mit Häusern, Asphalt, Autos, Baustelle).

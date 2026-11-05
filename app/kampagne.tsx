@@ -222,6 +222,8 @@ export default function KampagneScreen() {
           <PlayTile kind="tricks" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
         </View>
 
+        {daily !== undefined && <DailyStation result={daily} />}
+
         {nextReward && (
           <Pressable
             accessibilityRole="button"
@@ -280,8 +282,6 @@ export default function KampagneScreen() {
                       scrollToCurrent();
                     }}
                   />
-                  {/* Tagesaufgabe gleich dort, wo man weiterspielt */}
-                  {station.id === current.id && daily !== undefined && <DailyStation result={daily} />}
                 </Fragment>
               ))}
               <TrickSchool
@@ -404,28 +404,25 @@ function DailyStation({ result }: { result: DailyResult | null }) {
     ? t("home.dailyDone", { correct: result.correct, total: result.total, score: result.score })
     : t("home.dailyNew");
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${t("home.daily")}, ${status}${result ? `, ${t("campaign.dailyTomorrow")}` : ""}`}
-      onPress={() => {
-        sfx("tap");
-        tapHaptic();
-        startDaily();
-      }}
-      style={({ pressed }) => [
-        styles.trick,
-        styles.daily,
-        { backgroundColor: colors.surface, borderColor: DAILY_GOLD },
-        pressed && press.pressed,
-      ]}
+    <Chunky
+      color={result ? colors.surface : DAILY_GOLD}
+      edge={result ? colors.border : "#B58300"}
+      depth={6}
+      radius={Radius.xl}
+      label={`${t("home.daily")}, ${status}${result ? `, ${t("campaign.dailyTomorrow")}` : ""}`}
+      onPress={startDaily}
+      style={styles.dailyWrap}
+      faceStyle={styles.dailyFace}
     >
-      <View style={[styles.dailyDot, { backgroundColor: result ? colors.goldSoft : DAILY_GOLD }]}>
+      <View style={[styles.dailyDot, { backgroundColor: result ? colors.goldSoft : "#FFFFFF55" }]}>
         <AppText style={styles.trickEmoji}>{result ? "✓" : "📅"}</AppText>
         {!result && <View style={styles.chipDot} />}
       </View>
       <View style={styles.flex}>
-        <AppText variant="label">{t("home.daily")}</AppText>
-        <AppText variant="caption" tone="textSecondary">
+        <AppText variant="label" color={result ? colors.text : "#2B1D00"}>
+          {t("home.daily")}
+        </AppText>
+        <AppText variant="caption" color={result ? colors.textSecondary : "#2B1D00"}>
           {status}
         </AppText>
         {result && (
@@ -434,7 +431,7 @@ function DailyStation({ result }: { result: DailyResult | null }) {
           </AppText>
         )}
       </View>
-    </Pressable>
+    </Chunky>
   );
 }
 
@@ -768,7 +765,8 @@ const styles = StyleSheet.create({
   ring: { padding: 4, borderWidth: 3, borderRadius: DOT },
   dotFace: { width: DOT, height: DOT },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
-  daily: { marginTop: Spacing.sm, borderStyle: "solid", borderWidth: 2 },
+  dailyWrap: { alignSelf: "stretch" },
+  dailyFace: { flexDirection: "row", alignSelf: "stretch", justifyContent: "flex-start", gap: Spacing.sm, minHeight: 68, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md },
   dailyDot: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   /** Roter Punkt „hier wartet etwas“ (Tagesaufgabe offen). */
   chipDot: {
