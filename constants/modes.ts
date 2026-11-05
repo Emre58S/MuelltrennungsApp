@@ -43,7 +43,7 @@ export const MODES: ModeConfig[] = [
 /** Im Hauptmenü steht je Modus eine Tonne – dort immer genau 3. */
 export const MENU_MODES: ModeConfig[] = MODES.filter((m) => m.mode !== "aim");
 
-/** Modi mit 60-Sekunden-Uhr. */
+/** Modi mit 30-Sekunden-Uhr. */
 export function isTimed(mode: GameMode): boolean {
   return mode === "time" || mode === "aim";
 }

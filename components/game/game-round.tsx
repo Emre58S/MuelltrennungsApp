@@ -151,7 +151,7 @@ import {
   stepClick,
 } from "./throw-input";
 
-const ROUND_SECONDS = 60;
+const ROUND_SECONDS = 30;
 /** Boss: alle so viele Würfe tauschen zwei Tonnen die Plätze. */
 const BOSS_SWAP_EVERY = 4;
 /** Nach Zeitablauf: so lange dürfen fliegende Würfe noch landen. */

@@ -8,7 +8,7 @@
 // Welt 6 „Knifflige Fälle“: alle Tonnen, Stationen mit festen Fallen-Listen.
 // Neue Tonne = Lernkarte (introExamples + Text bin.<key>.examples).
 // Stations-Arten (R2d): normal · Ohne Fehler (endet beim ersten Fehler) ·
-// Zeit (60 s, so viele richtig wie möglich) · Boss am Ende jeder Welt (R2e:
+// Zeit (30 s, so viele richtig wie möglich) · Boss am Ende jeder Welt (R2e:
 // 10 richtig in Folge, höchstens 20 Würfe; Fehler setzen nur die Serie zurück).
 
 import { type Item, ITEMS } from "@/constants/items";
@@ -62,7 +62,7 @@ const STEPS: { upTo: Difficulty; goal: number; total?: number; kind?: StationKin
   { upTo: "mittel", goal: 7 },
   { upTo: "mittel", goal: 4, kind: "survival" },
   { upTo: "schwer", goal: 7 },
-  { upTo: "schwer", goal: 10, total: 16, kind: "time" },
+  { upTo: "schwer", goal: 5, total: 8, kind: "time" },
   { upTo: "schwer", goal: 8 },
   { upTo: "schwer", goal: BOSS_STREAK, total: BOSS_THROWS, kind: "boss" },
 ];
