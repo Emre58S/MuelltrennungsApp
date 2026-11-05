@@ -5,6 +5,17 @@ Die alte Roadmap (R1–R10, mit allen Commit-Kürzeln) liegt unverändert in
 und in welcher Reihenfolge wir dahin kommen. Aufgaben heißen jetzt **F1…**; übernommene
 alte Punkte stehen mit ihrer alten Nummer (z. B. „← R6b“).
 
+**Stand 5.11., abends:** Trick-Szenen ausgeliefert (auto + preview): Küche 5–8, Büro 9–13, **Hof 14–16** (Wind mit
+Wäscheleine, rollende Tonnen, klappende Deckel – mechanisch wie Küche/Büro, nur Kulisse), **Straße 17–18** (Ampel im
+Deckel-Takt; Glasscheibe am Kran, zerspringt beim Durchwurf; Straße mit Häusern, Asphalt, Autos, Baustelle).
+Nutzer-Wünsche dazu: Hindernisse lieber **in der Luft oder hinter den Tonnen** statt Boden-Trampoline (kurze Würfe
+sind schwer), **durch/gegen Dinge werfen, die zerbrechen**; alles braucht einen **Bezug zur Szene** (Fahrrad,
+Bollerwagen und „Reifen aus dem Nichts“ wurden verworfen). Reihenfolge nach Nutzer: **erst alles andere fertig,
+Tricks komplett als Allerletztes.** F12 (Reiter „Heute“ im Regal) ist umgesetzt. **Offen ohne Tricks:** F13 lebendige
+Tonnen, F14 Material-Effekte, F15 Kampagne-Reste (frische Sitzung!), F7 (braucht SQL), F16–F20 Release (brauchen den
+Nutzer). **Offen bei Tricks (zuletzt):** Park (Drachen im Wind u. a.), fahrende Autos, zerbrechliche Ziele (Flaschen auf
+Mauer), ausgeblendete Küchen-Parcours 20–23 neu denken oder streichen, 28 Klassik-Level auf natürliche Hindernisse.
+
 **Stand 5.11., 00:10:** Trick-Tour neu nach Nutzer-Kritik („unnatürlich, schwebt, verrät die Zieltonne“): Hindernisse
 kommen jetzt aus der Szene. **Ausgeliefert (auto + preview): Küchen-Parcours 5 Saugroboter, 6 klappende Deckel,
 7 Wind vom Fenster (Vorhang, Böen, Papierschnipsel), 8 rollende Tonnen (Welle, `slideAll`).** Küchenrolle/Töpfe/Regal
@@ -220,7 +231,7 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   - [ ] **F11e (nach Release möglich)** weitere Szenen nach dem Küchen-Muster: Büro, Hof, Straße, Park.
 
 ### Phase E – Leben & Politur
-- [ ] **F12 Tagesmission im Regal**: Reiter „Heute“ mit denselben Stempeln wie die Pfad-Leiste
+- [x] **F12 Tagesmission im Regal**: Reiter „Heute“ mit denselben Stempeln wie die Pfad-Leiste
   (Bausteine aus F4), Tagesaufgabe darunter. *½ Sitzung*
 - [ ] **F13 Lebendige Tonnen im Spiel** (← #7): Deckel-/Wackel-Animation, Partikel „kommt etwas
   heraus“ je Tonne in der Runde und im Endscreen, neu gefundener Gegenstand aus animierter
