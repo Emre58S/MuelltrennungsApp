@@ -191,7 +191,7 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
     Kühlschranktür (offen, als Bande) · Spüle mit Wasserhahn (Bogen/Engstelle). Erkennbarkeit vor Details.
   - **Termin:** Trick-Küche **im Release** (nicht erst 1.1). ⇒ Der Termin „Fr 6.11.“ ist damit nicht zu halten;
     Vorschlag: Entwicklung fertig Ende nächster Woche (≈ 13.11.), danach TestFlight/Prüfung durch Apple.
-- [ ] **F10 Küchen-Szene + Hindernisse** (zerlegt; Bausteine existieren: `TrickProp` mit ring/board/sign/trampoline/
+- [~] **F10 Küchen-Szene + Hindernisse** (Rest → Phase G, ganz zuletzt) (zerlegt; Bausteine existieren: `TrickProp` mit ring/board/sign/trampoline/
   windmill/fence/lamp/fan, `levelColliders`, `trick-solver.ts`, Szenen in `stage.tsx`):
   - [x] **F10a** (d02eea4 + 830d74d, Tester 8/10, EAS auto + preview) Küchen-Szene in `stage.tsx` (Fliesenboden, Arbeitsplatte/Schränke, Fenster), vom Level gewählt (`scene: "kueche"`); Level 29 = Reifen.
   - [~] **F10b** (f445b70→4da67c6, Tester 6 → 4 → 8/10, EAS auto + preview; Teilumfang) Hindernis-Modelle als neue `look`s auf vorhandenen Kollidern: Hängeregal (board), Pfanne + Topfdeckel
@@ -200,7 +200,7 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
     Topfdeckel (Trampolin) als Küchen-Optik (`kitchen`-Prop), Level 29 Reifen, 30 Wasserhahn, 31 Topfdeckel.
     **Offen:** Hängeregal, Bratpfanne, Kühlschranktür = Schild-/Bande-Mechanik, in keinem Level erprobt → F10d mit Sonden.
   - [~] **F10c/F10d** ersetzt durch F11 (Szenen-Parcours statt einzelne Küchen-Level).
-- [ ] **F11 Trick-Tour = Szenen-Parcours** (neu geplant 4.11. nach Nutzer-Kritik an Screenshots Level 1/29/Parcours:
+- [~] **F11 Trick-Tour = Szenen-Parcours** (Küche, Büro, Hof, Straße ausgeliefert; Rest → Phase G, ganz zuletzt) (neu geplant 4.11. nach Nutzer-Kritik an Screenshots Level 1/29/Parcours:
   „Hindernisse schweben in der Luft, sind nicht erkennbar, und die Position verrät die Zieltonne“).
   **Entscheidungen:** (1) **Gegenstand bestimmt die Tonne** (wie beim Sortieren) – die Hindernisse spannen sich
   über/vor **alle drei** Tonnen, jede Tonne ist auf einem Weg erreichbar; der Trick ist der Weg (Tor, Bande,
@@ -230,8 +230,8 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
     Online-Trick-Duell (Parcours des Tages) nutzen die Küchen-Parcours; Hinweis „Neue Welt“. *1 Sitzung*
     ✓ Küchen-Parcours mit Unterüberschrift „🍳 Küche“ in den Trickwürfen. Offen: Pfad-Trick-Schule/Online-Duell
     zeigen Parcours des Tages (jetzt 8 statt 4 → ändert sich für alle; alte App-Versionen kurz abweichend).
-  - [ ] **F11d** Bande-Hindernisse (Kühlschranktür, Hängeregal) mit Sonden prüfen – ohne Fairness Ersatz vorschlagen.
-  - [ ] **F11e (nach Release möglich)** weitere Szenen nach dem Küchen-Muster: Büro, Hof, Straße, Park.
+  - [ ] **F11d (→ G6)** Bande-Hindernisse (Kühlschranktür, Hängeregal) mit Sonden prüfen – ohne Fairness Ersatz vorschlagen.
+  - [~] **F11e (Büro ✓, Hof ✓, Straße ✓; Park → G1)** weitere Szenen nach dem Küchen-Muster: Büro, Hof, Straße, Park.
 
 ### Phase E – Leben & Politur
 - [x] **F12 Tagesmission im Regal**: Reiter „Heute“ mit denselben Stempeln wie die Pfad-Leiste
@@ -250,6 +250,19 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
 - [ ] **F18 Leistung älteres iPhone** (← R7f, du testest, ich optimiere).
 - [ ] **F19 Datenschutz + Impressum** (← R7d, **deine Angaben**), Link in Einstellungen.
 - [ ] **F20 `eas build` + TestFlight** (← R7b), **Store-Eintrag** DE/EN + 5 Bildschirmfotos (← R7c).
+
+### Phase G – Tricks komplett (GANZ ZULETZT, Nutzer 5.11.: „erst alles andere fertig, Tricks als Allerletztes“)
+Regeln: jedes neue Hindernis **erst als Bild an den Nutzer**; Bezug zur Szene; lieber **in der Luft oder hinter den Tonnen**
+als Boden-Trampoline; **Durchwurf-/Zerbrech-Dinge** erwünscht; Gegenstand bestimmt die Tonne, Hindernis verrät sie nicht.
+- [ ] **G1 Park** (Szene + Parcours): z. B. Drachen im Wind (Schwanz, wackelt), Blätter, Parkbank/Rasen als Kulisse.
+- [ ] **G2 Straße ausbauen**: fahrende Autos (hinter den Tonnen), Ampel auch bei verschiedenen Phasen, `calm` für Scherben,
+  Ampel auf kleinem Handy prüfen.
+- [ ] **G3 Zerbrechliche Ziele**: gegen Dinge werfen, die zerbrechen (Flaschen auf einer Mauer, Dosenpyramide, Papierwand),
+  dann Gegenstand in die Tonne; Sound/Scherben/Partikel (Material-Klänge erhalten!).
+- [ ] **G4 Hof eigener Trick**: Wäsche als echtes Hindernis (Variante 2) oder Hof-Parcours 15/16 ersetzen (sind nur Kulisse).
+- [ ] **G5 Klassik-Level (28) und ausgeblendete Küchen-Parcours 20–23**: auf natürliche Hindernisse prüfen, neu denken
+  oder streichen.
+- [ ] **G6 Bande-Hindernisse** (Kühlschranktür, Hängeregal) mit Sonden prüfen oder streichen (= F11d).
 
 ### Nach dem Start (1.1)
 Live-Duell (R4g) · Sticker (R8c) · Passanten/Autos (R9b) · Szenen Park/Wertstoffhof (R9c) ·
