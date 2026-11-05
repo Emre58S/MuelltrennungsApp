@@ -244,8 +244,12 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
   Offen: Fund „aus animierter Tonne“ im Buch, Endscreen-Partikel; Tipp: Banner antippbar → Sammelbuch.
 - [ ] **F14 Material-Effekte fertig** (← R6b): Dose knautscht beim Einwurf, Effekte auch in
   Trick-/Sprint-Runden, Gold-Spur bei Perfekt-Treffern, Boss-Sieg/-Tausch wackelt. *1–2 Sitzungen*
-- [ ] **F15 Kampagne-Reste** (← R2/R3, „Offen (klein)“): übersprungene Stationen markieren,
+- [~] **F15 Kampagne-Reste** (← R2/R3, „Offen (klein)“): übersprungene Stationen markieren,
   Zeit-Ziel 16 prüfen, Mitternacht/Truhen-Texte, „nochmal spielen“ bei erledigter Karte. *1–2 Sitzungen*
+  ✓ Teil (2ba2e0e, Tester 8/10, EAS auto + preview): Zeit-Station zeigt „3 ★: 16“ im Stationstext.
+  Offen: **Nutzer** prüft auf dem Handy, ob 16 richtig in 60 s fair ist (sonst `total` in `STEPS` senken);
+  Tester-Tipps: Text ggf. kürzer/`numberOfLines`, Ziel in die Screenreader-Beschriftung der Station;
+  übersprungene Stationen, Mitternacht/Truhen-Texte, „nochmal spielen“.
 
 ### Phase F – Release (ganz am Ende, großenteils Nutzer-Aufgaben)
 - [ ] **F16 Ergebnis als Bild teilen** (← R8a, braucht Abhängigkeit view-shot o. ä. – **du entscheidest**).
