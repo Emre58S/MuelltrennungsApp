@@ -689,7 +689,7 @@ export const KITCHEN_PARCOURS_WIP: ParcoursLevel[] = [
 
 /** Büro-Parcours, die das Spiel zeigt (Nutzer, 5.11.: nächste Szene nach der Küche, Tricks aus der Szene):
  *  9 Rollhocker (fahrendes Trampolin am Boden) · 10 Zugluft (Papierschnipsel) · 11 rollende Tonnen ·
- *  12 klappende Deckel. */
+ *  12 klappende Deckel · 13 LED-Ringleuchte (Durchwurf, pendelt von der Decke). */
 export const OFFICE_PARCOURS: ParcoursLevel[] = [
   // Rollhocker rollt über alle Tonnen: draufwerfen, wenn er vor DEINER Tonne ist
   {
@@ -725,12 +725,8 @@ export const OFFICE_PARCOURS: ParcoursLevel[] = [
   },
   // Alle Tonnendeckel klappen im Takt (Büro-Kulisse)
   { ...CLASSIC_PARCOURS[3], id: 12, scene: "buero" },
-];
-
-/** Büro-Parcours in Arbeit – noch nicht in der Liste (Nutzer sieht sie erst als Bild), per Link erreichbar. */
-export const OFFICE_PARCOURS_WIP: ParcoursLevel[] = [
   // LED-Ringleuchte pendelt von der Decke über alle Tonnen: durchwerfen, wenn sie vor DEINER Tonne ist
-  { ...CLASSIC_PARCOURS[0], id: 30, scene: "buero", task: "trick.task.ringLamp" },
+  { ...CLASSIC_PARCOURS[0], id: 13, scene: "buero", task: "trick.task.ringLamp" },
 ];
 
 /** Die Parcours, die das Spiel anzeigt und für den Tages-Parcours zieht. */

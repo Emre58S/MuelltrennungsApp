@@ -307,7 +307,7 @@ export const de = {
   "tip.flapAll": "Alle Deckel klappen zusammen auf und zu. Wirf kurz bevor sie aufgehen.",
   "trick.otherTrampoline": "Fast! Nimm das Trampolin vor deiner Tonne.",
   "parcours.office": "Büro",
-  "parcours.officeDesc": "Sortieren im Büro: Rollhocker, Zugluft, rollende Tonnen und klappende Deckel.",
+  "parcours.officeDesc": "Sortieren im Büro: Rollhocker, Zugluft, rollende Tonnen, klappende Deckel und Ringleuchte.",
   "parcours.kitchen": "Küche",
   "parcours.kitchenDesc": "Sortieren in der Küche: Saugroboter, klappende Deckel, Wind und rollende Tonnen.",
   "parcours.section": "Parcours: sortieren mit Trickwurf",
