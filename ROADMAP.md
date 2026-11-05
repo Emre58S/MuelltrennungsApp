@@ -247,6 +247,9 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
 - [~] **F15 Kampagne-Reste** (← R2/R3, „Offen (klein)“): übersprungene Stationen markieren,
   Zeit-Ziel 16 prüfen, Mitternacht/Truhen-Texte, „nochmal spielen“ bei erledigter Karte. *1–2 Sitzungen*
   ✓ Teil (2ba2e0e, Tester 8/10, EAS auto + preview): Zeit-Station zeigt „3 ★: 16“ im Stationstext.
+  ✓ Teil (d65a4d1, Tester 6 → 8/10, EAS auto + preview): Vorleser-Beschriftung der Stationen nennt das Ziel (eigene Texte
+  `campaign.a11y.*` ohne Emojis). „Übersprungene Stationen markieren“ braucht neues Speichern (Bestandsspieler-Sterne
+  sind von echten nicht unterscheidbar) – eigener Zyklus.
   Offen: **Nutzer** prüft auf dem Handy, ob 16 richtig in 60 s fair ist (sonst `total` in `STEPS` senken);
   Tester-Tipps: Text ggf. kürzer/`numberOfLines`, Ziel in die Screenreader-Beschriftung der Station;
   übersprungene Stationen, Mitternacht/Truhen-Texte, „nochmal spielen“.
