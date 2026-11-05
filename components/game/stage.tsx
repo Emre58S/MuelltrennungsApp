@@ -15,7 +15,7 @@ import * as THREE from "three";
 import { lowpoly } from "./materials";
 import { Baked } from "./model-cache";
 
-export type SceneKind = "haus" | "ziegel" | "garten" | "kueche" | "buero" | "hof";
+export type SceneKind = "haus" | "ziegel" | "garten" | "kueche" | "buero" | "hof" | "strasse";
 /** Szenen, die von Runde zu Runde wechseln. Die Küche gibt es nur, wenn ein Trick-Level sie verlangt. */
 const ORDER: SceneKind[] = ["haus", "ziegel", "garten"];
 let counter = 0;
@@ -477,6 +477,133 @@ function YardScene({ p }: { p: Palette }) {
   );
 }
 
+/** Straße (Trickwürfe): vorn der Gehweg mit den Tonnen, dahinter Bordstein, Asphalt mit Zebrastreifen und
+ *  Mittellinie, drüben eine Häuserzeile mit Laterne und Ampel (die Ampel steht in traffic-light.tsx). */
+const STREET_HOUSES: [number, number, number, string][] = [[-7.5,3.4,4.4,"#D96C5B"],[-4,3.2,5.6,"#E9CF9B"],[-0.6,3.4,4,"#8DB6D9"],[2.9,3.2,5.2,"#F0B35A"],[6.3,3.4,4.6,"#B7C98A"],[9.6,3.2,5.4,"#E2A9B8"]];
+
+function Car({ x, z, body, van }: { x: number; z: number; body: string; van?: boolean }) {
+  const len = van ? 2.6 : 2.2;
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.5, 0]} material={lowpoly(body)}>
+        <boxGeometry args={[len, 0.6, 1.0]} />
+      </mesh>
+      <mesh position={[van ? 0.15 : -0.1, van ? 1.05 : 0.98, 0]} material={lowpoly(body)}>
+        <boxGeometry args={[van ? len - 0.3 : 1.2, van ? 0.6 : 0.46, 0.92]} />
+      </mesh>
+      <mesh position={[van ? 0.15 : -0.1, van ? 1.08 : 1.0, 0.47]} material={lowpoly("#BFE3F5")}>
+        <boxGeometry args={[van ? len - 0.6 : 1.0, 0.34, 0.02]} />
+      </mesh>
+      {[-1, 1].map((sx) => (
+        <mesh key={sx} position={[sx * len * 0.32, 0.22, 0.5]} rotation={[Math.PI / 2, 0, 0]} material={lowpoly("#20252B")}>
+          <cylinderGeometry args={[0.22, 0.22, 0.14, 12]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function StreetScene({ p }: { p: Palette }) {
+  const asphalt = lowpoly("#4A4F57");
+  const paint = lowpoly("#F4F4EE");
+  return (
+    <>
+      {/* Bordstein und Asphalt */}
+      <mesh position={[0, 0.06, -1.7]} material={lowpoly("#C9C5BC")}>
+        <boxGeometry args={[40, 0.12, 0.3]} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -6.4]} material={asphalt}>
+        <planeGeometry args={[60, 8.6]} />
+      </mesh>
+      {/* Mittellinie (gestrichelt) */}
+      {Array.from({ length: 15 }, (_, i) => -8.4 + i * 1.2).map((x) => (
+        <mesh key={x} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.03, -6.4]} material={paint}>
+          <planeGeometry args={[0.6, 0.12]} />
+        </mesh>
+      ))}
+      {/* Zebrastreifen quer zur Fahrbahn */}
+      {[-1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8].map((x) => (
+        <mesh key={x} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.03, -5.0]} material={paint}>
+          <planeGeometry args={[0.34, 4.0]} />
+        </mesh>
+      ))}
+      {/* Gehweg drüben */}
+      <mesh position={[0, 0.06, -10.7]} material={lowpoly("#C9C5BC")}>
+        <boxGeometry args={[40, 0.12, 0.3]} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, -12.0]} material={lowpoly(p.ground)}>
+        <planeGeometry args={[60, 2.4]} />
+      </mesh>
+      {/* Häuserzeile auf der anderen Straßenseite */}
+      {STREET_HOUSES.map(([x, w, h, color]) => (
+        <group key={x} position={[x, 0, -14]}>
+          <mesh position={[0, h / 2, 0]} material={lowpoly(color)}>
+            <boxGeometry args={[w, h, 2]} />
+          </mesh>
+          <mesh position={[0, h + 0.15, 0]} material={lowpoly(p.roof)}>
+            <boxGeometry args={[w + 0.2, 0.3, 2.2]} />
+          </mesh>
+          {[0.45, 0.62].map((fy) =>
+            [-0.28, 0.28].map((fx) => (
+              <mesh key={fy + "," + fx} position={[fx * w, h * fy + 0.4, 1.02]} material={lowpoly(p.glass)}>
+                <boxGeometry args={[0.55, 0.7, 0.04]} />
+              </mesh>
+            )),
+          )}
+          <mesh position={[0, 0.8, 1.02]} material={lowpoly("#6B4A33")}>
+            <boxGeometry args={[0.7, 1.6, 0.05]} />
+          </mesh>
+        </group>
+      ))}
+      {/* Zwei Autos auf der Fahrbahn: rotes Auto links, gelber Lieferwagen rechts */}
+      <Car x={-2.3} z={-7.4} body="#D9453A" />
+      <Car x={2.4} z={-7.4} body="#F2C04A" van />
+      {/* Baustelle drüben: Kranmast (ragt oben aus dem Bild – der Kran hängt dort die Glasscheibe ein), Bauzaun, Container */}
+      <group position={[-3.4, 0, -10.8]}>
+        <mesh position={[0, 6, 0]} material={lowpoly("#F2C04A")}>
+          <boxGeometry args={[0.6, 12, 0.6]} />
+        </mesh>
+        {[0.8, 2.0, 3.2, 4.4, 5.6, 6.8, 8.0].map((y) => (
+          <mesh key={y} position={[0, y, 0]} material={lowpoly("#8A6A1E")}>
+            <boxGeometry args={[0.66, 0.1, 0.66]} />
+          </mesh>
+        ))}
+      </group>
+      <mesh position={[3.9, 0.7, -10.8]} material={lowpoly("#3D6FB6")}>
+        <boxGeometry args={[2.6, 1.4, 1.2]} />
+      </mesh>
+      <group position={[-1.0, 0, -10.3]}>
+        {Array.from({ length: 12 }, (_, i) => i * 0.16).map((dx) => (
+          <mesh key={dx} position={[dx, 0.9, 0]} material={lowpoly("#F28C28")}>
+            <boxGeometry args={[0.05, 1.5, 0.05]} />
+          </mesh>
+        ))}
+        {[0.25, 1.55].map((y) => (
+          <mesh key={y} position={[0.88, y, 0]} material={lowpoly("#F28C28")}>
+            <boxGeometry args={[1.95, 0.07, 0.07]} />
+          </mesh>
+        ))}
+        <mesh position={[0.88, 0.9, 0.03]} material={lowpoly("#FFFFFF")}>
+          <boxGeometry args={[0.7, 0.3, 0.02]} />
+        </mesh>
+      </group>
+      {/* Laterne auf dem Gehweg drüben */}
+      <group position={[-2.0, -0.8, -10.5]}>
+        <mesh position={[0, 1.8, 0]} material={lowpoly(p.metal)}>
+          <cylinderGeometry args={[0.06, 0.08, 3.6, 8]} />
+        </mesh>
+        <mesh position={[0.25, 3.58, 0]} material={lowpoly(p.metal)}>
+          <boxGeometry args={[0.6, 0.07, 0.07]} />
+        </mesh>
+        <mesh position={[0.5, 3.5, 0]}>
+          <icosahedronGeometry args={[0.16, 0]} />
+          <meshBasicMaterial color="#FFF2C9" />
+        </mesh>
+      </group>
+    </>
+  );
+}
+
 function GardenScene({ p }: { p: Palette }) {
   return (
     <>
@@ -907,6 +1034,7 @@ export const Stage = memo(function Stage({
         {scene === "haus" && <HouseScene p={p} />}
         {scene === "ziegel" && <BrickScene p={p} />}
         {scene === "hof" && <YardScene p={p} />}
+        {scene === "strasse" && <StreetScene p={p} />}
         {garden && <GardenScene p={p} />}
       </Baked>
 

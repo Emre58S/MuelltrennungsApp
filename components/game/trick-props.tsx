@@ -42,6 +42,7 @@ import {
   windmillAngle,
 } from "@/game/physics";
 
+import { GlassPane } from "./glass-pane";
 import { lowpoly } from "./materials";
 import { KITCHEN_WINDOW_X } from "./stage";
 import { bake } from "./model-cache";
@@ -109,6 +110,28 @@ function ledRing(radius: number, tube: number, length: number): THREE.Object3D {
   return baked;
 }
 
+/** Straße: Glasscheibe im Metallrahmen, an zwei Seilen von einem Kran – das Pendel über allen Tonnen. Der Rahmen ist
+ *  der Ring (Mitte der Röhre = radius); die Scheibe selbst zeichnet GlassPane (zerspringt beim Durchwurf). */
+function paneFrame(radius: number, tube: number, length: number): THREE.Object3D {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(radius, tube * 0.9, 8, 32), lowpoly("#8A949E")));
+  for (const side of [-1, 1]) {
+    const x0 = side * radius * 0.6;
+    const y0 = Math.sqrt(Math.max(radius * radius - x0 * x0, 0)) + tube * 0.4;
+    const len = Math.hypot(x0, length - y0);
+    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, len, 5), lowpoly("#4A4F57"));
+    rope.position.set(x0 / 2, (length + y0) / 2, 0);
+    rope.rotation.z = Math.atan2(x0, length - y0);
+    g.add(rope);
+  }
+  const hook = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.12), lowpoly("#F2C04A"));
+  hook.position.y = length + 0.02;
+  g.add(hook);
+  const baked = bake(g);
+  g.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+  return baked;
+}
+
 /** Küche: Küchenrolle am Faden – das Pendel über allen Tonnen. Papier (weiß) um ein Papprohr
  *  (braun); das Rohr ist die Öffnung (gleiche Maße wie die Physik: Mitte der Röhre = radius). */
 function kitchenRoll(radius: number, tube: number, length: number): THREE.Object3D {
@@ -157,7 +180,7 @@ function swingTire(radius: number, tube: number, length: number): THREE.Object3D
   return baked;
 }
 
-const Ring = memo(function Ring({ ring, bus, kitchen, office }: { ring: RingCollider; bus: BusRef; kitchen?: boolean; office?: boolean }) {
+const Ring = memo(function Ring({ ring, bus, kitchen, office, street }: { ring: RingCollider; bus: BusRef; kitchen?: boolean; office?: boolean; street?: boolean }) {
   const group = useRef<THREE.Group>(null);
   const glow = useRef<THREE.Mesh>(null);
   const swing = ring.motion?.kind === "swing" ? ring.motion : undefined;
@@ -165,13 +188,15 @@ const Ring = memo(function Ring({ ring, bus, kitchen, office }: { ring: RingColl
   const model = useMemo(
     () =>
       length
-        ? office
-          ? ledRing(ring.radius, ring.tube, length)
-          : kitchen
+        ? street
+          ? paneFrame(ring.radius, ring.tube, length)
+          : office
+            ? ledRing(ring.radius, ring.tube, length)
+            : kitchen
             ? kitchenRoll(ring.radius, ring.tube, length)
             : swingTire(ring.radius, ring.tube, length)
         : hoop(ring.radius, ring.tube),
-    [ring.radius, ring.tube, length, kitchen, office],
+    [ring.radius, ring.tube, length, kitchen, office, street],
   );
   const glowGeo = useMemo(
     () => new THREE.TorusGeometry(ring.radius, ring.tube * (length ? 1.4 : 2.2), 8, 36),
@@ -214,6 +239,7 @@ const Ring = memo(function Ring({ ring, bus, kitchen, office }: { ring: RingColl
     <group ref={group}>
       <primitive object={model} />
       <mesh ref={glow} geometry={glowGeo} material={glowMat} visible={false} />
+      {street && length > 0 && <GlassPane radius={ring.radius} ringId={ring.id} bus={bus} />}
     </group>
   );
 });
@@ -873,8 +899,11 @@ export const TrickProps = memo(function TrickProps({
   kitchen,
   office,
   yard,
+  street,
 }: {
   props: PropCollider[];
+  /** Straßen-Optik: Reifenschaukel = hängende Glasscheibe, die beim Durchwurf zerspringt. */
+  street?: boolean;
   /** Hof-Optik: Wind mit Wäscheleine und Laub. */
   yard?: boolean;
   bus: BusRef;
@@ -888,7 +917,7 @@ export const TrickProps = memo(function TrickProps({
     <>
       {props.map((prop) =>
         prop.kind === "ring" ? (
-          <Ring key={prop.id} ring={prop} bus={bus} kitchen={kitchen} office={office} />
+          <Ring key={prop.id} ring={prop} bus={bus} kitchen={kitchen} office={office} street={street} />
         ) : prop.kind === "windmill" ? (
           <Windmill key={prop.id} mill={prop} bus={bus} />
         ) : prop.kind === "sign" && prop.look === "fence" ? (

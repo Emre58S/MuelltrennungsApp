@@ -19,6 +19,7 @@ import { takePerfMarks } from "@/utils/perf-marks";
 import { binLabelTexture } from "./bin-label-textures";
 import { BurstLayer } from "./effects";
 import { type SceneKind, Stage } from "./stage";
+import { TrafficLight } from "./traffic-light";
 import { type FxRef, stepFx } from "./fx";
 import { type BinSlide, type PropCollider, slideOffset } from "@/game/physics";
 import { type TrickProp } from "@/game/trick-levels";
@@ -253,7 +254,10 @@ export const GameScene = memo(function GameScene({
         binSlide={trick?.binSlide}
       />
 
-      {trick && <TrickProps props={trick.colliders} bus={bus} calm={calm} kitchen={scene === "kueche"} office={scene === "buero"} yard={scene === "hof"} />}
+      {trick && <TrickProps props={trick.colliders} bus={bus} calm={calm} kitchen={scene === "kueche"} office={scene === "buero"} yard={scene === "hof"} street={scene === "strasse"} />}
+
+      {/* Straße: Ampel zeigt den Deckel-Takt (Grün = offen) */}
+      {scene === "strasse" && trick?.binSlide?.flap && <TrafficLight flap={trick.binSlide.flap} bus={bus} x={1.7} z={-10.5} scale={1.5} />}
 
       {/* Zielwurf und Trickwürfe: Flugbahn beim Zielen (der Anfang davon) */}
       {(openLids || trick) && (

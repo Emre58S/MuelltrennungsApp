@@ -134,7 +134,7 @@ export type TrickLevel = {
   /** Kurze Aufgabe, z. B. „Durch den Reifen“. */
   task: TranslationKey;
   /** Kulisse der Runde (Standard: Hauswand). Die Küche ist eine eigene Welt. */
-  scene?: "haus" | "kueche" | "buero" | "hof";
+  scene?: "haus" | "kueche" | "buero" | "hof" | "strasse";
 };
 
 /** Windrad mit 4 Flügeln; Nabe seitlich der Wurfbahn, die Flügel kreuzen sie. */
@@ -758,8 +758,17 @@ export const YARD_PARCOURS: ParcoursLevel[] = [
   { ...CLASSIC_PARCOURS[3], id: 16, scene: "hof" },
 ];
 
+/** Straßen-Parcours (Nutzer, 5.11.: Straße mit Häusern, Ampel und Baustelle):
+ *  17 Ampel im Takt der Deckel · 18 Glasscheibe am Kran (Durchwurf, zerspringt). */
+export const STREET_PARCOURS: ParcoursLevel[] = [
+  // Ampel im Takt der Deckel: Grün = Deckel offen – dann werfen
+  { ...CLASSIC_PARCOURS[3], id: 17, scene: "strasse", task: "trick.task.trafficLight" },
+  // Glasscheibe an einem Kran pendelt über alle Tonnen: durchwerfen – sie zerspringt
+  { ...CLASSIC_PARCOURS[0], id: 18, scene: "strasse", task: "trick.task.glassPane" },
+];
+
 /** Die Parcours, die das Spiel anzeigt und für den Tages-Parcours zieht. */
-export const PARCOURS: ParcoursLevel[] = [...CLASSIC_PARCOURS, ...KITCHEN_PARCOURS, ...OFFICE_PARCOURS, ...YARD_PARCOURS];
+export const PARCOURS: ParcoursLevel[] = [...CLASSIC_PARCOURS, ...KITCHEN_PARCOURS, ...OFFICE_PARCOURS, ...YARD_PARCOURS, ...STREET_PARCOURS];
 
 /* ── Physik und Wertung ───────────────────────────────────── */
 
