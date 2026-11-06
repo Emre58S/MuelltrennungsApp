@@ -58,7 +58,8 @@ export function HubScreen({
       {shell.inShell && area && (
         <View style={[styles.banner, { backgroundColor: area.fill, borderBottomColor: tone(area.fill, -0.3) }]}>
           <LinearGradient
-            colors={[tone(area.fill, 0.12), tone(area.fill, -0.14)]}
+            // Bei weißer Schrift nicht aufhellen (Kontrast), bei dunkler Schrift ein Hauch Licht
+            colors={[tone(area.fill, area.on === "#FFFFFF" ? 0 : 0.12), tone(area.fill, -0.14)]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
