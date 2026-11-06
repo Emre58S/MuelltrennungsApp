@@ -5,6 +5,40 @@ Die alte Roadmap (R1–R10, mit allen Commit-Kürzeln) liegt unverändert in
 und in welcher Reihenfolge wir dahin kommen. Aufgaben heißen jetzt **F1…**; übernommene
 alte Punkte stehen mit ihrer alten Nummer (z. B. „← R6b“).
 
+## Prüfung 6.11. – was vor dem Release noch fehlt (Gesamtdurchgang: Code, Bilder, SQL, Texte)
+
+**A. Release-Blocker**
+1. **Datenschutz + Impressum + App-Privacy-Angaben** (Geräte-ID und Spitzname liegen auf dem Server) – F19, braucht Nutzer-Angaben.
+2. **Spitznamen ohne Filter:** `set_name` prüft nur Länge/Zeichen (`rangliste.sql`), kein Wortfilter, kein Melden → Apple 1.2
+   (nutzergenerierte Inhalte). Mindestens Wortfilter serverseitig + Kontaktadresse.
+3. **Build-Konfiguration fehlt:** keine `eas.json`, kein `ios.bundleIdentifier`/`android.package`, Version 1.0.0 ohne Build-Nummern;
+   Android-Berechtigungen `RECORD_AUDIO`/`FOREGROUND_SERVICE*` (doppelt eingetragen, für reines Abspielen nicht nötig) raus;
+   `supportsTablet: true` ungetestet (iPad) → testen oder ausschalten.
+4. **Kein Absturzschutz:** weder ErrorBoundary noch Crash-Meldung (Sentry o. Ä.). 10 Expo-Pakete haben Patch-Updates (`npx expo install --check`).
+5. App-Symbol/Splash (F17), Leistung älteres iPhone (F18), TestFlight + Store-Eintrag (F20).
+
+**B. Online / Rangliste**
+- **100+ Spieler:** Top-Liste ist schnell (Server liefert ≤ 100, die App zeigt Top 10, „Dein Platz“ geht für jeden Rang, Gleichstände ok).
+  Engpass später: „Allzeit“ rechnet bei jeder Anfrage über alle Läufe (`online_top`) → ab vielen Tausend Läufen eigene Bestwert-Tabelle.
+- **Betrug möglich:** `submit_online_run` prüft nur Treffer ≤ Codelänge/3 und ms ≤ 70000 – „100 richtig in 1 ms“ geht durch
+  (Zeit-Sprint schafft real ≈ 40). Fix: `p_correct <= p_ms / 400 + 1` und Obergrenze je Modus (SQL, **Nutzer führt aus**).
+- **Modi unklar:** Karten sagen „30 Sekunden“/„Kein Fehler“, aber nicht **gegen wen**. Tatsächlich: Sprint/Survival = Ghost eines
+  echten Spielers von heute mit ähnlich vielen Treffern (nicht live); Parcours = Tages-Punkte-Rangliste + Gegner-Ghost; Ghost = eigener
+  bester Lauf. Regeltext in der Runde sagt nur „Der Gegner wirft mit“.
+- Grafik Online ist jetzt ruhig und einheitlich (Dunkel/Hell geprüft); Podest/Liste passen für viele Spieler (nur Top 10 sichtbar).
+
+**C. Belohnungen:** 15 Wurfspuren unterscheiden sich **nur durch den Farbverlauf** (`trailColor`, gleiche Punktform, Größe, kein Ton),
+Vorschau = 3–5 Punkte; 3 Tonnen-Sticker. Ideen: eigene Formen (Sterne, Blätter, Blasen, Konfetti-Rechtecke), Bewegung (Funkeln, Wackeln),
+kleiner Zusatzton beim Treffer je Spur (Material-Klänge bleiben!), animierte Vorschau, Fortschrittsbalken statt „Ab 12 ★“.
+
+**D. Optik uneinheitlich:** Trickwürfe-Seite und Einstellungen haben noch den alten großen Himmel-Kopf mit Wolken; Einstellungen ohne
+Version/Datenschutz/Kontakt, Flaggen als „DE/GB“-Text; Pfad-Kopf noch voll (Kacheln, Tagesaufgabe, Belohnung, Missionen); Tutorial und
+Endscreens nicht im neuen Stil geprüft; Trick-Seite ist Phase G (zuletzt).
+
+**E. Technik:** 921 Lint-Warnungen (R3F-Eigenschaften, harmlos – Regel abschalten), alte Menü-Texte und ungenutzte Dateien
+(`chip.tsx`, `environment.tsx`), 186 Tests grün (Trick-Tests heute nicht gelaufen, Physik unverändert), DE/EN gleich (694 Schlüssel).
+Offen klein: Hinweis „höchstens 3 Tonnen“ im freien Spiel, F13/F14/F15-Reste, Zeitmodus-Ziele (5/8) und Endspurt (10 s von 30 s) auf dem Handy prüfen.
+
 **Stand 5.11., spät (Menü im Spielstil, Vorlagen Duolingo + Clash Royale, Nutzerwunsch „perfekt abgestimmt, maximal
 ansprechend“):** Teil 1 ausgeliefert (a74a009, Tester 8/10, EAS auto + preview): Baustein `components/ui/chunky.tsx`
 (dicker Knopf mit Unterkante), Pfad mit Weltband (wechselt beim Scrollen, Buch = „Was gehört hinein?“), Schnellstart-
