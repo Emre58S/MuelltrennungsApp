@@ -19,9 +19,9 @@ type Look = { from: string; to: string };
 const LOOK = {
   // Dunkel genug für weiße Schrift (≥ 4,5 : 1)
   parcours: { from: "#BE4684", to: "#6C3FC4" },
-  sprint: { from: "#1E8A57", to: "#126B4C" },
+  sprint: { from: "#1B8453", to: "#126B4C" },
   survival: { from: "#C9433A", to: "#962A44" },
-  ghost: { from: "#2F78D0", to: "#234AA6" },
+  ghost: { from: "#2C70C4", to: "#234AA6" },
 } as const satisfies Record<string, Look>;
 
 /** Sperre gegen Doppeltippen (sonst liegt z. B. das Ghost-Rennen zweimal auf dem Stapel). */
