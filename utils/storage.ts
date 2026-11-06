@@ -52,7 +52,6 @@ export const StorageKeys = {
   /** Schnell-Duell schon einmal geöffnet (sonst „Neu“-Punkt im Menü). */
   SEEN_DUEL: "muell_seen_duel",
   /** Neues Menü (untere Leiste, app/bereiche.tsx) statt der Menü-Tonnen – Test. */
-  NAV_V2: "muell_nav_v2",
   /** Ghost-Rennen: bester Lauf von heute (game/ghost.ts). */
   GHOST_BEST: "muell_ghost_best",
   SPRINT_BEST: "muell_sprint_best",

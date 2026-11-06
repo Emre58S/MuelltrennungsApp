@@ -3,7 +3,6 @@
 // Die drei Bereiche liegen nebeneinander (wischen oder unten antippen). Alles
 // andere (Runden, Freunde, Rangliste, Sammelbuch …) öffnet darüber und führt mit
 // „Zurück“ wieder hierher, in denselben Bereich. Das ist der Start der App; wer
-// „Neues Menü“ in den Einstellungen abschaltet (StorageKeys.NAV_V2), sieht das alte Menü.
 
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";

@@ -17,7 +17,7 @@ import { useI18n } from "@/providers/app-settings";
 const AUTH_ENABLED = false;
 
 export default function LoginScreen() {
-  return AUTH_ENABLED ? <LoginForm /> : <Redirect href="/(tabs)" />;
+  return AUTH_ENABLED ? <LoginForm /> : <Redirect href="/bereiche" />;
 }
 
 /** Platzhalter-Formular für später (echte Anmeldung). */
@@ -38,7 +38,7 @@ function LoginForm() {
       return;
     }
     // TODO: echte Auth-Logik (Supabase/Firebase)
-    router.replace("/(tabs)");
+    router.replace("/bereiche");
   };
 
   return (

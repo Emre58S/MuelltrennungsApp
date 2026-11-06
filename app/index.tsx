@@ -1,21 +1,9 @@
-// Datei: app/index.tsx
+// Datei: app/index.tsx — Einstieg: direkt in die Bereichs-Hülle (Pfad · Online · Regal)
 
-import { type Href, Redirect } from "expo-router";
-import { useEffect, useState } from "react";
+import { Redirect } from "expo-router";
 
-import { homeRoute } from "@/utils/nav";
+import { HOME } from "@/utils/nav";
 
 export default function IndexScreen() {
-  // PLAYTESTING:
-  // Login vorübergehend überspringen und direkt zur App. Mit dem Schalter
-  // Standard ist die Bereichs-Hülle; wer „Neues Menü“ (Einstellungen) abschaltet, bekommt die Menü-Tonnen.
-  const [target, setTarget] = useState<Href | null>(null);
-  useEffect(() => {
-    let active = true;
-    homeRoute().then((href) => active && setTarget(href));
-    return () => {
-      active = false;
-    };
-  }, []);
-  return target ? <Redirect href={target} /> : null;
+  return <Redirect href={HOME} />;
 }

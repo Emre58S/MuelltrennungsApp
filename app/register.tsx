@@ -17,7 +17,7 @@ import { useI18n } from "@/providers/app-settings";
 const AUTH_ENABLED = false;
 
 export default function RegisterScreen() {
-  return AUTH_ENABLED ? <RegisterForm /> : <Redirect href="/(tabs)" />;
+  return AUTH_ENABLED ? <RegisterForm /> : <Redirect href="/bereiche" />;
 }
 
 /** Platzhalter-Formular für später (echte Anmeldung). */
@@ -43,7 +43,7 @@ function RegisterForm() {
       return;
     }
     // TODO: echte Registrierungs-Logik
-    router.replace("/(tabs)");
+    router.replace("/bereiche");
   };
 
   return (
