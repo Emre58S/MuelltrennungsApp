@@ -8,11 +8,11 @@ import {
   AtkinsonHyperlegibleNext_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/atkinson-hyperlegible-next";
-import { Stack } from "expo-router";
+import { type ErrorBoundaryProps, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text, useColorScheme, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
@@ -25,6 +25,26 @@ import { silenceKnownWarnings } from "@/utils/silence-warnings";
 installDevErrorReporter();
 silenceKnownWarnings();
 SplashScreen.preventAutoHideAsync();
+
+/** Fehlerseite: statt eines Absturzes eine freundliche Meldung mit „Nochmal“. Steht außerhalb der
+ *  App-Einstellungen (Sprache/Farben), deshalb zweisprachig und mit Systemfarben. */
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  const dark = useColorScheme() === "dark";
+  const fg = dark ? "#EEF3F0" : "#1B2420";
+  return (
+    <View style={[styles.error, { backgroundColor: dark ? "#101614" : "#F6F4EE" }]}>
+      <Text style={styles.errorEmoji}>🗑️</Text>
+      <Text accessibilityRole="header" style={[styles.errorTitle, { color: fg }]}>
+        Hoppla – da ist etwas schiefgelaufen
+      </Text>
+      <Text style={[styles.errorText, { color: fg }]}>Oops – something went wrong</Text>
+      <Text style={[styles.errorText, { color: fg, opacity: 0.75 }]}>Versuch es einfach noch einmal. · Just try again.</Text>
+      <Pressable accessibilityRole="button" onPress={retry} style={styles.errorButton}>
+        <Text style={styles.errorButtonText}>Nochmal · Again</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 function RootStack({ fontsDone }: { fontsDone: boolean }) {
   const { ready, colors, scheme, reduceMotion } = useAppSettings();
@@ -78,4 +98,10 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  error: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 32 },
+  errorEmoji: { fontSize: 56 },
+  errorTitle: { fontSize: 22, fontWeight: "800", textAlign: "center" },
+  errorText: { fontSize: 16, textAlign: "center" },
+  errorButton: { marginTop: 12, minHeight: 52, paddingHorizontal: 32, borderRadius: 16, backgroundColor: "#1E7A4C", alignItems: "center", justifyContent: "center" },
+  errorButtonText: { color: "#FFFFFF", fontSize: 18, fontWeight: "700" },
 });

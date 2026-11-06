@@ -2,7 +2,7 @@
 // Hof-Szene (Trickwürfe): Wäscheleine an der Ziegelwand für den Wind-Parcours.
 
 import { useFrame } from "@react-three/fiber/native";
-import { memo, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 
 import { lowpoly } from "./materials";
