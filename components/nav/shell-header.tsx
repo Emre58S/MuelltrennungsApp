@@ -4,8 +4,8 @@
 // rechts Hilfe (roter Punkt, solange die Anleitung ungesehen ist) und Einstellungen.
 
 import { router } from "expo-router";
-import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
@@ -16,7 +16,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { Sheet } from "@/components/ui/sheet";
 import { useShell } from "@/components/nav/shell-context";
 import { Radius, Spacing } from "@/constants/theme";
-import { useAppTheme, useI18n } from "@/providers/app-settings";
+import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import type { FlameStatus } from "@/utils/streak";
 
 export function ShellHeader({
@@ -45,6 +45,20 @@ export function ShellHeader({
   hint?: { text: string; onPress: () => void } | null;
 }) {
   const { colors } = useAppTheme();
+  const { reduceMotion } = useAppSettings();
+  // Level-Aufstieg: Abzeichen poppt kurz auf (nicht beim ersten Laden, nur wenn es wirklich steigt)
+  const [pop] = useState(() => new Animated.Value(1));
+  const seenLevel = useRef<number | null>(null);
+  useEffect(() => {
+    if (!loaded) return;
+    const before = seenLevel.current;
+    seenLevel.current = level;
+    if (before === null || level <= before || reduceMotion) return;
+    Animated.sequence([
+      Animated.timing(pop, { toValue: 1.55, duration: 160, useNativeDriver: true }),
+      Animated.spring(pop, { toValue: 1, friction: 3, tension: 140, useNativeDriver: true }),
+    ]).start();
+  }, [loaded, level, reduceMotion, pop]);
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const shell = useShell();
@@ -68,11 +82,11 @@ export function ShellHeader({
         }}
         style={({ pressed }) => [styles.levelWrap, pressed && press.pressed]}
       >
-        <View style={[styles.badge, { backgroundColor: GOLD, borderColor: tone(GOLD, -0.35) }]}>
+        <Animated.View style={[styles.badge, { backgroundColor: GOLD, borderColor: tone(GOLD, -0.35), transform: [{ scale: pop }] }]}>
           <AppText variant="label" color="#3A2A00" style={styles.badgeText}>
             {loaded ? level : "–"}
           </AppText>
-        </View>
+        </Animated.View>
         <View style={[styles.xp, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <ProgressBar value={progress} height={10} />
         </View>

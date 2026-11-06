@@ -206,7 +206,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
             );
           })}
           {leaderboardReady && (
-            <IconButton icon="refresh-cw" label={t("rank.refresh")} onPress={refresh} style={styles.refresh} />
+            <IconButton icon="refresh-cw" label={t("rank.refresh")} onPress={refresh} style={[styles.refresh, state === "loading" && { opacity: 0.4 }]} />
           )}
         </View>
 
