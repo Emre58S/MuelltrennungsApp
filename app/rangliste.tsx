@@ -6,7 +6,6 @@
 // Oben der eigene Spitzname (änderbar), unten der eigene Platz, falls man
 // nicht unter den Besten steht.
 
-import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
@@ -18,7 +17,8 @@ import {
 } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
-import { cardEdge } from "@/components/ui/chunky";
+import { Avatar, Podium } from "@/components/areas/people";
+import { cardEdge, tone } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { AREAS } from "@/constants/areas";
@@ -215,7 +215,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
             </>
           ) : (
             <View style={styles.row}>
-              <Feather name="user" size={20} color={colors.textSecondary} />
+              <Avatar name={name} size={44} />
               <View style={styles.flex}>
                 <AppText variant="caption" tone="textSecondary">
                   {t("rank.you")}
@@ -250,6 +250,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
                     backgroundColor: active ? colors.primary : colors.surface,
                     borderColor: active ? colors.primary : colors.border,
                   },
+                  active && { borderBottomWidth: 4, borderBottomColor: tone(colors.primary, -0.3) },
                 ]}
               >
                 <AppText variant="caption" tone={active ? "onPrimary" : "text"}>
@@ -321,8 +322,11 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
             {t("rank.empty")}
           </AppText>
         ) : (
+          <>
+          <Podium rows={result.rows} scoreText={scoreText} />
+          {result.rows.some((r) => r.rank > 3) && (
           <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
-            {result.rows.map((row, i) => (
+            {result.rows.filter((r) => r.rank > 3).map((row, i) => (
               <View
                 key={`${row.rank}-${row.name}-${i}`}
                 style={[
@@ -343,6 +347,8 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
               </View>
             ))}
           </View>
+          )}
+          </>
         )}
 
         {/* Eigener Platz, falls nicht unter den Besten */}
