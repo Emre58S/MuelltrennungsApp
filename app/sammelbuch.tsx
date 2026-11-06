@@ -70,6 +70,16 @@ export function BookPanel() {
   const found = useMemo(() => ITEMS.filter(isFound).length, [isFound]);
   const progress = found / ITEMS.length;
   const golds = useMemo(() => goldCount(stats), [stats]);
+  /** Kurzer Name unter der Kachel: ohne Klammer, außer der Rest wäre nicht eindeutig. */
+  const shortName = useMemo(() => {
+    const base = (full: string) => full.replace(/\s*\(.*?\)\s*/g, " ").replace(/\s+/g, " ").trim();
+    const counts = new Map<string, number>();
+    for (const it of ITEMS) counts.set(base(itemName(it)), (counts.get(base(itemName(it))) ?? 0) + 1);
+    return (it: Item) => {
+      const full = itemName(it);
+      return (counts.get(base(full)) ?? 0) > 1 ? full : base(full);
+    };
+  }, [itemName]);
   // 4 Kacheln pro Zeile (5 auf breiten Geräten)
   const columns = width >= 600 ? 6 : width >= 400 ? 5 : 4;
   // Seitenrand wie in HubScreen (Spacing.md + 4)
@@ -122,8 +132,8 @@ export function BookPanel() {
                   const known = stat.correct > 0;
                   const mastery = known ? masteryOf(stat) : null;
                   return (
+                    <View key={item.name} style={{ width: tileSize }}>
                     <Pressable
-                      key={item.name}
                       accessibilityRole="button"
                       // VoiceOver: bekannt mit Lernstand, unbekannt mit der Tonne des Abschnitts
                       accessibilityLabel={
@@ -163,6 +173,11 @@ export function BookPanel() {
                         </View>
                       )}
                     </Pressable>
+                    {/* Name unter der Kachel: gesperrt bleibt leer (Überraschung), die Zeile aber reserviert */}
+                    <AppText variant="caption" center numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.tileLabel} tone={known ? "text" : "textMuted"}>
+                      {known ? shortName(item) : " "}
+                    </AppText>
+                    </View>
                   );
                 })}
               </View>
@@ -340,6 +355,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  tileLabel: { marginTop: 4, minHeight: 34, fontSize: 12, lineHeight: 15 },
   tileEmoji: { fontSize: 30, lineHeight: 38 },
   // Bild füllt die Kachel bis zum Rand (Rahmen bleibt sichtbar)
   tileImageWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: Radius.lg - 2, overflow: "hidden" },
