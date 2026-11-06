@@ -447,6 +447,7 @@ const styles = StyleSheet.create({
     gap: 6,
     minHeight: 36,
     maxWidth: 170,
+    flexShrink: 1,
     paddingHorizontal: Spacing.sm + 2,
     borderRadius: Radius.pill,
     borderWidth: 1,
