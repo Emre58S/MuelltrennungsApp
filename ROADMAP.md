@@ -12,7 +12,9 @@ Kacheln, Mission-Plätze (`components/areas/mission-slots.tsx`), Stationen als d
 Begleiter-Tonne, neue untere Leiste (gewählte Tonne hebt sich heraus), Kopf mit Level-Abzeichen + Flamme/Sterne.
 **Teil 2 ausgeliefert (610b2e5 + f275005, Tester 8/10, EAS auto + preview):** Online + Regal mit Farbband, `HubCard`
 als dicke Karte, Reiter mit Unterkante, Tagesaufgabe als goldener Knopf oben im Pfad.
-**Offen:** „Nächste Belohnung“ im Pfad angleichen, Freunde/Rangliste/Heute-Panels innen im Stil, Hellmodus + 375 pt per Bild prüfen,
+**Politur ausgeliefert (ab3e9d5, Tester 8/10, EAS auto + preview):** „Nächste Belohnung“ als Knopf, allgemeiner `Button`
+mit Unterkante. Hellmodus und 375 pt per Bild geprüft (`SHOT_SCHEME=light node tools/shot.mjs …`), ohne Auffälligkeiten.
+**Offen:** Panels innen (Freunde-Code-Karte, Rangliste-Zeilen, Heute) noch flache Karten,
 altes Menü + Schalter „Neues Menü“ entfernen (Nutzer entscheidet), Kontrast der Kachelfarben nachrechnen.
 
 **Stand 5.11., abends:** Trick-Szenen ausgeliefert (auto + preview): Küche 5–8, Büro 9–13, **Hof 14–16** (Wind mit
