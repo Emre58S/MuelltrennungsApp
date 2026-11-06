@@ -620,6 +620,8 @@ export const de = {
   "online.tag.sprint": "30 Sekunden",
   "online.tag.survival": "Kein Fehler",
   "online.today": "Heute: {n}",
+  "online.todayNone": "Heute: –",
+  "online.ghostShort": "Gegen den Besten von heute oder einen Freund",
   "online.play": "Spielen",
   "hub.group.quick": "Schnell spielen – gegen andere",
   "hub.group.friends": "Mit Freunden",

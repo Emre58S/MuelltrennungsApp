@@ -621,6 +621,8 @@ export const en: Translations = {
   "online.tag.sprint": "30 seconds",
   "online.tag.survival": "No mistakes",
   "online.today": "Today: {n}",
+  "online.todayNone": "Today: –",
+  "online.ghostShort": "Race today's best or a friend",
   "online.play": "Play",
   "hub.group.quick": "Quick play – against others",
   "hub.group.friends": "With friends",

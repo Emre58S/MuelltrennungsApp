@@ -10,11 +10,12 @@
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
-import { HubCard, HubScreen } from "@/components/ui/hub";
+import { GhostStrip, ParcoursHero, SquareMode } from "@/components/areas/mode-cards";
+import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
@@ -24,7 +25,8 @@ import { dailyParcoursId } from "@/game/parcours";
 import { levelIcons, PARCOURS } from "@/game/trick-levels";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { type Friend, fetchFriends, leaderboardReady } from "@/utils/leaderboard";
-import { getParcoursBest, todayKey } from "@/utils/storage";
+import { parseSprint } from "@/game/sprint";
+import { getParcoursBest, getSprintBest, getSurvivalBest, todayKey } from "@/utils/storage";
 
 import { FriendsPanel } from "./freunde";
 import { RankingPanel } from "./rangliste";
@@ -71,6 +73,9 @@ export default function OnlineScreen() {
   const [day, setDay] = useState(todayKey);
   const today = parcoursOfDay(day);
   const [parcoursBest, setParcoursBest] = useState(0);
+  /** Richtige Treffer im besten Lauf von heute (null = heute noch nicht gespielt). */
+  const [sprintToday, setSprintToday] = useState<number | null>(null);
+  const [survivalToday, setSurvivalToday] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -79,6 +84,12 @@ export default function OnlineScreen() {
       setDay(now);
       getParcoursBest()
         .then((best) => active && setParcoursBest(best[parcoursOfDay(now).id] ?? 0))
+        .catch(() => undefined);
+      getSprintBest()
+        .then((raw) => active && setSprintToday(parseSprint(raw, now)?.correct ?? null))
+        .catch(() => undefined);
+      getSurvivalBest()
+        .then((raw) => active && setSurvivalToday(parseSprint(raw, now)?.correct ?? null))
         .catch(() => undefined);
       return () => {
         active = false;
@@ -117,40 +128,38 @@ export default function OnlineScreen() {
 
       {tab === "duel" && (
         <>
-          <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
-            {t("hub.group.quick")}
-          </AppText>
-          <HubCard
-            index={0}
-            emoji="⏱️"
-            color="#2BB673"
-            title={t("sprint.title")}
-            desc={t("hub.sprint.desc")}
-            onPress={() => openSheet("sprint")}
-          />
-          <HubCard
-            index={1}
-            emoji="🛡️"
-            color="#E2574C"
-            title={t("survival.title")}
-            desc={t("hub.survival.desc")}
-            onPress={() => openSheet("survival")}
-          />
-          <HubCard
-            index={2}
-            emoji={levelIcons(today)[0] ?? "🎯"}
-            color="#F06BA8"
+          <ParcoursHero
             title={t("hub.parcours.title")}
-            desc={t("hub.parcours.desc", { task: t(today.task), s: today.seconds })}
-            info={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : null}
+            task={t(today.task)}
+            icons={levelIcons(today)}
+            best={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : t("parcours.noBest")}
+            tag={t("online.tag.today")}
+            cta={t("online.play")}
             onPress={() => openSheet("parcours")}
           />
-          <HubCard
-            index={3}
-            emoji="👻"
-            color="#4DA3FF"
+          <View style={styles.row}>
+            <SquareMode
+              kind="sprint"
+              emoji="⏱️"
+              title={t("sprint.title")}
+              tag={t("online.tag.sprint")}
+              stand={sprintToday === null ? t("online.todayNone") : t("online.today", { n: sprintToday })}
+              index={1}
+              onPress={() => openSheet("sprint")}
+            />
+            <SquareMode
+              kind="survival"
+              emoji="🛡️"
+              title={t("survival.title")}
+              tag={t("online.tag.survival")}
+              stand={survivalToday === null ? t("online.todayNone") : t("online.today", { n: survivalToday })}
+              index={2}
+              onPress={() => openSheet("survival")}
+            />
+          </View>
+          <GhostStrip
             title={t("home.ghostShort")}
-            desc={t("home.ghostDesc")}
+            desc={t("online.ghostShort")}
             onPress={() => router.push({ pathname: "/runde", params: { mode: "ghost" } })}
           />
         </>
@@ -233,6 +242,7 @@ export default function OnlineScreen() {
 const styles = StyleSheet.create({
   // Überschrift einer Gruppe: wenige, klare Abschnitte statt vieler gleicher Karten
   group: { marginTop: Spacing.sm },
+  row: { flexDirection: "row", gap: Spacing.md },
   friendList: { maxHeight: 260 },
   friendRow: {
     flexDirection: "row",
