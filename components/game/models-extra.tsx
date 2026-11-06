@@ -863,7 +863,7 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       // Leere Teelicht-Hülle: flaches, offenes Alu-Schälchen, innen ein
       // dunkles Dochtplättchen mit dickem Dochtrest (eine klare Form statt Kleinteilen)
       return (
-        <group rotation={[0.75, 0.3, 0]}>
+        <group rotation={[0.75, 0.3, 0]} scale={1.6}>
           <Part geo={G.cyl(0.155, 0.155, 0.07, 24, true)} double color="#D1D5DB" metalness={0.6} />
           <Part geo={G.circle(0.155, 24)} pos={[0, -0.035, 0]} rot={[-Math.PI / 2, 0, 0]} double color="#C0C8D4" metalness={0.6} />
           <Part geo={G.cyl(0.04, 0.04, 0.006, 12)} pos={[0, -0.031, 0]} color="#6B7280" />

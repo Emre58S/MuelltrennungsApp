@@ -61,7 +61,7 @@ export function renderRestmuellModel(key: string, name: string) {
     case "dish":
       // Zur Kamera gekippt, damit man die Scherben von oben sieht
       return (
-        <group rotation={[0.9, -0.25, 0.18]}>
+        <group rotation={[0.9, -0.25, 0.18]} scale={1.3}>
           {(
             [
               { ts: 0, tl: 2.3, pos: [0.02, 0, 0.02], rot: [0.08, 0, 0.05] },
@@ -78,15 +78,15 @@ export function renderRestmuellModel(key: string, name: string) {
               <Part
                 geo={G.cyl(0.34, 0.3, 0.04, 18, false, shard.ts, shard.tl)}
                 double
-                color="#EEF2F6"
-                roughness={0.45}
+                basic
+                color="#F4F6F8"
               />
               <Part
                 geo={G.cyl(0.345, 0.315, 0.02, 18, true, shard.ts, shard.tl)}
                 pos={[0, 0.012, 0]}
                 double
-                color="#2563EB"
-                roughness={0.5}
+                color="#1D4ED8"
+                roughness={0.7}
               />
             </group>
           ))}
@@ -206,7 +206,10 @@ export function renderRestmuellModel(key: string, name: string) {
       // mit großem Loch, Staubfleck (vorher eine flache Platte wie ein Umschlag)
       return (
         <group rotation={[0.2, 0.25, -0.1]}>
-          <Part geo={G.ball(0.26, 12, 10)} scale={[1.05, 1.25, 0.45]} color="#D9DCE1" roughness={1} />
+          {/* Beutel: hochkant stehendes Papierkissen (Rechteck mit abgerundeten Kanten) statt Kugel */}
+          <Part geo={G.box(0.4, 0.5, 0.12, 0.05)} color="#E5E7EB" roughness={1} />
+          <Part geo={G.box(0.4, 0.012, 0.125, 0.004)} pos={[0, -0.12, 0]} color="#9CA3AF" roughness={1} />
+          <Part geo={G.box(0.4, 0.012, 0.125, 0.004)} pos={[0, -0.04, 0]} color="#9CA3AF" roughness={1} />
           {/* Pappplatte vor dem Beutel, Loch ganz sichtbar */}
           <group position={[0, 0.25, 0.1]} rotation={[-0.3, 0, 0]}>
             <Part geo={G.box(0.3, 0.14, 0.03, 0.01)} color="#B08B5B" roughness={1} />
