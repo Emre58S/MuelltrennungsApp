@@ -9,11 +9,9 @@ import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, TextInput, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
-import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 
 import { Avatar } from "@/components/areas/people";
-import { Chunky, cardEdge } from "@/components/ui/chunky";
+import { cardEdge } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { IconButton } from "@/components/ui/icon-button";
@@ -282,20 +280,14 @@ export function FriendsPanel() {
             {t("friends.invite").toUpperCase()}
           </AppText>
           {/* Eigener Code */}
-          <View style={styles.codeCard}>
-            <LinearGradient colors={["#2F78D0", "#234AA6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-            <AppText variant="overline" color="#FFFFFF">
-              {t("friends.myCode").toUpperCase()}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
+            <AppText variant="caption" tone="textSecondary">
+              {t("friends.myCode")}
             </AppText>
-            <AppText variant="title" color="#FFFFFF" selectable accessibilityLabel={code.split("").join(" ")} style={styles.codeText}>
+            <AppText variant="title" selectable accessibilityLabel={code.split("").join(" ")} style={styles.codeText}>
               {formatFriendCode(code)}
             </AppText>
-            <Chunky color="#FFFFFF" edge="#B7CDEF" depth={5} radius={Radius.lg} label={t("friends.share")} onPress={share} faceStyle={styles.shareFace}>
-              <Feather name="share" size={18} color="#234AA6" />
-              <AppText variant="label" color="#234AA6">
-                {t("friends.share")}
-              </AppText>
-            </Chunky>
+            <Button title={t("friends.share")} icon="share" variant="secondary" onPress={share} />
           </View>
 
           {/* Freund hinzufügen */}
@@ -369,7 +361,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 6,
     borderBottomColor: "#173A78",
   },
-  codeText: { fontSize: 34, lineHeight: 42, letterSpacing: 3 },
+  codeText: { fontSize: 30, lineHeight: 38, letterSpacing: 3 },
   shareFace: { flexDirection: "row", alignSelf: "stretch", gap: Spacing.sm, minHeight: 48, paddingHorizontal: Spacing.md },
   emptyCard: { alignItems: "center", gap: Spacing.sm, padding: Spacing.lg, borderRadius: Radius.xl, borderWidth: 1 },
   emptyEmoji: { fontSize: 44, lineHeight: 54 },

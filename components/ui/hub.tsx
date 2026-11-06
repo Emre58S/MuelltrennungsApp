@@ -4,7 +4,6 @@
 // mit Symbol, Name, kurzer Zeile und rechts optional Rekord/Stand.
 
 import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { type ComponentRef, type ReactNode, type Ref, useEffect, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -54,27 +53,13 @@ export function HubScreen({
   }, [topSignal, scrollKey]);
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      {/* In der Hülle: Band in der Bereichsfarbe (wie der Pfad), steht fest über dem Inhalt */}
+      {/* In der Hülle: schlichte Überschrift (Bereich steht schon unten in der Leiste) */}
       {shell.inShell && area && (
-        <View style={[styles.banner, { backgroundColor: area.fill, borderBottomColor: tone(area.fill, -0.3) }]}>
-          <LinearGradient
-            // Bei weißer Schrift nicht aufhellen (Kontrast), bei dunkler Schrift ein Hauch Licht
-            colors={[tone(area.fill, area.on === "#FFFFFF" ? 0 : 0.12), tone(area.fill, -0.14)]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <AppText
-            importantForAccessibility="no"
-            accessibilityElementsHidden
-            style={styles.bannerDecor}
-          >
-            {emoji}
+        <View style={styles.heading}>
+          <AppText variant="title" accessibilityRole="header">
+            {title}
           </AppText>
-          <AppText variant="overline" color={area.on} style={styles.bannerTitle} accessibilityRole="header">
-            {`${emoji} ${title}`.toUpperCase()}
-          </AppText>
-          <AppText variant="heading" color={area.on} numberOfLines={2}>
+          <AppText tone="textSecondary" numberOfLines={2}>
             {subtitle}
           </AppText>
         </View>
@@ -185,7 +170,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 4,
   },
   bannerDecor: { position: "absolute", right: 8, top: -6, fontSize: 64, lineHeight: 78, opacity: 0.2, transform: [{ rotate: "12deg" }] },
-  bannerTitle: { opacity: 0.85 },
+  heading: { paddingHorizontal: Spacing.md + 4, paddingTop: Spacing.sm, paddingBottom: Spacing.xs, gap: 2 },
   card: {
     flexDirection: "row",
     alignSelf: "stretch",

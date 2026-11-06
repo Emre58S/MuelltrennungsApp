@@ -15,8 +15,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import { AppText } from "@/components/ui/app-text";
 import { Avatar } from "@/components/areas/people";
 import { Button } from "@/components/ui/button";
-import { Chunky, cardEdge } from "@/components/ui/chunky";
-import { GhostStrip, ParcoursHero, SquareMode } from "@/components/areas/mode-cards";
+import { cardEdge } from "@/components/ui/chunky";
+import { ModeRow } from "@/components/areas/mode-cards";
 import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
 import { Segmented } from "@/components/ui/segmented";
@@ -142,36 +142,39 @@ export default function OnlineScreen() {
 
       {tab === "duel" && (
         <>
-          <ParcoursHero
+          {/* Vier gleiche Zeilen: Farbe nur im Symbol, der Stand von heute rechts */}
+          <ModeRow
+            index={0}
+            emphasize
+            emoji={levelIcons(today)[0] ?? "🎯"}
+            accent="#7C4BD8"
             title={t("hub.parcours.title")}
-            task={t(today.task)}
-            icons={levelIcons(today)}
-            best={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : t("parcours.noBest")}
-            tag={t("online.tag.left", { h: hoursLeft })}
-            cta={t("online.play")}
+            desc={t(today.task)}
+            stand={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : t("online.tag.left", { h: hoursLeft })}
             onPress={() => openSheet("parcours")}
           />
-          <View style={styles.row}>
-            <SquareMode
-              kind="sprint"
-              emoji="⏱️"
-              title={t("sprint.title")}
-              tag={t("online.tag.sprint")}
-              stand={sprintToday === null ? t("online.todayNone") : t("online.today", { n: sprintToday })}
-              index={1}
-              onPress={() => openSheet("sprint")}
-            />
-            <SquareMode
-              kind="survival"
-              emoji="🛡️"
-              title={t("survival.title")}
-              tag={t("online.tag.survival")}
-              stand={survivalToday === null ? t("online.todayNone") : t("online.today", { n: survivalToday })}
-              index={2}
-              onPress={() => openSheet("survival")}
-            />
-          </View>
-          <GhostStrip
+          <ModeRow
+            index={1}
+            emoji="⏱️"
+            accent="#1E8A57"
+            title={t("sprint.title")}
+            desc={t("online.tag.sprint")}
+            stand={sprintToday === null ? null : t("online.today", { n: sprintToday })}
+            onPress={() => openSheet("sprint")}
+          />
+          <ModeRow
+            index={2}
+            emoji="🛡️"
+            accent="#C9433A"
+            title={t("survival.title")}
+            desc={t("online.tag.survival")}
+            stand={survivalToday === null ? null : t("online.today", { n: survivalToday })}
+            onPress={() => openSheet("survival")}
+          />
+          <ModeRow
+            index={3}
+            emoji="👻"
+            accent="#2C70C4"
             title={t("home.ghostShort")}
             desc={t("online.ghostShort")}
             onPress={() => openSheet("ghost")}
@@ -184,27 +187,14 @@ export default function OnlineScreen() {
       {tab === "rank" && <RankingPanel />}
 
       <Sheet visible={picked !== null} title={pickedTitle} onClose={() => setPicked(null)}>
-        <Chunky
-          color="#1E8A57"
-          depth={6}
-          radius={Radius.xl}
-          label={`${randomTitle}. ${randomDesc}`}
+        <ModeRow
+          emphasize
+          emoji="🎲"
+          accent="#1E8A57"
+          title={randomTitle}
+          desc={randomDesc}
           onPress={() => picked && start(picked)}
-          faceStyle={styles.randomFace}
-        >
-          <AppText style={styles.randomEmoji}>🎲</AppText>
-          <View style={styles.flex}>
-            <AppText variant="heading" color="#FFFFFF">
-              {randomTitle}
-            </AppText>
-            <AppText variant="caption" color="#FFFFFF">
-              {randomDesc}
-            </AppText>
-          </View>
-          <AppText variant="heading" color="#FFFFFF">
-            ▶
-          </AppText>
-        </Chunky>
+        />
         <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
           {`👥 ${t("duel.friend")}`.toUpperCase()}
         </AppText>
