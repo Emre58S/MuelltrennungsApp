@@ -1,5 +1,6 @@
 // Rendert eine Seite der Expo-Web-App in headless Chrome und speichert ein Bild – so sieht man 3D-Änderungen,
 // ohne Handy. Voraussetzung: `npx expo start --web` läuft (localhost:8081), Chrome ist installiert, Node ≥ 22.
+// Optional: SHOT_SCHEME=light|dark, SHOT_EVAL="<JavaScript>" (läuft nach dem Laden, danach wird neu geladen)
 // Aufruf: node tools/shot.mjs <url> <ausgabe.png> [Klicks] [Wartezeit-ms] [Breite] [Höhe]
 //   Klicks: mit | getrennt, nacheinander. Text = Knopf mit genau diesem Text (z. B. "Los geht's!"),
 //           "@x,y" = auf diese Bildschirmposition klicken (z. B. den Hinweis-Kasten wegklicken).
@@ -80,6 +81,17 @@ try {
     await sleep(1000);
   }
   await sleep(3000);
+  // SHOT_EVAL: JavaScript nach dem Laden ausführen (z. B. localStorage mit Testdaten füllen), dann neu laden
+  if (process.env.SHOT_EVAL) {
+    await evalJs(process.env.SHOT_EVAL);
+    await send("Page.navigate", { url });
+    for (let i = 0; i < 90; i++) {
+      const txt = (await evalJs("document.body ? document.body.innerText : ''")) ?? "";
+      if (txt.length > 20 && !/Bundling|Bundl/.test(txt)) break;
+      await sleep(1000);
+    }
+    await sleep(3000);
+  }
 
   for (const text of clicks.split("|").filter(Boolean)) {
     // "@x,y" = direkt auf diese Position klicken

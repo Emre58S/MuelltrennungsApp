@@ -9,7 +9,7 @@
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
@@ -18,6 +18,7 @@ import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type Category, type Item, ITEMS } from "@/constants/items";
 import { AREAS } from "@/constants/areas";
+import { ITEM_IMAGE_BG, ITEM_IMAGES } from "@/constants/item-images";
 import { BinColors, type BinKey, Radius, Spacing } from "@/constants/theme";
 import { type TranslationKey } from "@/i18n";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
@@ -141,15 +142,19 @@ export function BookPanel() {
                         {
                           width: tileSize,
                           height: tileSize,
-                          backgroundColor: known ? colors.surface : colors.surfaceAlt,
+                          backgroundColor: known ? ITEM_IMAGE_BG : colors.surfaceAlt,
                           borderColor: known ? bin.fill : colors.border,
                         },
                         pressed && press.pressed,
                       ]}
                     >
-                      <AppText style={[styles.tileEmoji, !known && styles.locked]}>
-                        {known ? item.emoji : "❔"}
-                      </AppText>
+                      {known && ITEM_IMAGES[item.name] ? (
+                        <View style={styles.tileImageWrap} pointerEvents="none">
+                          <Image source={ITEM_IMAGES[item.name]} style={styles.tileImage} resizeMode="cover" accessibilityIgnoresInvertColors />
+                        </View>
+                      ) : (
+                        <AppText style={[styles.tileEmoji, !known && styles.locked]}>{known ? item.emoji : "❔"}</AppText>
+                      )}
                       {mastery === "mastered" && <Badge text="⭐" />}
                       {mastery === "practice" && <Badge text="💡" />}
                       {known && medalFor(stat.correct) && (
@@ -220,28 +225,13 @@ function DetailSheet({
             <>
               {/* Bekannte Gegenstände: dasselbe 3D-Modell wie im Spiel */}
               {known ? (
-                <View style={styles.previewRow}>
-                  {/* Dasselbe Bild wie die Kachel im Buch … */}
-                  <View
-                    accessible={false}
-                    style={[styles.bigTile, { backgroundColor: colors.surface, borderColor: bin.fill }]}
-                  >
-                    <AppText style={styles.bigEmoji}>{item.emoji}</AppText>
-                  </View>
-                  {/* … und so sieht der Gegenstand im Spiel aus */}
-                  <View style={styles.modelWrap}>
-                    <ItemPreview3D
-                      item={item}
-                      size={height < 700 ? 96 : 112}
-                      background={colors.surfaceAlt}
-                      calm={reduceMotion}
-                      label={itemName(item)}
-                    />
-                    <AppText variant="caption" tone="textMuted" center>
-                      {t("book.inGame")}
-                    </AppText>
-                  </View>
-                </View>
+                <ItemPreview3D
+                  item={item}
+                  size={height < 700 ? 124 : 156}
+                  background={ITEM_IMAGE_BG}
+                  calm={reduceMotion}
+                  label={itemName(item)}
+                />
               ) : (
                 <AppText style={styles.sheetEmoji}>❔</AppText>
               )}
@@ -351,6 +341,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tileEmoji: { fontSize: 30, lineHeight: 38 },
+  // Bild füllt die Kachel bis zum Rand (Rahmen bleibt sichtbar)
+  tileImageWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: Radius.lg - 2, overflow: "hidden" },
+  tileImage: { width: "100%", height: "100%" },
   locked: { opacity: 0.45 },
   badge: { position: "absolute", top: 2, right: 4 },
   medal: { position: "absolute", bottom: 2, left: 4 },
@@ -365,10 +358,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sheetEmoji: { fontSize: 64, lineHeight: 76 },
-  previewRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: Spacing.md },
-  bigTile: { width: 112, height: 112, borderRadius: Radius.lg, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  bigEmoji: { fontSize: 60, lineHeight: 72 },
-  modelWrap: { alignItems: "center", gap: 4 },
   binRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   binPill: { paddingHorizontal: Spacing.md, paddingVertical: 6, borderRadius: Radius.pill },
   fact: { alignSelf: "stretch", borderRadius: Radius.lg, padding: Spacing.md },
