@@ -2,7 +2,7 @@
 //
 // Die drei Bereiche liegen nebeneinander (wischen oder unten antippen). Alles
 // andere (Runden, Freunde, Rangliste, Sammelbuch …) öffnet darüber und führt mit
-// „Zurück“ wieder hierher, in denselben Bereich. Das ist der Start der App; wer
+// „Zurück“ wieder hierher, in denselben Bereich. Das ist der Start der App.
 
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
