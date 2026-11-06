@@ -50,7 +50,7 @@ export default function SammlungScreen() {
     setTab(wish.tab as Tab);
   }
   return (
-    <HubScreen title={t("hub.collection.title")} subtitle={t("hub.collection.subtitle")} emoji="🎒" area={AREAS.regal}>
+    <HubScreen title={t("hub.collection.title")} subtitle={t("hub.collection.subtitle")} emoji="🎒" area={AREAS.regal} scrollKey={tab}>
       <Segmented<Tab>
         value={tab}
         onChange={setTab}

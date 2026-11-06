@@ -102,7 +102,7 @@ export default function OnlineScreen() {
   const best = (n: number | null) => (n == null ? "–" : String(n));
 
   return (
-    <HubScreen title={t("hub.online.title")} subtitle={t("hub.online.subtitle")} emoji="🌍" area={AREAS.online}>
+    <HubScreen title={t("hub.online.title")} subtitle={t("hub.online.subtitle")} emoji="🌍" area={AREAS.online} scrollKey={tab}>
       <Segmented<Tab>
         value={tab}
         onChange={setTab}

@@ -129,6 +129,13 @@ export default function KampagneScreen() {
   const shell = useShell();
   const insets = useSafeAreaInsets();
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  // Bereich wieder gewählt (Leiste/Wischen): oben anfangen – nicht beim ersten Aufbau (dort zur aktuellen Station)
+  const lastTop = useRef(shell.topSignal.pfad);
+  useEffect(() => {
+    if (shell.topSignal.pfad === lastTop.current) return;
+    lastTop.current = shell.topSignal.pfad;
+    scroll.current?.scrollTo({ y: 0, animated: false });
+  }, [shell.topSignal.pfad]);
   /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
   const worldY = useRef<Record<number, number>>({});
   const scrolled = useRef(false);

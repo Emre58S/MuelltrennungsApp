@@ -45,6 +45,8 @@ export default function BereicheScreen() {
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(() => Math.max(0, AREA_ORDER.indexOf(start as AreaKey)));
   const [wiggles, setWiggles] = useState<Record<AreaKey, number>>({ pfad: 0, online: 0, regal: 0 });
+  /** Jeder Wechsel (auch Antippen des schon gewählten Bereichs) lässt die Seite oben beginnen. */
+  const [tops, setTops] = useState<Record<AreaKey, number>>({ pfad: 0, online: 0, regal: 0 });
 
   // Kopfzeile und Punkte: bei jedem Zurückkommen frisch (wie das alte Menü)
   const [loaded, setLoaded] = useState(false);
@@ -107,13 +109,14 @@ export default function BereicheScreen() {
       };
     }, []),
   );
-  const { level, progress } = getLevelProgress(totalXP);
+  const { level, progress, xpRemaining } = getLevelProgress(totalXP);
   const { t } = useI18n();
 
   const select = useCallback((i: number) => {
     setIndex(i);
     const key = AREA_ORDER[i];
     setWiggles((w) => ({ ...w, [key]: w[key] + 1 }));
+    setTops((n) => ({ ...n, [key]: n[key] + 1 }));
   }, []);
   const [tabs, setTabs] = useState<Shell["tabs"]>({});
   const goArea = useCallback(
@@ -141,10 +144,11 @@ export default function BereicheScreen() {
       bottomInset: AREA_BAR_HEIGHT + insets.bottom,
       goArea,
       tabs,
+      topSignal: tops,
       chestWaiting,
       setChestWaiting,
     }),
-    [insets.bottom, goArea, tabs, chestWaiting],
+    [insets.bottom, goArea, tabs, tops, chestWaiting],
   );
 
   return (
@@ -154,6 +158,7 @@ export default function BereicheScreen() {
           loaded={loaded}
           level={level}
           progress={progress}
+          xpRemaining={xpRemaining}
           streak={streak}
           flame={flame}
           seenTutorial={seenTutorial}

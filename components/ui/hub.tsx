@@ -4,7 +4,7 @@
 // mit Symbol, Name, kurzer Zeile und rechts optional Rekord/Stand.
 
 import { Feather } from "@expo/vector-icons";
-import { type ComponentRef, type ReactNode, type Ref } from "react";
+import { type ComponentRef, type ReactNode, type Ref, useEffect, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -28,6 +28,7 @@ export function HubScreen({
   emoji,
   area,
   scrollRef,
+  scrollKey,
   children,
 }: {
   title: string;
@@ -37,11 +38,19 @@ export function HubScreen({
   area?: Area;
   /** Zum Hinscrollen, z. B. zur aktuellen Station im Lernpfad. */
   scrollRef?: Ref<ComponentRef<typeof ScrollView>>;
+  /** Ändert sich der Wert (z. B. Reiter gewechselt), beginnt die Seite wieder oben. */
+  scrollKey?: string;
   children: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const shell = useShell();
+  const ownRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  // Neuer Bereich gewählt oder anderer Reiter: oben anfangen
+  const topSignal = area ? shell.topSignal[area.key] : 0;
+  useEffect(() => {
+    ownRef.current?.scrollTo({ y: 0, animated: false });
+  }, [topSignal, scrollKey]);
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       {/* In der Hülle: Band in der Bereichsfarbe (wie der Pfad), steht fest über dem Inhalt */}
@@ -56,7 +65,7 @@ export function HubScreen({
         </View>
       )}
       <ScrollView
-        ref={scrollRef}
+        ref={scrollRef ?? ownRef}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[

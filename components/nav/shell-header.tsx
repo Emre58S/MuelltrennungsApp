@@ -4,6 +4,7 @@
 // rechts Hilfe (roter Punkt, solange die Anleitung ungesehen ist) und Einstellungen.
 
 import { router } from "expo-router";
+import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -12,6 +13,8 @@ import { tone } from "@/components/ui/chunky";
 import { IconButton } from "@/components/ui/icon-button";
 import { press, tapHaptic } from "@/components/ui/press";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { Sheet } from "@/components/ui/sheet";
+import { useShell } from "@/components/nav/shell-context";
 import { Radius, Spacing } from "@/constants/theme";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import type { FlameStatus } from "@/utils/streak";
@@ -20,6 +23,7 @@ export function ShellHeader({
   loaded,
   level,
   progress,
+  xpRemaining,
   streak,
   flame,
   seenTutorial,
@@ -30,6 +34,8 @@ export function ShellHeader({
   level: number;
   /** 0 … 1 bis zum nächsten Level. */
   progress: number;
+  /** XP bis zum nächsten Level. */
+  xpRemaining: number;
   streak: number;
   flame: FlameStatus;
   seenTutorial: boolean;
@@ -41,6 +47,9 @@ export function ShellHeader({
   const { colors } = useAppTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const shell = useShell();
+  /** Welches Blatt ist offen (Tippen auf Level oder Flamme)? */
+  const [info, setInfo] = useState<"level" | "flame" | null>(null);
   const GOLD = "#F2B632";
   const label = `${t("common.level")} ${level}, ${streak} ${t("home.daysInRow")}${
     flame === "atRisk" ? `. ${t("home.flameAtRisk")}` : ""
@@ -49,7 +58,16 @@ export function ShellHeader({
     <View>
     <View style={[styles.row, { paddingTop: insets.top + Spacing.sm }]}>
       {/* Links: Level-Abzeichen mit Fortschrittsbalken (wie die Spielerkarte bei Clash Royale) */}
-      <View accessible accessibilityLabel={label} style={styles.levelWrap}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={t("header.level.hint")}
+        onPress={() => {
+          tapHaptic();
+          setInfo("level");
+        }}
+        style={({ pressed }) => [styles.levelWrap, pressed && press.pressed]}
+      >
         <View style={[styles.badge, { backgroundColor: GOLD, borderColor: tone(GOLD, -0.35) }]}>
           <AppText variant="label" color="#3A2A00" style={styles.badgeText}>
             {loaded ? level : "–"}
@@ -58,28 +76,69 @@ export function ShellHeader({
         <View style={[styles.xp, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <ProgressBar value={progress} height={10} />
         </View>
-      </View>
+      </Pressable>
       <View style={styles.spacer} />
       {/* Mitte/rechts: Stand-Pillen (Flamme, Sterne) wie die Währungen bei Duolingo */}
       {streak > 0 && (
-        <View style={[styles.pill, { backgroundColor: colors.surface, borderColor: flame === "atRisk" ? colors.warning : colors.border }]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${streak} ${t("home.daysInRow")}`}
+          onPress={() => {
+            tapHaptic();
+            setInfo("flame");
+          }}
+          style={({ pressed }) => [
+            styles.pill,
+            { backgroundColor: colors.surface, borderColor: flame === "atRisk" ? colors.warning : colors.border },
+            pressed && press.pressed,
+          ]}
+        >
           <AppText variant="label" numberOfLines={1}>
             🔥 {streak}
             {flame === "atRisk" ? " ⏳" : ""}
           </AppText>
-        </View>
+        </Pressable>
       )}
-      <View style={[styles.pill, { backgroundColor: colors.surface, borderColor: colors.border }]} accessible accessibilityLabel={`${stars} ${t("common.stars")}`}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${stars} ${t("common.stars")}`}
+        accessibilityHint={t("header.stars.hint")}
+        onPress={() => {
+          tapHaptic();
+          if (shell.inShell) shell.goArea("regal", "rewards");
+        }}
+        style={({ pressed }) => [
+          styles.pill,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+          pressed && press.pressed,
+        ]}
+      >
         <AppText variant="label" numberOfLines={1}>
           ⭐ {stars}
         </AppText>
-      </View>
+      </Pressable>
       <View>
         <IconButton icon="help-circle" label={t("home.tutorial")} onPress={() => router.push("/tutorial")} style={styles.small} />
         {loaded && !seenTutorial && <View style={styles.dot} />}
       </View>
       <IconButton icon="settings" label={t("home.settings")} onPress={() => router.push("/einstellung")} style={styles.small} />
     </View>
+    <Sheet
+      visible={info !== null}
+      title={info === "flame" ? t("header.flame.title", { n: streak }) : t("header.level.title", { n: level })}
+      onClose={() => setInfo(null)}
+    >
+      {info === "flame" ? (
+        <AppText tone="textSecondary">
+          {flame === "atRisk" ? t("header.flame.risk") : t("header.flame.desc")}
+        </AppText>
+      ) : (
+        <>
+          <ProgressBar value={progress} height={12} />
+          <AppText tone="textSecondary">{t("header.level.desc", { xp: xpRemaining, next: level + 1 })}</AppText>
+        </>
+      )}
+    </Sheet>
     {hint && (
       <Pressable
         accessibilityRole="button"
@@ -111,7 +170,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md + 4,
     paddingBottom: Spacing.sm,
   },
-  levelWrap: { flexDirection: "row", alignItems: "center", flexShrink: 1, minWidth: 96 },
+  levelWrap: { flexDirection: "row", alignItems: "center", flexShrink: 1, minWidth: 96, minHeight: 44 },
   badge: {
     width: 40,
     height: 40,

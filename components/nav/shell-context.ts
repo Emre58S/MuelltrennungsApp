@@ -17,6 +17,8 @@ export type Shell = {
   goArea: (key: AreaKey, tab?: string) => void;
   /** Zuletzt gewünschter Reiter je Bereich; `n` zählt hoch, damit derselbe Wunsch erneut wirkt. */
   tabs: Partial<Record<AreaKey, { tab: string; n: number }>>;
+  /** Zählt hoch, sobald ein Bereich (wieder) gewählt wird – die Seite springt dann nach oben. */
+  topSignal: Record<AreaKey, number>;
   /** Wartet eine verdiente, noch nicht geöffnete Truhe? Eine Quelle für Leiste, Reiter und Karte. */
   chestWaiting: boolean;
   setChestWaiting: (waiting: boolean) => void;
@@ -24,6 +26,7 @@ export type Shell = {
 
 const OUTSIDE: Shell = { inShell: false, bottomInset: 0, goArea: () => undefined,
   tabs: {},
+  topSignal: { pfad: 0, online: 0, regal: 0 },
   chestWaiting: false,
   setChestWaiting: () => undefined,
 };
