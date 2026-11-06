@@ -615,6 +615,8 @@ export const de = {
   "online.tab.duel": "Duell",
   "nav.news": "Neues wartet",
   "regal.tab.today": "Heute",
+  "duel.randomDesc": "Wir suchen einen Gegner für dich aus.",
+  "friends.invite": "Freunde einladen",
   "duel.random": "Zufallsgegner",
   "duel.friend": "Oder einen Freund herausfordern",
   "duel.noFriends": "Du hast noch keine Freunde. Füge Freunde unter „Freunde“ hinzu.",

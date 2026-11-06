@@ -13,7 +13,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
+import { Avatar } from "@/components/areas/people";
 import { Button } from "@/components/ui/button";
+import { Chunky, cardEdge } from "@/components/ui/chunky";
 import { GhostStrip, ParcoursHero, SquareMode } from "@/components/areas/mode-cards";
 import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
@@ -173,9 +175,29 @@ export default function OnlineScreen() {
       {tab === "rank" && <RankingPanel />}
 
       <Sheet visible={picked !== null} title={pickedTitle} onClose={() => setPicked(null)}>
-        <Button title={t("duel.random")} icon="shuffle" size="lg" onPress={() => picked && start(picked)} />
+        <Chunky
+          color="#1E8A57"
+          depth={6}
+          radius={Radius.xl}
+          label={`${t("duel.random")}. ${t("duel.randomDesc")}`}
+          onPress={() => picked && start(picked)}
+          faceStyle={styles.randomFace}
+        >
+          <AppText style={styles.randomEmoji}>🎲</AppText>
+          <View style={styles.flex}>
+            <AppText variant="heading" color="#FFFFFF">
+              {t("duel.random")}
+            </AppText>
+            <AppText variant="caption" color="#FFFFFF">
+              {t("duel.randomDesc")}
+            </AppText>
+          </View>
+          <AppText variant="heading" color="#FFFFFF">
+            ▶
+          </AppText>
+        </Chunky>
         <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
-          {t("duel.friend")}
+          {`👥 ${t("duel.friend")}`.toUpperCase()}
         </AppText>
         {!leaderboardReady ? (
           <AppText tone="textSecondary">{t("friends.offline")}</AppText>
@@ -208,8 +230,8 @@ export default function OnlineScreen() {
             />
           </>
         ) : (
-          <ScrollView style={styles.friendList} keyboardShouldPersistTaps="handled">
-            {friends.map((f, i) => (
+          <ScrollView style={styles.friendList} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.friendCards}>
+            {friends.map((f) => (
               <Pressable
                 key={f.code}
                 accessibilityRole="button"
@@ -220,19 +242,27 @@ export default function OnlineScreen() {
                 }}
                 style={({ pressed }) => [
                   styles.friendRow,
-                  i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  cardEdge(colors.border),
                   pressed && press.pressedLarge,
                 ]}
               >
-                <AppText variant="label" style={styles.friendName} numberOfLines={1}>
-                  {f.name}
-                </AppText>
-                {lastMode !== "parcours" && (
-                  <AppText variant="caption" tone="textSecondary">
-                    {lastMode === "sprint" ? `⏱️ ${best(f.sprint)}` : `🛡️ ${best(f.survival)}`}
+                <Avatar name={f.name} size={40} />
+                <View style={styles.friendName}>
+                  <AppText variant="label" numberOfLines={1}>
+                    {f.name}
                   </AppText>
-                )}
-                <AppText>▶</AppText>
+                  {lastMode !== "parcours" && (
+                    <AppText variant="caption" tone="textSecondary">
+                      {lastMode === "sprint" ? `⏱️ ${best(f.sprint)}` : `🛡️ ${best(f.survival)}`}
+                    </AppText>
+                  )}
+                </View>
+                <View style={[styles.go, { backgroundColor: colors.primary }]}>
+                  <AppText variant="label" tone="onPrimary">
+                    ▶
+                  </AppText>
+                </View>
               </Pressable>
             ))}
           </ScrollView>
@@ -246,14 +276,20 @@ const styles = StyleSheet.create({
   // Überschrift einer Gruppe: wenige, klare Abschnitte statt vieler gleicher Karten
   group: { marginTop: Spacing.sm },
   row: { flexDirection: "row", gap: Spacing.md },
-  friendList: { maxHeight: 260 },
+  friendList: { maxHeight: 300 },
+  friendCards: { gap: Spacing.sm, paddingBottom: Spacing.xs },
   friendRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    minHeight: 52,
-    paddingHorizontal: Spacing.xs,
-    borderRadius: Radius.md,
+    minHeight: 60,
+    padding: Spacing.sm,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
   },
+  go: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  randomFace: { flexDirection: "row", alignSelf: "stretch", justifyContent: "flex-start", gap: Spacing.md, padding: Spacing.md, minHeight: 76 },
+  randomEmoji: { fontSize: 34, lineHeight: 42 },
+  flex: { flex: 1 },
   friendName: { flex: 1 },
 });

@@ -616,6 +616,8 @@ export const en: Translations = {
   "online.tab.duel": "Duel",
   "nav.news": "Something is waiting",
   "regal.tab.today": "Today",
+  "duel.randomDesc": "We pick an opponent for you.",
+  "friends.invite": "Invite friends",
   "duel.random": "Random opponent",
   "duel.friend": "Or challenge a friend",
   "duel.noFriends": "You have no friends yet. Add friends under “Friends”.",

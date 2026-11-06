@@ -18,6 +18,7 @@ import {
 
 import { AppText } from "@/components/ui/app-text";
 import { Avatar, Podium } from "@/components/areas/people";
+import { Feather } from "@expo/vector-icons";
 import { cardEdge, tone } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
@@ -66,6 +67,9 @@ const TABS: Tab[] = [
   { key: "tagesaufgabe", label: "home.daily", board: () => dailyBoard("tagesaufgabe"), daily: true },
   { key: "tagestrick", label: "tricks.daily", board: () => dailyBoard("tagestrick"), daily: true, trick: true },
 ];
+
+/** Symbol je Liste (in der Reihe zeigt nur die gewählte ihren Namen). */
+const MODE_EMOJI: Record<string, string> = { sprint: "⏱️", survival: "🛡️", parcours: "🎯", tagesaufgabe: "📅", tagestrick: "✨" };
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
@@ -175,77 +179,19 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
   return (
     <View style={styles.panel}>
       <>
-        {/* Eigener Spitzname */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
-          {editing ? (
-            <>
-              <TextInput
-                value={draft}
-                onChangeText={(v) => {
-                  setDraft(v);
-                  setInvalid(false);
-                }}
-                maxLength={16}
-                autoFocus
-                autoCorrect={false}
-                returnKeyType="done"
-                onSubmitEditing={saveName}
-                placeholder={t("rank.namePlaceholder")}
-                placeholderTextColor={colors.textMuted}
-                keyboardAppearance={scheme}
-                accessibilityLabel={t("rank.you")}
-                style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
-              />
-              {invalid && (
-                <AppText variant="caption" tone="warning">
-                  {t("rank.nameInvalid")}
-                </AppText>
-              )}
-              <View style={styles.row}>
-                <Button title={t("rank.save")} onPress={saveName} />
-                <Button
-                  title={t("common.cancel")}
-                  variant="ghost"
-                  onPress={() => {
-                    setEditing(false);
-                    setInvalid(false);
-                  }}
-                />
-              </View>
-            </>
-          ) : (
-            <View style={styles.row}>
-              <Avatar name={name} size={44} />
-              <View style={styles.flex}>
-                <AppText variant="caption" tone="textSecondary">
-                  {t("rank.you")}
-                </AppText>
-                <AppText variant="label">{name}</AppText>
-              </View>
-              <Button
-                title={t("rank.change")}
-                variant="secondary"
-                onPress={() => {
-                  setDraft(name);
-                  setEditing(true);
-                }}
-              />
-            </View>
-          )}
-        </View>
-
-        {/* Welche Liste */}
-        <View style={styles.tabs}>
+        {/* Eine Zeile: welche Liste (nur Symbole, die gewählte mit Name) */}
+        <View style={styles.modes}>
           {TABS.map((item) => {
             const active = item.key === tab.key;
             return (
               <Pressable
                 key={item.key}
                 accessibilityRole="tab"
+                accessibilityLabel={t(item.label)}
                 accessibilityState={{ selected: active }}
                 onPress={() => choose(item)}
                 style={[
-                  styles.tab,
+                  styles.mode,
                   {
                     backgroundColor: active ? colors.primary : colors.surface,
                     borderColor: active ? colors.primary : colors.border,
@@ -253,19 +199,21 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
                   active && { borderBottomWidth: 4, borderBottomColor: tone(colors.primary, -0.3) },
                 ]}
               >
-                <AppText variant="caption" tone={active ? "onPrimary" : "text"}>
-                  {t(item.label)}
-                  {item.daily ? ` · ${t("rank.today")}` : ""}
-                </AppText>
+                <AppText style={styles.modeEmoji}>{MODE_EMOJI[item.key]}</AppText>
+                {active && (
+                  <AppText variant="label" tone="onPrimary" numberOfLines={1}>
+                    {t(item.label)}
+                  </AppText>
+                )}
               </Pressable>
             );
           })}
         </View>
 
-        {/* Online-Modi: diese Woche (ab Montag) oder Allzeit */}
-        {tab.online && (
-          <>
-            <View style={styles.row}>
+        {/* Zweite Zeile: Woche/Allzeit links, eigener Name rechts */}
+        <View style={styles.subRow}>
+          {tab.online ? (
+            <View style={styles.spans}>
               {(["week", "all"] as const).map((item) => {
                 const active = item === span;
                 return (
@@ -275,28 +223,79 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
                     accessibilityState={{ selected: active }}
                     onPress={() => chooseSpan(item)}
                     style={[
-                      styles.tab,
-                      styles.flex,
+                      styles.span,
                       {
-                        backgroundColor: active ? colors.primarySoft : colors.surface,
+                        backgroundColor: active ? colors.primarySoft : "transparent",
                         borderColor: active ? colors.primary : colors.border,
                       },
                     ]}
                   >
-                    <AppText variant="caption" center tone={active ? "onPrimarySoft" : "text"}>
+                    <AppText variant="caption" center tone={active ? "onPrimarySoft" : "textSecondary"}>
                       {t(item === "week" ? "rank.week" : "rank.allTime")}
                     </AppText>
                   </Pressable>
                 );
               })}
             </View>
-            <AppText variant="caption" tone="textSecondary">
-              {t("rank.onlineHint")}
+          ) : (
+            <View style={styles.flex} />
+          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${t("rank.you")}: ${name}. ${t("rank.change")}`}
+            onPress={() => {
+              setDraft(name);
+              setEditing(true);
+            }}
+            style={[styles.namePill, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            <Avatar name={name || "?"} size={24} />
+            <AppText variant="caption" numberOfLines={1} style={styles.nameText}>
+              {name || "…"}
             </AppText>
-          </>
+            <Feather name="edit-2" size={13} color={colors.textSecondary} />
+          </Pressable>
+        </View>
+
+        {editing && (
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
+            <TextInput
+              value={draft}
+              onChangeText={(v) => {
+                setDraft(v);
+                setInvalid(false);
+              }}
+              maxLength={16}
+              autoFocus
+              autoCorrect={false}
+              returnKeyType="done"
+              onSubmitEditing={saveName}
+              placeholder={t("rank.namePlaceholder")}
+              placeholderTextColor={colors.textMuted}
+              keyboardAppearance={scheme}
+              accessibilityLabel={t("rank.you")}
+              style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
+            />
+            {invalid && (
+              <AppText variant="caption" tone="warning">
+                {t("rank.nameInvalid")}
+              </AppText>
+            )}
+            <View style={styles.row}>
+              <Button title={t("rank.save")} onPress={saveName} />
+              <Button
+                title={t("common.cancel")}
+                variant="ghost"
+                onPress={() => {
+                  setEditing(false);
+                  setInvalid(false);
+                }}
+              />
+            </View>
+          </View>
         )}
 
-        {/* Parcours des Tages: welcher heute dran ist */}
+        {/* Parcours des Tages: welcher heute dran ist (eine kleine Zeile) */}
         {tab.parcours && (
           <AppText variant="caption" tone="textSecondary">
             {t("rank.parcoursHint", { task: t(today.level.task) })}
@@ -422,4 +421,31 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   rank: { width: 36 },
+  modes: { flexDirection: "row", gap: Spacing.sm },
+  mode: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    minHeight: 44,
+    minWidth: 48,
+    paddingHorizontal: Spacing.sm + 2,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+  },
+  modeEmoji: { fontSize: 20, lineHeight: 26 },
+  subRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.sm },
+  spans: { flexDirection: "row", gap: Spacing.xs + 2 },
+  span: { minHeight: 36, justifyContent: "center", paddingHorizontal: Spacing.md, borderRadius: Radius.pill, borderWidth: 1 },
+  namePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 36,
+    maxWidth: 170,
+    paddingHorizontal: Spacing.sm + 2,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+  },
+  nameText: { flexShrink: 1 },
 });

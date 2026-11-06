@@ -188,23 +188,6 @@ export function FriendsPanel() {
         <ActivityIndicator color={colors.primary} />
       ) : (
         <>
-          {/* Eigener Code */}
-          <View style={styles.codeCard}>
-            <LinearGradient colors={["#2F78D0", "#234AA6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-            <AppText variant="overline" color="#FFFFFF">
-              {t("friends.myCode").toUpperCase()}
-            </AppText>
-            <AppText variant="title" color="#FFFFFF" selectable accessibilityLabel={code.split("").join(" ")} style={styles.codeText}>
-              {formatFriendCode(code)}
-            </AppText>
-            <Chunky color="#FFFFFF" edge="#B7CDEF" depth={5} radius={Radius.lg} label={t("friends.share")} onPress={share} faceStyle={styles.shareFace}>
-              <Feather name="share" size={18} color="#234AA6" />
-              <AppText variant="label" color="#234AA6">
-                {t("friends.share")}
-              </AppText>
-            </Chunky>
-          </View>
-
           {/* Offene Herausforderungen: Freunde, die heute vorgelegt haben */}
           {open.length > 0 && (
             <View style={[styles.card, { backgroundColor: colors.goldSoft, borderColor: colors.border }]}>
@@ -255,6 +238,66 @@ export function FriendsPanel() {
             </View>
           )}
 
+          {/* Liste */}
+          {friends.length > 0 && (
+            <AppText variant="overline" tone="textSecondary" accessibilityRole="header">
+              {t("friends.week").toUpperCase()}
+            </AppText>
+          )}
+          {friends.length === 0 ? (
+            <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
+              <AppText style={styles.emptyEmoji}>👋</AppText>
+              <AppText tone="textSecondary" center>
+                {t("friends.empty")}
+              </AppText>
+            </View>
+          ) : (
+            <View style={styles.friendCards}>
+              {friends.map((f) => (
+                <View
+                  key={f.code}
+                  style={[styles.friendCard, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}
+                >
+                  <Avatar name={f.name} size={44} />
+                  <View style={styles.flex}>
+                    <AppText variant="label" numberOfLines={1}>
+                      {f.name}
+                    </AppText>
+                    <AppText
+                      variant="caption"
+                      tone="textSecondary"
+                      accessibilityLabel={`${t("sprint.title")} ${best(f.sprint)}, ${t("survival.title")} ${best(f.survival)}`}
+                    >
+                      ⏱️ {best(f.sprint)} · 🛡️ {best(f.survival)}
+                    </AppText>
+                  </View>
+                  <IconButton icon="play" label={t("friends.challenge", { name: f.name })} onPress={() => challenge(f)} />
+                  <IconButton icon="x" label={t("friends.remove", { name: f.name })} onPress={() => askRemove(f)} />
+                </View>
+              ))}
+            </View>
+          )}
+          {/* Einladen: eigener Code und Code eingeben */}
+          <AppText variant="overline" tone="textSecondary" accessibilityRole="header">
+            {t("friends.invite").toUpperCase()}
+          </AppText>
+          {/* Eigener Code */}
+          <View style={styles.codeCard}>
+            <LinearGradient colors={["#2F78D0", "#234AA6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            <AppText variant="overline" color="#FFFFFF">
+              {t("friends.myCode").toUpperCase()}
+            </AppText>
+            <AppText variant="title" color="#FFFFFF" selectable accessibilityLabel={code.split("").join(" ")} style={styles.codeText}>
+              {formatFriendCode(code)}
+            </AppText>
+            <Chunky color="#FFFFFF" edge="#B7CDEF" depth={5} radius={Radius.lg} label={t("friends.share")} onPress={share} faceStyle={styles.shareFace}>
+              <Feather name="share" size={18} color="#234AA6" />
+              <AppText variant="label" color="#234AA6">
+                {t("friends.share")}
+              </AppText>
+            </Chunky>
+          </View>
+
           {/* Freund hinzufügen */}
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
             <AppText variant="label">{t("friends.add")}</AppText>
@@ -297,43 +340,6 @@ export function FriendsPanel() {
             </View>
           </View>
 
-          {/* Liste */}
-          <AppText variant="overline" tone="textSecondary" accessibilityRole="header">
-            {t("friends.week").toUpperCase()}
-          </AppText>
-          {friends.length === 0 ? (
-            <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
-              <AppText style={styles.emptyEmoji}>👋</AppText>
-              <AppText tone="textSecondary" center>
-                {t("friends.empty")}
-              </AppText>
-            </View>
-          ) : (
-            <View style={styles.friendCards}>
-              {friends.map((f) => (
-                <View
-                  key={f.code}
-                  style={[styles.friendCard, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}
-                >
-                  <Avatar name={f.name} size={44} />
-                  <View style={styles.flex}>
-                    <AppText variant="label" numberOfLines={1}>
-                      {f.name}
-                    </AppText>
-                    <AppText
-                      variant="caption"
-                      tone="textSecondary"
-                      accessibilityLabel={`${t("sprint.title")} ${best(f.sprint)}, ${t("survival.title")} ${best(f.survival)}`}
-                    >
-                      ⏱️ {best(f.sprint)} · 🛡️ {best(f.survival)}
-                    </AppText>
-                  </View>
-                  <IconButton icon="play" label={t("friends.challenge", { name: f.name })} onPress={() => challenge(f)} />
-                  <IconButton icon="x" label={t("friends.remove", { name: f.name })} onPress={() => askRemove(f)} />
-                </View>
-              ))}
-            </View>
-          )}
         </>
       )}
     </View>
