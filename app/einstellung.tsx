@@ -40,9 +40,9 @@ export default function EinstellungenScreen() {
   const { colors } = useAppTheme();
   const { t } = useI18n();
   const {
-    themeMode,
+    scheme,
     setThemeMode,
-    languageSetting,
+    lang,
     setLanguage,
     reduceMotionSetting,
     setReduceMotion,
@@ -102,11 +102,11 @@ export default function EinstellungenScreen() {
     StorageKeys.HIGHSCORE_ZIELWURF,
   ];
 
-  const languageOptions: { value: LanguageSetting; label: string; flag: string }[] =
-    [
-      { value: "system", label: t("settings.language.system"), flag: "📱" },
-      ...LANGUAGES.map((l) => ({ value: l.code, label: l.nativeName, flag: l.flag })),
-    ];
+  const languageOptions: { value: LanguageSetting; label: string; flag: string }[] = LANGUAGES.map((l) => ({
+    value: l.code,
+    label: l.nativeName,
+    flag: l.flag,
+  }));
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
@@ -126,7 +126,7 @@ export default function EinstellungenScreen() {
         <SectionLabel text={t("settings.language")} />
         <Card style={styles.group}>
           {languageOptions.map((opt, i) => {
-            const selected = opt.value === languageSetting;
+            const selected = opt.value === lang;
             return (
               <Pressable
                 key={opt.value}
@@ -158,10 +158,9 @@ export default function EinstellungenScreen() {
         {/* Aussehen */}
         <SectionLabel text={t("settings.appearance")} />
         <Segmented<ThemeMode>
-          value={themeMode}
+          value={scheme}
           onChange={setThemeMode}
           options={[
-            { value: "system", label: t("settings.theme.system") },
             { value: "light", label: t("settings.theme.light") },
             { value: "dark", label: t("settings.theme.dark") },
           ]}

@@ -10,6 +10,7 @@ import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
+import { BinIcon } from "@/components/ui/bin-icon";
 import { FadeIn } from "@/components/ui/fade-in";
 import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
@@ -28,6 +29,9 @@ import {
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 import { getBinSkin, getRewardProgress, getTrail, saveBinSkin, saveTrail } from "@/utils/storage";
+
+/** Farbe der Vorschau-Tonne (blaue Papiertonne – neutral, Sticker und Spur stehen im Vordergrund). */
+const SKIN_BIN_COLOR = "#245E9E";
 
 /** Vorschau der Tonnen-Sticker: Zeichen + Farbe. */
 const SKIN_PREVIEW: Record<BinSkinId, { glyph: string; color: string }> = {
@@ -140,6 +144,7 @@ export function RewardsPanel() {
               >
                 {/* Kleine Spur als Vorschau: Punkte werden zum Kopf hin größer */}
                 <View style={[styles.swatch, { opacity: open ? 1 : 0.35 }]}>
+                  <View style={styles.dotsWrap}>
                   {SWATCH[reward.id].map((color, i, all) => (
                     <View
                       key={i}
@@ -154,6 +159,11 @@ export function RewardsPanel() {
                       ]}
                     />
                   ))}
+                  </View>
+                  {/* … und landen in einer Tonne */}
+                  <View style={styles.trailBin}>
+                    <BinIcon color={SKIN_BIN_COLOR} size={30} reduceMotion />
+                  </View>
                 </View>
                 <View style={styles.flex}>
                   <AppText variant="label">{t(reward.name)}</AppText>
@@ -203,8 +213,14 @@ export function RewardsPanel() {
                   pressed && press.pressedLarge,
                 ]}
               >
-                <View style={[styles.swatch, { opacity: open ? 1 : 0.35 }]}>
-                  <AppText style={[styles.skinGlyph, { color: preview.color }]}>{preview.glyph}</AppText>
+                <View style={[styles.binSwatch, { opacity: open ? 1 : 0.35 }]}>
+                  <BinIcon
+                    color={SKIN_BIN_COLOR}
+                    size={56}
+                    reduceMotion
+                    glyph={reward.id === "keiner" ? undefined : preview.glyph}
+                    glyphColor={preview.color}
+                  />
                 </View>
                 <View style={styles.flex}>
                   <AppText variant="label">{t(reward.name)}</AppText>
@@ -250,7 +266,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     minHeight: 64,
   },
-  swatch: { width: 96, flexDirection: "row", alignItems: "center", gap: 3 },
+  swatch: { width: 132, flexDirection: "row", alignItems: "center", gap: 3 },
+  dotsWrap: { width: 92, flexDirection: "row", alignItems: "center", gap: 3 },
+  trailBin: { marginLeft: 6 },
+  binSwatch: { width: 72, alignItems: "center", justifyContent: "center" },
   dot: { borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
   section: { marginTop: Spacing.md },
   skinGlyph: { fontSize: 26, lineHeight: 32 },

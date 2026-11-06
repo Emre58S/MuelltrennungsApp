@@ -3,19 +3,24 @@
 // Rippen. Beim Erhöhen von `wiggle` wackelt sie kurz.
 
 import { useEffect, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
 export function BinIcon({
   color,
   size = 30,
   wiggle = 0,
   reduceMotion,
+  glyph,
+  glyphColor = "#FFFFFF",
 }: {
   color: string;
   size?: number;
   /** Zähler: jede Erhöhung löst ein kurzes Wackeln aus. */
   wiggle?: number;
   reduceMotion?: boolean;
+  /** Aufkleber vorn auf dem Körper (z. B. „★“) – für die Tonnen-Sticker in den Belohnungen. */
+  glyph?: string;
+  glyphColor?: string;
 }) {
   const [tilt] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -75,6 +80,13 @@ export function BinIcon({
       >
         <View style={{ width: rib, borderRadius: rib, backgroundColor: "rgba(255,255,255,0.4)" }} />
         <View style={{ width: rib, borderRadius: rib, backgroundColor: "rgba(255,255,255,0.4)" }} />
+        {glyph ? (
+          <View pointerEvents="none" style={styles.glyphWrap}>
+            <Text style={{ color: glyphColor, fontSize: glyph.length > 1 ? size * 0.2 : size * 0.38, fontWeight: "800" }}>
+              {glyph}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </Animated.View>
   );
@@ -82,4 +94,5 @@ export function BinIcon({
 
 const styles = StyleSheet.create({
   box: { alignItems: "center" },
+  glyphWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
 });
