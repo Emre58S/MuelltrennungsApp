@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { Radius, Spacing, TOUCH_MIN } from "@/constants/theme";
+import { tone } from "@/components/ui/chunky";
 import { useAppTheme } from "@/providers/app-settings";
 
 import { AppText } from "./app-text";
@@ -80,6 +81,11 @@ export function Button({
         size === "lg" && styles.lg,
         { backgroundColor: pressed ? bgPressed : bg },
         variant === "ghost" && { borderWidth: 1, borderColor: colors.border },
+        // Spielstil: dunklere Unterkante, beim Drücken sinkt der Knopf ein
+        variant !== "ghost" && {
+          borderBottomWidth: pressed ? 1 : 4,
+          borderBottomColor: tone(bg, variant === "primary" ? -0.3 : -0.18),
+        },
         pressed && (size === "lg" ? press.pressedLarge : press.pressed),
         disabled && styles.disabled,
         style,

@@ -225,16 +225,19 @@ export default function KampagneScreen() {
         {daily !== undefined && <DailyStation result={daily} />}
 
         {nextReward && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${t("reward.next", { name: t(nextReward.reward.name) })}. ${t("reward.nextLeft", { n: nextReward.left })}`}
+          <Chunky
+            color={colors.goldSoft}
+            edge={colors.gold}
+            depth={4}
+            radius={Radius.lg}
+            label={`${t("reward.next", { name: t(nextReward.reward.name) })}. ${t("reward.nextLeft", { n: nextReward.left })}`}
             onPress={() => {
-              tapHaptic();
               // In der Bereichs-Hülle gleich den Reiter „Belohnungen“ im Regal zeigen
               if (shell.inShell) shell.goArea("regal", "rewards");
               else router.push("/belohnungen");
             }}
-            style={({ pressed }) => [styles.nextReward, { backgroundColor: colors.goldSoft }, pressed && press.pressed]}
+            style={styles.dailyWrap}
+            faceStyle={styles.nextReward}
           >
             <AppText style={styles.nextRewardEmoji}>🎁</AppText>
             <View style={styles.flex}>
@@ -245,7 +248,7 @@ export default function KampagneScreen() {
                 {t("reward.nextLeft", { n: nextReward.left })}
               </AppText>
             </View>
-          </Pressable>
+          </Chunky>
         )}
 
         {missions && <MissionSlots day={missions} chestsWaiting={chests.earned - chests.opened} />}
@@ -719,9 +722,10 @@ const styles = StyleSheet.create({
   },
   nextReward: {
     flexDirection: "row",
+    alignSelf: "stretch",
     alignItems: "center",
+    justifyContent: "flex-start",
     gap: Spacing.sm,
-    borderRadius: Radius.lg,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
   },
