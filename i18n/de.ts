@@ -619,6 +619,7 @@ export const de = {
   "duel.friend": "Oder einen Freund herausfordern",
   "duel.noFriends": "Du hast noch keine Freunde. Füge Freunde unter „Freunde“ hinzu.",
   "duel.toFriends": "Zu Freunde",
+  "online.tag.left": "Noch {h} Std.",
   "online.tag.today": "Heute neu",
   "online.tag.sprint": "30 Sekunden",
   "online.tag.survival": "Kein Fehler",

@@ -303,6 +303,15 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           </AppText>
         )}
 
+        {/* Eigener Platz, falls nicht unter den Besten – gleich oben sichtbar */}
+        {leaderboardReady && result?.me && !meVisible && (
+          <View style={[styles.myPlace, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}>
+            <AppText variant="label" tone="onPrimarySoft">
+              🏅 {t("rank.myPlace", { rank: result.me.rank })} · {scoreText(result.me.score)}
+            </AppText>
+          </View>
+        )}
+
         {!leaderboardReady ? (
           <AppText tone="textSecondary" style={styles.note}>
             {t("rank.offline")}
@@ -349,13 +358,6 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           </View>
           )}
           </>
-        )}
-
-        {/* Eigener Platz, falls nicht unter den Besten */}
-        {leaderboardReady && result?.me && !meVisible && (
-          <AppText variant="label" center tone="textSecondary">
-            {t("rank.myPlace", { rank: result.me.rank })} · {scoreText(result.me.score)}
-          </AppText>
         )}
 
         {/* Ziehen zum Aktualisieren kennt kaum jemand – im Reiter gibt es das nicht, daher ein Knopf */}
@@ -408,6 +410,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   note: { textAlign: "center", marginTop: Spacing.md },
+  myPlace: { alignItems: "center", padding: Spacing.sm + 2, borderRadius: Radius.lg, borderWidth: 2 },
   errorBox: { alignItems: "center", gap: Spacing.sm, marginTop: Spacing.md },
   list: { borderRadius: Radius.lg, borderWidth: 1, overflow: "hidden" },
   entry: {

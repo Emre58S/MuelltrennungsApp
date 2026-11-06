@@ -620,6 +620,7 @@ export const en: Translations = {
   "duel.friend": "Or challenge a friend",
   "duel.noFriends": "You have no friends yet. Add friends under “Friends”.",
   "duel.toFriends": "Go to Friends",
+  "online.tag.left": "{h} h left",
   "online.tag.today": "New today",
   "online.tag.sprint": "30 seconds",
   "online.tag.survival": "No mistakes",

@@ -73,6 +73,8 @@ export default function OnlineScreen() {
   const [day, setDay] = useState(todayKey);
   const today = parcoursOfDay(day);
   const [parcoursBest, setParcoursBest] = useState(0);
+  /** Wie lange der heutige Parcours noch gilt (bis Mitternacht), mindestens 1 Stunde. */
+  const [hoursLeft, setHoursLeft] = useState(24);
   /** Richtige Treffer im besten Lauf von heute (null = heute noch nicht gespielt). */
   const [sprintToday, setSprintToday] = useState<number | null>(null);
   const [survivalToday, setSurvivalToday] = useState<number | null>(null);
@@ -82,6 +84,7 @@ export default function OnlineScreen() {
       let active = true;
       const now = todayKey();
       setDay(now);
+      setHoursLeft(Math.max(1, Math.ceil((new Date().setHours(24, 0, 0, 0) - Date.now()) / 3_600_000)));
       getParcoursBest()
         .then((best) => active && setParcoursBest(best[parcoursOfDay(now).id] ?? 0))
         .catch(() => undefined);
@@ -120,9 +123,9 @@ export default function OnlineScreen() {
         color={AREAS.online.fill}
         onColor={AREAS.online.on}
         options={[
-          { value: "duel", label: t("online.tab.duel") },
-          { value: "friends", label: t("friends.title") },
-          { value: "rank", label: t("home.rank") },
+          { value: "duel", label: `⚔️ ${t("online.tab.duel")}` },
+          { value: "friends", label: `👥 ${t("friends.title")}` },
+          { value: "rank", label: `🏆 ${t("home.rank")}` },
         ]}
       />
 
@@ -133,7 +136,7 @@ export default function OnlineScreen() {
             task={t(today.task)}
             icons={levelIcons(today)}
             best={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : t("parcours.noBest")}
-            tag={t("online.tag.today")}
+            tag={t("online.tag.left", { h: hoursLeft })}
             cta={t("online.play")}
             onPress={() => openSheet("parcours")}
           />

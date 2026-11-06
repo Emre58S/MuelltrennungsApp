@@ -4,6 +4,7 @@
 // mit Symbol, Name, kurzer Zeile und rechts optional Rekord/Stand.
 
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { type ComponentRef, type ReactNode, type Ref, useEffect, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -56,6 +57,19 @@ export function HubScreen({
       {/* In der Hülle: Band in der Bereichsfarbe (wie der Pfad), steht fest über dem Inhalt */}
       {shell.inShell && area && (
         <View style={[styles.banner, { backgroundColor: area.fill, borderBottomColor: tone(area.fill, -0.3) }]}>
+          <LinearGradient
+            colors={[tone(area.fill, 0.12), tone(area.fill, -0.14)]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <AppText
+            importantForAccessibility="no"
+            accessibilityElementsHidden
+            style={styles.bannerDecor}
+          >
+            {emoji}
+          </AppText>
           <AppText variant="overline" color={area.on} style={styles.bannerTitle} accessibilityRole="header">
             {`${emoji} ${title}`.toUpperCase()}
           </AppText>
@@ -163,11 +177,13 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.md },
   flex: { flex: 1 },
   banner: {
+    overflow: "hidden",
     paddingHorizontal: Spacing.md + 4,
     paddingVertical: Spacing.sm + 2,
     gap: 2,
     borderBottomWidth: 4,
   },
+  bannerDecor: { position: "absolute", right: 8, top: -6, fontSize: 64, lineHeight: 78, opacity: 0.2, transform: [{ rotate: "12deg" }] },
   bannerTitle: { opacity: 0.85 },
   card: {
     flexDirection: "row",
