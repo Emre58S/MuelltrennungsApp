@@ -30,6 +30,10 @@ SplashScreen.preventAutoHideAsync();
  *  App-Einstellungen (Sprache/Farben), deshalb zweisprachig und mit Systemfarben. */
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   const dark = useColorScheme() === "dark";
+  // Startbild wegnehmen, falls der Fehler schon beim Start kam (sonst bliebe es über der Fehlerseite stehen)
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => undefined);
+  }, []);
   const fg = dark ? "#EEF3F0" : "#1B2420";
   return (
     <View style={[styles.error, { backgroundColor: dark ? "#101614" : "#F6F4EE" }]}>
