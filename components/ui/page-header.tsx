@@ -15,7 +15,7 @@ import { FadeIn } from "@/components/ui/fade-in";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type Area } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
-import { useI18n } from "@/providers/app-settings";
+import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { goHome } from "@/utils/nav";
 import { sfx } from "@/utils/sfx";
 
@@ -52,6 +52,7 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   const { t } = useI18n();
+  const { colors } = useAppTheme();
   const ink = area?.on ?? "#FFFFFF";
   if (compact) {
     return (
@@ -72,42 +73,39 @@ export function PageHeader({
       </FadeIn>
     );
   }
+  // Schlicht (Nutzer, 6.11.: ruhig und hochwertig): Zurück-Knopf, Titel, Untertitel – ohne Himmel und Wolken
   return (
     <FadeIn>
-      <LinearGradient colors={area?.sky ?? SKY} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
-        {/* Weiche Wolken als Deko */}
-        <View pointerEvents="none" style={[styles.cloud, styles.cloudA]} />
-        <View pointerEvents="none" style={[styles.cloud, styles.cloudB]} />
-
-        <View style={styles.top}>
-          {hideBack ? <View /> : <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("common.back")}
-            hitSlop={8}
-            onPress={() => {
-              sfx("tap");
-              tapHaptic();
-              onBack();
-            }}
-            style={({ pressed }) => [styles.back, pressed && press.pressed]}
-          >
-            <Feather name="chevron-left" size={24} color={ink} />
-          </Pressable>}
-          <View style={styles.badge} importantForAccessibility="no" accessibilityElementsHidden>
-            <Text style={styles.emoji}>{emoji}</Text>
+      <View style={styles.calm}>
+        <View style={styles.calmTop}>
+          {hideBack ? null : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("common.back")}
+              hitSlop={8}
+              onPress={() => {
+                sfx("tap");
+                tapHaptic();
+                onBack();
+              }}
+              style={({ pressed }) => [
+                styles.calmBack,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                pressed && press.pressed,
+              ]}
+            >
+              <Feather name="chevron-left" size={24} color={colors.text} />
+            </Pressable>
+          )}
+          <View style={styles.calmText}>
+            <AppText variant="title" accessibilityRole="header">
+              {title}
+            </AppText>
+            {subtitle ? <AppText tone="textSecondary">{subtitle}</AppText> : null}
           </View>
         </View>
-
-        <AppText variant="title" color={ink} accessibilityRole="header" style={styles.title}>
-          {title}
-        </AppText>
-        {subtitle ? (
-          <AppText color={ink} style={styles.subtitle}>
-            {subtitle}
-          </AppText>
-        ) : null}
         {children}
-      </LinearGradient>
+      </View>
     </FadeIn>
   );
 }
@@ -133,39 +131,15 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.9)",
   },
   compactEmoji: { fontSize: 24 },
-  card: {
-    borderRadius: Radius.lg + 6,
-    padding: Spacing.md + 4,
-    gap: Spacing.xs,
-    overflow: "hidden",
-  },
-  top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: Spacing.sm },
-  back: {
+  calm: { gap: Spacing.sm },
+  calmTop: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  calmBack: {
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.25)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
   },
-  badge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.9)",
-  },
-  emoji: { fontSize: 30 },
-  title: {
-    textShadowColor: "rgba(20,60,100,0.25)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  subtitle: { lineHeight: 22 },
-  cloud: { position: "absolute", backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 999 },
-  cloudA: { width: 160, height: 60, right: -30, bottom: 14 },
-  cloudB: { width: 110, height: 44, right: 70, bottom: -14 },
+  calmText: { flex: 1, gap: 2 },
 });

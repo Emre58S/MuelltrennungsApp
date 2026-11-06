@@ -417,6 +417,7 @@ export const en: Translations = {
   "game.end.levelUp": "Level up!",
   "game.end.tapToLearn": "Tap for more info",
 
+  "settings.version": "Version {v}",
   "settings.title": "Settings",
   "settings.appearance": "Appearance",
   "settings.theme.system": "Like device",

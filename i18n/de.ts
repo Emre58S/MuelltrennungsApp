@@ -416,6 +416,7 @@ export const de = {
   "game.end.levelUp": "Level-Aufstieg!",
   "game.end.tapToLearn": "Tippe für mehr Infos",
 
+  "settings.version": "Version {v}",
   "settings.title": "Einstellungen",
   "settings.appearance": "Aussehen",
   "settings.theme.system": "Wie Gerät",

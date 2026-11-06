@@ -4,6 +4,7 @@
 // Sprache sofort finden. Sprachen werden in ihrer eigenen Schrift gezeigt.
 
 import { Feather } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { type ComponentProps, useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -248,6 +249,11 @@ export default function EinstellungenScreen() {
           />
         </Card>
 
+        {/* Über die App: Version (für Rückfragen und Store-Prüfung) */}
+        <AppText variant="caption" tone="textMuted" center style={styles.version}>
+          {t("settings.version", { v: Constants.expoConfig?.version ?? "1.0.0" })}
+        </AppText>
+
         {/* „Konto/Abmelden“ ausgeblendet (ROADMAP R7e): es gibt noch keine echte Anmeldung –
             die Seiten app/login.tsx und app/register.tsx sind nur Platzhalter */}
       </ScrollView>
@@ -369,6 +375,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: Spacing.md + 4 },
   flex: { flex: 1 },
+  version: { marginTop: Spacing.lg },
 
   header: {
     flexDirection: "row",
