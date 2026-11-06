@@ -82,7 +82,9 @@ export function ShellHeader({
       {streak > 0 && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${streak} ${t("home.daysInRow")}`}
+          accessibilityLabel={`${streak} ${t("home.daysInRow")}${flame === "atRisk" ? `. ${t("home.flameAtRisk")}` : ""}`}
+          accessibilityHint={t("header.flame.hint")}
+          hitSlop={4}
           onPress={() => {
             tapHaptic();
             setInfo("flame");
@@ -103,9 +105,11 @@ export function ShellHeader({
         accessibilityRole="button"
         accessibilityLabel={`${stars} ${t("common.stars")}`}
         accessibilityHint={t("header.stars.hint")}
+        hitSlop={4}
         onPress={() => {
           tapHaptic();
           if (shell.inShell) shell.goArea("regal", "rewards");
+          else router.push("/belohnungen");
         }}
         style={({ pressed }) => [
           styles.pill,
