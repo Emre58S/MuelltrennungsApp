@@ -107,6 +107,12 @@ const SCENERY_SPOTS: readonly (readonly [number, number, number, number])[] = [
 const DOT = 64;
 /** Abstand der Begleiter-Tonne zur aktuellen Station (Mitte zu Mitte, px). */
 const MASCOT_GAP = 96;
+/** Eigene Farbe je Stationsart (Weiß bzw. Dunkel für den Boss darauf). */
+const KIND_FACE = {
+  survival: { color: "#C4532B", on: "#FFFFFF" },
+  time: { color: "#2F6FC4", on: "#FFFFFF" },
+  boss: { color: "#E8B500", on: "#2B1D00" },
+} as const;
 /** Kennzeichen der Stations-Arten (klein am Kreis). */
 const KIND_EMOJI = { survival: "🛡️", time: "⏱️", boss: "👑" } as const;
 /** Farbe der Trick-Schule (wie die Trickwürfe). */
@@ -119,9 +125,12 @@ const TRICKY_COLOR = "#7C5CD6";
 const binDef = (key: string): BinDef | undefined => ALL_BINS.find((b) => b.key === key);
 
 /** Farbe einer Welt: die neue Tonne (Welt 1: Papier), sonst lila. */
+/** Kräftigere Töne für Welten, deren Tonne matt ist (Restmüll grau, Bio braun) – weiße Schrift bleibt lesbar. */
+const WORLD_ACCENT: Record<string, string> = { rest: "#4F6F94", bio: "#8F5A2B" };
+
 function worldColor(world: World): string {
   const key = world.newBins[world.newBins.length - 1];
-  return (key && binDef(key)?.color) || TRICKY_COLOR;
+  return (key && WORLD_ACCENT[key]) || (key && binDef(key)?.color) || TRICKY_COLOR;
 }
 
 /** Schriftfarbe auf der Weltfarbe (Gelb braucht dunkle Schrift, sonst ~2:1). */
@@ -260,8 +269,12 @@ export default function KampagneScreen() {
           <PlayTile kind="tricks" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
         </View>
 
-        {daily !== undefined && <DailyStation result={daily} />}
-
+        <View style={styles.topRow}>
+        {daily !== undefined && (
+          <View style={styles.topMain}>
+            <DailyStation result={daily} />
+          </View>
+        )}
         {nextReward && (
           <Chunky
             color={colors.goldSoft}
@@ -274,20 +287,16 @@ export default function KampagneScreen() {
               if (shell.inShell) shell.goArea("regal", "rewards");
               else router.push("/belohnungen");
             }}
-            style={styles.dailyWrap}
+            style={styles.topSide}
             faceStyle={styles.nextReward}
           >
             <AppText style={styles.nextRewardEmoji}>🎁</AppText>
-            <View style={styles.flex}>
-              <AppText variant="label" color={colors.onGoldSoft}>
-                {t("reward.next", { name: t(nextReward.reward.name) })}
-              </AppText>
-              <AppText variant="caption" color={colors.onGoldSoft}>
-                {t("reward.nextLeft", { n: nextReward.left })}
-              </AppText>
-            </View>
+            <AppText variant="label" color={colors.onGoldSoft} center>
+              {t("reward.short", { n: nextReward.left })}
+            </AppText>
           </Chunky>
         )}
+        </View>
 
         {missions && <MissionSlots day={missions} chestsWaiting={chests.earned - chests.opened} />}
 
@@ -674,6 +683,9 @@ function StationDot({
   }, [stars, reduceMotion, pop]);
 
   const kind = station.kind ? `, ${t(`campaign.kind.${station.kind}`)}` : "";
+  // Zeit, „Ohne Fehler“ und Boss fallen schon an der Farbe auf (Boss gold und größer)
+  const faceColor = station.kind ? KIND_FACE[station.kind].color : color;
+  const faceOn = station.kind ? KIND_FACE[station.kind].on : onColor;
   const goal =
     station.kind === "time"
       ? t("campaign.goalTime", { goal: station.goal, total: station.total })
@@ -736,16 +748,16 @@ function StationDot({
         )}
         <View style={isCurrent && unlocked ? [styles.ring, { borderColor: "#FFD54A", borderRadius: shape + 8 }] : undefined}>
           <Chunky
-            color={unlocked ? color : colors.surfaceAlt}
-            edge={unlocked ? tone(color, -0.32) : colors.border}
+            color={unlocked ? faceColor : colors.surfaceAlt}
+            edge={unlocked ? tone(faceColor, -0.32) : station.kind ? tone(faceColor, -0.4) : colors.border}
             depth={7}
-            radius={shape}
+            radius={station.kind === "boss" ? DOT + 12 : shape}
             label={label}
             disabled={!unlocked}
             onPress={() => startStation(station)}
-            faceStyle={styles.dotFace}
+            faceStyle={station.kind === "boss" ? styles.bossFace : styles.dotFace}
           >
-            <AppText variant="heading" color={unlocked ? onColor : colors.textMuted}>
+            <AppText variant="heading" color={unlocked ? faceOn : colors.textMuted}>
               {unlocked ? station.id : "🔒"}
             </AppText>
           </Chunky>
@@ -787,14 +799,17 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     borderWidth: 1,
   },
+  topRow: { flexDirection: "row", gap: Spacing.sm, alignItems: "stretch" },
+  topMain: { flex: 2 },
+  topSide: { flex: 1 },
   nextReward: {
-    flexDirection: "row",
     alignSelf: "stretch",
     alignItems: "center",
-    justifyContent: "flex-start",
-    gap: Spacing.sm,
+    justifyContent: "center",
+    gap: 2,
+    minHeight: 68,
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.xs,
   },
   nextRewardEmoji: { fontSize: 26, lineHeight: 32 },
   screen: { flex: 1 },
@@ -837,6 +852,7 @@ const styles = StyleSheet.create({
   worldBox: { overflow: "hidden", borderRadius: Radius.xxl, paddingHorizontal: Spacing.sm, paddingBottom: Spacing.md },
   sceneryIcon: { position: "absolute", opacity: 0.16 },
   dotFace: { width: DOT, height: DOT },
+  bossFace: { width: DOT + 12, height: DOT + 12 },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
   dailyWrap: { alignSelf: "stretch" },
   dailyFace: { flexDirection: "row", alignSelf: "stretch", justifyContent: "flex-start", gap: Spacing.sm, minHeight: 68, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md },

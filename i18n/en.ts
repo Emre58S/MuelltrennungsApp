@@ -263,6 +263,7 @@ export const en: Translations = {
   "reward.subtitle": "Throw trails and bin stickers – unlocked with stars and level.",
   "reward.progress": "{stars} ★ · Level {level}",
   "reward.needStars": "From {n} ★",
+  "reward.short": "{n} ★ to go",
   "reward.next": "Next reward: {name}",
   "reward.nextLeft": "{n} more ★ – from stations and tricks",
   "reward.needLevel": "From level {n}",

@@ -262,6 +262,7 @@ export const de = {
   "reward.subtitle": "Wurfspuren und Tonnen-Sticker – frei mit Sternen und Level.",
   "reward.progress": "{stars} ★ · Level {level}",
   "reward.needStars": "Ab {n} ★",
+  "reward.short": "Noch {n} ★",
   "reward.next": "Nächste Belohnung: {name}",
   "reward.nextLeft": "Noch {n} ★ – aus Stationen und Tricks",
   "reward.needLevel": "Ab Level {n}",
