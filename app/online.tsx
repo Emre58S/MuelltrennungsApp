@@ -122,6 +122,7 @@ export default function OnlineScreen() {
         : lastMode === "ghost"
           ? t("home.ghostShort")
           : t("hub.parcours.title");
+  const randomTitle = lastMode === "ghost" ? t("duel.ghostTitle") : t("duel.random");
   const randomDesc = lastMode === "ghost" ? t("duel.randomGhost") : t("duel.randomDesc");
   const best = (n: number | null) => (n == null ? "–" : String(n));
 
@@ -187,14 +188,14 @@ export default function OnlineScreen() {
           color="#1E8A57"
           depth={6}
           radius={Radius.xl}
-          label={`${t("duel.random")}. ${randomDesc}`}
+          label={`${randomTitle}. ${randomDesc}`}
           onPress={() => picked && start(picked)}
           faceStyle={styles.randomFace}
         >
           <AppText style={styles.randomEmoji}>🎲</AppText>
           <View style={styles.flex}>
             <AppText variant="heading" color="#FFFFFF">
-              {t("duel.random")}
+              {randomTitle}
             </AppText>
             <AppText variant="caption" color="#FFFFFF">
               {randomDesc}

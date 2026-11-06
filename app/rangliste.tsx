@@ -66,7 +66,7 @@ const TABS: Tab[] = [
 ];
 
 /** Symbol je Liste (in der Reihe zeigt nur die gewählte ihren Namen). */
-const MODE_EMOJI: Record<string, string> = { sprint: "⏱️", survival: "🛡️", parcours: "🎯", };
+const MODE_EMOJI: Record<string, string> = { sprint: "⏱️", survival: "🛡️", parcours: "🎯" };
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
