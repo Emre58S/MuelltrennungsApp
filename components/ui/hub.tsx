@@ -162,14 +162,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: Spacing.md + 4, gap: Spacing.md },
   flex: { flex: 1 },
-  banner: {
-    overflow: "hidden",
-    paddingHorizontal: Spacing.md + 4,
-    paddingVertical: Spacing.sm + 2,
-    gap: 2,
-    borderBottomWidth: 4,
-  },
-  bannerDecor: { position: "absolute", right: 8, top: -6, fontSize: 64, lineHeight: 78, opacity: 0.2, transform: [{ rotate: "12deg" }] },
   heading: { paddingHorizontal: Spacing.md + 4, paddingTop: Spacing.sm, paddingBottom: Spacing.xs, gap: 2 },
   card: {
     flexDirection: "row",

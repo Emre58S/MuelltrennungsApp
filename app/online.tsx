@@ -24,7 +24,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
 import { dailyParcoursId } from "@/game/parcours";
-import { levelIcons, PARCOURS } from "@/game/trick-levels";
+import { PARCOURS } from "@/game/trick-levels";
 import { useAppTheme, useI18n } from "@/providers/app-settings";
 import { type Friend, fetchFriends, leaderboardReady } from "@/utils/leaderboard";
 import { parseSprint } from "@/game/sprint";
@@ -146,11 +146,15 @@ export default function OnlineScreen() {
           <ModeRow
             index={0}
             emphasize
-            emoji={levelIcons(today)[0] ?? "🎯"}
+            emoji="🎯"
             accent="#7C4BD8"
             title={t("hub.parcours.title")}
             desc={t(today.task)}
-            stand={parcoursBest > 0 ? t("parcours.best", { n: parcoursBest }) : t("online.tag.left", { h: hoursLeft })}
+            stand={
+              parcoursBest > 0
+                ? `${t("parcours.best", { n: parcoursBest })} · ${t("online.tag.left", { h: hoursLeft })}`
+                : t("online.tag.left", { h: hoursLeft })
+            }
             onPress={() => openSheet("parcours")}
           />
           <ModeRow
@@ -301,8 +305,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   go: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  randomFace: { flexDirection: "row", alignSelf: "stretch", justifyContent: "flex-start", gap: Spacing.md, padding: Spacing.md, minHeight: 76 },
-  randomEmoji: { fontSize: 34, lineHeight: 42 },
   flex: { flex: 1 },
   friendName: { flex: 1 },
 });
