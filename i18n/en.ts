@@ -633,7 +633,7 @@ export const en: Translations = {
   "hub.campaign.bin": "Throw in – continue with the next station",
   "campaign.world": "World {n}",
   "campaign.tricky": "Tricky cases",
-  "campaign.trickyDesc": "All bins – things that often end up in the wrong one.",
+  "campaign.trickyDesc": "Things that often end up in the wrong bin.",
   "campaign.new": "New: {bin} –",
   "campaign.station": "Stage {id}",
   "campaign.locked": "still locked",

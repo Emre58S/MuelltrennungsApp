@@ -67,19 +67,21 @@ const STEPS: { upTo: Difficulty; goal: number; total?: number; kind?: StationKin
   { upTo: "schwer", goal: BOSS_STREAK, total: BOSS_THROWS, kind: "boss" },
 ];
 
-/** Reihenfolge der Tonnen: Welt 1 Papier vs. Rest, dann je eine neue. */
+/** Tonnen je Welt: nie mehr als drei. Welt 1 Papier vs. Rest, dann je eine neue Tonne
+ *  mit zwei, die man schon kennt (Restmüll bleibt als Auffangbecken immer dabei). */
 const WORLD_BINS: BinKey[][] = [
   ["papier", "rest"],
   ["papier", "gelb", "rest"],
-  ["papier", "gelb", "rest", "glas"],
-  ["papier", "bio", "gelb", "rest", "glas"],
-  ["papier", "bio", "gelb", "rest", "glas", "sonder"],
+  ["gelb", "glas", "rest"],
+  ["papier", "bio", "rest"],
+  ["gelb", "sonder", "rest"],
 ];
 
 const LEARN_WORLDS: World[] = WORLD_BINS.map((bins, w) => ({
   index: w + 1,
   bins,
-  newBins: w === 0 ? bins : bins.filter((b) => !WORLD_BINS[w - 1].includes(b)),
+  // „Neu“ = in keiner früheren Welt vorgekommen (Papier in Welt 4 ist nicht neu)
+  newBins: bins.filter((b) => !WORLD_BINS.slice(0, w).some((earlier) => earlier.includes(b))),
   stations: STEPS.map((step, s) => ({
     id: `${w + 1}-${s + 1}`,
     bins,
@@ -139,27 +141,65 @@ const TRICKY: string[][] = [
     "Kerzenreste",
   ],
 ];
-const ALL_KEYS: BinKey[] = WORLD_BINS[WORLD_BINS.length - 1];
+/** Tonnen der drei Fallen-Stationen (je drei, passend zu den Gegenständen). */
+const TRICKY_BINS: BinKey[][] = [
+  ["papier", "glas", "rest"],
+  ["gelb", "sonder", "rest"],
+  ["bio", "gelb", "rest"],
+];
+/** Vierte Station: Verwechslungen aus allen drei Listen, die in Papier, Gelb oder Rest gehören. */
+const MIXED: string[] = [
+  "Kassenzettel",
+  "Geschenkpapier (mit Folie)",
+  "Geschenkpapier (ohne Folie)",
+  "Pizzakarton (fettig)",
+  "Eierkarton",
+  "Toilettenpapier-Rolle",
+  "Zeitung",
+  "Deckel (Metall)",
+  "Kaffeekapsel (Alu)",
+  "Spraydose (leer)",
+  "Alufolie",
+  "Zahnpastatube",
+  "Butterverpackung",
+  "Backpapier",
+  "Kaugummi",
+  "Einwegrasierer",
+];
+const MIXED_BINS: BinKey[] = ["papier", "gelb", "rest"];
+const TRICKY_INDEX = WORLD_BINS.length + 1;
 const TRICKY_WORLD: World = {
-  index: WORLD_BINS.length + 1,
-  bins: ALL_KEYS,
+  index: TRICKY_INDEX,
+  bins: MIXED_BINS,
   newBins: [],
-  stations: [...TRICKY, TRICKY.flat()].map((items, s): Station => ({
-    id: `${WORLD_BINS.length + 1}-${s + 1}`,
-    bins: ALL_KEYS,
-    upTo: "schwer",
-    items,
-    total: 10,
-    goal: s < TRICKY.length ? 6 : 7,
-  })).concat({
-    id: `${WORLD_BINS.length + 1}-${TRICKY.length + 2}`,
-    bins: ALL_KEYS,
-    upTo: "schwer",
-    items: TRICKY.flat(),
-    total: BOSS_THROWS,
-    goal: BOSS_STREAK,
-    kind: "boss",
-  }),
+  stations: [
+    ...TRICKY.map((items, s): Station => ({
+      id: `${TRICKY_INDEX}-${s + 1}`,
+      bins: TRICKY_BINS[s],
+      upTo: "schwer",
+      items,
+      total: 10,
+      goal: 6,
+    })),
+    {
+      id: `${TRICKY_INDEX}-${TRICKY.length + 1}`,
+      bins: MIXED_BINS,
+      upTo: "schwer",
+      items: MIXED,
+      total: 10,
+      goal: 7,
+    },
+    // Boss: die schwerste Liste (Verpackung oder Sondermüll?) im Dauerlauf
+    {
+      id: `${TRICKY_INDEX}-${TRICKY.length + 2}`,
+      bins: TRICKY_BINS[1],
+      upTo: "schwer",
+      items: TRICKY[1],
+      total: BOSS_THROWS,
+      goal: BOSS_STREAK,
+      kind: "boss",
+    },
+  ],
 };
 
 export const WORLDS: World[] = [...LEARN_WORLDS, TRICKY_WORLD];
@@ -257,10 +297,9 @@ export function headStartStars(level: number): CampaignStars {
   return stars;
 }
 
-/** Freies Spiel: die Tonnen der Welt, in der man gerade ist (Welt 6: alle). */
+/** Freies Spiel: die Tonnen der Station, an der man gerade ist (nie mehr als drei). */
 export function freePlayBins(stars: CampaignStars): BinKey[] {
-  const at = currentStation(stars);
-  return WORLDS.find((w) => w.stations.includes(at))?.bins ?? WORLD_BINS[0];
+  return currentStation(stars).bins ?? WORLD_BINS[0];
 }
 
 /** Tonnen aus dem Link („papier,rest“) – Unbekanntes fällt weg, leer = keine. */

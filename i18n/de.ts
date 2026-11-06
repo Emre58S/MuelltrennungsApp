@@ -632,7 +632,7 @@ export const de = {
   "hub.campaign.bin": "Wirf hinein – weiter mit der nächsten Station",
   "campaign.world": "Welt {n}",
   "campaign.tricky": "Knifflige Fälle",
-  "campaign.trickyDesc": "Alle Tonnen – Dinge, die oft falsch landen.",
+  "campaign.trickyDesc": "Dinge, die oft in der falschen Tonne landen.",
   "campaign.new": "Neu: {bin} –",
   "campaign.station": "Station {id}",
   "campaign.locked": "noch gesperrt",

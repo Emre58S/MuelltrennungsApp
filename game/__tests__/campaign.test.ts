@@ -32,12 +32,26 @@ describe("Welten und Stationen", () => {
     expect(WORLDS[0].bins).toEqual(["papier", "rest"]);
     expect(WORLDS[0].newBins).toEqual(["papier", "rest"]);
     for (let w = 1; w < WORLDS.length; w++) {
-      const added = WORLDS[w].bins.filter((b) => !WORLDS[w - 1].bins.includes(b));
-      expect(added).toEqual(WORLDS[w].newBins);
+      // neu = in keiner früheren Welt vorgekommen
+      const seen = new Set(WORLDS.slice(0, w).flatMap((wo) => wo.bins));
+      expect(WORLDS[w].bins.filter((b) => !seen.has(b))).toEqual(WORLDS[w].newBins);
     }
     const last = WORLDS[WORLDS.length - 1];
     expect(last.newBins).toEqual([]);
-    expect(last.bins.length).toBe(6);
+  });
+
+  test("Nie mehr als 3 Tonnen – in keiner Welt und keiner Station", () => {
+    for (const w of WORLDS) expect(w.bins.length).toBeLessThanOrEqual(3);
+    for (const s of STATIONS) expect(s.bins.length).toBeLessThanOrEqual(3);
+    // jede Tonne kommt irgendwo vor
+    expect(new Set(STATIONS.flatMap((s) => s.bins)).size).toBe(6);
+  });
+
+  test("Jeder Gegenstand einer Station hat seine Tonne in der Station", () => {
+    for (const s of STATIONS) {
+      const cats = new Set(stationBins(s).map((b) => b.category));
+      for (const it of stationPool(s)) expect(cats.has(it.category)).toBe(true);
+    }
   });
 
   test("Knifflige Fälle: jeder Name gibt es wirklich, mehrere Tonnen je Station", () => {
@@ -134,7 +148,7 @@ describe("Freischalten", () => {
     const world1 = Object.fromEntries(WORLDS[0].stations.map((s) => [s.id, 1]));
     expect(freePlayBins(world1)).toEqual(WORLDS[1].bins);
     const all = Object.fromEntries(STATIONS.map((s) => [s.id, 1]));
-    expect(freePlayBins(all)).toHaveLength(6);
+    expect(freePlayBins(all).length).toBeLessThanOrEqual(3);
   });
 
   test("Vorsprung nach Level: bekannte Welten gelten als geschafft", () => {
