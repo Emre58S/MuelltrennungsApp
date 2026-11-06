@@ -221,6 +221,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
                     key={item}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
+                    hitSlop={4}
                     onPress={() => chooseSpan(item)}
                     style={[
                       styles.span,
@@ -243,6 +244,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${t("rank.you")}: ${name}. ${t("rank.change")}`}
+            hitSlop={4}
             onPress={() => {
               setDraft(name);
               setEditing(true);
@@ -421,15 +423,17 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   rank: { width: 36 },
-  modes: { flexDirection: "row", gap: Spacing.sm },
+  // Bricht um, falls der Name der gewählten Liste lang ist (kleine Handys) – nichts wird abgeschnitten
+  modes: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs + 2 },
   mode: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
     minHeight: 44,
-    minWidth: 48,
-    paddingHorizontal: Spacing.sm + 2,
+    minWidth: 44,
+    maxWidth: "100%",
+    paddingHorizontal: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1,
   },
