@@ -616,6 +616,8 @@ export const en: Translations = {
   "online.tab.duel": "Duel",
   "nav.news": "Something is waiting",
   "regal.tab.today": "Today",
+  "duel.randomGhost": "You race today's best player.",
+  "duel.ghostFriendInfo": "Racing a friend works with a code: after your race you share your run, and your friend enters it under “Friends”.",
   "duel.randomDesc": "We pick an opponent for you.",
   "friends.invite": "Invite friends",
   "duel.random": "Random opponent",

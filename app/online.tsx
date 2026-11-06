@@ -41,7 +41,7 @@ function parcoursOfDay(day: string) {
 
 type Tab = "duel" | "friends" | "rank";
 /** Modi, die man gegen einen Zufallsgegner oder einen Freund spielen kann. */
-type Versus = "sprint" | "survival" | "parcours";
+type Versus = "sprint" | "survival" | "parcours" | "ghost";
 
 export default function OnlineScreen() {
   const { t } = useI18n();
@@ -114,7 +114,15 @@ export default function OnlineScreen() {
     setPicked(null);
     router.push({ pathname: "/runde", params: startParams(mode, friend) });
   };
-  const pickedTitle = lastMode === "sprint" ? t("sprint.title") : lastMode === "survival" ? t("survival.title") : t("hub.parcours.title");
+  const pickedTitle =
+    lastMode === "sprint"
+      ? t("sprint.title")
+      : lastMode === "survival"
+        ? t("survival.title")
+        : lastMode === "ghost"
+          ? t("home.ghostShort")
+          : t("hub.parcours.title");
+  const randomDesc = lastMode === "ghost" ? t("duel.randomGhost") : t("duel.randomDesc");
   const best = (n: number | null) => (n == null ? "–" : String(n));
 
   return (
@@ -165,7 +173,7 @@ export default function OnlineScreen() {
           <GhostStrip
             title={t("home.ghostShort")}
             desc={t("online.ghostShort")}
-            onPress={() => router.push({ pathname: "/runde", params: { mode: "ghost" } })}
+            onPress={() => openSheet("ghost")}
           />
         </>
       )}
@@ -179,7 +187,7 @@ export default function OnlineScreen() {
           color="#1E8A57"
           depth={6}
           radius={Radius.xl}
-          label={`${t("duel.random")}. ${t("duel.randomDesc")}`}
+          label={`${t("duel.random")}. ${randomDesc}`}
           onPress={() => picked && start(picked)}
           faceStyle={styles.randomFace}
         >
@@ -189,7 +197,7 @@ export default function OnlineScreen() {
               {t("duel.random")}
             </AppText>
             <AppText variant="caption" color="#FFFFFF">
-              {t("duel.randomDesc")}
+              {randomDesc}
             </AppText>
           </View>
           <AppText variant="heading" color="#FFFFFF">
@@ -199,7 +207,21 @@ export default function OnlineScreen() {
         <AppText variant="overline" tone="textSecondary" style={styles.group} accessibilityRole="header">
           {`👥 ${t("duel.friend")}`.toUpperCase()}
         </AppText>
-        {!leaderboardReady ? (
+        {lastMode === "ghost" ? (
+          // Ghost-Rennen gegen einen Freund geht per Code (Lauf teilen, Freund gibt ihn ein)
+          <>
+            <AppText tone="textSecondary">{t("duel.ghostFriendInfo")}</AppText>
+            <Button
+              title={t("duel.toFriends")}
+              icon="users"
+              variant="secondary"
+              onPress={() => {
+                setPicked(null);
+                setTab("friends");
+              }}
+            />
+          </>
+        ) : !leaderboardReady ? (
           <AppText tone="textSecondary">{t("friends.offline")}</AppText>
         ) : friends === null ? (
           <ActivityIndicator color={colors.primary} />

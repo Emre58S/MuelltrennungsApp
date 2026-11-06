@@ -21,6 +21,7 @@ import { Avatar, Podium } from "@/components/areas/people";
 import { Feather } from "@expo/vector-icons";
 import { cardEdge, tone } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { HubScreen } from "@/components/ui/hub";
 import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
@@ -31,7 +32,6 @@ import { useAppTheme, useI18n } from "@/providers/app-settings";
 import {
   type Board,
   type BoardResult,
-  dailyBoard,
   decodeTrickScore,
   fetchBoard,
   fetchOnlineBoard,
@@ -62,14 +62,11 @@ const TABS: Tab[] = [
   { key: "sprint", label: "sprint.title", online: "sprint" },
   { key: "survival", label: "survival.title", online: "survival" },
   { key: "parcours", label: "hub.parcours.title", parcours: true },
-  // „Gegen die Zeit“/„Ohne Fehler“ solo ohne Rangliste (ROADMAP R4f) – sonst
-  // verwechselbar mit Zeit-Sprint/Survival
-  { key: "tagesaufgabe", label: "home.daily", board: () => dailyBoard("tagesaufgabe"), daily: true },
-  { key: "tagestrick", label: "tricks.daily", board: () => dailyBoard("tagestrick"), daily: true, trick: true },
+  // Tagesaufgabe und Tages-Trick stehen nicht mehr in der Rangliste (Nutzer, 6.11.): nur noch die drei Online-Modi
 ];
 
 /** Symbol je Liste (in der Reihe zeigt nur die gewählte ihren Namen). */
-const MODE_EMOJI: Record<string, string> = { sprint: "⏱️", survival: "🛡️", parcours: "🎯", tagesaufgabe: "📅", tagestrick: "✨" };
+const MODE_EMOJI: Record<string, string> = { sprint: "⏱️", survival: "🛡️", parcours: "🎯", };
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
@@ -208,6 +205,9 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
               </Pressable>
             );
           })}
+          {leaderboardReady && (
+            <IconButton icon="refresh-cw" label={t("rank.refresh")} onPress={refresh} style={styles.refresh} />
+          )}
         </View>
 
         {/* Zweite Zeile: Woche/Allzeit links, eigener Name rechts */}
@@ -361,16 +361,6 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           </>
         )}
 
-        {/* Ziehen zum Aktualisieren kennt kaum jemand – im Reiter gibt es das nicht, daher ein Knopf */}
-        {leaderboardReady && (state === "idle" || state === "loading") && result && (
-          <Button
-            title={t("rank.refresh")}
-            icon="refresh-cw"
-            variant="ghost"
-            onPress={refresh}
-            disabled={state === "loading"}
-          />
-        )}
       </>
     </View>
   );
@@ -453,4 +443,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   nameText: { flexShrink: 1 },
+  refresh: { width: 44, height: 44, borderRadius: 22, marginLeft: "auto" },
 });
