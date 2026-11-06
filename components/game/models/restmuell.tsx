@@ -79,13 +79,13 @@ export function renderRestmuellModel(key: string, name: string) {
                 geo={G.cyl(0.34, 0.3, 0.04, 18, false, shard.ts, shard.tl)}
                 double
                 basic
-                color="#F4F6F8"
+                color="#E2E8F0"
               />
               <Part
                 geo={G.cyl(0.345, 0.315, 0.02, 18, true, shard.ts, shard.tl)}
                 pos={[0, 0.012, 0]}
                 double
-                color="#1D4ED8"
+                color="#1E40AF"
                 roughness={0.7}
               />
             </group>
@@ -211,13 +211,13 @@ export function renderRestmuellModel(key: string, name: string) {
           <Part geo={G.box(0.4, 0.012, 0.125, 0.004)} pos={[0, -0.12, 0]} color="#9CA3AF" roughness={1} />
           <Part geo={G.box(0.4, 0.012, 0.125, 0.004)} pos={[0, -0.04, 0]} color="#9CA3AF" roughness={1} />
           {/* Pappplatte vor dem Beutel, Loch ganz sichtbar */}
-          <group position={[0, 0.25, 0.1]} rotation={[-0.3, 0, 0]}>
+          <group position={[0, 0.25, 0.075]} rotation={[-0.3, 0, 0]}>
             <Part geo={G.box(0.3, 0.14, 0.03, 0.01)} color="#B08B5B" roughness={1} />
             <Part geo={G.circle(0.045, 16)} pos={[0, 0, 0.017]} basic color="#1F2937" />
           </group>
-          <Part geo={G.circle(0.07, 12)} pos={[0.06, -0.08, 0.112]} rot={[0.15, 0.1, 0]} basic color="#9CA3AF" />
+          <Part geo={G.circle(0.07, 12)} pos={[0.06, -0.08, 0.063]} basic color="#9CA3AF" />
           {/* Falz am unteren Ende */}
-          <Part geo={G.box(0.2, 0.02, 0.02, 0.006)} pos={[0, -0.3, 0.035]} color="#C4C8CF" roughness={1} />
+          <Part geo={G.box(0.34, 0.014, 0.004, 0.002)} pos={[0, -0.215, 0.062]} color="#9CA3AF" roughness={1} />
         </group>
       );
 
