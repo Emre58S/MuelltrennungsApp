@@ -23,6 +23,11 @@ export function tone(hex: string, amount: number): string {
   return `#${[16, 8, 0].map((s) => ch(s).toString(16).padStart(2, "0")).join("")}`;
 }
 
+/** Karten im Spielstil: dunklere Unterkante unter dem normalen Rand. */
+export function cardEdge(border: string): ViewStyle {
+  return { borderBottomWidth: 4, borderBottomColor: tone(border, -0.3) };
+}
+
 export function Chunky({
   color,
   edge,

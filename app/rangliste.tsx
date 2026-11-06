@@ -18,6 +18,7 @@ import {
 } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
+import { cardEdge } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { AREAS } from "@/constants/areas";
@@ -175,7 +176,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
     <View style={styles.panel}>
       <>
         {/* Eigener Spitzname */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
           {editing ? (
             <>
               <TextInput
@@ -320,7 +321,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
             {t("rank.empty")}
           </AppText>
         ) : (
-          <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
             {result.rows.map((row, i) => (
               <View
                 key={`${row.rank}-${row.name}-${i}`}

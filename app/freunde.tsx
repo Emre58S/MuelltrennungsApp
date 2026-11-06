@@ -9,6 +9,7 @@ import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, TextInput, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
+import { cardEdge } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { IconButton } from "@/components/ui/icon-button";
@@ -184,7 +185,7 @@ export function FriendsPanel() {
       ) : (
         <>
           {/* Eigener Code */}
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
             <AppText variant="caption" tone="textSecondary">
               {t("friends.myCode")}
             </AppText>
@@ -245,7 +246,7 @@ export function FriendsPanel() {
           )}
 
           {/* Freund hinzufügen */}
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
             <AppText variant="label">{t("friends.add")}</AppText>
             <TextInput
               value={draft}
@@ -291,7 +292,7 @@ export function FriendsPanel() {
           {friends.length === 0 ? (
             <AppText tone="textSecondary">{t("friends.empty")}</AppText>
           ) : (
-            <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
               {friends.map((f, i) => (
                 <View
                   key={f.code}

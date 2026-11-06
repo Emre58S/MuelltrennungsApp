@@ -13,6 +13,7 @@ import { Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-n
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
+import { cardEdge } from "@/components/ui/chunky";
 import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
 import { type Category, type Item, ITEMS } from "@/constants/items";
@@ -78,7 +79,7 @@ export function BookPanel() {
       <>
         {/* Fortschritt */}
         <View
-          style={[styles.progressCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          style={[styles.progressCard, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}
           accessible
           accessibilityLabel={t("book.progress", { n: found, total: ITEMS.length })}
         >

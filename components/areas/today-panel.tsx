@@ -9,6 +9,7 @@ import { Animated, Pressable, StyleSheet, View } from "react-native";
 
 import { useShell } from "@/components/nav/shell-context";
 import { AppText } from "@/components/ui/app-text";
+import { cardEdge } from "@/components/ui/chunky";
 import { press, tapHaptic } from "@/components/ui/press";
 import { StampBar } from "@/components/ui/stamp-bar";
 import { Radius, Spacing } from "@/constants/theme";
@@ -98,7 +99,7 @@ export function MissionCard({
     return t("mission.station");
   };
   return (
-    <View style={[styles.missions, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.missions, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
       <View style={styles.missionHead}>
         <AppText variant="label" accessibilityRole="header">
           📋 {t("mission.title")}

@@ -10,6 +10,7 @@ import {
 import { Radius, Shadow, Spacing } from "@/constants/theme";
 import { useAppTheme } from "@/providers/app-settings";
 
+import { cardEdge } from "./chunky";
 import { press, tapHaptic } from "./press";
 
 /** Fläche für zusammengehörige Inhalte. Mit onPress wird sie tippbar. */
@@ -29,6 +30,7 @@ export function Card({
   const base = [
     styles.card,
     { backgroundColor: colors.surface, borderColor: colors.border },
+    cardEdge(colors.border),
     scheme === "light" && Shadow,
   ];
 
