@@ -220,13 +220,28 @@ function DetailSheet({
             <>
               {/* Bekannte Gegenstände: dasselbe 3D-Modell wie im Spiel */}
               {known ? (
-                <ItemPreview3D
-                  item={item}
-                  size={height < 700 ? 116 : 150}
-                  background={colors.surfaceAlt}
-                  calm={reduceMotion}
-                  label={itemName(item)}
-                />
+                <View style={styles.previewRow}>
+                  {/* Dasselbe Bild wie die Kachel im Buch … */}
+                  <View
+                    accessible={false}
+                    style={[styles.bigTile, { backgroundColor: colors.surface, borderColor: bin.fill }]}
+                  >
+                    <AppText style={styles.bigEmoji}>{item.emoji}</AppText>
+                  </View>
+                  {/* … und so sieht der Gegenstand im Spiel aus */}
+                  <View style={styles.modelWrap}>
+                    <ItemPreview3D
+                      item={item}
+                      size={height < 700 ? 96 : 112}
+                      background={colors.surfaceAlt}
+                      calm={reduceMotion}
+                      label={itemName(item)}
+                    />
+                    <AppText variant="caption" tone="textMuted" center>
+                      {t("book.inGame")}
+                    </AppText>
+                  </View>
+                </View>
               ) : (
                 <AppText style={styles.sheetEmoji}>❔</AppText>
               )}
@@ -350,6 +365,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sheetEmoji: { fontSize: 64, lineHeight: 76 },
+  previewRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: Spacing.md },
+  bigTile: { width: 112, height: 112, borderRadius: Radius.lg, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  bigEmoji: { fontSize: 60, lineHeight: 72 },
+  modelWrap: { alignItems: "center", gap: 4 },
   binRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   binPill: { paddingHorizontal: Spacing.md, paddingVertical: 6, borderRadius: Radius.pill },
   fact: { alignSelf: "stretch", borderRadius: Radius.lg, padding: Spacing.md },

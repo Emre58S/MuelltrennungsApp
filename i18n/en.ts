@@ -87,6 +87,7 @@ export const en: Translations = {
   "book.title": "Collection",
   "book.subtitle": "Every item you sort correctly gets unlocked.",
   "book.progress": "{n} of {total} discovered",
+  "book.inGame": "How it looks in the game",
   "book.locked": "Not discovered yet",
   "book.newItem": "New in your book: {item}",
   "book.lockedHint": "Sort this item correctly in the game to unlock it.",

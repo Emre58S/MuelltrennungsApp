@@ -10,6 +10,7 @@
 // Tagesaufgabe ist eine goldene Karte direkt unter der aktuellen Station (R3b).
 // Alle 3 Missionen → Truhe, die man auf der Missionskarte öffnet (R3c).
 
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { type ComponentRef, Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -71,8 +72,38 @@ import { sfx } from "@/utils/sfx";
 const TILE_COLOR = { endless: "#1E8A57", time: "#2F6FC4", survival: "#C4532B", tricks: "#6B49C4" } as const;
 const TILE_EMOJI = { endless: "🌱", time: "⏱️", survival: "🛡️", tricks: "🎯" } as const;
 
-/** Zickzack des Pfads: seitlicher Versatz je Station (in px). */
-const ZIGZAG = [-56, 0, 56, 0];
+/** Wegformen: seitlicher Versatz je Station (in px) – jede Welt hat ihre eigene. */
+const PATHS: readonly (readonly number[])[] = [
+  [-56, 0, 56, 0], // Zickzack
+  [-64, -32, 0, 32, 64, 32, 0, -32], // Welle
+  [0, 48, 80, 48, 0, -48, -80, -48], // Schlange
+  [-44, 44, -44, 44], // enger Zickzack
+];
+const pathOf = (world: World) => PATHS[(world.index - 1 + PATHS.length) % PATHS.length];
+/** Stationsformen je Welt (Eckenradius): rund, abgerundetes Quadrat, fast eckig. */
+const SHAPES = [64, 22, 14] as const;
+const shapeOf = (world: World) => SHAPES[(world.index - 1 + SHAPES.length) % SHAPES.length];
+/** Dekor je Tonne: blasse Symbole im Hintergrund der Welt. */
+const SCENERY: Record<string, string[]> = {
+  papier: ["📰", "✉️", "📦", "📄"],
+  rest: ["🗑️", "🧹", "🪥", "💨"],
+  gelb: ["🧴", "🥫", "🥤", "🛍️"],
+  glas: ["🍾", "🫙", "🍷", "✨"],
+  bio: ["🍂", "🍌", "🥚", "🌿"],
+  sonder: ["🔋", "💡", "🧪", "⚠️"],
+  tricky: ["🧩", "❓", "✨", "🎯"],
+};
+/** Lage der Dekor-Symbole in der Welt: links %, oben %, Größe, Drehung. */
+const SCENERY_SPOTS: readonly (readonly [number, number, number, number])[] = [
+  [6, 6, 46, -12],
+  [78, 14, 40, 14],
+  [14, 30, 36, 10],
+  [82, 38, 48, -8],
+  [8, 54, 42, 16],
+  [76, 62, 38, -14],
+  [16, 80, 44, -6],
+  [80, 88, 40, 12],
+];
 const DOT = 64;
 /** Abstand der Begleiter-Tonne zur aktuellen Station (Mitte zu Mitte, px). */
 const MASCOT_GAP = 96;
@@ -271,17 +302,20 @@ export default function KampagneScreen() {
           WORLDS.map((world) => (
             <View
               key={world.index}
+              style={styles.worldBox}
               onLayout={(e) => {
                 worldY.current[world.index] = e.nativeEvent.layout.y;
                 scrollToCurrent();
               }}
             >
+              <WorldScenery world={world} />
               <WorldHeader world={world} />
               {world.stations.map((station, i) => (
                 <Fragment key={station.id}>
                   <StationDot
                     station={station}
-                    offset={ZIGZAG[i % ZIGZAG.length]}
+                    offset={pathOf(world)[i % pathOf(world).length]}
+                    shape={shapeOf(world)}
                     color={worldColor(world)}
                     onColor={worldOnColor(world)}
                     stars={stars[station.id] ?? 0}
@@ -386,6 +420,29 @@ function WorldBanner({ world }: { world: World }) {
             </AppText>
           );
         })}
+    </View>
+  );
+}
+
+/** Hintergrund einer Welt: Farbton oben, blasse Symbole der Tonne verstreut (nur Zierde). */
+function WorldScenery({ world }: { world: World }) {
+  const key = world.newBins.length === 0 ? "tricky" : world.newBins[world.newBins.length - 1];
+  const icons = SCENERY[key] ?? SCENERY.tricky;
+  const color = worldColor(world);
+  return (
+    <View pointerEvents="none" importantForAccessibility="no-hide-descendants" style={StyleSheet.absoluteFill}>
+      <LinearGradient colors={[`${color}40`, `${color}00`]} style={StyleSheet.absoluteFill} />
+      {SCENERY_SPOTS.map(([left, top, size, rot], i) => (
+        <AppText
+          key={i}
+          style={[
+            styles.sceneryIcon,
+            { left: `${left}%`, top: `${top}%`, fontSize: size, lineHeight: size * 1.2, transform: [{ rotate: `${rot}deg` }] },
+          ]}
+        >
+          {icons[i % icons.length]}
+        </AppText>
+      ))}
     </View>
   );
 }
@@ -553,6 +610,7 @@ function TrickSchool({
 function StationDot({
   station,
   offset,
+  shape,
   color,
   onColor,
   stars,
@@ -562,6 +620,8 @@ function StationDot({
 }: {
   station: Station;
   offset: number;
+  /** Eckenradius des Knopfs (Form der Welt). */
+  shape: number;
   color: string;
   /** Schriftfarbe auf `color`. */
   onColor: string;
@@ -674,12 +734,12 @@ function StationDot({
             <View style={[styles.startCaret, { backgroundColor: colors.surface, borderColor: color }]} />
           </View>
         )}
-        <View style={isCurrent && unlocked ? [styles.ring, { borderColor: "#FFD54A" }] : undefined}>
+        <View style={isCurrent && unlocked ? [styles.ring, { borderColor: "#FFD54A", borderRadius: shape + 8 }] : undefined}>
           <Chunky
             color={unlocked ? color : colors.surfaceAlt}
             edge={unlocked ? tone(color, -0.32) : colors.border}
             depth={7}
-            radius={DOT}
+            radius={shape}
             label={label}
             disabled={!unlocked}
             onPress={() => startStation(station)}
@@ -774,6 +834,8 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "45deg" }],
   },
   ring: { padding: 4, borderWidth: 3, borderRadius: DOT },
+  worldBox: { overflow: "hidden", borderRadius: Radius.xxl, paddingHorizontal: Spacing.sm, paddingBottom: Spacing.md },
+  sceneryIcon: { position: "absolute", opacity: 0.16 },
   dotFace: { width: DOT, height: DOT },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
   dailyWrap: { alignSelf: "stretch" },
