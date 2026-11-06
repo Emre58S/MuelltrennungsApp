@@ -122,6 +122,13 @@ export default function OnlineScreen() {
         : lastMode === "ghost"
           ? t("home.ghostShort")
           : t("hub.parcours.title");
+  /** Wer ist der Gegner? Steht im Blatt, damit man es vor dem Start weiß. */
+  const versus = {
+    sprint: t("duel.vs.sprint"),
+    survival: t("duel.vs.survival"),
+    parcours: t("duel.vs.parcours"),
+    ghost: t("duel.vs.ghost"),
+  }[lastMode];
   const randomTitle = lastMode === "ghost" ? t("duel.ghostTitle") : t("duel.random");
   const randomDesc = lastMode === "ghost" ? t("duel.randomGhost") : t("duel.randomDesc");
   const best = (n: number | null) => (n == null ? "–" : String(n));
@@ -191,6 +198,9 @@ export default function OnlineScreen() {
       {tab === "rank" && <RankingPanel />}
 
       <Sheet visible={picked !== null} title={pickedTitle} onClose={() => setPicked(null)}>
+        <AppText variant="caption" tone="textSecondary">
+          {versus}
+        </AppText>
         <ModeRow
           emphasize
           emoji="🎲"
