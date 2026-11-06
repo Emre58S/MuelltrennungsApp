@@ -323,10 +323,10 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           </AppText>
         ) : (
           <>
-          <Podium rows={result.rows} scoreText={scoreText} />
-          {result.rows.some((r) => r.rank > 3) && (
+          <Podium rows={result.rows} scoreText={scoreText} youLabel={t("rank.meTag")} />
+          {result.rows.length > 3 && (
           <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
-            {result.rows.filter((r) => r.rank > 3).map((row, i) => (
+            {result.rows.slice(3).map((row, i) => (
               <View
                 key={`${row.rank}-${row.name}-${i}`}
                 style={[

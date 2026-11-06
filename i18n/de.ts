@@ -209,6 +209,7 @@ export const de = {
   "rank.nameInvalid": "2–16 Zeichen: Buchstaben, Zahlen, Leerzeichen",
   "rank.namePlaceholder": "Dein Spitzname",
   "rank.offline": "Die Online-Rangliste ist noch nicht eingerichtet. Deine Ergebnisse werden gemerkt und später eingetragen.",
+  "rank.meTag": "Du",
   "rank.refresh": "Aktualisieren",
   "rank.error": "Keine Verbindung – versuch es gleich nochmal.",
   "rank.empty": "Noch keine Einträge – sei der Erste!",

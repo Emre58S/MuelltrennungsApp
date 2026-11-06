@@ -210,6 +210,7 @@ export const en: Translations = {
   "rank.nameInvalid": "2–16 characters: letters, digits, spaces",
   "rank.namePlaceholder": "Your nickname",
   "rank.offline": "The online leaderboard is not set up yet. Your results are kept and entered later.",
+  "rank.meTag": "You",
   "rank.refresh": "Refresh",
   "rank.error": "No connection – try again in a moment.",
   "rank.empty": "No entries yet – be the first!",
