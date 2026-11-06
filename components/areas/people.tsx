@@ -71,7 +71,7 @@ export function Podium({
             accessibilityLabel={`${row.rank}. ${row.name}${row.isMe ? ` (${youLabel})` : ""}, ${scoreText(row.score)}`}
             style={styles.column}
           >
-            <AppText style={styles.medal}>{MEDALS[i]}</AppText>
+            <AppText style={styles.medal}>{MEDALS[Math.min(Math.max(row.rank, 1), 3) - 1]}</AppText>
             <Avatar name={row.name} size={i === 0 ? 52 : 44} />
             <AppText variant="label" numberOfLines={1} style={styles.name}>
               {row.isMe ? `${row.name} (${youLabel})` : row.name}
