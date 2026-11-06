@@ -86,7 +86,6 @@ export const de = {
   "book.title": "Sammelbuch",
   "book.subtitle": "Jeder richtig sortierte Gegenstand wird freigeschaltet.",
   "book.progress": "{n} von {total} entdeckt",
-  "book.inGame": "So sieht er im Spiel aus",
   "book.locked": "Noch nicht entdeckt",
   "book.newItem": "Neu im Sammelbuch: {item}",
   "book.lockedHint": "Sortiere diesen Gegenstand im Spiel richtig, um ihn freizuschalten.",
