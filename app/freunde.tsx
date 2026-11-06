@@ -283,8 +283,17 @@ export function FriendsPanel() {
             title={t("friends.addTitle")}
             icon="user-plus"
             variant={friends.length === 0 ? "primary" : "secondary"}
-            onPress={() => setInviteOpen(true)}
+            onPress={() => {
+              setNote(null);
+              setInviteOpen(true);
+            }}
           />
+          {/* Meldungen (z. B. Fehler beim Entfernen) auch außerhalb des Blatts zeigen */}
+          {!inviteOpen && note && (
+            <AppText variant="caption" tone={note.ok ? "primary" : "warning"} center>
+              {note.text}
+            </AppText>
+          )}
           <Sheet visible={inviteOpen} title={t("friends.addTitle")} onClose={() => setInviteOpen(false)}>
             <AppText variant="caption" tone="textSecondary">
               {t("friends.myCode")}
