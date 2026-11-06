@@ -79,7 +79,7 @@ export function renderRestmuellModel(key: string, name: string) {
                 geo={G.cyl(0.34, 0.3, 0.04, 18, false, shard.ts, shard.tl)}
                 double
                 basic
-                color="#E2E8F0"
+                color="#CBD5E1"
               />
               <Part
                 geo={G.cyl(0.345, 0.315, 0.02, 18, true, shard.ts, shard.tl)}
