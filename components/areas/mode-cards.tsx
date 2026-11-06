@@ -17,11 +17,16 @@ import { Radius, Spacing } from "@/constants/theme";
 type Look = { from: string; to: string };
 
 const LOOK = {
-  parcours: { from: "#E05A9A", to: "#7C4BD8" },
-  sprint: { from: "#2FA86E", to: "#157A58" },
-  survival: { from: "#E2574C", to: "#A02E4A" },
-  ghost: { from: "#4DA3FF", to: "#2F5FC4" },
+  // Dunkel genug für weiße Schrift (≥ 4,5 : 1)
+  parcours: { from: "#BE4684", to: "#6C3FC4" },
+  sprint: { from: "#1E8A57", to: "#126B4C" },
+  survival: { from: "#C9433A", to: "#962A44" },
+  ghost: { from: "#2F78D0", to: "#234AA6" },
 } as const satisfies Record<string, Look>;
+
+/** Sperre gegen Doppeltippen (sonst liegt z. B. das Ghost-Rennen zweimal auf dem Stapel). */
+const TAP_LOCK_MS = 900;
+let lockedUntil = 0;
 
 /** Gemeinsame Hülle: dicker Knopf mit Farbverlauf und Dekor-Symbol in der Ecke. */
 function ModeFace({
@@ -49,7 +54,15 @@ function ModeFace({
   return (
     <View style={style}>
       <FadeIn delay={60 + index * 70}>
-      <Chunky color={look.to} edge={tone(look.to, -0.45)} depth={6} radius={Radius.xl} label={label} onPress={onPress} faceStyle={[styles.face, faceStyle]}>
+      <Chunky color={look.to} edge={tone(look.to, -0.45)} depth={6} radius={Radius.xl} label={label}
+        onPress={() => {
+          const now = Date.now();
+          if (now < lockedUntil) return;
+          lockedUntil = now + TAP_LOCK_MS;
+          onPress();
+        }}
+        faceStyle={[styles.face, faceStyle]}
+      >
         <LinearGradient
           colors={[look.from, look.to]}
           start={{ x: 0, y: 0 }}
