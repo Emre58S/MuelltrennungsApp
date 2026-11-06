@@ -39,6 +39,14 @@ Endscreens nicht im neuen Stil geprüft; Trick-Seite ist Phase G (zuletzt).
 (`chip.tsx`, `environment.tsx`), 186 Tests grün (Trick-Tests heute nicht gelaufen, Physik unverändert), DE/EN gleich (694 Schlüssel).
 Offen klein: Hinweis „höchstens 3 Tonnen“ im freien Spiel, F13/F14/F15-Reste, Zeitmodus-Ziele (5/8) und Endspurt (10 s von 30 s) auf dem Handy prüfen.
 
+**Selbstständiger Lauf 7.11., 00:15–01:00 (alles auf auto + preview, Tester 8/10 und 7/10):** „Wie Gerät“ aus den Einstellungen
+(Sprache und Aussehen zeigen, was gerade gilt; Neulinge folgen dem Gerät bis zur ersten Wahl); Belohnungen mit richtigen Tonnen
+(Sticker auf einer `BinIcon`-Tonne mit `glyph`, Wurfspur landet in einer Tonne); alle 93 Gegenstände in der Chrome-Ansicht durchgesehen
+(Übersichtsseiten mit `.expo/contact-N.html`), drei verbessert: Staubsaugerbeutel (Papierbeutel statt Kugel), Kaputtes Geschirr
+(größer, kräftigerer Rand), Teelicht-Hülle (größer); Vorschaubilder neu. Physik-Tests (`tricks.test.ts`) 199 grün, 1 übersprungen.
+**Noch auffällig bei den Gegenständen:** Werbeprospekt/Prospekt gleiches Modell, Zahnpastatube wirkt wie eine Flasche, Styropor-Kiste
+mit Noppen wirkt wie ein Gerät, Geschirr-Scherben nur mäßiger Kontrast auf Beige; nur im Sammlungsbild geprüft, nicht in der Spielszene.
+
 **Selbstständiger Lauf 6.11., 22:53–24:00 (Nutzer: „arbeite automatisch bis 24 Uhr“), alles auf auto + preview:**
 (1) Modi verständlich (597b23f/7f3a42e: „gegen wen“ auf Karten, im Duell-Blatt und im Regeltext, ehrlicher Fallback Übungs-Ghost);
 (2) Absturzschutz + Build (ed43a8f/d62508f: ErrorBoundary mit Splash-Aus, `eas.json`, keine Mikrofon-/Hintergrund-Audio-Rechte, iPad aus,

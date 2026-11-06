@@ -193,6 +193,12 @@ wenig Deutsch, nie strafend.
 - Web-Server für `tools/shot.mjs` läuft nur, solange er gestartet ist: `npx expo start --web --port 8081` mit
   run_in_background; nach Codeänderungen kommt manchmal „Server Error: Requiring unknown module“ oder „Bundling…“ im
   Bild – Aufruf einfach wiederholen. Port-Check mit `curl` hängt, solange gebündelt wird.
+- Vor jedem Commit `git diff --stat` ansehen: Der Editor des Nutzers hat einmal `models-extra.tsx` umformatiert und ein
+  „3;“ in die erste Zeile gesetzt (900 Zeilen Diff) – mit `git checkout <Datei>` zurücksetzen und nur die eigene Zeile ändern.
+- Sammlungs-Vorschaubilder: `assets/items/NN.jpg` + `constants/item-images.ts` entstehen mit `node tools/item-shots.mjs 8095 [von] [bis]`
+  (Web-Server auf Port 8095, Seite `/vorschau?i=N`); nach Änderung eines Modells nur dieses Bild neu aufnehmen. Test `item-images`
+  schlägt an, wenn Gegenstände dazukommen. Regex-Muster in Skripten nie per Bash-Heredoc schreiben (Rückstriche gehen verloren) –
+  Write-/Edit-Werkzeug nutzen.
 - Szenen-Bausteine: SceneKind (stage.tsx) + SCENE_BINS (bins.ts) + `scene` in ParcoursLevel + Prop an `TrickProps`;
   Parcours-Ids ≤ 20 gehen online in die Rangliste (parcours.sql), darüber nicht. Szenen-Kopien bekannter Parcours
   (flapAll, Pendel, Wind, slideAll) sind ohne neue Physik fair – Test nur `-t "Parcours (N|M)"`.
