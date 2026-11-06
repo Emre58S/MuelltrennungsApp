@@ -746,7 +746,7 @@ function StationDot({
             <View style={[styles.startCaret, { backgroundColor: colors.surface, borderColor: color }]} />
           </View>
         )}
-        <View style={isCurrent && unlocked ? [styles.ring, { borderColor: "#FFD54A", borderRadius: shape + 8 }] : undefined}>
+        <View style={isCurrent && unlocked ? [styles.ring, { borderColor: station.kind === "boss" ? "#FFFFFF" : "#FFD54A", borderRadius: (station.kind === "boss" ? DOT + 12 : shape) + 8 }] : undefined}>
           <Chunky
             color={unlocked ? faceColor : colors.surfaceAlt}
             edge={unlocked ? tone(faceColor, -0.32) : station.kind ? tone(faceColor, -0.4) : colors.border}
