@@ -47,6 +47,14 @@ describe("Welten und Stationen", () => {
     expect(new Set(STATIONS.flatMap((s) => s.bins)).size).toBe(6);
   });
 
+  test("Typische Verwechslungen werden schon in den Lern-Welten geübt", () => {
+    const learn = WORLDS.filter((w) => w.newBins.length > 0);
+    const together = (x: string, y: string) => learn.some((w) => w.bins.includes(x as never) && w.bins.includes(y as never));
+    expect(together("bio", "gelb")).toBe(true);
+    expect(together("papier", "glas")).toBe(true);
+    expect(together("gelb", "sonder")).toBe(true);
+  });
+
   test("Jeder Gegenstand einer Station hat seine Tonne in der Station", () => {
     for (const s of STATIONS) {
       const cats = new Set(stationBins(s).map((b) => b.category));

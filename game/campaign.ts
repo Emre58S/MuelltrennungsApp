@@ -68,12 +68,14 @@ const STEPS: { upTo: Difficulty; goal: number; total?: number; kind?: StationKin
 ];
 
 /** Tonnen je Welt: nie mehr als drei. Welt 1 Papier vs. Rest, dann je eine neue Tonne
- *  mit zwei, die man schon kennt (Restmüll bleibt als Auffangbecken immer dabei). */
+ *  mit zwei, die man schon kennt – so, dass typische Verwechslungen früh geübt werden
+ *  (Glas vs. Papier, Bio vs. Gelber Sack, Sondermüll vs. Gelber Sack). Restmüll bleibt
+ *  als Auffangbecken immer dabei. */
 const WORLD_BINS: BinKey[][] = [
   ["papier", "rest"],
   ["papier", "gelb", "rest"],
-  ["gelb", "glas", "rest"],
-  ["papier", "bio", "rest"],
+  ["papier", "glas", "rest"],
+  ["bio", "gelb", "rest"],
   ["gelb", "sonder", "rest"],
 ];
 
@@ -167,6 +169,16 @@ const MIXED: string[] = [
   "Einwegrasierer",
 ];
 const MIXED_BINS: BinKey[] = ["papier", "gelb", "rest"];
+/** Boss: die gemischte Liste plus ein paar Fallen aus den anderen Listen (alles Papier, Gelb oder Rest). */
+const BOSS_ITEMS: string[] = [
+  ...MIXED,
+  "Zerbrochener Spiegel",
+  "Trinkglas",
+  "Tapeten",
+  "Alte CD",
+  "Kronkorken",
+  "Tablettenblister (leer)",
+];
 const TRICKY_INDEX = WORLD_BINS.length + 1;
 const TRICKY_WORLD: World = {
   index: TRICKY_INDEX,
@@ -189,12 +201,12 @@ const TRICKY_WORLD: World = {
       total: 10,
       goal: 7,
     },
-    // Boss: die schwerste Liste (Verpackung oder Sondermüll?) im Dauerlauf
+    // Boss: gemischte Fallen aus allen Listen im Dauerlauf
     {
       id: `${TRICKY_INDEX}-${TRICKY.length + 2}`,
-      bins: TRICKY_BINS[1],
+      bins: MIXED_BINS,
       upTo: "schwer",
-      items: TRICKY[1],
+      items: BOSS_ITEMS,
       total: BOSS_THROWS,
       goal: BOSS_STREAK,
       kind: "boss",
