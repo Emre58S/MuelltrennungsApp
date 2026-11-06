@@ -620,6 +620,8 @@ export const en: Translations = {
   "duel.ghostTitle": "Race your ghost",
   "duel.ghostFriendInfo": "Racing a friend works with a code: after your race you share your run, and your friend enters it under “Friends”.",
   "duel.randomDesc": "We pick an opponent for you.",
+  "friends.addTitle": "Add a friend",
+  "rank.parcoursShort": "Course",
   "friends.invite": "Invite friends",
   "duel.random": "Random opponent",
   "duel.friend": "Or challenge a friend",

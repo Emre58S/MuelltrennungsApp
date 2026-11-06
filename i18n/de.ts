@@ -619,6 +619,8 @@ export const de = {
   "duel.ghostTitle": "Gegen deinen Ghost",
   "duel.ghostFriendInfo": "Ein Rennen gegen einen Freund geht per Code: Nach deinem Rennen teilst du deinen Lauf, dein Freund gibt ihn unter „Freunde“ ein.",
   "duel.randomDesc": "Wir suchen einen Gegner für dich aus.",
+  "friends.addTitle": "Freund hinzufügen",
+  "rank.parcoursShort": "Parcours",
   "friends.invite": "Freunde einladen",
   "duel.random": "Zufallsgegner",
   "duel.friend": "Oder einen Freund herausfordern",

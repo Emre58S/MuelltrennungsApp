@@ -11,6 +11,7 @@ import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, TextInput, View
 import { AppText } from "@/components/ui/app-text";
 
 import { Avatar } from "@/components/areas/people";
+import { Sheet } from "@/components/ui/sheet";
 import { cardEdge } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
@@ -59,6 +60,8 @@ export function FriendsPanel() {
   const [open, setOpen] = useState<OpenChallenge[]>([]);
   const [state, setState] = useState<"idle" | "error" | "setup">("idle");
   const [draft, setDraft] = useState("");
+  /** Blatt „Freund hinzufügen“ (eigener Code, Teilen, Code eingeben). */
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [note, setNote] = useState<{ text: string; ok: boolean } | null>(null);
   const [adding, setAdding] = useState(false);
   const busy = useRef(false);
@@ -275,12 +278,14 @@ export function FriendsPanel() {
               ))}
             </View>
           )}
-          {/* Einladen: eigener Code und Code eingeben */}
-          <AppText variant="overline" tone="textSecondary" accessibilityRole="header">
-            {t("friends.invite").toUpperCase()}
-          </AppText>
-          {/* Eigener Code */}
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
+          {/* Hinzufügen: ein Knopf – Code, Teilen und Eingabe wohnen im Blatt */}
+          <Button
+            title={t("friends.addTitle")}
+            icon="user-plus"
+            variant={friends.length === 0 ? "primary" : "secondary"}
+            onPress={() => setInviteOpen(true)}
+          />
+          <Sheet visible={inviteOpen} title={t("friends.addTitle")} onClose={() => setInviteOpen(false)}>
             <AppText variant="caption" tone="textSecondary">
               {t("friends.myCode")}
             </AppText>
@@ -288,11 +293,9 @@ export function FriendsPanel() {
               {formatFriendCode(code)}
             </AppText>
             <Button title={t("friends.share")} icon="share" variant="secondary" onPress={share} />
-          </View>
-
-          {/* Freund hinzufügen */}
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
-            <AppText variant="label">{t("friends.add")}</AppText>
+            <AppText variant="overline" tone="textSecondary" style={styles.sheetGap} accessibilityRole="header">
+              {t("friends.add").toUpperCase()}
+            </AppText>
             <TextInput
               value={draft}
               onChangeText={(v) => {
@@ -324,14 +327,11 @@ export function FriendsPanel() {
                 icon="user-plus"
                 onPress={add}
                 disabled={adding || !draft.trim()}
-                // Volle Breite – leichter zu treffen
                 style={styles.flex}
               />
-              {/* Platz immer frei halten – sonst wird der Knopf beim Laden schmaler */}
               <ActivityIndicator color={colors.primary} animating={adding} hidesWhenStopped={false} style={{ opacity: adding ? 1 : 0 }} />
             </View>
-          </View>
-
+          </Sheet>
         </>
       )}
     </View>
@@ -354,6 +354,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   card: { padding: Spacing.md, borderRadius: Radius.lg, borderWidth: 1, gap: Spacing.sm },
   codeText: { fontSize: 30, lineHeight: 38, letterSpacing: 3 },
+  sheetGap: { marginTop: Spacing.sm },
   emptyCard: { alignItems: "center", gap: Spacing.sm, padding: Spacing.lg, borderRadius: Radius.xl, borderWidth: 1 },
   emptyEmoji: { fontSize: 44, lineHeight: 54 },
   friendCards: { gap: Spacing.sm },

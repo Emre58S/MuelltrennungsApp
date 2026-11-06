@@ -19,9 +19,10 @@ import {
 import { AppText } from "@/components/ui/app-text";
 import { Avatar, Podium } from "@/components/areas/people";
 import { Feather } from "@expo/vector-icons";
-import { cardEdge, tone } from "@/components/ui/chunky";
+import { cardEdge } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
+import { Segmented } from "@/components/ui/segmented";
 import { HubScreen } from "@/components/ui/hub";
 import { AREAS } from "@/constants/areas";
 import { Radius, Spacing } from "@/constants/theme";
@@ -64,9 +65,6 @@ const TABS: Tab[] = [
   { key: "parcours", label: "hub.parcours.title", parcours: true },
   // Tagesaufgabe und Tages-Trick stehen nicht mehr in der Rangliste (Nutzer, 6.11.): nur noch die drei Online-Modi
 ];
-
-/** Symbol je Liste (in der Reihe zeigt nur die gewählte ihren Namen). */
-const MODE_EMOJI: Record<string, string> = { sprint: "⏱️", survival: "🛡️", parcours: "🎯" };
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
@@ -176,41 +174,16 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
   return (
     <View style={styles.panel}>
       <>
-        {/* Eine Zeile: welche Liste (nur Symbole, die gewählte mit Name) */}
-        <View style={styles.modes}>
-          {TABS.map((item) => {
-            const active = item.key === tab.key;
-            return (
-              <Pressable
-                key={item.key}
-                accessibilityRole="tab"
-                accessibilityLabel={t(item.label)}
-                accessibilityState={{ selected: active }}
-                onPress={() => choose(item)}
-                style={[
-                  styles.mode,
-                  {
-                    backgroundColor: active ? colors.primary : colors.surface,
-                    borderColor: active ? colors.primary : colors.border,
-                  },
-                  active && { borderBottomWidth: 4, borderBottomColor: tone(colors.primary, -0.3) },
-                ]}
-              >
-                <AppText style={styles.modeEmoji}>{MODE_EMOJI[item.key]}</AppText>
-                {active && (
-                  <AppText variant="label" tone="onPrimary" numberOfLines={1}>
-                    {t(item.label)}
-                  </AppText>
-                )}
-              </Pressable>
-            );
-          })}
-          {leaderboardReady && (
-            <IconButton icon="refresh-cw" label={t("rank.refresh")} onPress={refresh} style={[styles.refresh, state === "loading" && { opacity: 0.4 }]} />
-          )}
-        </View>
+        {/* Welche Liste: drei gleich breite Reiter */}
+        <Segmented<string>
+          value={tab.key}
+          onChange={(k) => choose(TABS.find((x) => x.key === k) ?? TABS[0])}
+          color={AREAS.online.fill}
+          onColor={AREAS.online.on}
+          options={TABS.map((x) => ({ value: x.key, label: x.key === "parcours" ? t("rank.parcoursShort") : t(x.label) }))}
+        />
 
-        {/* Zweite Zeile: Woche/Allzeit links, eigener Name rechts */}
+        {/* Eine ruhige Zeile: Woche/Allzeit links, Aktualisieren rechts */}
         <View style={styles.subRow}>
           {tab.online ? (
             <View style={styles.spans}>
@@ -241,61 +214,10 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           ) : (
             <View style={styles.flex} />
           )}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${t("rank.you")}: ${name}. ${t("rank.change")}`}
-            hitSlop={4}
-            onPress={() => {
-              setDraft(name);
-              setEditing(true);
-            }}
-            style={[styles.namePill, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          >
-            <Avatar name={name || "?"} size={24} />
-            <AppText variant="caption" numberOfLines={1} style={styles.nameText}>
-              {name || "…"}
-            </AppText>
-            <Feather name="edit-2" size={13} color={colors.textSecondary} />
-          </Pressable>
+          {leaderboardReady && (
+            <IconButton icon="refresh-cw" label={t("rank.refresh")} onPress={refresh} style={[styles.refresh, state === "loading" && { opacity: 0.4 }]} />
+          )}
         </View>
-
-        {editing && (
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
-            <TextInput
-              value={draft}
-              onChangeText={(v) => {
-                setDraft(v);
-                setInvalid(false);
-              }}
-              maxLength={16}
-              autoFocus
-              autoCorrect={false}
-              returnKeyType="done"
-              onSubmitEditing={saveName}
-              placeholder={t("rank.namePlaceholder")}
-              placeholderTextColor={colors.textMuted}
-              keyboardAppearance={scheme}
-              accessibilityLabel={t("rank.you")}
-              style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
-            />
-            {invalid && (
-              <AppText variant="caption" tone="warning">
-                {t("rank.nameInvalid")}
-              </AppText>
-            )}
-            <View style={styles.row}>
-              <Button title={t("rank.save")} onPress={saveName} />
-              <Button
-                title={t("common.cancel")}
-                variant="ghost"
-                onPress={() => {
-                  setEditing(false);
-                  setInvalid(false);
-                }}
-              />
-            </View>
-          </View>
-        )}
 
         {/* Parcours des Tages: welcher heute dran ist (eine kleine Zeile) */}
         {tab.parcours && (
@@ -336,7 +258,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           <Podium rows={result.rows} scoreText={scoreText} youLabel={t("rank.meTag")} />
           {result.rows.length > 3 && (
           <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
-            {result.rows.slice(3).map((row, i) => (
+            {result.rows.slice(3, 10).map((row, i) => (
               <View
                 key={`${row.rank}-${row.name}-${i}`}
                 style={[
@@ -348,6 +270,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
                 <AppText variant="label" style={styles.rank}>
                   {MEDAL[row.rank - 1] ?? `${row.rank}.`}
                 </AppText>
+                <Avatar name={row.name} size={28} />
                 <AppText variant="label" style={styles.flex} numberOfLines={1}>
                   {row.name}
                 </AppText>
@@ -359,6 +282,63 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           </View>
           )}
           </>
+        )}
+
+        {/* Ganz unten: eigener Name (ändert man selten) */}
+        {!editing && name ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${t("rank.you")}: ${name}. ${t("rank.change")}`}
+            hitSlop={6}
+            onPress={() => {
+              setDraft(name);
+              setEditing(true);
+            }}
+            style={styles.nameLine}
+          >
+            <Avatar name={name} size={24} />
+            <AppText variant="caption" tone="textSecondary" numberOfLines={1} style={styles.nameText}>
+              {t("rank.you")} {name}
+            </AppText>
+            <Feather name="edit-2" size={13} color={colors.textSecondary} />
+          </Pressable>
+        ) : null}
+        {editing && (
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
+            <TextInput
+              value={draft}
+              onChangeText={(v) => {
+                setDraft(v);
+                setInvalid(false);
+              }}
+              maxLength={16}
+              autoFocus
+              autoCorrect={false}
+              returnKeyType="done"
+              onSubmitEditing={saveName}
+              placeholder={t("rank.namePlaceholder")}
+              placeholderTextColor={colors.textMuted}
+              keyboardAppearance={scheme}
+              accessibilityLabel={t("rank.you")}
+              style={[styles.input, { color: colors.text, borderColor: invalid ? colors.warning : colors.border }]}
+            />
+            {invalid && (
+              <AppText variant="caption" tone="warning">
+                {t("rank.nameInvalid")}
+              </AppText>
+            )}
+            <View style={styles.row}>
+              <Button title={t("rank.save")} onPress={saveName} />
+              <Button
+                title={t("common.cancel")}
+                variant="ghost"
+                onPress={() => {
+                  setEditing(false);
+                  setInvalid(false);
+                }}
+              />
+            </View>
+          </View>
         )}
 
       </>
@@ -443,5 +423,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   nameText: { flexShrink: 1 },
+  nameLine: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 44, marginTop: Spacing.sm },
   refresh: { width: 44, height: 44, borderRadius: 22, marginLeft: "auto" },
 });

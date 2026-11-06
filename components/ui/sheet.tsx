@@ -3,7 +3,7 @@
 // dunklen Rand oder auf „Schließen“ macht es zu; Android-Zurück ebenfalls.
 
 import { type ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Radius, Spacing } from "@/constants/theme";
@@ -27,6 +27,8 @@ export function Sheet({
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      {/* Mit Eingabefeld: die Tastatur schiebt das Blatt nach oben, statt es zu verdecken */}
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.avoid}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t("common.close")}
@@ -45,11 +47,13 @@ export function Sheet({
         </AppText>
         <View style={styles.body}>{children}</View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  avoid: { flex: 1 },
   backdrop: { flex: 1 },
   sheet: {
     borderTopLeftRadius: Radius.xxl,
