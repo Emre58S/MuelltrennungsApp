@@ -39,6 +39,15 @@ Endscreens nicht im neuen Stil geprüft; Trick-Seite ist Phase G (zuletzt).
 (`chip.tsx`, `environment.tsx`), 186 Tests grün (Trick-Tests heute nicht gelaufen, Physik unverändert), DE/EN gleich (694 Schlüssel).
 Offen klein: Hinweis „höchstens 3 Tonnen“ im freien Spiel, F13/F14/F15-Reste, Zeitmodus-Ziele (5/8) und Endspurt (10 s von 30 s) auf dem Handy prüfen.
 
+**Selbstständiger Lauf 6.11., 22:53–24:00 (Nutzer: „arbeite automatisch bis 24 Uhr“), alles auf auto + preview:**
+(1) Modi verständlich (597b23f/7f3a42e: „gegen wen“ auf Karten, im Duell-Blatt und im Regeltext, ehrlicher Fallback Übungs-Ghost);
+(2) Absturzschutz + Build (ed43a8f/d62508f: ErrorBoundary mit Splash-Aus, `eas.json`, keine Mikrofon-/Hintergrund-Audio-Rechte, iPad aus,
+ITSAppUsesNonExemptEncryption, ESLint 921 → 0 Meldungen); (3) schlichter Kopf für alle Unterseiten + Version in den Einstellungen (7df62a1).
+**Neu für den Nutzer:** `supabase/pruefung.sql` – **bitte im Supabase SQL-Editor ausführen** (Plausibilitätsprüfung gegen erfundene Läufe:
+Treffer ≤ ms/400 + 1, Sprint ≤ 31 s; Wortfilter für Spitznamen mit `blocked_words`; am Ende auskommentierte Aufräum-Abfragen).
+**Weiter offen aus der Prüfung:** Datenschutz/Impressum (Nutzer), Bundle-ID + Package festlegen (Nutzer), Wurfspuren mit Formen/Bewegung,
+Hinweis „höchstens 3 Tonnen“ im freien Spiel, alte Menü-Texte, F13–F15-Reste, Paket-Patch-Updates (`npx expo install --check`).
+
 **Stand 5.11., spät (Menü im Spielstil, Vorlagen Duolingo + Clash Royale, Nutzerwunsch „perfekt abgestimmt, maximal
 ansprechend“):** Teil 1 ausgeliefert (a74a009, Tester 8/10, EAS auto + preview): Baustein `components/ui/chunky.tsx`
 (dicker Knopf mit Unterkante), Pfad mit Weltband (wechselt beim Scrollen, Buch = „Was gehört hinein?“), Schnellstart-

@@ -1,8 +1,8 @@
 // Datei: components/ui/page-header.tsx
-// Einheitlicher Kopf der Unterseiten (Trickwürfe, Rangliste, Belohnungen,
-// Sammelbuch, Einstellungen, Anleitung): Karte im Himmel-Verlauf des Spiels
-// mit Zurück-Knopf, großem Symbol, Titel und Untertitel – damit sich jede
-// Seite wie ein Teil der Spielwelt anfühlt statt wie eine nackte Liste.
+// Einheitlicher Kopf der Unterseiten (Trickwürfe, Einstellungen, Anleitung und die
+// eigenständigen Seiten Freunde/Rangliste/Belohnungen/Sammelbuch): schlicht – Zurück-Knopf,
+// Titel, Untertitel, darunter optional `children`. `emoji` und `area` brauchen nur die
+// schmale Variante (`compact`, Himmel-Verlauf), der schlichte Kopf ignoriert sie.
 
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
