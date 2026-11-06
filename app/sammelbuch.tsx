@@ -174,7 +174,7 @@ export function BookPanel() {
                       )}
                     </Pressable>
                     {/* Name unter der Kachel: gesperrt bleibt leer (Überraschung), die Zeile aber reserviert */}
-                    <AppText variant="caption" center numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.tileLabel} tone={known ? "text" : "textMuted"}>
+                    <AppText variant="caption" center numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={styles.tileLabel} tone={known ? "text" : "textMuted"}>
                       {known ? shortName(item) : " "}
                     </AppText>
                     </View>
