@@ -38,7 +38,7 @@ const SKIN_PREVIEW: Record<BinSkinId, { glyph: string; color: string }> = {
   keiner: { glyph: "–", color: "#9AA3AC" },
   stern: { glyph: "★", color: "#FFC93C" },
   herz: { glyph: "♥", color: "#FF5C8A" },
-  punkte: { glyph: "•••", color: "#9AA3AC" },
+  punkte: { glyph: "•••", color: "#FFFFFF" },
 };
 
 /** Vorschau-Farben je Spur (wie sie im Spiel ungefähr aussehen). */
