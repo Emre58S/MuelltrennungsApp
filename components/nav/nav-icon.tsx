@@ -1,7 +1,7 @@
 // Datei: components/nav/nav-icon.tsx
 //
-// Symbol der unteren Leiste: Pfad = Karte, Online = Globus, Regal = Buch – direkt auf dem Feld in
-// der Bereichsfarbe (kein Hintergrund-Kreis). Beim Erhöhen von `wiggle` wackelt es kurz (Tippen).
+// Symbol der unteren Leiste: Pfad = Karte, Online = Globus, Regal = Buch – direkt auf der
+// dunklen Leiste (kein Hintergrund-Kreis); gewählt weiß und größer, sonst gedämpftes Grau-Blau. Beim Erhöhen von `wiggle` wackelt es kurz (Tippen).
 
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -35,9 +35,9 @@ export function NavIcon({
     <Animated.View
       importantForAccessibility="no"
       accessibilityElementsHidden
-      style={[styles.disc, { opacity: selected ? 1 : 0.85, transform: [{ rotate }, { scale: selected ? 1.12 : 1 }] }]}
+      style={[styles.disc, { opacity: 1, transform: [{ rotate }, { scale: selected ? 1.15 : 1 }] }]}
     >
-      <Feather name={area.icon} size={30} color={selected ? area.on : "#FFFFFF"} />
+      <Feather name={area.icon} size={30} color={selected ? "#FFFFFF" : "#B8C4D2"} />
     </Animated.View>
   );
 }
