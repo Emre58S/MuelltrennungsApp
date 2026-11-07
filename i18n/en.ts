@@ -49,7 +49,7 @@ export const en: Translations = {
   "home.hintDaily": "📅 New daily challenge – in Campaign",
   "home.hintFriend": "⚔️ {name} challenges you – Online → Friends",
   "home.hintDayBest": "👻 Today's best: {name} – Online → 10-item race",
-  "home.hintDayBestMe": "👑 You have today's best ghost run",
+  "home.hintDayBestMe": "👑 You lead today's 10-item race",
   "home.startMode": "Start {mode}",
   "home.book": "Collection",
   "home.daily": "Daily challenge",
