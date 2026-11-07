@@ -1,13 +1,13 @@
 // Datei: components/nav/area-bar.tsx
 //
-// Feste untere Leiste: Pfad · Online · Regal, je mit Tonnen-Icon in der
-// Bereichsfarbe. Der gewählte Bereich ist farbig und trägt oben einen Balken.
+// Feste untere Leiste: Pfad · Online · Regal, je mit eigenem Symbol
+// (Karte, Globus, Buch) in der Bereichsfarbe. Der gewählte Bereich ist farbig und trägt oben einen Balken.
 
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/app-text";
-import { BinIcon } from "@/components/ui/bin-icon";
+import { NavIcon } from "@/components/nav/nav-icon";
 import { tapHaptic } from "@/components/ui/press";
 import { AREA_ORDER, AREAS, type AreaKey } from "@/constants/areas";
 import { Spacing } from "@/constants/theme";
@@ -71,8 +71,8 @@ export function AreaBar({
                 selected && { backgroundColor: area.fill + "26", borderColor: area.fill, transform: [{ translateY: -6 }] },
               ]}
             >
-              <View style={{ opacity: selected ? 1 : 0.55, transform: [{ scale: selected ? 1.18 : 1 }] }}>
-                <BinIcon color={area.fill} size={30} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
+              <View>
+                <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
               </View>
               <AppText
                 variant="caption"

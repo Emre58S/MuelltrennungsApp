@@ -9,6 +9,7 @@ import { Animated, Pressable, StyleSheet, View } from "react-native";
 
 import { useShell } from "@/components/nav/shell-context";
 import { AppText } from "@/components/ui/app-text";
+import { ChestIcon } from "@/components/ui/chest-icon";
 import { cardEdge } from "@/components/ui/chunky";
 import { press, tapHaptic } from "@/components/ui/press";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -162,7 +163,7 @@ export function MissionCard({
       })}
       {/* Truhen-Fach: füllt sich mit den drei Missionen */}
       <View style={[styles.chestSlot, { backgroundColor: allDone ? colors.goldSoft : colors.surfaceAlt, borderColor: allDone ? colors.gold : colors.border }]}>
-        <AppText style={[styles.chestSlotEmoji, { opacity: allDone ? 1 : 0.45 }]}>🎁</AppText>
+        <ChestIcon size={38} active={allDone} pulse={allDone} />
         <View style={styles.flex}>
           <AppText variant="label" color={allDone ? colors.onGoldSoft : colors.text}>
             {t("mission.chest")}

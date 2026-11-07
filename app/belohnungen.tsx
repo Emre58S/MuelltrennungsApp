@@ -11,6 +11,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { BinIcon } from "@/components/ui/bin-icon";
+import { TrailPreview } from "@/components/ui/trail-preview";
 import { FadeIn } from "@/components/ui/fade-in";
 import { HubScreen } from "@/components/ui/hub";
 import { press, tapHaptic } from "@/components/ui/press";
@@ -142,28 +143,9 @@ export function RewardsPanel() {
                   pressed && press.pressedLarge,
                 ]}
               >
-                {/* Kleine Spur als Vorschau: Punkte werden zum Kopf hin größer */}
-                <View style={[styles.swatch, { opacity: open ? 1 : 0.35 }]}>
-                  <View style={styles.dotsWrap}>
-                  {SWATCH[reward.id].map((color, i, all) => (
-                    <View
-                      key={i}
-                      style={[
-                        styles.dot,
-                        {
-                          backgroundColor: color,
-                          borderColor: colors.border,
-                          width: 8 + (i / all.length) * 10,
-                          height: 8 + (i / all.length) * 10,
-                        },
-                      ]}
-                    />
-                  ))}
-                  </View>
-                  {/* … und landen in einer Tonne */}
-                  <View style={styles.trailBin}>
-                    <BinIcon color={SKIN_BIN_COLOR} size={30} reduceMotion />
-                  </View>
+                {/* Kleine Spur als Vorschau – die gewählte leuchtet im Takt durch */}
+                <View style={{ opacity: open ? 1 : 0.35 }}>
+                  <TrailPreview dots={SWATCH[reward.id]} border={colors.border} binColor={SKIN_BIN_COLOR} animate={active} />
                 </View>
                 <View style={styles.flex}>
                   <AppText variant="label">{t(reward.name)}</AppText>
@@ -266,11 +248,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     minHeight: 64,
   },
-  swatch: { width: 132, flexDirection: "row", alignItems: "center", gap: 3 },
-  dotsWrap: { width: 92, flexDirection: "row", alignItems: "center", gap: 3 },
-  trailBin: { marginLeft: 6 },
   binSwatch: { width: 72, alignItems: "center", justifyContent: "center" },
-  dot: { borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
   section: { marginTop: Spacing.md },
   skinGlyph: { fontSize: 26, lineHeight: 32 },
 });

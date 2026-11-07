@@ -9,6 +9,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { useShell } from "@/components/nav/shell-context";
 import { AppText } from "@/components/ui/app-text";
+import { ChestIcon } from "@/components/ui/chest-icon";
 import { press, tapHaptic } from "@/components/ui/press";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Radius, Spacing } from "@/constants/theme";
@@ -54,7 +55,7 @@ export function MissionSlots({ day, chestsWaiting }: { day: MissionDay; chestsWa
         <AppText variant="label" style={styles.flex}>
           📋 {t("mission.title")}
         </AppText>
-        {chestsWaiting > 0 && <AppText style={styles.chest}>🎁</AppText>}
+        {chestsWaiting > 0 && <ChestIcon size={22} pulse />}
         <AppText variant="label" tone="textMuted">
           {done}/{total} ›
         </AppText>
@@ -101,7 +102,7 @@ export function MissionSlots({ day, chestsWaiting }: { day: MissionDay; chestsWa
           ]}
         >
           <View style={[styles.icon, { backgroundColor: done >= total ? colors.gold : colors.surfaceAlt }]}>
-            <AppText style={[styles.emoji, { opacity: done >= total ? 1 : 0.5 }]}>🎁</AppText>
+            <ChestIcon size={26} active={done >= total} pulse={done >= total} />
           </View>
           <AppText variant="caption" center numberOfLines={3} color={done >= total ? colors.onGoldSoft : colors.textSecondary}>
             {t("mission.chest")}
