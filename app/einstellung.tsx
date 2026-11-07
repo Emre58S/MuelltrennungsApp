@@ -25,6 +25,7 @@ import {
 } from "@/providers/app-settings";
 import {
   getBoolean,
+  giveTestChest,
   removeItems,
   resetSeenTips,
   setBoolean,
@@ -211,6 +212,17 @@ export default function EinstellungenScreen() {
             subtitle={t("settings.showTips.desc")}
             onPress={async () => {
               await resetSeenTips();
+              Alert.alert(t("settings.done"));
+            }}
+          />
+          {/* TEST (vorübergehend): Truhe bereitlegen */}
+          <ActionRow
+            icon="gift"
+            title="Testtruhe"
+            subtitle="Legt eine Truhe unter Heute zum Öffnen bereit"
+            divider
+            onPress={async () => {
+              await giveTestChest();
               Alert.alert(t("settings.done"));
             }}
           />
