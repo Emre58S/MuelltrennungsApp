@@ -245,6 +245,20 @@ export default function KampagneScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+      {/* Die vier Spielarten stehen fest oben, über dem Welt-Band */}
+      <View style={styles.tiles}>
+        <PlayTile kind="endless" label={t("campaign.freePlay")} onPress={() => stars && startFreePlay(stars)} />
+        {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
+          <PlayTile
+            key={m.mode}
+            kind={m.mode === "time" ? "time" : "survival"}
+            label={t(m.titleKey)}
+            onPress={() => startGame(m.mode)}
+          />
+        ))}
+        <PlayTile kind="tricks" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
+      </View>
+
       {stars && current && <WorldBanner key={bannerWorld.index} world={bannerWorld} />}
       <ScrollView
         ref={scroll}
@@ -255,20 +269,6 @@ export default function KampagneScreen() {
           { paddingBottom: (shell.inShell ? shell.bottomInset : insets.bottom) + Spacing.lg },
         ]}
       >
-        {/* Schnellstart: die bisherigen Spielarten als dicke Kacheln */}
-        <View style={styles.tiles}>
-          <PlayTile kind="endless" label={t("campaign.freePlay")} onPress={() => stars && startFreePlay(stars)} />
-          {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
-            <PlayTile
-              key={m.mode}
-              kind={m.mode === "time" ? "time" : "survival"}
-              label={t(m.titleKey)}
-              onPress={() => startGame(m.mode)}
-            />
-          ))}
-          <PlayTile kind="tricks" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
-        </View>
-
         <View style={styles.topRow}>
         {daily !== undefined && (
           <View style={styles.topMain}>
@@ -815,10 +815,10 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: Spacing.md + 4, paddingTop: Spacing.sm, gap: Spacing.md },
   bold: { fontWeight: "700" },
-  tiles: { flexDirection: "row", gap: Spacing.sm },
+  tiles: { flexDirection: "row", gap: Spacing.sm, paddingHorizontal: Spacing.md + 4, paddingTop: Spacing.sm, paddingBottom: Spacing.sm },
   tile: { flex: 1 },
-  tileFace: { minHeight: 88, gap: 2, paddingVertical: 10, paddingHorizontal: 4 },
-  tileEmoji: { fontSize: 26, lineHeight: 32 },
+  tileFace: { minHeight: 64, gap: 0, paddingVertical: 6, paddingHorizontal: 4 },
+  tileEmoji: { fontSize: 22, lineHeight: 28 },
   tileText: { fontWeight: "700" },
   banner: {
     paddingHorizontal: Spacing.md + 4,

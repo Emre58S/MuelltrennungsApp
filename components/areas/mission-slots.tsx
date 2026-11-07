@@ -2,9 +2,12 @@
 //
 // Die 3 Tagesmissionen als „Plätze“ nebeneinander (wie die Truhen-Slots bei Clash
 // Royale): je Mission ein Symbol, ein kurzer Satz und ein Fortschrittsbalken; eine
-// geschaffte Mission trägt ein Häkchen in Gold. Tippen öffnet „Heute“ im Regal.
+// geschaffte Mission trägt ein Häkchen in Gold. Standardmäßig zugeklappt (nur die Kopfzeile mit Stand und Truhe); Aufklappen zeigt die Plätze,
+// Tippen auf die Plätze öffnet „Heute“ im Regal.
 
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { useShell } from "@/components/nav/shell-context";
@@ -32,6 +35,7 @@ export function MissionSlots({ day, chestsWaiting }: { day: MissionDay; chestsWa
   const shell = useShell();
   const done = day.done.length;
   const total = day.missions.length;
+  const [open, setOpen] = useState(false);
   const text = (m: Mission) => {
     if (m.kind === "bin" && m.bin) return t("mission.bin", { bin: t(`bin.${m.bin}`), n: m.goal });
     if (m.kind === "streak") return t("mission.streak", { n: m.goal });
@@ -40,26 +44,39 @@ export function MissionSlots({ day, chestsWaiting }: { day: MissionDay; chestsWa
     return t("mission.station");
   };
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${t("mission.title")}: ${done}/${total}${chestsWaiting > 0 ? `. ${t("chest.open")}` : ""}`}
-      onPress={() => {
-        sfx("tap");
-        tapHaptic();
-        if (shell.inShell) shell.goArea("regal", "today");
-        else router.push("/sammlung");
-      }}
-      style={({ pressed }) => [styles.wrap, pressed && press.pressedLarge]}
-    >
-      <View style={styles.head}>
+    <View style={styles.wrap}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel={`${t("mission.title")}: ${done}/${total}${chestsWaiting > 0 ? `. ${t("chest.open")}` : ""}`}
+        onPress={() => {
+          sfx("tap");
+          tapHaptic();
+          setOpen((o) => !o);
+        }}
+        style={({ pressed }) => [styles.head, pressed && press.pressed]}
+      >
         <AppText variant="label" style={styles.flex}>
           📋 {t("mission.title")}
         </AppText>
         {chestsWaiting > 0 && <ChestIcon size={22} pulse />}
         <AppText variant="label" tone="textMuted">
-          {done}/{total} ›
+          {done}/{total}
         </AppText>
-      </View>
+        <Feather name={open ? "chevron-up" : "chevron-down"} size={20} color={colors.textMuted} />
+      </Pressable>
+      {open && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("mission.title")}
+          onPress={() => {
+            sfx("tap");
+            tapHaptic();
+            if (shell.inShell) shell.goArea("regal", "today");
+            else router.push("/sammlung");
+          }}
+          style={({ pressed }) => pressed && press.pressedLarge}
+        >
       <View style={styles.row}>
         {day.missions.map((m) => {
           const finished = day.done.includes(m.id);
@@ -112,13 +129,15 @@ export function MissionSlots({ day, chestsWaiting }: { day: MissionDay; chestsWa
           </View>
         </View>
       </View>
-    </Pressable>
+        </Pressable>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { gap: Spacing.sm },
-  head: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  head: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, minHeight: 36 },
   flex: { flex: 1 },
   chest: { fontSize: 20, lineHeight: 26 },
   row: { flexDirection: "row", gap: Spacing.sm },
