@@ -35,7 +35,7 @@ export function ChestOpening({
   /** Ergebnis der gerade geöffneten Truhe (null, solange sie noch zu ist). */
   result: Result | null;
   /** Truhe wirklich öffnen (Speicher) – wird nach dem Wackeln einmal aufgerufen. */
-  onOpen: () => Promise<void>;
+  onOpen: () => Promise<boolean>;
   onClose: () => void;
   /** Bei neuer Wurfspur: zur Auswahl springen. */
   onChoose: () => void;
@@ -62,7 +62,12 @@ export function ChestOpening({
     const go = () => {
       opened.current = true;
       setPhase("opening");
-      onOpen().catch(() => undefined);
+      // Ohne Ergebnis (keine Truhe mehr, Speicherfehler) das Fenster wieder zumachen
+      onOpen()
+        .then((ok) => {
+          if (!ok) onClose();
+        })
+        .catch(() => onClose());
     };
     if (reduceMotion) {
       const id = setTimeout(go, 150);
@@ -81,7 +86,6 @@ export function ChestOpening({
   // Ergebnis da → Deckel auf, Licht und Funken, dann die Karte
   useEffect(() => {
     if (!visible || phase !== "opening" || !result) return;
-    sfx("unlock");
     tapHaptic();
     const open = Animated.timing(lid, {
       toValue: 1,
@@ -138,6 +142,8 @@ export function ChestOpening({
           {sparks.map((s) => (
             <Animated.Text
               key={s.key}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
               style={[styles.spark, { opacity: s.opacity, transform: [{ translateX: s.tx }, { translateY: s.ty }] }]}
             >
               ✨
@@ -195,6 +201,7 @@ export function ChestOpening({
               )}
               <Pressable
                 accessibilityRole="button"
+                accessibilityLabel={t("common.close")}
                 onPress={() => {
                   sfx("tap");
                   tapHaptic();

@@ -292,10 +292,7 @@ export function FriendsPanel() {
                     onPress={() => challenge(f)}
                     faceStyle={styles.playFace}
                   >
-                    <Feather name="play" size={16} color="#FFFFFF" />
-                    <AppText variant="label" color="#FFFFFF">
-                      {t("friends.go")}
-                    </AppText>
+                    <Feather name="play" size={20} color="#FFFFFF" />
                   </Chunky>
                   <IconButton icon="x" label={t("friends.remove", { name: f.name })} onPress={() => askRemove(f)} style={styles.removeBtn} />
                 </View>
@@ -393,7 +390,7 @@ const styles = StyleSheet.create({
   friendCards: { gap: Spacing.sm },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 4 },
   pill: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.pill },
-  playFace: { flexDirection: "row", gap: 6, minHeight: 40, paddingHorizontal: Spacing.md },
+  playFace: { flexDirection: "row", minHeight: 44, minWidth: 56, justifyContent: "center", paddingHorizontal: Spacing.md },
   removeBtn: { width: 36, height: 36, borderRadius: 18, opacity: 0.85 },
   friendCard: {
     flexDirection: "row",

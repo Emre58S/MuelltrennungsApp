@@ -45,7 +45,7 @@ export function MissionCard({
   /** Verdiente, noch nicht geöffnete Truhen. */
   chestsWaiting: number;
   chest: ChestResult | null;
-  onOpenChest: () => Promise<void>;
+  onOpenChest: () => Promise<boolean>;
   /** Altes Ergebnis vergessen, bevor eine neue Truhe aufgeht. */
   onClearChest: () => void;
 }) {
@@ -280,14 +280,15 @@ export function TodayPanel() {
       onOpenChest={() =>
         openChest()
           .then((res) => {
-            if (!res) return;
+            if (!res) return false;
             sfx(res.levelUp !== null ? "levelup" : "unlock");
             setChest(res);
             setChests((c) => ({ ...c, opened: res.opened }));
             // Leiste und Reiter im Regal sollen den Punkt gleich zurücknehmen
             shell.setChestWaiting(chests.earned - res.opened > 0);
+            return true;
           })
-          .catch(() => undefined)
+          .catch(() => false)
       }
     />
   );
