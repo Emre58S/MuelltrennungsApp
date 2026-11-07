@@ -6,7 +6,6 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppText } from "@/components/ui/app-text";
 import { NavIcon } from "@/components/nav/nav-icon";
 import { tapHaptic } from "@/components/ui/press";
 import { AREA_ORDER, AREAS, type AreaKey } from "@/constants/areas";
@@ -15,7 +14,7 @@ import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
 /** Höhe der Leiste ohne Sicherheitsabstand unten. */
-export const AREA_BAR_HEIGHT = 78;
+export const AREA_BAR_HEIGHT = 64;
 
 export function AreaBar({
   active,
@@ -30,7 +29,7 @@ export function AreaBar({
   dots?: Partial<Record<AreaKey, boolean>>;
   onSelect: (key: AreaKey) => void;
 }) {
-  const { colors, scheme } = useAppTheme();
+  const { colors } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -74,14 +73,6 @@ export function AreaBar({
               <View>
                 <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
               </View>
-              <AppText
-                variant="caption"
-                color={selected ? (scheme === "dark" ? area.fill : area.sign) : colors.textMuted}
-                style={selected && styles.selectedLabel}
-                numberOfLines={1}
-              >
-                {label}
-              </AppText>
             </View>
             {dots?.[key] && <View style={styles.dot} />}
           </Pressable>
@@ -95,11 +86,10 @@ const styles = StyleSheet.create({
   bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "center" },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: 0 },
   tab: {
-    minWidth: 84,
+    minWidth: 72,
     alignItems: "center",
-    gap: 2,
-    paddingTop: 6,
-    paddingBottom: 5,
+    gap: 0,
+    paddingVertical: 8,
     paddingHorizontal: Spacing.sm,
     borderRadius: 18,
     borderWidth: 2,
