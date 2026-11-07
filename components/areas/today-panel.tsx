@@ -10,6 +10,7 @@ import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { useShell } from "@/components/nav/shell-context";
 import { AppText } from "@/components/ui/app-text";
 import { ChestIcon } from "@/components/ui/chest-icon";
+import { ChestOpening } from "@/components/ui/chest-opening";
 import { cardEdge } from "@/components/ui/chunky";
 import { press, tapHaptic } from "@/components/ui/press";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -37,6 +38,7 @@ export function MissionCard({
   chestsWaiting,
   chest,
   onOpenChest,
+  onClearChest,
 }: {
   day: MissionDay;
   dailyDone: boolean;
@@ -44,14 +46,16 @@ export function MissionCard({
   chestsWaiting: number;
   chest: ChestResult | null;
   onOpenChest: () => Promise<void>;
+  /** Altes Ergebnis vergessen, bevor eine neue Truhe aufgeht. */
+  onClearChest: () => void;
 }) {
   const { t } = useI18n();
   const shell = useShell();
   const { colors } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const next = chest ? nextChestTrail(chest.opened) : null;
-  // Öffnen: Truhe wackelt kurz, dann springt das Ergebnis auf
-  const [wobble] = useState(() => new Animated.Value(0));
+  // Öffnen: großes Truhen-Fenster (components/ui/chest-opening.tsx)
+  const [opening, setOpening] = useState(false);
   const [pop] = useState(() => new Animated.Value(1));
   /** Gesperrt, bis das Ergebnis kurz zu sehen war – sonst überdeckt ein Doppeltipp die neue Spur. */
   const busy = useRef(false);
@@ -69,20 +73,15 @@ export function MissionCard({
     if (busy.current) return;
     busy.current = true;
     tapHaptic();
-    const open = () =>
-      onOpenChest().finally(() => {
-        setTimeout(() => {
-          busy.current = false;
-        }, 1500);
-      });
-    if (reduceMotion) {
-      open();
-      return;
-    }
-    const step = (to: number) => Animated.timing(wobble, { toValue: to, duration: 70, useNativeDriver: true });
-    Animated.sequence([step(1), step(-1), step(1), step(-1), step(0)]).start(() => {
-      open();
-    });
+    onClearChest();
+    setOpening(true);
+  };
+  const closeChest = () => {
+    setOpening(false);
+    // Kurz sperren, damit ein Doppeltipp nicht gleich die nächste Truhe aufmacht
+    setTimeout(() => {
+      busy.current = false;
+    }, 600);
   };
   const opened = chest?.opened;
   // Vor dem Zeichnen klein setzen – sonst blitzt die Karte einen Frame groß auf
@@ -180,12 +179,7 @@ export function MissionCard({
         </AppText>
       )}
       {chestsWaiting > 0 && (
-        <Animated.View
-          style={[
-            styles.chestWrap,
-            { transform: [{ rotate: wobble.interpolate({ inputRange: [-1, 1], outputRange: ["-8deg", "8deg"] }) }] },
-          ]}
-        >
+        <View style={styles.chestWrap}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("chest.open")}
@@ -197,8 +191,18 @@ export function MissionCard({
               {chestsWaiting > 1 ? ` (${chestsWaiting})` : ""}
             </AppText>
           </Pressable>
-        </Animated.View>
+        </View>
       )}
+      <ChestOpening
+        visible={opening}
+        result={chest}
+        onOpen={onOpenChest}
+        onClose={closeChest}
+        onChoose={() => {
+          closeChest();
+          router.push("/belohnungen");
+        }}
+      />
       {chest && (
         <Animated.View
           style={[styles.chestResult, { backgroundColor: colors.goldSoft, transform: [{ scale: pop }] }]}
@@ -272,6 +276,7 @@ export function TodayPanel() {
       dailyDone={dailyDone}
       chestsWaiting={chests.earned - chests.opened}
       chest={chest}
+      onClearChest={() => setChest(null)}
       onOpenChest={() =>
         openChest()
           .then((res) => {
