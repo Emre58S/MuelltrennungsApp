@@ -37,14 +37,14 @@ export function NavIcon({
       accessibilityElementsHidden
       style={[
         styles.disc,
-        { backgroundColor: area.fill, opacity: selected ? 1 : 0.6, transform: [{ rotate }, { scale: selected ? 1.1 : 1 }] },
+        { backgroundColor: area.fill, opacity: selected ? 1 : 0.6, transform: [{ rotate }, { scale: selected ? 1.05 : 1 }] },
       ]}
     >
-      <Feather name={area.icon} size={20} color={area.on} />
+      <Feather name={area.icon} size={22} color={area.on} />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  disc: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+  disc: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
 });

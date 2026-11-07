@@ -15,7 +15,7 @@ import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
 /** Höhe der Leiste ohne Sicherheitsabstand unten. */
-export const AREA_BAR_HEIGHT = 70;
+export const AREA_BAR_HEIGHT = 78;
 
 export function AreaBar({
   active,
@@ -68,7 +68,7 @@ export function AreaBar({
             <View
               style={[
                 styles.tab,
-                selected && { backgroundColor: area.fill + "26", borderColor: area.fill, transform: [{ translateY: -6 }] },
+                selected && { backgroundColor: area.fill + "26", borderColor: area.fill },
               ]}
             >
               <View>
@@ -92,8 +92,8 @@ export function AreaBar({
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "flex-end" },
-  item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: Spacing.xs },
+  bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "center" },
+  item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: 0 },
   tab: {
     minWidth: 84,
     alignItems: "center",
