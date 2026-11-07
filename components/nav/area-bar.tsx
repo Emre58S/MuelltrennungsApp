@@ -73,8 +73,8 @@ export function AreaBar({
               <View>
                 <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
               </View>
+              {dots?.[key] && <View style={styles.dot} />}
             </View>
-            {dots?.[key] && <View style={styles.dot} />}
           </Pressable>
         );
       })}
@@ -97,8 +97,8 @@ const styles = StyleSheet.create({
   },
   dot: {
     position: "absolute",
-    top: 4,
-    right: "26%",
+    top: 2,
+    right: 14,
     width: 12,
     height: 12,
     borderRadius: 6,

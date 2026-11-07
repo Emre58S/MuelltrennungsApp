@@ -11,6 +11,7 @@
 // Alle 3 Missionen → Truhe, die man auf der Missionskarte öffnet (R3c).
 
 import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { type ComponentRef, Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -24,7 +25,6 @@ import {
   type NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
-  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -150,7 +150,6 @@ function startStation(station: Station) {
 
 export default function KampagneScreen() {
   const { t } = useI18n();
-  const { height } = useWindowDimensions();
   const [stars, setStars] = useState<CampaignStars | null>(null);
   /** Tagesaufgabe von heute (undefined = noch nicht geladen, null = offen). */
   const [daily, setDaily] = useState<DailyResult | null | undefined>(undefined);
@@ -176,19 +175,12 @@ export default function KampagneScreen() {
     lastTop.current = shell.topSignal.pfad;
     scroll.current?.scrollTo({ y: 0, animated: false });
   }, [shell.topSignal.pfad]);
-  /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
+  /** Lage der Welten im Pfad – für das Band oben (Welt, in der man gerade scrollt). */
   const worldY = useRef<Record<number, number>>({});
-  const scrolled = useRef(false);
-  const firstFocus = useRef(true);
-  /** Lage der aktuellen Station in ihrer Welt (Reihenfolge der onLayout-Aufrufe ist offen). */
-  const currentAt = useRef<{ world: number; y: number } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      // Beim ersten Öffnen (Start der App) oben bleiben; erst nach einer Runde zur aktuellen Station
-      scrolled.current = firstFocus.current;
-      firstFocus.current = false;
       // Bestandsspieler: einmalig Welten nach Level vorab freischalten
       grantCampaignHeadStart()
         .then((granted) => granted && active && setHeadStart(true))
@@ -222,15 +214,6 @@ export default function KampagneScreen() {
   );
 
   const current = stars ? currentStation(stars) : null;
-  /** Aktuelle Station liegt tief im Pfad → so scrollen, dass sie gut sichtbar ist. */
-  const scrollToCurrent = () => {
-    const at = currentAt.current;
-    const top = at ? worldY.current[at.world] : undefined;
-    if (scrolled.current || !at || top === undefined) return;
-    scrolled.current = true;
-    const target = top + at.y - height * 0.4;
-    if (target > 0) scroll.current?.scrollTo({ y: target, animated: false });
-  };
 
   const shownIndex =
     shownWorld ?? WORLDS.find((w) => current && w.stations.some((st) => st.id === current.id))?.index ?? WORLDS[0].index;
@@ -317,7 +300,6 @@ export default function KampagneScreen() {
               style={styles.worldBox}
               onLayout={(e) => {
                 worldY.current[world.index] = e.nativeEvent.layout.y;
-                scrollToCurrent();
               }}
             >
               <WorldScenery world={world} />
@@ -333,10 +315,6 @@ export default function KampagneScreen() {
                     stars={stars[station.id] ?? 0}
                     unlocked={isUnlocked(stars, station.id)}
                     isCurrent={station.id === current.id}
-                    onCurrentLayout={(y) => {
-                      currentAt.current = { world: world.index, y };
-                      scrollToCurrent();
-                    }}
                   />
                 </Fragment>
               ))}
@@ -479,29 +457,60 @@ function WorldHeader({ world }: { world: World }) {
 function DailyStation({ result }: { result: DailyResult | null }) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
+  const { reduceMotion } = useAppSettings();
+  // Offen: ein leiser Ring um das Symbol (atmet langsam) – dezent, aber man sieht: hier wartet etwas
+  const [ring] = useState(() => new Animated.Value(0));
+  const open = !result;
+  useEffect(() => {
+    if (!open || reduceMotion) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ring, { toValue: 1, duration: 1600, useNativeDriver: true }),
+        Animated.timing(ring, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => {
+      loop.stop();
+      ring.setValue(0);
+    };
+  }, [open, reduceMotion, ring]);
   const status = result
     ? t("home.dailyDone", { correct: result.correct, total: result.total, score: result.score })
     : t("home.dailyNew");
   return (
     <Chunky
-      color={result ? colors.surface : DAILY_GOLD}
-      edge={result ? colors.border : "#B58300"}
-      depth={6}
+      color={colors.surface}
+      edge={result ? colors.border : colors.gold}
+      depth={4}
       radius={Radius.xl}
       label={`${t("home.daily")}, ${status}${result ? `, ${t("campaign.dailyTomorrow")}` : ""}`}
       onPress={startDaily}
       style={styles.dailyWrap}
       faceStyle={styles.dailyFace}
     >
-      <View style={[styles.dailyDot, { backgroundColor: result ? colors.goldSoft : "#FFFFFF55" }]}>
-        <AppText style={styles.trickEmoji}>{result ? "✓" : "📅"}</AppText>
-        {!result && <View style={styles.chipDot} />}
+      <View style={styles.dailyIconWrap}>
+        {open && !reduceMotion && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.dailyRing,
+              {
+                borderColor: colors.gold,
+                opacity: ring.interpolate({ inputRange: [0, 1], outputRange: [0.7, 0] }),
+                transform: [{ scale: ring.interpolate({ inputRange: [0, 1], outputRange: [1, 1.7] }) }],
+              },
+            ]}
+          />
+        )}
+        <View style={[styles.dailyDot, { backgroundColor: result ? colors.surfaceAlt : DAILY_GOLD }]}>
+          <AppText style={styles.trickEmoji}>{result ? "✓" : "📅"}</AppText>
+          {open && <View style={styles.chipDot} />}
+        </View>
       </View>
       <View style={styles.flex}>
-        <AppText variant="label" color={result ? colors.text : "#2B1D00"}>
-          {t("home.daily")}
-        </AppText>
-        <AppText variant="caption" color={result ? colors.textSecondary : "#2B1D00"}>
+        <AppText variant="label">{t("home.daily")}</AppText>
+        <AppText variant="caption" tone="textSecondary">
           {status}
         </AppText>
         {result && (
@@ -510,6 +519,7 @@ function DailyStation({ result }: { result: DailyResult | null }) {
           </AppText>
         )}
       </View>
+      {open && <Feather name="chevron-right" size={22} color={colors.gold} />}
     </Chunky>
   );
 }
@@ -628,7 +638,6 @@ function StationDot({
   stars,
   unlocked,
   isCurrent,
-  onCurrentLayout,
 }: {
   station: Station;
   offset: number;
@@ -640,7 +649,6 @@ function StationDot({
   stars: number;
   unlocked: boolean;
   isCurrent: boolean;
-  onCurrentLayout: (y: number) => void;
 }) {
   const { t } = useI18n();
   const { colors } = useAppTheme();
@@ -713,7 +721,6 @@ function StationDot({
   return (
     <View
       style={[styles.stationWrap, { transform: [{ translateX: offset }] }]}
-      onLayout={isCurrent ? (e) => onCurrentLayout(e.nativeEvent.layout.y) : undefined}
     >
       {/* drei Pünktchen als Weg zur Station */}
       <View style={styles.trail}>
@@ -859,7 +866,9 @@ const styles = StyleSheet.create({
   bossFace: { width: DOT + 12, height: DOT + 12 },
   headStart: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5 },
   dailyWrap: { alignSelf: "stretch" },
-  dailyFace: { flexDirection: "row", alignSelf: "stretch", justifyContent: "flex-start", gap: Spacing.sm, minHeight: 68, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md },
+  dailyFace: { flexDirection: "row", alignItems: "center", alignSelf: "stretch", justifyContent: "flex-start", gap: Spacing.sm, minHeight: 64, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md },
+  dailyIconWrap: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  dailyRing: { position: "absolute", width: 44, height: 44, borderRadius: 22, borderWidth: 2 },
   dailyDot: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   /** Roter Punkt „hier wartet etwas“ (Tagesaufgabe offen). */
   chipDot: {
