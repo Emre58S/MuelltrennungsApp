@@ -1,12 +1,13 @@
 // Datei: components/nav/area-bar.tsx
 //
-// Feste untere Leiste: Pfad · Online · Regal, je mit eigenem Symbol
-// (Karte, Globus, Buch) in der Bereichsfarbe. Der gewählte Bereich ist farbig und trägt oben einen Balken.
+// Feste untere Leiste: Pfad · Online · Regal, je mit Tonnen-Icon in der
+// Bereichsfarbe. Der gewählte Bereich ist farbig und trägt oben einen Balken.
 
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { NavIcon } from "@/components/nav/nav-icon";
+import { AppText } from "@/components/ui/app-text";
+import { BinIcon } from "@/components/ui/bin-icon";
 import { tapHaptic } from "@/components/ui/press";
 import { AREA_ORDER, AREAS, type AreaKey } from "@/constants/areas";
 import { Spacing } from "@/constants/theme";
@@ -14,7 +15,7 @@ import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
 /** Höhe der Leiste ohne Sicherheitsabstand unten. */
-export const AREA_BAR_HEIGHT = 72;
+export const AREA_BAR_HEIGHT = 70;
 
 export function AreaBar({
   active,
@@ -29,7 +30,7 @@ export function AreaBar({
   dots?: Partial<Record<AreaKey, boolean>>;
   onSelect: (key: AreaKey) => void;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, scheme } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -42,7 +43,7 @@ export function AreaBar({
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
           height: AREA_BAR_HEIGHT + insets.bottom,
-          // Kein Abstand unten: der Streifen reicht bis zum Rand, die Symbole sollen in seiner Mitte liegen
+          paddingBottom: insets.bottom,
         },
       ]}
     >
@@ -67,14 +68,22 @@ export function AreaBar({
             <View
               style={[
                 styles.tab,
-                selected && { backgroundColor: area.fill + "26", borderColor: area.fill },
+                selected && { backgroundColor: area.fill + "26", borderColor: area.fill, transform: [{ translateY: -6 }] },
               ]}
             >
-              <View>
-                <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
+              <View style={{ opacity: selected ? 1 : 0.55, transform: [{ scale: selected ? 1.18 : 1 }] }}>
+                <BinIcon color={area.fill} size={30} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
               </View>
-              {dots?.[key] && <View style={styles.dot} />}
+              <AppText
+                variant="caption"
+                color={selected ? (scheme === "dark" ? area.fill : area.sign) : colors.textMuted}
+                style={selected && styles.selectedLabel}
+                numberOfLines={1}
+              >
+                {label}
+              </AppText>
             </View>
+            {dots?.[key] && <View style={styles.dot} />}
           </Pressable>
         );
       })}
@@ -83,13 +92,14 @@ export function AreaBar({
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "center" },
-  item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: 0 },
+  bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "flex-end" },
+  item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: Spacing.xs },
   tab: {
-    minWidth: 80,
+    minWidth: 84,
     alignItems: "center",
-    gap: 0,
-    paddingVertical: 6,
+    gap: 2,
+    paddingTop: 6,
+    paddingBottom: 5,
     paddingHorizontal: Spacing.sm,
     borderRadius: 18,
     borderWidth: 2,
@@ -97,8 +107,8 @@ const styles = StyleSheet.create({
   },
   dot: {
     position: "absolute",
-    top: 2,
-    right: 14,
+    top: 4,
+    right: "26%",
     width: 12,
     height: 12,
     borderRadius: 6,
