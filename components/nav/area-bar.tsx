@@ -78,7 +78,7 @@ export function AreaBar({
 const styles = StyleSheet.create({
   bar: { flexDirection: "row" },
   // Das ganze Feld (bis zum unteren Rand) trägt die Farbe; das Symbol liegt in der Mitte
-  item: { flex: 1, alignItems: "center", justifyContent: "center", borderTopWidth: 3 },
+  item: { flex: 1, alignItems: "center", justifyContent: "center", borderTopWidth: 4 },
   dot: {
     position: "absolute",
     top: 12,

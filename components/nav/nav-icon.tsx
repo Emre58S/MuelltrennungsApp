@@ -35,9 +35,9 @@ export function NavIcon({
     <Animated.View
       importantForAccessibility="no"
       accessibilityElementsHidden
-      style={[styles.disc, { opacity: selected ? 1 : 0.65, transform: [{ rotate }, { scale: selected ? 1.12 : 1 }] }]}
+      style={[styles.disc, { opacity: selected ? 1 : 0.85, transform: [{ rotate }, { scale: selected ? 1.12 : 1 }] }]}
     >
-      <Feather name={area.icon} size={30} color={area.on} />
+      <Feather name={area.icon} size={30} color={selected ? area.on : "#FFFFFF"} />
     </Animated.View>
   );
 }
