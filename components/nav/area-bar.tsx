@@ -14,7 +14,7 @@ import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
 /** Höhe der Leiste ohne Sicherheitsabstand unten. */
-export const AREA_BAR_HEIGHT = 64;
+export const AREA_BAR_HEIGHT = 72;
 
 export function AreaBar({
   active,
@@ -42,7 +42,7 @@ export function AreaBar({
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
           height: AREA_BAR_HEIGHT + insets.bottom,
-          paddingBottom: insets.bottom,
+          // Kein Abstand unten: der Streifen reicht bis zum Rand, die Symbole sollen in seiner Mitte liegen
         },
       ]}
     >
@@ -86,10 +86,10 @@ const styles = StyleSheet.create({
   bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "center" },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: 0 },
   tab: {
-    minWidth: 72,
+    minWidth: 80,
     alignItems: "center",
     gap: 0,
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: Spacing.sm,
     borderRadius: 18,
     borderWidth: 2,

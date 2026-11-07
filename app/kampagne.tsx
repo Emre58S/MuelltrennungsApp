@@ -179,13 +179,16 @@ export default function KampagneScreen() {
   /** Lage der Welten im Pfad – zum Hinscrollen zur aktuellen Station. */
   const worldY = useRef<Record<number, number>>({});
   const scrolled = useRef(false);
+  const firstFocus = useRef(true);
   /** Lage der aktuellen Station in ihrer Welt (Reihenfolge der onLayout-Aufrufe ist offen). */
   const currentAt = useRef<{ world: number; y: number } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      scrolled.current = false;
+      // Beim ersten Öffnen (Start der App) oben bleiben; erst nach einer Runde zur aktuellen Station
+      scrolled.current = firstFocus.current;
+      firstFocus.current = false;
       // Bestandsspieler: einmalig Welten nach Level vorab freischalten
       grantCampaignHeadStart()
         .then((granted) => granted && active && setHeadStart(true))
@@ -245,20 +248,6 @@ export default function KampagneScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      {/* Die vier Spielarten stehen fest oben, über dem Welt-Band */}
-      <View style={styles.tiles}>
-        <PlayTile kind="endless" label={t("campaign.freePlay")} onPress={() => stars && startFreePlay(stars)} />
-        {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
-          <PlayTile
-            key={m.mode}
-            kind={m.mode === "time" ? "time" : "survival"}
-            label={t(m.titleKey)}
-            onPress={() => startGame(m.mode)}
-          />
-        ))}
-        <PlayTile kind="tricks" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
-      </View>
-
       {stars && current && <WorldBanner key={bannerWorld.index} world={bannerWorld} />}
       <ScrollView
         ref={scroll}
@@ -269,6 +258,20 @@ export default function KampagneScreen() {
           { paddingBottom: (shell.inShell ? shell.bottomInset : insets.bottom) + Spacing.lg },
         ]}
       >
+        {/* Die vier Spielarten: gleich große Kacheln, scrollen mit nach oben weg */}
+        <View style={styles.tiles}>
+          <PlayTile kind="endless" label={t("campaign.freePlay")} onPress={() => stars && startFreePlay(stars)} />
+          {MENU_MODES.filter((m) => m.mode !== "endless").map((m) => (
+            <PlayTile
+              key={m.mode}
+              kind={m.mode === "time" ? "time" : "survival"}
+              label={t(m.titleKey)}
+              onPress={() => startGame(m.mode)}
+            />
+          ))}
+          <PlayTile kind="tricks" label={t("home.tricks")} onPress={() => router.push("/tricks")} />
+        </View>
+
         <View style={styles.topRow}>
         {daily !== undefined && (
           <View style={styles.topMain}>
@@ -815,10 +818,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: Spacing.md + 4, paddingTop: Spacing.sm, gap: Spacing.md },
   bold: { fontWeight: "700" },
-  tiles: { flexDirection: "row", gap: Spacing.sm, paddingHorizontal: Spacing.md + 4, paddingTop: Spacing.sm, paddingBottom: Spacing.sm },
+  tiles: { flexDirection: "row", gap: Spacing.sm },
   tile: { flex: 1 },
-  tileFace: { minHeight: 64, gap: 0, paddingVertical: 6, paddingHorizontal: 4 },
-  tileEmoji: { fontSize: 22, lineHeight: 28 },
+  // Feste Höhe: auch ein zweizeiliger Name („Gegen die Zeit“) macht die Kachel nicht größer
+  tileFace: { height: 84, gap: 0, paddingVertical: 6, paddingHorizontal: 4, justifyContent: "center" },
+  tileEmoji: { fontSize: 26, lineHeight: 32 },
   tileText: { fontWeight: "700" },
   banner: {
     paddingHorizontal: Spacing.md + 4,

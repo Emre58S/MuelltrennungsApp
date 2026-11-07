@@ -40,11 +40,11 @@ export function NavIcon({
         { backgroundColor: area.fill, opacity: selected ? 1 : 0.6, transform: [{ rotate }, { scale: selected ? 1.05 : 1 }] },
       ]}
     >
-      <Feather name={area.icon} size={22} color={area.on} />
+      <Feather name={area.icon} size={26} color={area.on} />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  disc: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
+  disc: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
 });
