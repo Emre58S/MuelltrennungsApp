@@ -391,10 +391,10 @@ const styles = StyleSheet.create({
   emptyCard: { alignItems: "center", gap: Spacing.sm, padding: Spacing.lg, borderRadius: Radius.xl, borderWidth: 1 },
   emptyEmoji: { fontSize: 44, lineHeight: 54 },
   friendCards: { gap: Spacing.sm },
-  pills: { flexDirection: "row", gap: 6, marginTop: 4 },
+  pills: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 4 },
   pill: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.pill },
   playFace: { flexDirection: "row", gap: 6, minHeight: 40, paddingHorizontal: Spacing.md },
-  removeBtn: { width: 36, height: 36, borderRadius: 18, opacity: 0.7 },
+  removeBtn: { width: 36, height: 36, borderRadius: 18, opacity: 0.85 },
   friendCard: {
     flexDirection: "row",
     alignItems: "center",
