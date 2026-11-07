@@ -391,7 +391,8 @@ const styles = StyleSheet.create({
   pills: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 4 },
   pill: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.pill },
   playFace: { flexDirection: "row", minHeight: 44, minWidth: 56, justifyContent: "center", paddingHorizontal: Spacing.md },
-  removeBtn: { width: 36, height: 36, borderRadius: 18, opacity: 0.85 },
+  // Gleich groß wie das Play-Gesicht (44); 4 px nach oben, weil der Play-Knopf unten einen Rand von 4 trägt
+  removeBtn: { width: 44, height: 44, borderRadius: 22, opacity: 0.85, marginBottom: 4 },
   friendCard: {
     flexDirection: "row",
     alignItems: "center",

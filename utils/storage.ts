@@ -833,9 +833,3 @@ export function getSurvivalBest(): Promise<string | null> {
 export function saveSurvivalBest(run: string): Promise<void> {
   return enqueue(() => setItem(StorageKeys.SURVIVAL_BEST, run));
 }
-
-/** TEST (vorübergehend): legt eine zusätzliche Truhe zum Öffnen bereit. */
-export async function giveTestChest(): Promise<void> {
-  const { opened } = await getChests();
-  await setNumber(StorageKeys.CHESTS_EARNED, opened + 1);
-}

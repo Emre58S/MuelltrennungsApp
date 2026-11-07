@@ -148,21 +148,23 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         // Prospekt: dreifach gefaltetes Faltblatt (Zickzack) in Türkis – anders als der gelbe Werbeprospekt
         return (
           <group rotation={[0.85, -0.25, 0.05]}>
-            <group position={[-0.17, 0, 0]} rotation={[0, 0.5, 0]}>
-              <Box size={[0.17, 0.012, 0.58]} color="#F8FAFC" />
+            {/* Auflagen liegen 3 mm über dem Blatt (kein Flackern durch gleiche Flächen); die Seitenteile
+                knicken um die lange Achse (Zickzack), statt sich mit dem Mittelteil zu überlappen */}
+            <group position={[-0.095, 0, 0]} rotation={[0, 0, -0.4]}>
+              <Box size={[0.17, 0.012, 0.58]} pos={[-0.085, 0, 0]} color="#F8FAFC" />
               {[-0.16, -0.08, 0, 0.08].map((z) => (
-                <Box key={z} size={[0.12, 0.014, 0.025]} pos={[0, 0.002, z]} color="#94A3B8" />
+                <Box key={z} size={[0.12, 0.004, 0.025]} pos={[-0.085, 0.009, z]} color="#94A3B8" />
               ))}
             </group>
             <Box size={[0.19, 0.012, 0.58]} color="#0F766E" />
-            <Cyl r={0.055} h={0.014} pos={[0, 0.003, -0.14]} color="#FDE047" />
-            <Box size={[0.13, 0.014, 0.03]} pos={[0, 0.003, 0.08]} color="#CCFBF1" />
-            <Box size={[0.13, 0.014, 0.03]} pos={[0, 0.003, 0.15]} color="#CCFBF1" />
-            <group position={[0.17, 0, 0]} rotation={[0, -0.5, 0]}>
-              <Box size={[0.17, 0.012, 0.58]} color="#CCFBF1" />
-              <Box size={[0.12, 0.014, 0.15]} pos={[0, 0.002, -0.17]} color="#0F766E" />
+            <Cyl r={0.055} h={0.004} pos={[0, 0.009, -0.14]} color="#FDE047" />
+            <Box size={[0.13, 0.004, 0.03]} pos={[0, 0.009, 0.08]} color="#CCFBF1" />
+            <Box size={[0.13, 0.004, 0.03]} pos={[0, 0.009, 0.15]} color="#CCFBF1" />
+            <group position={[0.095, 0, 0]} rotation={[0, 0, -0.4]}>
+              <Box size={[0.17, 0.012, 0.58]} pos={[0.085, 0, 0]} color="#CCFBF1" />
+              <Box size={[0.12, 0.004, 0.15]} pos={[0.085, 0.009, -0.17]} color="#0F766E" />
               {[0, 0.08, 0.16].map((z) => (
-                <Box key={z} size={[0.12, 0.014, 0.025]} pos={[0, 0.002, z]} color="#5EAFA6" />
+                <Box key={z} size={[0.12, 0.004, 0.025]} pos={[0.085, 0.009, z]} color="#5EAFA6" />
               ))}
             </group>
           </group>
@@ -173,7 +175,7 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         return (
           <group rotation={[0.85, -0.2, 0.08]}>
             <Box size={[0.5, 0.012, 0.6]} color="#FDE047" />
-            <Box size={[0.49, 0.014, 0.098]} pos={[0, 0.002, -0.25]} color="#DC2626" />
+            <Box size={[0.49, 0.004, 0.098]} pos={[0, 0.009, -0.25]} color="#DC2626" />
             {(
               [
                 [-0.12, -0.08, "#16A34A"],
@@ -183,7 +185,7 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
               ] as [number, number, string][]
             ).map(([x, z, col]) => (
               <group key={`${x}${z}`}>
-                <Box size={[0.17, 0.014, 0.15]} pos={[x, 0.002, z]} color={col} />
+                <Box size={[0.17, 0.004, 0.15]} pos={[x, 0.009, z]} color={col} />
               </group>
             ))}
           </group>
