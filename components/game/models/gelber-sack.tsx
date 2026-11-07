@@ -7,48 +7,66 @@ import { type V3 } from "./shared";
 export function renderGelberSackModel(key: string, name: string) {
   switch (key) {
     case "foil":
-      // Gebrauchte Alufolie: zerknittertes, helles Silberblatt mit Glanzkanten, darauf ein Knäuel –
-      // zwei Silbertöne und weiße Glanzstreifen, damit es nach Folie aussieht und nicht nach einem Stein
+      // Gebrauchte Alufolie: ein zerknittertes, rechteckiges Blatt aus vielen schräg liegenden
+      // Facetten (hell/dunkel im Wechsel, daher glänzt es wie Folie – ein grauer Klumpen sah nach Stein aus),
+      // dazu ein kleines Knäuel und weiße Glanzkanten
       return (
-        <group rotation={[0.6, -0.3, 0.1]}>
-          {/* flaches, welliges Blatt (Dicke ≈ 0,3 · 0,22 = 0,066) */}
-          <Part
-            geo={G.crumple(0.3, 0.8, 5, 2)}
-            scale={[1.25, 0.22, 0.95]}
-            flat
-            color="#CBD3DE"
-            roughness={0.35}
-            metalness={0.5}
-          />
-          {/* Knäuel liegt auf dem Blatt (Unterseite taucht ins Blatt ein) */}
-          <Part
-            geo={G.crumple(0.17, 0.95, 11, 2)}
-            pos={[0.04, 0.13, 0.02]}
-            flat
-            color="#F6F8FB"
-            roughness={0.35}
-            metalness={0.5}
-          />
-          {/* Glanzkanten auf Blatt und Knäuel (Lambert kennt keinen Glanz) */}
+        <group rotation={[0.9, -0.25, 0.08]}>
           {(
             [
-              [-0.18, 0.045, 0.1, 0.5],
-              [0.2, 0.05, -0.12, -0.4],
-              [0.02, 0.27, 0.0, 0.3],
-              [-0.3, 0.05, -0.05, 1.1],
-              [0.28, 0.05, 0.12, 0.2],
-              [0.1, 0.22, 0.08, -0.7],
+              // x, z, Kippung x, Kippung z, Farbe
+              [-0.3, -0.15, 0.25, -0.2, "#E9EEF5"],
+              [-0.1, -0.17, -0.2, 0.15, "#C8D0DC"],
+              [0.1, -0.14, 0.3, 0.25, "#F7F9FC"],
+              [0.3, -0.16, -0.25, -0.2, "#C9D1DC"],
+              [-0.3, 0.05, -0.2, 0.2, "#D2D9E4"],
+              [-0.1, 0.07, 0.25, -0.25, "#F4F7FB"],
+              [0.1, 0.06, -0.3, -0.1, "#C2CBD8"],
+              [0.3, 0.05, 0.2, 0.3, "#E4EAF2"],
+              [-0.28, 0.25, 0.3, 0.15, "#F1F4F9"],
+              [-0.08, 0.27, -0.25, -0.2, "#CBD3DF"],
+              [0.12, 0.26, 0.2, 0.25, "#DCE3EC"],
+              [0.31, 0.25, -0.2, 0.1, "#F6F8FB"],
+            ] as [number, number, number, number, string][]
+          ).map(([x, z, rx, rz, col], i) => (
+            <Part
+              key={i}
+              geo={G.box(0.23, 0.01, 0.21, 0.002)}
+              pos={[x, 0.01 * (i % 3), z - 0.05]}
+              rot={[rx, 0, rz]}
+              flat
+              color={col}
+              roughness={0.3}
+              metalness={0.2}
+            />
+          ))}
+          {/* kleines Knäuel in der Ecke */}
+          <Part
+            geo={G.crumple(0.11, 1.0, 11, 1)}
+            pos={[0.3, 0.12, 0.3]}
+            flat
+            color="#F2F5FA"
+            roughness={0.3}
+            metalness={0.2}
+          />
+          {/* Glanzkanten */}
+          {(
+            [
+              [-0.2, 0.03, -0.1, 0.5],
+              [0.2, 0.04, 0.0, -0.4],
+              [0.0, 0.04, 0.2, 0.3],
+              [-0.25, 0.04, 0.2, 1.1],
             ] as [number, number, number, number][]
           ).map(([x, y, z, r], i) => (
             <Part
-              key={i}
-              geo={G.box(0.2, 0.004, 0.03, 0.001)}
+              key={`g${i}`}
+              geo={G.box(0.22, 0.004, 0.025, 0.001)}
               pos={[x, y, z]}
-              rot={[0.3, r, 0.1]}
+              rot={[0.2, r, 0.1]}
               basic
               noDepthWrite
               color="#FFFFFF"
-              opacity={0.85}
+              opacity={0.9}
             />
           ))}
         </group>
@@ -177,7 +195,7 @@ export function renderGelberSackModel(key: string, name: string) {
           <Part
             geo={G.cyl(0.19, 0.19, 0.01, 20)}
             pos={[0, 0.255, 0]}
-            color="#AEB8C6"
+            color="#C2CBD8"
             roughness={0.35}
             metalness={0.5}
           />
@@ -594,11 +612,16 @@ export function renderGelberSackModel(key: string, name: string) {
               geo={G.ball(0.08, 10, 6)}
               pos={[x, y, 0]}
               rot={[0.3, 0, rz]}
-              scale={[1, 0.8, 0.22]}
-              color="#F6C445"
+              scale={[1.15, 0.9, 0.24]}
+              color="#F8CC4A"
               roughness={0.7}
             />
           ))}
+          {/* weißes Band quer über die Tüte (Vorderseite z = 0,07) */}
+          <Part geo={G.box(0.46, 0.06, 0.004, 0.001)} pos={[0, -0.2, 0.071]} basic color="#FFF7ED" />
+          {/* Knitterkanten: helle Streifen links (die Tüte glänzt) */}
+          <Part geo={G.box(0.02, 0.4, 0.004, 0.001)} pos={[-0.17, 0.05, 0.072]} basic noDepthWrite color="#FFFFFF" opacity={0.45} />
+          <Part geo={G.box(0.012, 0.28, 0.004, 0.001)} pos={[0.17, 0.0, 0.072]} basic noDepthWrite color="#FFFFFF" opacity={0.3} />
           {/* Chip-Bild vorn */}
           <Part geo={G.circle(0.12, 24)} pos={[0, 0.0, 0.072]} basic color="#FACC15" />
           <Part geo={G.circle(0.07, 20)} pos={[0, 0.0, 0.074]} basic color="#F97316" />
@@ -707,40 +730,40 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "butter":
-      // Aufgeklapptes Butterpapier (Goldfolie, Ränder hochgebogen) mit einem
-      // Butterrest – zur Kamera gekippt, damit man es sieht
+      // Aufgeklapptes Butterpapier (Goldfolie, Ränder hochgebogen) mit einem Butterrest –
+      // kräftig gelb, ein Papierflügel schlägt sich über die Ecke, vorn das blau-weiße Etikett
       return (
         <group rotation={[0.75, 0.25, -0.1]}>
-          <Part
-            geo={G.box(0.56, 0.012, 0.4, 0.004)}
-            color="#E3BE55"
-            roughness={0.35}
-          />
+          <Part geo={G.box(0.58, 0.012, 0.42, 0.004)} color="#E6BF4C" roughness={0.35} />
           {[-1, 1].map((sg) => (
             <Part
               key={sg}
-              geo={G.box(0.56, 0.012, 0.1, 0.004)}
-              pos={[0, 0.03, sg * 0.22]}
+              geo={G.box(0.58, 0.012, 0.1, 0.004)}
+              pos={[0, 0.03, sg * 0.23]}
               rot={[sg * -0.7, 0, 0]}
-              color="#D9AF45"
+              color="#D4A93A"
               roughness={0.35}
             />
           ))}
-          {/* Aufdruck: blaues Feld mit weißem Streifen */}
-          <Part geo={G.box(0.2, 0.004, 0.14, 0.001)} pos={[-0.15, 0.008, 0.06]} color="#2563EB" roughness={0.5} />
-          <Part geo={G.box(0.2, 0.005, 0.03, 0.001)} pos={[-0.15, 0.009, 0.06]} color="#F8FAFC" roughness={0.5} />
-          {/* Butterrest */}
+          {/* Etikett: blaues Feld mit zwei weißen Streifen */}
+          <Part geo={G.box(0.24, 0.004, 0.16, 0.001)} pos={[-0.16, 0.008, 0.07]} color="#1D4ED8" roughness={0.5} />
+          <Part geo={G.box(0.24, 0.005, 0.03, 0.001)} pos={[-0.16, 0.009, 0.1]} color="#F8FAFC" roughness={0.5} />
+          <Part geo={G.box(0.24, 0.005, 0.03, 0.001)} pos={[-0.16, 0.009, 0.03]} color="#F8FAFC" roughness={0.5} />
+          {/* Butterrest: zwei Lagen, oben hell, unten dunkler, eine abgeschnittene Kante */}
+          <Part geo={G.box(0.22, 0.05, 0.16, 0.015)} pos={[0.12, 0.03, -0.04]} rot={[0, 0.2, 0]} color="#F5C93A" roughness={0.6} />
+          <Part geo={G.box(0.21, 0.05, 0.15, 0.015)} pos={[0.12, 0.078, -0.04]} rot={[0, 0.2, 0]} color="#FFE27A" roughness={0.6} />
+          {/* Papierflügel, der sich über die linke Butterecke legt */}
           <Part
-            geo={G.box(0.2, 0.09, 0.15, 0.015)}
-            pos={[0.1, 0.05, -0.02]}
-            rot={[0, 0.2, 0]}
-            color="#FCE38A"
-            roughness={0.6}
+            geo={G.box(0.16, 0.008, 0.15, 0.003)}
+            pos={[0.02, 0.1, -0.06]}
+            rot={[0, 0.2, 0.35]}
+            color="#E6BF4C"
+            roughness={0.35}
           />
           {/* Glanz auf der Folie */}
           <Part
             geo={G.box(0.3, 0.004, 0.025, 0.001)}
-            pos={[-0.08, 0.012, -0.12]}
+            pos={[-0.08, 0.012, -0.14]}
             rot={[0, 0.3, 0]}
             basic
             noDepthWrite

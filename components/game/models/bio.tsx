@@ -43,10 +43,18 @@ export function renderBioModel(key: string, name: string) {
               <group key={i}>
                 <Part
                   geo={G.ball(0.1, 12, 8)}
+                  pos={[cx, cy, -0.012]}
+                  rot={[0, 0, Math.PI + a]}
+                  scale={[1.02, sy * 1.03, 0.11]}
+                  color="#B98A0A"
+                  roughness={0.9}
+                />
+                <Part
+                  geo={G.ball(0.1, 12, 8)}
                   pos={[cx, cy, 0]}
                   rot={[0, 0, Math.PI + a]}
                   scale={[0.95, sy, 0.12]}
-                  color="#F2C811"
+                  color="#F7D117"
                   roughness={0.8}
                 />
                 <Part
@@ -54,7 +62,7 @@ export function renderBioModel(key: string, name: string) {
                   pos={[cx, cy, 0.028]}
                   rot={[0, 0, Math.PI + a]}
                   scale={[0.62, sy * 0.88, 0.12]}
-                  color="#FDE9A9"
+                  color="#FFF1BE"
                   roughness={0.9}
                 />
                 <Part
@@ -73,6 +81,17 @@ export function renderBioModel(key: string, name: string) {
                   basic
                   color="#8A5A2B"
                   opacity={0.6}
+                />
+                <Part
+                  geo={G.circle(0.014, 10)}
+                  pos={[
+                    dx * (spot - 0.12) + dy * 0.03,
+                    0.2 + dy * (spot - 0.12) - dx * 0.03,
+                    0.046,
+                  ]}
+                  basic
+                  color="#8A5A2B"
+                  opacity={0.55}
                 />
               </group>
             );
@@ -145,30 +164,46 @@ export function renderBioModel(key: string, name: string) {
 
     case "peel": {
       if (name.includes("kartoffel")) {
-        // Geschälte Kartoffel mit braunen Schalenstreifen und dunklen Augen
+        // Kartoffel: braun, knollig, mit Augen; vorn eine geschälte helle Stelle, daneben Schalenstreifen
         return (
-          <group rotation={[0.35, 0.3, -0.2]}>
-            <Part geo={G.ball(0.15, 10, 8)} scale={[1.25, 0.9, 1]} pos={[-0.06, 0.02, 0]} color="#EBD58C" roughness={0.9} />
+          <group rotation={[0.45, 0.35, -0.15]}>
+            <Part
+              geo={G.crumple(0.2, 0.22, 7, 2)}
+              scale={[1.3, 0.85, 1]}
+              pos={[-0.04, 0, 0]}
+              flat
+              color="#B98B54"
+              roughness={1}
+            />
+            {/* geschälte Stelle (Vorderseite der Knolle liegt bei z ≈ 0,2) */}
+            <Part
+              geo={G.ball(0.09, 10, 6)}
+              pos={[0.0, 0.02, 0.19]}
+              scale={[1.3, 0.9, 0.3]}
+              flat
+              color="#F2DE9B"
+              roughness={0.9}
+            />
+            {/* Augen */}
             {(
               [
-                [0.09, -0.08, 0.03, 0.4],
-                [0.19, 0.06, -0.02, -0.6],
-                [-0.24, -0.12, 0.12, 1.2],
-              ] as [number, number, number, number][]
-            ).map(([x, y, z, r], i) => (
-              <group key={i} position={[x, y, z]} rotation={[0.6, r, 0.3]}>
-                <Part geo={G.wave(0.26, 0.08, 0.02, 9, i)} double color="#9C6B3F" roughness={1} />
-                <Part geo={G.ball(0.02, 5, 4)} pos={[0.04, 0, i === 2 ? 0.02 : 0.04]} color="#4A3020" roughness={1} />
-              </group>
-            ))}
-            {/* Augen auf der Knolle (auf der Oberfläche) */}
-            {(
-              [
-                [-0.06, 0.05, 0.145],
-                [0.03, -0.03, 0.13],
+                [-0.17, 0.08, 0.15],
+                [-0.08, -0.08, 0.18],
+                [0.14, -0.06, 0.16],
               ] as V3[]
             ).map((p, i) => (
-              <Part key={i} geo={G.ball(0.02, 5, 4)} pos={p} color="#8A6A2E" roughness={1} />
+              <Part key={i} geo={G.ball(0.018, 5, 4)} pos={p} color="#5A3C1E" roughness={1} />
+            ))}
+            {/* abgeschälte Streifen: braun außen, innen hell */}
+            {(
+              [
+                [0.34, -0.1, 0.1, 0.3],
+                [0.3, 0.1, 0.14, -0.3],
+              ] as [number, number, number, number][]
+            ).map(([x, y, z, r], i) => (
+              <group key={i} position={[x, y, z]} rotation={[1.35, r, 0.3]}>
+                <Part geo={G.wave(0.3, 0.1, 0.03, 9, i + 2)} double color="#8B5E34" roughness={1} />
+              </group>
             ))}
           </group>
         );
@@ -201,6 +236,63 @@ export function renderBioModel(key: string, name: string) {
         );
       }
       const isCarrot = name.includes("karotte");
+      if (isCarrot) {
+        // Möhre (Kegel, Spitze unten) mit Querringen und Grün; geschälte Streifen kringeln daneben.
+        // Radius bei Höhe y: 0,012 + 0,088 · (y + 0,3) / 0,6
+        return (
+          <group rotation={[0.45, 0.35, -0.15]}>
+            <group rotation={[0, 0, -0.7]}>
+            <Part geo={G.cyl(0.1, 0.012, 0.6, 12)} color="#F97316" roughness={0.85} />
+            {(
+              [
+                [0.17, 0.082],
+                [0.03, 0.062],
+                [-0.1, 0.042],
+              ] as [number, number][]
+            ).map(([y, r]) => (
+              <Part
+                key={y}
+                geo={G.torus(r, 0.007, 4, 14)}
+                pos={[0, y, 0]}
+                rot={[Math.PI / 2, 0, 0]}
+                color="#C2410C"
+                roughness={1}
+              />
+            ))}
+            {/* geschälte, hellere Stelle vorn */}
+            <Part geo={G.ball(0.05, 8, 6)} pos={[0, 0.05, 0.062]} scale={[0.8, 2.2, 0.25]} color="#FDBA74" roughness={0.9} />
+            {/* Grün oben */}
+            {(
+              [
+                [-0.04, 0.4, 0.35],
+                [0.0, 0.42, 0.0],
+                [0.045, 0.4, -0.4],
+              ] as V3[]
+            ).map(([x, y, rz], i) => (
+              <Part
+                key={i}
+                geo={G.cyl(0.006, 0.026, 0.22, 6)}
+                pos={[x, y, 0]}
+                rot={[0, 0, rz]}
+                color="#22A04A"
+                roughness={0.9}
+              />
+            ))}
+            </group>
+            {/* Schalenstreifen daneben (außerhalb der Möhren-Neigung, damit sie zur Kamera zeigen) */}
+            {(
+              [
+                [0.34, -0.06, 0.1, 0.3],
+                [0.3, -0.24, 0.14, -0.3],
+              ] as [number, number, number, number][]
+            ).map(([x, y, z, r], i) => (
+              <group key={i} position={[x, y, z]} rotation={[1.35, r, 0.3]}>
+                <Part geo={G.wave(0.3, 0.1, 0.03, 9, i + 2)} double color="#FB923C" roughness={0.9} />
+              </group>
+            ))}
+          </group>
+        );
+      }
       const c1 = isCarrot ? "#F97316" : "#C2860A";
       const c2 = isCarrot ? "#FB923C" : "#A16207";
       const c3 = isCarrot ? "#EA580C" : "#D9A441";
@@ -337,24 +429,36 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "nut":
-      // Ganze Walnuss: ovale, braune Kugel mit Längsnaht und Runzeln – klar
-      // etwas anderes als die zweiteilige Eierschale
+      // Aufgeknackte Walnuss: zwei Schalenhälften (außen braun, Wulstrand, innen hell) mit Naht,
+      // in einer Hälfte noch ein zweilappiger Kern – größer und mit Rand, damit man sie sofort erkennt
       return (
-        <group rotation={[0.4, 0.5, -0.25]}>
-          {/* zwei aufgeknackte Walnuss-Hälften: außen dunkelbraun mit Runzeln, innen helles Holz,
-              in der linken Hälfte noch ein Stück Kern (anders als die helle, glatte Eierschale) */}
+        <group rotation={[0.9, 0.2, -0.1]}>
           {(
             [
-              [-0.15, 0, 0, 0.5],
-              [0.17, -0.02, 0.02, -0.4],
+              [-0.2, 0.0, 0.0, 0.25],
+              [0.22, -0.03, 0.02, -0.35],
             ] as [number, number, number, number][]
           ).map(([x, y, z, rz], i) => (
-            <group key={i} position={[x, y, z]} rotation={[Math.PI, 0, rz]} scale={[1, 1.15, 0.9]}>
-              <Part geo={G.ball(0.17, 10, 6, 0, Math.PI * 0.5)} flat color="#6B3F1D" roughness={1} />
-              <Part geo={G.ball(0.155, 10, 6, 0, Math.PI * 0.5)} double flat color="#E3C58E" roughness={1} />
+            <group key={i} position={[x, y, z]} rotation={[Math.PI, 0, rz]} scale={[1, 1.15, 0.95]}>
+              <Part geo={G.ball(0.21, 14, 8, 0, Math.PI * 0.5)} color="#7A4A22" roughness={1} />
+              <Part geo={G.ball(0.192, 14, 8, 0, Math.PI * 0.5)} double color="#DDBE8E" roughness={1} />
+              {/* Wulstrand */}
+              <Part geo={G.torus(0.2, 0.014, 5, 18)} rot={[Math.PI / 2, 0, 0]} color="#5E3A19" roughness={1} />
+              {/* Rippen außen */}
+              {[-0.5, 0, 0.5].map((a) => (
+                <Part
+                  key={a}
+                  geo={G.torus(0.2, 0.008, 4, 14, Math.PI)}
+                  rot={[0, a, 0]}
+                  color="#5E3A19"
+                  roughness={1}
+                />
+              ))}
             </group>
           ))}
-          <Part geo={G.crumple(0.07, 0.35, 4, 1)} pos={[-0.15, 0.04, 0.0]} scale={[1.2, 0.7, 1]} flat color="#F0DDB0" roughness={1} />
+          {/* Kern: zwei Lappen mit Furche, liegt in der linken Hälfte */}
+          <Part geo={G.crumple(0.09, 0.3, 4, 1)} pos={[-0.25, 0.07, 0.02]} scale={[1.1, 0.6, 1]} flat color="#EBCB92" roughness={1} />
+          <Part geo={G.crumple(0.09, 0.3, 9, 1)} pos={[-0.16, 0.07, -0.02]} scale={[1.1, 0.6, 1]} flat color="#E3BC80" roughness={1} />
         </group>
       );
 
@@ -496,42 +600,46 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "kitchenroll":
-      // Benutztes Küchentuch: zerknüllt, mit Fleck (die volle Rolle sähe nach
-      // Ware aus – und glich der Papprolle aus der Papier-Tonne)
+      // Benutztes Küchentuch: Blatt mit Prägepunkten, Perforation am Rand und einem Fleck
+      // (Tomatensauce), daneben ein zusammengeknülltes Stück – die volle Rolle sähe nach Ware aus
       return (
-        <group rotation={[0.3, 0.4, 0]}>
-          {/* Warmes Weiß und eigene Knüllform – nicht wie die graue Alufolie */}
-          <Part
-            geo={G.crumple(0.2, 0.14, 3, 1)}
-            scale={[1.15, 0.75, 1]}
-            flat
-            color="#FFF8EC"
-            roughness={1}
-          />
-          <Part
-            geo={G.crumple(0.12, 0.12, 17, 1)}
-            pos={[0.16, -0.06, 0.08]}
-            scale={[1, 0.7, 1]}
-            flat
-            color="#FBF1DF"
-            roughness={1}
-          />
-          {/* Großer Fleck, als flacher Klecks auf dem Tuch (schwebt nicht) */}
-          <Part
-            geo={G.ball(0.08, 8, 6)}
-            pos={[-0.03, 0.03, 0.172]}
-            scale={[1, 0.8, 0.35]}
-            color="#C8A27A"
-            roughness={1}
-          />
-          {/* Perforationslinie */}
-          <Part
-            geo={G.box(0.3, 0.008, 0.008, 0.002)}
-            pos={[0, 0.12, 0.12]}
-            rot={[0.6, 0, 0.2]}
-            basic
-            color="#D9CBB3"
-          />
+        <group rotation={[0.85, 0.2, -0.08]}>
+          <Part geo={G.box(0.7, 0.03, 0.5, 0.01)} color="#FFF9EE" roughness={1} />
+          {/* umgeknicktes Eck rechts vorn */}
+          <Part geo={G.box(0.16, 0.02, 0.16, 0.006)} pos={[0.3, 0.045, 0.2]} rot={[0.2, 0.7, 0.35]} color="#F1E8D6" roughness={1} />
+          {/* dünner Rand in Blau (viele Küchentücher haben eine Randlinie) */}
+          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.032, -0.23]} basic color="#93C5FD" />
+          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.032, 0.0]} basic color="#BFDBFE" />
+          {/* Prägepunkte: Raster aus 5 × 4 flachen Kügelchen auf dem Blatt (Oberseite y ≈ 0,036) */}
+          {Array.from({ length: 20 }, (_, k) => {
+            const cx = (k % 5) * 0.13 - 0.26;
+            const cz = Math.floor(k / 5) * 0.1 - 0.09;
+            return (
+              <Part
+                key={k}
+                geo={G.ball(0.014, 6, 4)}
+                pos={[cx + (Math.floor(k / 5) % 2) * 0.06, 0.04, cz]}
+                scale={[1, 0.5, 1]}
+                color="#E4DACA"
+                roughness={1}
+              />
+            );
+          })}
+          {/* Perforation: Strichreihe am Rand */}
+          {Array.from({ length: 7 }, (_, k) => (
+            <Part
+              key={`p${k}`}
+              geo={G.box(0.03, 0.006, 0.008, 0.002)}
+              pos={[-0.3 + k * 0.1, 0.04, 0.21]}
+              basic
+              color="#B9AD97"
+            />
+          ))}
+          {/* Fleck: roter Klecks mit hellem Hof, flach auf dem Tuch */}
+          <Part geo={G.ball(0.11, 10, 6)} pos={[0.1, 0.04, -0.04]} scale={[1.2, 0.12, 0.9]} color="#F2B38A" roughness={1} />
+          <Part geo={G.ball(0.07, 10, 6)} pos={[0.1, 0.05, -0.04]} scale={[1.2, 0.12, 0.9]} color="#C2391B" roughness={1} />
+          {/* Zusammengeknüllt daneben */}
+          <Part geo={G.crumple(0.13, 0.28, 17, 1)} pos={[-0.3, 0.1, -0.12]} flat color="#FBF1DF" roughness={1} />
         </group>
       );
     default:

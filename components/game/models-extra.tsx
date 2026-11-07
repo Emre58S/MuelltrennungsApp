@@ -521,39 +521,49 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       );
 
     case "fruitnet":
-      // Leerer Netzbeutel (ohne Orangen – die wären Essen und lenkten zum
-      // Biomüll): unten bauchig, oben zusammengerafft mit Clip und Etikett.
+      // Leerer, schlaffer Netzbeutel (ohne Obst – das lenkte zum Biomüll): feines rotes Netz,
+      // unten bauchig, oben zusammengerafft mit weißem Clip und gelbem Etikett, ein paar lose Fäden.
       // Längsschnüre: Ellipse 0,19 breit / 0,23 hoch; Querringe liegen darauf
       // (Radius = 0,19 · √(1 − (y/0,23)²))
       return (
-        <group rotation={[0.25, 0.4, 0.1]} position={[0, -0.03, 0]}>
+        <group rotation={[1.0, 0.4, 0.5]} position={[0, -0.03, 0]} scale={[1.15, 0.85, 0.8]}>
           {(
             [
-              [-0.15, 0.144],
-              [-0.03, 0.188],
-              [0.09, 0.175],
+              [-0.19, 0.105],
+              [-0.12, 0.152],
+              [-0.04, 0.183],
+              [0.04, 0.188],
+              [0.12, 0.162],
               [0.19, 0.107],
             ] as [number, number][]
           ).map(([y, rad]) => (
             <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[rad, 0.014, 4, 18]} />
+              <torusGeometry args={[rad, 0.011, 4, 18]} />
               <meshLambertMaterial color="#EA580C" flatShading />
             </mesh>
           ))}
-          {[0, Math.PI / 3, (2 * Math.PI) / 3].map((ang) => (
+          {[0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4].map((ang) => (
             <mesh key={ang} rotation={[0, ang, 0]} scale={[0.95, 1.15, 0.95]}>
-              <torusGeometry args={[0.2, 0.014, 4, 18]} />
+              <torusGeometry args={[0.2, 0.011, 4, 18]} />
               <meshLambertMaterial color="#EA580C" flatShading />
             </mesh>
           ))}
-          <Box size={[0.08, 0.05, 0.05]} pos={[0, 0.25, 0]} color="#F8FAFC" />
-          {/* zusammengeraffter Netzzipfel über dem Clip */}
-          <mesh position={[0, 0.31, 0]}>
-            <cylinderGeometry args={[0.015, 0.03, 0.08, 8]} />
+          <Box size={[0.12, 0.07, 0.07]} pos={[0, 0.25, 0]} color="#F8FAFC" />
+          {/* zusammengeraffter Netzzipfel über dem Clip, drei lose Fäden */}
+          <mesh position={[0, 0.32, 0]}>
+            <cylinderGeometry args={[0.015, 0.035, 0.1, 8]} />
             <meshLambertMaterial color="#EA580C" flatShading />
           </mesh>
-          {/* Etikett vorn am Clip festgeklebt (Clip-Vorderseite z=0,025) */}
-          <Box size={[0.1, 0.07, 0.008]} pos={[0.05, 0.22, 0.029]} color="#FDE68A" />
+          {[-0.5, 0, 0.5].map((rz) => (
+            <mesh key={rz} position={[rz * 0.07, 0.4, 0]} rotation={[0, 0, rz]}>
+              <cylinderGeometry args={[0.006, 0.006, 0.1, 5]} />
+              <meshLambertMaterial color="#EA580C" flatShading />
+            </mesh>
+          ))}
+          {/* Etikett vorn am Clip (Clip-Vorderseite z = 0,03) */}
+          <Box size={[0.13, 0.09, 0.008]} pos={[0.06, 0.22, 0.034]} color="#FDE047" />
+          <Box size={[0.09, 0.012, 0.004]} pos={[0.06, 0.235, 0.04]} color="#B45309" />
+          <Box size={[0.09, 0.012, 0.004]} pos={[0.06, 0.205, 0.04]} color="#B45309" />
         </group>
       );
 
