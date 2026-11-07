@@ -86,28 +86,19 @@ export function renderBioModel(key: string, name: string) {
         // hellerem Rand) mit losen Krümeln und zwei Kaffeebohnen daneben
         return (
           <group rotation={[0.6, 0.3, 0]}>
-            <Part geo={G.cyl(0.17, 0.16, 0.08, 22)} color="#3B2418" roughness={1} />
-            <Part geo={G.ring(0.14, 0.166, 22)} pos={[0, 0.041, 0]} rot={[-Math.PI / 2, 0, 0]} basic color="#5A3A26" />
-            <Part geo={G.box(0.16, 0.004, 0.012, 0.001)} pos={[0.02, 0.042, 0.03]} rot={[0, 0.5, 0]} basic color="#1E120B" />
+            {/* Gebrauchtes Filterpapier, darauf ein Haufen feuchter Kaffeesatz mit losen Krümeln */}
+            <Part geo={G.box(0.5, 0.012, 0.42, 0.004)} pos={[0, -0.04, 0]} color="#E7D8B8" roughness={1} />
+            <Part geo={G.crumple(0.2, 0.55, 7, 2)} pos={[0, 0.0, 0]} scale={[1.45, 0.55, 1.2]} flat color="#3B2418" roughness={1} />
+            <Part geo={G.crumple(0.09, 0.5, 3, 1)} pos={[-0.12, 0.05, 0.04]} scale={[1.2, 0.6, 1]} flat color="#4A2E1E" roughness={1} />
             {(
               [
-                [0.19, -0.015, 0.06],
-                [0.18, -0.015, -0.06],
-                [-0.18, -0.015, 0.08],
+                [0.24, -0.03, 0.1],
+                [0.2, -0.03, -0.12],
+                [-0.22, -0.03, 0.12],
+                [-0.2, -0.03, -0.1],
               ] as V3[]
             ).map((p, i) => (
               <Part key={i} geo={G.crumple(0.025, 0.3, 40 + i, 0)} pos={p} flat color="#4A2E1E" roughness={1} />
-            ))}
-            {(
-              [
-                [-0.12, 0.0, 0.19, 0.4],
-                [0.05, 0.0, 0.23, -0.5],
-              ] as [number, number, number, number][]
-            ).map(([x, y, z, r]) => (
-              <group key={x} position={[x, y - 0.015, z]} rotation={[0, r, 0]}>
-                <Part geo={G.ball(0.045, 10, 8)} scale={[1, 0.6, 1.35]} color="#7A4A26" roughness={0.7} />
-                <Part geo={G.box(0.006, 0.004, 0.04, 0.001)} pos={[0, 0.021, 0]} basic color="#2A170B" />
-              </group>
             ))}
           </group>
         );
@@ -141,21 +132,14 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "eggshell":
-      // Eierschalen: zwei aufgeklappte Halbschalen, außen hellbraun, innen weiß
-      // (ohne Zacken – die einfache Form ist leichter zu erkennen)
+      // Eierschale: EINE aufgebrochene Halbschale (Nutzer, 7.11.: nur eine, nicht vier),
+      // außen hellbraun, innen weiß, zur Kamera gekippt, damit man hineinsieht
       return (
-        <group rotation={[0.55, -0.25, 0.1]}>
-          {(
-            [
-              [-0.17, 0, 0, 0.15, 0.2],
-              [0.19, -0.02, 0.05, -0.2, 0.18],
-            ] as [number, number, number, number, number][]
-          ).map(([x, y, z, rz, r], i) => (
-            <group key={i} position={[x, y, z]} rotation={[Math.PI, 0, rz]} scale={[1, 1.25, 1]}>
-              <Part geo={G.ball(r, 14, 8, 0, Math.PI * 0.5)} flat color="#E3B98A" roughness={0.9} />
-              <Part geo={G.ball(r * 0.95, 14, 8, 0, Math.PI * 0.5)} double flat color="#FFF8EE" roughness={0.9} />
-            </group>
-          ))}
+        <group rotation={[0.7, -0.3, 0.15]}>
+          <group rotation={[Math.PI, 0, 0]} scale={[1, 1.25, 1]}>
+            <Part geo={G.ball(0.3, 16, 10, 0, Math.PI * 0.5)} flat color="#E3B98A" roughness={0.9} />
+            <Part geo={G.ball(0.285, 16, 10, 0, Math.PI * 0.5)} double flat color="#FFF8EE" roughness={0.9} />
+          </group>
         </group>
       );
 
@@ -357,33 +341,20 @@ export function renderBioModel(key: string, name: string) {
       // etwas anderes als die zweiteilige Eierschale
       return (
         <group rotation={[0.4, 0.5, -0.25]}>
-          <Part geo={G.ball(0.17, 12, 10)} scale={[0.95, 1.2, 0.9]} color="#A06A35" roughness={1} />
-          {/* Längsnaht rund um die Nuss (Radius 0,17 × Skalierung) */}
-          <Part
-            geo={G.torus(0.2, 0.011, 4, 18)}
-            scale={[0.82, 1, 0.9]}
-            rot={[0, 0, 0]}
-            color="#5C3A1E"
-            roughness={1}
-          />
-          {/* Runzeln: kleine dunkle Wülste, mit der Mitte knapp in der Fläche */}
+          {/* zwei aufgeknackte Walnuss-Hälften: außen dunkelbraun mit Runzeln, innen helles Holz,
+              in der linken Hälfte noch ein Stück Kern (anders als die helle, glatte Eierschale) */}
           {(
             [
-              [-0.09, 0.07, 0.112],
-              [-0.1, -0.06, 0.106],
-              [0.09, 0.05, 0.117],
-              [0.1, -0.08, 0.1],
-            ] as [number, number, number][]
-          ).map(([x, y, z], i) => (
-            <Part
-              key={i}
-              geo={G.ball(0.025, 5, 4)}
-              scale={[1.4, 0.5, 0.25]}
-              pos={[x, y, z]}
-              color="#6B4423"
-              roughness={1}
-            />
+              [-0.15, 0, 0, 0.5],
+              [0.17, -0.02, 0.02, -0.4],
+            ] as [number, number, number, number][]
+          ).map(([x, y, z, rz], i) => (
+            <group key={i} position={[x, y, z]} rotation={[Math.PI, 0, rz]} scale={[1, 1.15, 0.9]}>
+              <Part geo={G.ball(0.17, 10, 6, 0, Math.PI * 0.5)} flat color="#6B3F1D" roughness={1} />
+              <Part geo={G.ball(0.155, 10, 6, 0, Math.PI * 0.5)} double flat color="#E3C58E" roughness={1} />
+            </group>
           ))}
+          <Part geo={G.crumple(0.07, 0.35, 4, 1)} pos={[-0.15, 0.04, 0.0]} scale={[1.2, 0.7, 1]} flat color="#F0DDB0" roughness={1} />
         </group>
       );
 

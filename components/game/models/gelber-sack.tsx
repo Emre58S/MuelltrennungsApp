@@ -7,28 +7,45 @@ import { type V3 } from "./shared";
 export function renderGelberSackModel(key: string, name: string) {
   switch (key) {
     case "foil":
-      // Gebrauchte Alufolie: zerknittertes Blatt, darauf ein Knäuel – zwei
-      // Silbertöne, damit es nach Folie aussieht und nicht nach einem Stein
+      // Gebrauchte Alufolie: zerknittertes, helles Silberblatt mit Glanzkanten, darauf ein Knäuel –
+      // zwei Silbertöne und weiße Glanzstreifen, damit es nach Folie aussieht und nicht nach einem Stein
       return (
         <group rotation={[0.6, -0.3, 0.1]}>
           {/* flaches, welliges Blatt (Dicke ≈ 0,3 · 0,22 = 0,066) */}
           <Part
-            geo={G.crumple(0.3, 0.35, 5, 1)}
-            scale={[1.2, 0.22, 0.9]}
+            geo={G.crumple(0.3, 0.8, 5, 2)}
+            scale={[1.25, 0.22, 0.95]}
             flat
-            color="#DDE3EA"
-            roughness={0.3}
-            metalness={0.5}
+            color="#AAB5C3"
+            roughness={0.5}
           />
           {/* Knäuel liegt auf dem Blatt (Unterseite taucht ins Blatt ein) */}
           <Part
-            geo={G.crumple(0.17, 0.3, 11, 1)}
+            geo={G.crumple(0.17, 0.95, 11, 2)}
             pos={[0.04, 0.13, 0.02]}
             flat
-            color="#B9C3CF"
-            roughness={0.3}
-            metalness={0.5}
+            color="#D6DCE6"
+            roughness={0.5}
           />
+          {/* Glanzkanten auf Blatt und Knäuel (Lambert kennt keinen Glanz) */}
+          {(
+            [
+              [-0.18, 0.045, 0.1, 0.5],
+              [0.2, 0.05, -0.12, -0.4],
+              [0.02, 0.27, 0.0, 0.3],
+            ] as [number, number, number, number][]
+          ).map(([x, y, z, r], i) => (
+            <Part
+              key={i}
+              geo={G.box(0.2, 0.004, 0.03, 0.001)}
+              pos={[x, y, z]}
+              rot={[0.3, r, 0.1]}
+              basic
+              noDepthWrite
+              color="#FFFFFF"
+              opacity={0.85}
+            />
+          ))}
         </group>
       );
 
@@ -584,41 +601,48 @@ export function renderGelberSackModel(key: string, name: string) {
       );
 
     case "styro":
-      // Styropor-Box zum Mitnehmen: aufgeklappter Deckel, Kügelchen-Struktur
-      // vorn, zwei Verpackungs-Chips daneben
+      // Styropor-Verpackung: dicker weißer Schaumblock mit zwei Mulden (hier lag ein Gerät),
+      // gerillte Ränder und ein paar Verpackungs-Chips daneben
       return (
-        <group rotation={[0.35, 0.35, -0.08]}>
-          <Part geo={G.box(0.5, 0.15, 0.4, 0.04)} color="#F4F6F8" roughness={1} />
-          {/* Innenraum (dunkler) */}
-          <Part
-            geo={G.box(0.42, 0.01, 0.32, 0.004)}
-            pos={[0, 0.072, 0]}
-            color="#D5DCE4"
-            roughness={1}
-          />
-          {/* Deckel, hinten angeschlagen und hochgeklappt */}
-          <group position={[0, 0.075, -0.2]} rotation={[-1.75, 0, 0]}>
-            <Part geo={G.box(0.5, 0.12, 0.4, 0.04)} pos={[0, 0.06, 0.2]} color="#F4F6F8" roughness={1} />
-          </group>
-          {/* Kügelchen auf der Vorderseite */}
-          {[-0.16, -0.06, 0.04, 0.14, -0.11].map((x, i) => (
-            <Part
-              key={i}
-              geo={G.ball(0.03, 6, 4)}
-              pos={[x, i === 4 ? -0.035 : 0.02, 0.195]}
-              color="#D8DEE6"
-              roughness={1}
-            />
-          ))}
+        <group rotation={[0.8, 0.35, -0.08]}>
+          <Part geo={G.box(0.58, 0.2, 0.42, 0.05)} color="#D3D9E2" roughness={1} />
+          {/* Oberfläche aus Schaumkügelchen: oben und vorn ein dichtes Raster kleiner Halbkugeln */}
+          {Array.from({ length: 40 }, (_, k) => {
+            const col = k % 8;
+            const row = Math.floor(k / 8);
+            return (
+              <Part
+                key={`top${k}`}
+                geo={G.ball(0.04, 8, 6)}
+                pos={[-0.245 + col * 0.07 + (row % 2) * 0.03, 0.1, -0.15 + row * 0.075]}
+                color="#FFFFFF"
+                roughness={1}
+              />
+            );
+          })}
+          {Array.from({ length: 24 }, (_, k) => {
+            const col = k % 8;
+            const row = Math.floor(k / 8);
+            return (
+              <Part
+                key={`front${k}`}
+                geo={G.ball(0.04, 8, 6)}
+                pos={[-0.245 + col * 0.07 + (row % 2) * 0.03, -0.06 + row * 0.07, 0.21]}
+                color="#FFFFFF"
+                roughness={1}
+              />
+            );
+          })}
           {(
             [
-              [0.34, -0.05, 0.18],
-              [-0.33, -0.06, 0.2],
+              [0.36, -0.08, 0.2],
+              [-0.35, -0.09, 0.22],
+              [0.3, -0.1, 0.32],
             ] as V3[]
           ).map((p, i) => (
             <Part
               key={`chip${i}`}
-              geo={G.torus(0.04, 0.018, 5, 8, Math.PI * 1.2)}
+              geo={G.torus(0.05, 0.022, 5, 8, Math.PI * 1.2)}
               pos={p}
               rot={[0.4, 0.6 * i, 0.5]}
               color="#FFFFFF"
@@ -631,7 +655,7 @@ export function renderGelberSackModel(key: string, name: string) {
     case "tube":
       return (
         <group rotation={[0.15, 0.2, 0.9]}>
-          <group scale={[1, 1, 0.6]}>
+          <group scale={[1, 1, 0.42]}>
             <Part
               geo={G.lathe(
                 20,
@@ -647,21 +671,21 @@ export function renderGelberSackModel(key: string, name: string) {
               geo={G.cyl(0.173, 0.173, 0.1, 20, true)}
               pos={[0, -0.02, 0]}
               double
-              color="#2563EB"
+              color="#DC2626"
               roughness={0.4}
             />
           </group>
           <Part
-            geo={G.box(0.36, 0.07, 0.04, 0.012)}
-            pos={[0, -0.4, 0]}
-            color="#E2E8F0"
+            geo={G.box(0.4, 0.13, 0.05, 0.012)}
+            pos={[0, -0.42, 0]}
+            color="#CBD5E1"
             roughness={0.4}
           />
-          {[-0.12, -0.06, 0, 0.06, 0.12].map((x) => (
+          {[-0.15, -0.09, -0.03, 0.03, 0.09, 0.15].map((x) => (
             <Part
               key={x}
-              geo={G.box(0.012, 0.05, 0.045, 0.004)}
-              pos={[x, -0.4, 0]}
+              geo={G.box(0.014, 0.1, 0.055, 0.004)}
+              pos={[x, -0.42, 0]}
               color="#CBD5E1"
               roughness={0.4}
             />
@@ -669,9 +693,11 @@ export function renderGelberSackModel(key: string, name: string) {
           <Part
             geo={G.cyl(0.08, 0.085, 0.12, 16)}
             pos={[0, 0.4, 0]}
-            color="#2563EB"
+            color="#DC2626"
             roughness={0.35}
           />
+          {/* Zahnpasta-Streifen kommt aus der Öffnung */}
+          <Part geo={G.ball(0.045, 8, 6)} pos={[0.0, 0.5, 0]} scale={[1, 1.4, 1]} color="#FFFFFF" roughness={0.5} />
         </group>
       );
 

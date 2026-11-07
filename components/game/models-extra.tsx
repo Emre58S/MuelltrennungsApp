@@ -144,6 +144,30 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
           </group>
         );
       }
+      if (name === "prospekt") {
+        // Prospekt: dreifach gefaltetes Faltblatt (Zickzack) in Türkis – anders als der gelbe Werbeprospekt
+        return (
+          <group rotation={[0.85, -0.25, 0.05]}>
+            <group position={[-0.17, 0, 0]} rotation={[0, 0.5, 0]}>
+              <Box size={[0.17, 0.012, 0.58]} color="#F8FAFC" />
+              {[-0.16, -0.08, 0, 0.08].map((z) => (
+                <Box key={z} size={[0.12, 0.014, 0.025]} pos={[0, 0.002, z]} color="#94A3B8" />
+              ))}
+            </group>
+            <Box size={[0.19, 0.012, 0.58]} color="#0F766E" />
+            <Cyl r={0.055} h={0.014} pos={[0, 0.003, -0.14]} color="#FDE047" />
+            <Box size={[0.13, 0.014, 0.03]} pos={[0, 0.003, 0.08]} color="#CCFBF1" />
+            <Box size={[0.13, 0.014, 0.03]} pos={[0, 0.003, 0.15]} color="#CCFBF1" />
+            <group position={[0.17, 0, 0]} rotation={[0, -0.5, 0]}>
+              <Box size={[0.17, 0.012, 0.58]} color="#CCFBF1" />
+              <Box size={[0.12, 0.014, 0.15]} pos={[0, 0.002, -0.17]} color="#0F766E" />
+              {[0, 0.08, 0.16].map((z) => (
+                <Box key={z} size={[0.12, 0.014, 0.025]} pos={[0, 0.002, z]} color="#5EAFA6" />
+              ))}
+            </group>
+          </group>
+        );
+      }
       if (name.includes("prospekt")) {
         // Werbeprospekt: dünn, knallgelb, roter Kopf, vier große Produktbilder
         return (
@@ -187,18 +211,18 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         // schräg aufgelegter Stülpdeckel mit Streifen, weißes Seidenpapier
         // schaut vorn heraus (der saubere Versandkarton ist braun mit Klebeband)
         return (
-          <group rotation={[0.35, 0.5, 0]}>
+          <group rotation={[0.45, 0.55, 0]}>
+            {/* Unterteil mit Größen-Etikett vorn */}
             <Box size={[0.6, 0.2, 0.36]} color="#F97316" />
             <Box size={[0.13, 0.08, 0.004]} pos={[0.17, -0.02, 0.182]} color="#FFFFFF" />
             {[-0.035, -0.015, 0.005].map((y) => (
               <Box key={y} size={[0.09, 0.008, 0.005]} pos={[0.17, y, 0.183]} color="#374151" />
             ))}
-            <Part geo={G.crumple(0.1, 0.25, 7, 1)} pos={[0, 0.12, 0.06]} scale={[2.4, 0.35, 0.9]} flat color="#F8FAFC" roughness={1} />
-            <group position={[0, 0.15, -0.08]} rotation={[-0.25, 0, 0]}>
-              <Box size={[0.62, 0.07, 0.38]} color="#EA580C" />
-              <Box size={[0.62, 0.02, 0.004]} pos={[0, 0, 0.191]} color="#FFFFFF" />
-              <Box size={[0.2, 0.004, 0.06]} pos={[0, 0.036, 0]} color="#FFFFFF" />
-            </group>
+            {/* Stülpdeckel: liegt auf, ragt ringsum etwas über, mit weißem Streifen und Marke */}
+            <Box size={[0.64, 0.09, 0.4]} pos={[0, 0.145, 0]} color="#EA580C" />
+            <Box size={[0.64, 0.024, 0.404]} pos={[0, 0.145, 0]} color="#FFFFFF" />
+            <Box size={[0.26, 0.006, 0.12]} pos={[-0.06, 0.193, 0]} color="#FFFFFF" />
+            <Box size={[0.16, 0.008, 0.03]} pos={[-0.06, 0.196, 0]} color="#EA580C" />
           </group>
         );
       }

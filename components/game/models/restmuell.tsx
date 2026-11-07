@@ -20,7 +20,7 @@ export function renderRestmuellModel(key: string, name: string) {
   switch (key) {
     case "cigarette":
       return (
-        <group rotation={[0.12, 0.3, Math.PI / 2]}>
+        <group rotation={[0.12, 0.3, Math.PI / 2]} scale={1.6}>
           <Part
             geo={G.cyl(0.05, 0.05, 0.2, 12)}
             pos={[0, -0.05, 0]}
@@ -809,48 +809,31 @@ export function renderRestmuellModel(key: string, name: string) {
       );
 
     case "wallpaper":
-      // Abgerissene Altbau-Tapete (beige mit Muster, statt bunter Rolle wie
-      // Geschenkpapier): zwei fast flache Bahnen, an einer Kante haftet grauer
-      // Putz, Kleisterfleck und Krümel liegen AUF der vorderen Bahn
+      // Tapetenrolle: cremefarbene Rolle, ein Stück ist abgerollt und zeigt das Muster
+      // (breite Streifen mit kleinen Blüten) – eine Rolle ist auf den ersten Blick „Tapete“
       return (
-        <group rotation={[0.35, -0.2, 0.08]}>
-          {(
-            [
-              [-0.06, 0.07, 0, 0.12],
-              [0.08, -0.07, 0.03, -0.25],
-            ] as [number, number, number, number][]
-          ).map(([x, y, z, r], i) => (
-            <group key={i} position={[x, y, z]} rotation={[0, 0, r]}>
-              {/* kaum gewellt (±0,012), damit Muster und Putz aufliegen */}
-              <Part geo={G.wave(0.62, 0.22, 0.006, 7, i + 2)} double color="#EDE3CF" roughness={1} />
-              {[-0.2, -0.07, 0.06, 0.19].map((sx) => (
-                <Part key={sx} geo={G.box(0.025, 0.2, 0.004, 0.001)} pos={[sx, 0, 0.016]} basic color="#B9A27A" />
-              ))}
-              {/* Putz an der oberen Abrisskante */}
-              <Part geo={G.box(0.6, 0.04, 0.02, 0.008)} pos={[0, 0.11, 0.008]} color="#BDB7AD" roughness={1} />
-              {i === 1 && (
-                <>
-                  <Part geo={G.circle(0.05, 10)} pos={[-0.13, -0.02, 0.014]} basic color="#F4ECD2" />
-                  {(
-                    [
-                      [0.12, -0.05],
-                      [0.2, 0.02],
-                      [-0.02, -0.07],
-                    ] as [number, number][]
-                  ).map(([cx, cy], k) => (
-                    <Part
-                      key={k}
-                      geo={G.crumple(0.022, 0.3, 30 + k, 0)}
-                      pos={[cx, cy, 0.022]}
-                      flat
-                      color="#CFCAC0"
-                      roughness={1}
-                    />
-                  ))}
-                </>
-              )}
-            </group>
-          ))}
+        <group rotation={[0.75, -0.35, 0.05]}>
+          {/* Rolle (liegt quer), Kern sichtbar */}
+          <Part geo={G.cyl(0.13, 0.13, 0.5, 22)} rot={[0, 0, Math.PI / 2]} pos={[0, 0.1, -0.08]} color="#EFE6D0" roughness={1} />
+          <Part geo={G.cyl(0.05, 0.05, 0.505, 14)} rot={[0, 0, Math.PI / 2]} pos={[0, 0.1, -0.08]} color="#B08B5B" roughness={1} />
+          {/* abgerolltes Stück nach vorn, ganz leicht gewellt */}
+          <group position={[0, -0.04, 0.1]}>
+            <Part geo={G.wave(0.5, 0.36, 0.006, 6, 3)} rot={[-Math.PI / 2, 0, 0]} double color="#EFE6D0" roughness={1} />
+            {[-0.19, -0.06, 0.07, 0.2].map((x) => (
+              <Part key={x} geo={G.box(0.045, 0.004, 0.34, 0.001)} pos={[x, 0.008, 0]} basic color="#C9A97A" />
+            ))}
+            {(
+              [
+                [-0.125, -0.1],
+                [0.005, 0.0],
+                [0.135, -0.08],
+                [-0.125, 0.09],
+                [0.135, 0.1],
+              ] as [number, number][]
+            ).map(([x, z], i) => (
+              <Part key={i} geo={G.circle(0.028, 8)} pos={[x, 0.01, z]} rot={[-Math.PI / 2, 0, 0]} basic color="#6B8E9B" />
+            ))}
+          </group>
         </group>
       );
 
