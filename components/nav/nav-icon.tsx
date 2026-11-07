@@ -57,7 +57,7 @@ export function NavIcon({
         {
           backgroundColor: area.fill,
           borderBottomColor: tone(area.fill, -0.32),
-          opacity: selected ? 1 : 0.62,
+          opacity: selected ? 1 : 0.8,
           transform: [{ rotate }, { scale }],
         },
       ]}
