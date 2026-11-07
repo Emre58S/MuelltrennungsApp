@@ -233,7 +233,7 @@ export const en: Translations = {
   "friends.err.self": "That's your own code.",
   "friends.err.full": "Your list is full (50).",
   "friends.err.friendFull": "Your friend's list is full (50).",
-  "friends.removeInfo": "{name} can't add you again afterwards. You can add {name}.",
+  "friends.removeInfo": "{name} can't add you again afterwards. You can add {name} again.",
   "friends.week": "Best runs this week",
   "friends.empty": "No friends yet. Send your code to friends!",
   "friends.remove": "Remove {name}?",

@@ -232,7 +232,7 @@ export const de = {
   "friends.err.self": "Das ist dein eigener Code.",
   "friends.err.full": "Deine Liste ist voll (50).",
   "friends.err.friendFull": "Die Liste deines Freundes ist voll (50).",
-  "friends.removeInfo": "{name} kann dich danach nicht neu hinzufügen. Du {name} schon.",
+  "friends.removeInfo": "{name} kann dich danach nicht neu hinzufügen. Du kannst {name} neu hinzufügen.",
   "friends.week": "Beste Läufe diese Woche",
   "friends.empty": "Noch keine Freunde. Schick deinen Code an Freunde!",
   "friends.remove": "{name} entfernen?",
