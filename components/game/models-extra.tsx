@@ -148,7 +148,7 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
         // Prospekt: dreifach gefaltetes Faltblatt (Zickzack) in Türkis – anders als der gelbe Werbeprospekt
         return (
           <group rotation={[0.85, -0.25, 0.05]}>
-            {/* Auflagen liegen 3 mm über dem Blatt (kein Flackern durch gleiche Flächen); die Seitenteile
+            {/* Auflagen liegen 1 mm über dem Blatt (kein Flackern durch gleiche Flächen); die Seitenteile
                 knicken um die lange Achse (Zickzack), statt sich mit dem Mittelteil zu überlappen */}
             <group position={[-0.095, 0, 0]} rotation={[0, 0, -0.4]}>
               <Box size={[0.17, 0.012, 0.58]} pos={[-0.085, 0, 0]} color="#F8FAFC" />
