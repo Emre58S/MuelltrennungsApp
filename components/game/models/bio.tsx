@@ -85,11 +85,11 @@ export function renderBioModel(key: string, name: string) {
         // Kaffeesatz: festgepresster Espresso-Puck (dunkel, mit Riss und
         // hellerem Rand) mit losen Krümeln und zwei Kaffeebohnen daneben
         return (
-          <group rotation={[0.6, 0.3, 0]}>
+          <group rotation={[0.95, 0.3, 0]}>
             {/* Gebrauchtes Filterpapier, darauf ein Haufen feuchter Kaffeesatz mit losen Krümeln */}
-            <Part geo={G.box(0.5, 0.012, 0.42, 0.004)} pos={[0, -0.04, 0]} color="#E7D8B8" roughness={1} />
-            <Part geo={G.crumple(0.2, 0.55, 7, 2)} pos={[0, 0.0, 0]} scale={[1.45, 0.55, 1.2]} flat color="#3B2418" roughness={1} />
-            <Part geo={G.crumple(0.09, 0.5, 3, 1)} pos={[-0.12, 0.05, 0.04]} scale={[1.2, 0.6, 1]} flat color="#4A2E1E" roughness={1} />
+            <Part geo={G.box(0.78, 0.012, 0.62, 0.004)} pos={[0, -0.04, 0]} color="#F3E8C8" roughness={1} />
+            <Part geo={G.crumple(0.2, 0.5, 7, 2)} pos={[0, -0.01, 0]} scale={[1.3, 0.4, 1.1]} flat color="#5A3A26" roughness={1} />
+            <Part geo={G.crumple(0.09, 0.5, 3, 1)} pos={[-0.12, 0.03, 0.04]} scale={[1.2, 0.5, 1]} flat color="#6B4630" roughness={1} />
             {(
               [
                 [0.24, -0.03, 0.1],

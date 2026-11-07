@@ -16,16 +16,18 @@ export function renderGelberSackModel(key: string, name: string) {
             geo={G.crumple(0.3, 0.8, 5, 2)}
             scale={[1.25, 0.22, 0.95]}
             flat
-            color="#AAB5C3"
-            roughness={0.5}
+            color="#CBD3DE"
+            roughness={0.35}
+            metalness={0.5}
           />
           {/* Knäuel liegt auf dem Blatt (Unterseite taucht ins Blatt ein) */}
           <Part
             geo={G.crumple(0.17, 0.95, 11, 2)}
             pos={[0.04, 0.13, 0.02]}
             flat
-            color="#D6DCE6"
-            roughness={0.5}
+            color="#F6F8FB"
+            roughness={0.35}
+            metalness={0.5}
           />
           {/* Glanzkanten auf Blatt und Knäuel (Lambert kennt keinen Glanz) */}
           {(
@@ -33,6 +35,9 @@ export function renderGelberSackModel(key: string, name: string) {
               [-0.18, 0.045, 0.1, 0.5],
               [0.2, 0.05, -0.12, -0.4],
               [0.02, 0.27, 0.0, 0.3],
+              [-0.3, 0.05, -0.05, 1.1],
+              [0.28, 0.05, 0.12, 0.2],
+              [0.1, 0.22, 0.08, -0.7],
             ] as [number, number, number, number][]
           ).map(([x, y, z, r], i) => (
             <Part
@@ -635,9 +640,9 @@ export function renderGelberSackModel(key: string, name: string) {
           })}
           {(
             [
-              [0.36, -0.08, 0.2],
-              [-0.35, -0.09, 0.22],
-              [0.3, -0.1, 0.32],
+              [0.22, -0.09, 0.34],
+              [-0.2, -0.09, 0.32],
+              [0.04, -0.09, 0.38],
             ] as V3[]
           ).map((p, i) => (
             <Part
