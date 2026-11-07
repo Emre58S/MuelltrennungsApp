@@ -18,7 +18,7 @@ export const AREA_BAR_HEIGHT = 72;
 
 /** Farben der Leiste: ruhig und dunkel, in beiden Themen (Vorbild Clash Royale). */
 const BAR_LIGHT = { bg: "#1F2D3F", selected: "#33495F", line: "rgba(255,255,255,0.08)" };
-const BAR_DARK = { bg: "#121A26", selected: "#233246", line: "rgba(255,255,255,0.06)" };
+const BAR_DARK = { bg: "#121A26", selected: "#2C3E55", line: "rgba(255,255,255,0.06)" };
 
 export function AreaBar({
   active,
@@ -49,7 +49,7 @@ export function AreaBar({
         },
       ]}
     >
-      {AREA_ORDER.map((key) => {
+      {AREA_ORDER.map((key, index) => {
         const area = AREAS[key];
         const selected = key === active;
         const label = t(`nav.${key}`);
@@ -70,7 +70,7 @@ export function AreaBar({
               {
                 backgroundColor: selected ? bar.selected : "transparent",
                 borderTopColor: selected ? area.fill : "transparent",
-                borderRightColor: bar.line,
+                borderRightColor: index < AREA_ORDER.length - 1 ? bar.line : "transparent",
               },
             ]}
           >
@@ -91,7 +91,8 @@ const styles = StyleSheet.create({
   dot: {
     position: "absolute",
     top: 12,
-    right: "26%",
+    left: "50%",
+    marginLeft: 10,
     width: 12,
     height: 12,
     borderRadius: 6,
