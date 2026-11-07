@@ -23,6 +23,7 @@
 
 import { type AudioPlayer, createAudioPlayer } from "expo-audio";
 
+import { TRAIL_SOUND } from "@/game/trail-sound";
 import { perfMark } from "@/utils/perf-marks";
 import { type Material } from "@/game/item-mass";
 import { getBoolean, StorageKeys } from "@/utils/storage";
@@ -211,6 +212,15 @@ const MATERIAL_SOUND: Record<Material, SfxName> = {
 export function sfxStreak(streak: number) {
   const step = Math.max(1, Math.min(8, streak)) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   sfx(`note${step}`);
+}
+
+export function sfxTrail(trail: string | undefined, phase: "throw" | "hit") {
+  const layers = trail ? TRAIL_SOUND[trail]?.[phase] : undefined;
+  if (!layers) return;
+  for (const [name, rate, volume, delay] of layers) {
+    if (delay) setTimeout(() => sfx(name, { rate, volume }), delay);
+    else sfx(name, { rate, volume });
+  }
 }
 
 export function preloadSfx(names: SfxName[] = Object.keys(SOURCES) as SfxName[]) {

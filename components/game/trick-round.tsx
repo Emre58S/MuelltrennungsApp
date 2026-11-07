@@ -29,7 +29,7 @@ import { type Item } from "@/constants/items";
 import { Spacing } from "@/constants/theme";
 import { IconButton } from "@/components/ui/icon-button";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
-import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
+import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxTrail } from "@/utils/sfx";
 import { newlyUnlocked, type Progress, unlockMessageKey, usableSkin, usableTrail } from "@/game/rewards";
 import { dailyBoard, submitScore, trickScore } from "@/utils/leaderboard";
 import {
@@ -284,6 +284,7 @@ export function TrickRound({
     // Ein Wurf zur Zeit: der nächste Gegenstand erst nach der Landung
     setItem(null);
     sfx("throw");
+    sfxTrail(bus.current.trail, "throw");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
   };
 
@@ -316,7 +317,10 @@ export function TrickRound({
     shake(fx.current, 0.035);
     sfx("perfect");
     sfx("swish");
-    if (thrownRef.current) sfxMaterial(itemMaterial(thrownRef.current));
+    if (thrownRef.current) {
+      sfxMaterial(itemMaterial(thrownRef.current));
+      sfxTrail(bus.current.trail, "hit");
+    }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     float("★".repeat(stars), top.x, top.y, "#FFD54A");
     // Swish: ohne Berührung (Reifen durchfliegen zählt nicht als Berührung)

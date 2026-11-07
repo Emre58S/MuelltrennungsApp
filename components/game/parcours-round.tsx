@@ -35,7 +35,7 @@ import {
   submitParcoursRun,
 } from "@/utils/leaderboard";
 import { router } from "expo-router";
-import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
+import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxTrail } from "@/utils/sfx";
 import { usableSkin, usableTrail } from "@/game/rewards";
 import {
   getBinSkin,
@@ -332,6 +332,7 @@ export function ParcoursRound({
     }, 8000);
     setItem(null);
     sfx("throw");
+    sfxTrail(bus.current.trail, "throw");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
   };
 
@@ -405,6 +406,7 @@ export function ParcoursRound({
         float(`${t("parcours.plus", { n: gained })} · ${noTrickText(lane, passed)}`, top.x, top.y);
       }
       sfxMaterial(itemMaterial(thrown));
+      sfxTrail(bus.current.trail, "hit");
     } else if (bin !== null) {
       // Falsche Tonne: 0 Punkte – Lernkarte (wohin es gehört), Zieltonne hüpft kurz
       counts.current.wrong += 1;

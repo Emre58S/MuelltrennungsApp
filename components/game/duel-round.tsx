@@ -65,7 +65,7 @@ import { BIN_OPENING_Y, computeLayout } from "@/game/layout";
 import { aimFromDrag } from "@/game/logic";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { playMusic } from "@/utils/music";
-import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
+import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxTrail } from "@/utils/sfx";
 
 import { useLater } from "./round-hooks";
 import { nextScene } from "./stage";
@@ -275,6 +275,7 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
     throws.current.set(spec.id, { player: p, hit: correct, bin: aim.binIndex, item: current });
     queueThrow(bus.current, spec);
     sfx("throw");
+    sfxTrail(bus.current.trail, "throw");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
     if (outcome === "win") {
       token.current++;
@@ -314,6 +315,7 @@ export function DuelRound({ onAgain, onExit }: { onAgain: () => void; onExit: ()
       if (hit) {
         // Landeklang je Material (Glas klirrt, Dose scheppert …) und Jubel
         sfxMaterial(itemMaterial(it));
+        sfxTrail(bus.current.trail, "hit");
         sfx("perfect");
         shake(fx.current, 0.02);
         queueBurst(b, {

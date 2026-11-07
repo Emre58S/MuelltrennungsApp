@@ -81,7 +81,7 @@ import {
   submitOnlineRun,
 } from "@/utils/leaderboard";
 import { playMusic } from "@/utils/music";
-import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial } from "@/utils/sfx";
+import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxTrail } from "@/utils/sfx";
 import {
   getMissionDay,
   getSprintBest,
@@ -420,6 +420,7 @@ export function SprintRound({
     flying.current.set(spec.id, { hit: correct, bin: aim.binIndex, item: current, ghost: false });
     queueThrow(bus.current, spec);
     sfx("throw");
+    sfxTrail(bus.current.trail, "throw");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
     if (correct) {
       setMe((n) => n + 1);
@@ -466,6 +467,7 @@ export function SprintRound({
       if (hit) {
         // Landeklang je Material (Glas klirrt, Dose scheppert …)
         sfxMaterial(itemMaterial(it));
+        sfxTrail(bus.current.trail, "hit");
         sfx("perfect");
         shake(fx.current, 0.02);
         queueBurst(b, {

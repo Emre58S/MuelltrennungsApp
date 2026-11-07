@@ -79,7 +79,7 @@ import {
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { devLog } from "@/utils/dev-error-reporter";
 import { perfTime } from "@/utils/perf-marks";
-import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxStreak } from "@/utils/sfx";
+import { preloadSfx, refreshSfxSetting, sfx, sfxMaterial, sfxStreak, sfxTrail } from "@/utils/sfx";
 import {
   EMPTY_ITEM_STAT,
   getHighscoreKey,
@@ -641,6 +641,8 @@ export function GameRound({
     setCurrentItem(drawNext());
 
     sfx("throw", { rate: perfect ? 1.1 : 1 });
+
+    sfxTrail(bus.current.trail, "throw");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
       () => undefined,
     );
@@ -834,6 +836,7 @@ export function GameRound({
       const streakNow = after.streak;
       // Landeklang je Material: Glas klirrt, Papier raschelt, Dose scheppert …
       sfxMaterial(itemMaterial(ts.item));
+      sfxTrail(bus.current.trail, "hit");
       if (ts.perfect) sfx("perfect");
       else sfxStreak(streakNow);
       if (ts.perfect && thrown.free) {
