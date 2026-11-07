@@ -1,16 +1,17 @@
 // Datei: components/nav/area-bar.tsx
 //
 // Feste untere Leiste: Pfad · Online · Regal, je mit eigenem Symbol
-// (Karte, Globus, Buch) in der Bereichsfarbe. Der gewählte Bereich ist farbig und trägt oben einen Balken.
+// (Karte, Globus, Buch). Wie bei Clash Royale füllt jeder Bereich sein ganzes Feld in seiner Farbe –
+// der gewählte hell mit Lichtkante oben, die anderen dunkler; keine weiße Fläche dazwischen.
 
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NavIcon } from "@/components/nav/nav-icon";
+import { tone } from "@/components/ui/chunky";
 import { tapHaptic } from "@/components/ui/press";
 import { AREA_ORDER, AREAS, type AreaKey } from "@/constants/areas";
-import { Spacing } from "@/constants/theme";
-import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
+import { useAppSettings, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
 /** Höhe der Leiste ohne Sicherheitsabstand unten. */
@@ -29,7 +30,6 @@ export function AreaBar({
   dots?: Partial<Record<AreaKey, boolean>>;
   onSelect: (key: AreaKey) => void;
 }) {
-  const { colors } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -39,10 +39,7 @@ export function AreaBar({
       style={[
         styles.bar,
         {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
           height: AREA_BAR_HEIGHT + insets.bottom,
-          // Kein Abstand unten: der Streifen reicht bis zum Rand, die Symbole sollen in seiner Mitte liegen
         },
       ]}
     >
@@ -61,20 +58,16 @@ export function AreaBar({
               tapHaptic();
               onSelect(key);
             }}
-            style={styles.item}
+            style={[
+              styles.item,
+              {
+                backgroundColor: selected ? area.fill : tone(area.fill, -0.42),
+                borderTopColor: selected ? tone(area.fill, 0.45) : tone(area.fill, -0.6),
+              },
+            ]}
           >
-            {/* Gewählt: farbiger Rahmen, Tonne hebt sich heraus (wie Duolingo/Clash Royale) */}
-            <View
-              style={[
-                styles.tab,
-                selected && { backgroundColor: area.fill + "26", borderColor: area.fill },
-              ]}
-            >
-              <View>
-                <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
-              </View>
-              {dots?.[key] && <View style={styles.dot} />}
-            </View>
+            <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
+            {dots?.[key] && <View style={styles.dot} />}
           </Pressable>
         );
       })}
@@ -83,22 +76,13 @@ export function AreaBar({
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "center" },
-  item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: 0 },
-  tab: {
-    minWidth: 80,
-    alignItems: "center",
-    gap: 0,
-    paddingVertical: 6,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
+  bar: { flexDirection: "row" },
+  // Das ganze Feld (bis zum unteren Rand) trägt die Farbe; das Symbol liegt in der Mitte
+  item: { flex: 1, alignItems: "center", justifyContent: "center", borderTopWidth: 3 },
   dot: {
     position: "absolute",
-    top: 2,
-    right: 14,
+    top: 12,
+    right: "30%",
     width: 12,
     height: 12,
     borderRadius: 6,
@@ -106,5 +90,4 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
-  selectedLabel: { fontWeight: "700" },
 });
