@@ -1,8 +1,7 @@
 // Datei: components/nav/area-bar.tsx
 //
 // Feste untere Leiste: Pfad · Online · Regal, je mit eigenem Symbol
-// (Karte, Globus, Buch). Wie bei Clash Royale: eine ruhige, dunkle Leiste bis zum Rand; der gewählte
-// Bereich ist breiter und heller, trägt oben eine Kante in seiner Bereichsfarbe und ein größeres Symbol.
+// (Karte, Globus, Buch) in der Bereichsfarbe. Der gewählte Bereich ist farbig und trägt oben einen Balken.
 
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,15 +9,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NavIcon } from "@/components/nav/nav-icon";
 import { tapHaptic } from "@/components/ui/press";
 import { AREA_ORDER, AREAS, type AreaKey } from "@/constants/areas";
+import { Spacing } from "@/constants/theme";
 import { useAppSettings, useAppTheme, useI18n } from "@/providers/app-settings";
 import { sfx } from "@/utils/sfx";
 
 /** Höhe der Leiste ohne Sicherheitsabstand unten. */
 export const AREA_BAR_HEIGHT = 72;
-
-/** Farben der Leiste: ruhig und dunkel, in beiden Themen (Vorbild Clash Royale). */
-const BAR_LIGHT = { bg: "#1F2D3F", selected: "#33495F", line: "rgba(255,255,255,0.08)" };
-const BAR_DARK = { bg: "#121A26", selected: "#2C3E55", line: "rgba(255,255,255,0.06)" };
 
 export function AreaBar({
   active,
@@ -33,23 +29,24 @@ export function AreaBar({
   dots?: Partial<Record<AreaKey, boolean>>;
   onSelect: (key: AreaKey) => void;
 }) {
+  const { colors } = useAppTheme();
   const { reduceMotion } = useAppSettings();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
-  const { scheme } = useAppTheme();
-  const bar = scheme === "dark" ? BAR_DARK : BAR_LIGHT;
   return (
     <View
       accessibilityRole="tablist"
       style={[
         styles.bar,
         {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           height: AREA_BAR_HEIGHT + insets.bottom,
-          backgroundColor: bar.bg,
+          // Kein Abstand unten: der Streifen reicht bis zum Rand, die Symbole sollen in seiner Mitte liegen
         },
       ]}
     >
-      {AREA_ORDER.map((key, index) => {
+      {AREA_ORDER.map((key) => {
         const area = AREAS[key];
         const selected = key === active;
         const label = t(`nav.${key}`);
@@ -64,18 +61,20 @@ export function AreaBar({
               tapHaptic();
               onSelect(key);
             }}
-            style={[
-              styles.item,
-              selected && styles.itemSelected,
-              {
-                backgroundColor: selected ? bar.selected : "transparent",
-                borderTopColor: selected ? area.fill : "transparent",
-                borderRightColor: index < AREA_ORDER.length - 1 ? bar.line : "transparent",
-              },
-            ]}
+            style={styles.item}
           >
-            <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
-            {dots?.[key] && <View style={styles.dot} />}
+            {/* Gewählt: farbiger Rahmen, Tonne hebt sich heraus (wie Duolingo/Clash Royale) */}
+            <View
+              style={[
+                styles.tab,
+                selected && { backgroundColor: area.fill + "26", borderColor: area.fill },
+              ]}
+            >
+              <View>
+                <NavIcon area={area} selected={selected} wiggle={wiggles[key]} reduceMotion={reduceMotion} />
+              </View>
+              {dots?.[key] && <View style={styles.dot} />}
+            </View>
           </Pressable>
         );
       })}
@@ -84,15 +83,22 @@ export function AreaBar({
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row" },
-  // Feine Trennlinie zwischen den Feldern; die Kante oben ist nur beim gewählten Feld gefärbt
-  item: { flex: 1, alignItems: "center", justifyContent: "center", borderTopWidth: 4, borderRightWidth: 1 },
-  itemSelected: { flex: 1.5 },
+  bar: { flexDirection: "row", borderTopWidth: 2, alignItems: "center" },
+  item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingTop: 0 },
+  tab: {
+    minWidth: 80,
+    alignItems: "center",
+    gap: 0,
+    paddingVertical: 6,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
   dot: {
     position: "absolute",
-    top: 12,
-    left: "50%",
-    marginLeft: 10,
+    top: 2,
+    right: 14,
     width: 12,
     height: 12,
     borderRadius: 6,
@@ -100,4 +106,5 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
+  selectedLabel: { fontWeight: "700" },
 });
