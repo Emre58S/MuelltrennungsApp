@@ -5,6 +5,24 @@ Die alte Roadmap (R1–R10, mit allen Commit-Kürzeln) liegt unverändert in
 und in welcher Reihenfolge wir dahin kommen. Aufgaben heißen jetzt **F1…**; übernommene
 alte Punkte stehen mit ihrer alten Nummer (z. B. „← R6b“).
 
+## Letzter Lauf (7.11., bis 15 Uhr) – erledigt und noch offen
+
+Erledigt (alle auf auto-improve, sdk-58, EAS auto + preview): Tagesmissionen mit Kacheln/XP/Truhe, Truhen-Fenster
+(wackeln, Deckel, Funken, Karte), Freunde nur mit Play-Zeichen (X gleich hoch), „Online-Gegner“, Klangbild je Wurfspur
+(game/trail-sound.ts), animierte Spur-Vorschau, untere Leiste nur Symbole (Karte/Globus/Buch), Ghost-Rennen → „10er-Rennen“
+mit klarer Regel, Prospekt ohne Flackern, Pfad: vier Modi fest oben, Missionen aufklappbar, fünf Texte gekürzt, Gegenstände
+neu gebaut (Eierschale, Alufolie, Prospekt, Zahnpastatube, Styropor …).
+
+Noch offen:
+- `supabase/pruefung.sql` im SQL-Editor ausführen (Plausibilitätsprüfung) – nur der Nutzer kann das.
+- Vorschaubilder beider Prospekte neu aufnehmen (`node tools/item-shots.mjs 8095 N N`), sobald der Web-Server wieder rendert.
+- Trail-Klänge: gleiche Töne kurz hintereinander schneiden sich ab (POOL_SIZE star2/star3/plop auf 2), ähnliche Spuren
+  (smaragd, polarlicht, ozean, kirschbluete) stärker unterscheiden.
+- Pfad mit Bild auf 375×667 prüfen (feste Modi-Kacheln + Band + Leiste: Platz?).
+- „Ghost in allen Modi“ (Nutzer): Gegen den eigenen Bestlauf/einen Gegner in jedem Modus – noch nicht umgesetzt.
+- Weitere Texte kürzen; Animationen (Gold-Spur bei Perfekt-Treffern, Boss-Sieg).
+- Vom Nutzer nötig: Datenschutz/Impressum, Bundle-ID/Package, App-Icon, iPad-Entscheidung.
+
 ## Prüfung 6.11. – was vor dem Release noch fehlt (Gesamtdurchgang: Code, Bilder, SQL, Texte)
 
 **A. Release-Blocker**

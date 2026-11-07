@@ -202,3 +202,9 @@ wenig Deutsch, nie strafend.
 - Szenen-Bausteine: SceneKind (stage.tsx) + SCENE_BINS (bins.ts) + `scene` in ParcoursLevel + Prop an `TrickProps`;
   Parcours-Ids ≤ 20 gehen online in die Rangliste (parcours.sql), darüber nicht. Szenen-Kopien bekannter Parcours
   (flapAll, Pendel, Wind, slideAll) sind ohne neue Physik fair – Test nur `-t "Parcours (N|M)"`.
+- Flackernde Modelle = Z-Fighting: Auflagen nie mit fast gleicher Fläche auf ein Blatt legen (≥ 3 mm Abstand), Faltteile um die
+  Faltachse drehen (z-Drehung), nicht in der Ebene (y-Drehung) überlappen lassen.
+- Tester-Texte: beim Kürzen von Hinweisen bleiben Folgen/Anreize erhalten („kann neu hinzugefügt werden“, „mehr Sterne“) –
+  Kürzen nur bei Füllwörtern; ein Vortest lehnte sonst ab.
+- Web-Server für Bilder: ein mit `&` gestarteter Server hält Port 8095 und liefert nur leere Seiten – vor dem Neustart den
+  Prozess auf dem Port beenden (TaskStop reicht nicht), dann mit run_in_background starten.
