@@ -43,7 +43,7 @@ export function renderGelberSackModel(key: string, name: string) {
           {/* kleines Knäuel in der Ecke */}
           <Part
             geo={G.crumple(0.11, 1.0, 11, 1)}
-            pos={[0.3, 0.12, 0.3]}
+            pos={[0.22, 0.1, 0.2]}
             flat
             color="#F2F5FA"
             roughness={0.3}

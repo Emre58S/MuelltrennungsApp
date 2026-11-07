@@ -526,7 +526,7 @@ export function renderExtraModel(key: string, name = ""): ReactElement | null {
       // Längsschnüre: Ellipse 0,19 breit / 0,23 hoch; Querringe liegen darauf
       // (Radius = 0,19 · √(1 − (y/0,23)²))
       return (
-        <group rotation={[1.0, 0.4, 0.5]} position={[0, -0.03, 0]} scale={[1.15, 0.85, 0.8]}>
+        <group rotation={[0.6, 0.4, 0.4]} position={[0, -0.03, 0]} scale={[1.15, 0.85, 0.8]}>
           {(
             [
               [-0.19, 0.105],

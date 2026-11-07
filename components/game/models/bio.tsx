@@ -606,11 +606,11 @@ export function renderBioModel(key: string, name: string) {
         <group rotation={[0.85, 0.2, -0.08]}>
           <Part geo={G.box(0.7, 0.03, 0.5, 0.01)} color="#FFF9EE" roughness={1} />
           {/* umgeknicktes Eck rechts vorn */}
-          <Part geo={G.box(0.16, 0.02, 0.16, 0.006)} pos={[0.3, 0.045, 0.2]} rot={[0.2, 0.7, 0.35]} color="#F1E8D6" roughness={1} />
+          <Part geo={G.box(0.16, 0.02, 0.16, 0.006)} pos={[0.3, 0.03, 0.2]} rot={[0.2, 0.7, 0.35]} color="#F1E8D6" roughness={1} />
           {/* dünner Rand in Blau (viele Küchentücher haben eine Randlinie) */}
-          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.032, -0.23]} basic color="#93C5FD" />
-          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.032, 0.0]} basic color="#BFDBFE" />
-          {/* Prägepunkte: Raster aus 5 × 4 flachen Kügelchen auf dem Blatt (Oberseite y ≈ 0,036) */}
+          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.018, -0.23]} basic color="#93C5FD" />
+          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.018, 0.0]} basic color="#BFDBFE" />
+          {/* Prägepunkte: Raster aus 5 × 4 flachen Kügelchen auf dem Blatt (Oberseite y ≈ 0,015) */}
           {Array.from({ length: 20 }, (_, k) => {
             const cx = (k % 5) * 0.13 - 0.26;
             const cz = Math.floor(k / 5) * 0.1 - 0.09;
@@ -618,7 +618,7 @@ export function renderBioModel(key: string, name: string) {
               <Part
                 key={k}
                 geo={G.ball(0.014, 6, 4)}
-                pos={[cx + (Math.floor(k / 5) % 2) * 0.06, 0.04, cz]}
+                pos={[cx + (Math.floor(k / 5) % 2) * 0.06, 0.02, cz]}
                 scale={[1, 0.5, 1]}
                 color="#E4DACA"
                 roughness={1}
@@ -630,14 +630,14 @@ export function renderBioModel(key: string, name: string) {
             <Part
               key={`p${k}`}
               geo={G.box(0.03, 0.006, 0.008, 0.002)}
-              pos={[-0.3 + k * 0.1, 0.04, 0.21]}
+              pos={[-0.3 + k * 0.1, 0.02, 0.21]}
               basic
               color="#B9AD97"
             />
           ))}
           {/* Fleck: roter Klecks mit hellem Hof, flach auf dem Tuch */}
-          <Part geo={G.ball(0.11, 10, 6)} pos={[0.1, 0.04, -0.04]} scale={[1.2, 0.12, 0.9]} color="#F2B38A" roughness={1} />
-          <Part geo={G.ball(0.07, 10, 6)} pos={[0.1, 0.05, -0.04]} scale={[1.2, 0.12, 0.9]} color="#C2391B" roughness={1} />
+          <Part geo={G.ball(0.11, 10, 6)} pos={[0.1, 0.02, -0.04]} scale={[1.2, 0.12, 0.9]} color="#F2B38A" roughness={1} />
+          <Part geo={G.ball(0.07, 10, 6)} pos={[0.1, 0.028, -0.04]} scale={[1.2, 0.12, 0.9]} color="#C2391B" roughness={1} />
           {/* Zusammengeknüllt daneben */}
           <Part geo={G.crumple(0.13, 0.28, 17, 1)} pos={[-0.3, 0.1, -0.12]} flat color="#FBF1DF" roughness={1} />
         </group>
