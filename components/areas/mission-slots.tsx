@@ -88,6 +88,28 @@ export function MissionSlots({ day, chestsWaiting }: { day: MissionDay; chestsWa
             </View>
           );
         })}
+        {/* Viertes Fach: die Truhe – wacht auf, sobald alle drei geschafft sind */}
+        <View
+          accessible={false}
+          style={[
+            styles.slot,
+            {
+              backgroundColor: done >= total ? colors.goldSoft : colors.surface,
+              borderColor: done >= total ? colors.gold : colors.border,
+              borderStyle: "dashed",
+            },
+          ]}
+        >
+          <View style={[styles.icon, { backgroundColor: done >= total ? colors.gold : colors.surfaceAlt }]}>
+            <AppText style={[styles.emoji, { opacity: done >= total ? 1 : 0.5 }]}>🎁</AppText>
+          </View>
+          <AppText variant="caption" center numberOfLines={3} color={done >= total ? colors.onGoldSoft : colors.textSecondary}>
+            {t("mission.chest")}
+          </AppText>
+          <View style={styles.bar}>
+            <ProgressBar value={done / Math.max(1, total)} height={6} />
+          </View>
+        </View>
       </View>
     </Pressable>
   );

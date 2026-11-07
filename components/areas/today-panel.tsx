@@ -11,7 +11,7 @@ import { useShell } from "@/components/nav/shell-context";
 import { AppText } from "@/components/ui/app-text";
 import { cardEdge } from "@/components/ui/chunky";
 import { press, tapHaptic } from "@/components/ui/press";
-import { StampBar } from "@/components/ui/stamp-bar";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { Radius, Spacing } from "@/constants/theme";
 import { ALL_BINS, type BinDef } from "@/game/bins";
 import { type Mission, type MissionDay, MISSION_XP, missionProgress } from "@/game/missions";
@@ -98,16 +98,20 @@ export function MissionCard({
     if (m.kind === "online") return t("mission.online");
     return t("mission.station");
   };
+  const doneN = day.done.length;
   return (
     <View style={[styles.missions, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
       <View style={styles.missionHead}>
-        <AppText variant="label" accessibilityRole="header">
+        <AppText variant="heading" accessibilityRole="header" style={styles.flex}>
           📋 {t("mission.title")}
         </AppText>
-        <AppText variant="caption" tone="textMuted">
-          {t("mission.reward", { xp: MISSION_XP })}
-        </AppText>
+        <View style={[styles.countPill, { backgroundColor: allDone ? colors.gold : colors.surfaceAlt }]}>
+          <AppText variant="label" color={allDone ? "#2B1D00" : colors.textSecondary}>
+            {doneN}/{day.missions.length}
+          </AppText>
+        </View>
       </View>
+      <ProgressBar value={doneN / Math.max(1, day.missions.length)} height={10} />
       {day.missions.map((m) => {
         const n = missionProgress(m, day.counts);
         const done = day.done.includes(m.id);
@@ -117,39 +121,61 @@ export function MissionCard({
         return (
           <Pressable
             key={m.id}
-            style={({ pressed }) => [styles.missionRow, pressed && { opacity: 0.6 }]}
+            style={({ pressed }) => [
+              styles.tile,
+              {
+                backgroundColor: done ? colors.goldSoft : colors.surfaceAlt,
+                borderColor: done ? colors.gold : "transparent",
+              },
+              pressed && { opacity: 0.7 },
+            ]}
             disabled={!go}
             onPress={goOnline}
             accessible
             accessibilityRole={go ? "button" : undefined}
             accessibilityLabel={`${text(m)}: ${done ? t("mission.doneA11y") : `${n}/${m.goal}`}`}
           >
-            <StampBar done={done ? 1 : 0} total={1} size={28} />
-            <AppText variant="caption" style={styles.missionText} tone={done ? "textMuted" : go ? "primary" : undefined}>
-              {emoji} {text(m)}{go ? " ›" : ""}
-            </AppText>
-            {!done && (
-              <AppText variant="caption" style={{ fontWeight: "700" }} tone="textSecondary">
-                {`${n}/${m.goal}`}
+            <View style={[styles.tileIcon, { backgroundColor: done ? colors.gold : colors.surface }]}>
+              <AppText style={styles.tileEmoji}>{done ? "✓" : emoji}</AppText>
+            </View>
+            <View style={styles.flex}>
+              <AppText variant="label" color={done ? colors.onGoldSoft : go ? colors.primary : colors.text} numberOfLines={2}>
+                {text(m)}
+                {go ? " ›" : ""}
               </AppText>
-            )}
+              <View style={styles.tileBar}>
+                <View style={styles.flex}>
+                  <ProgressBar value={done ? 1 : Math.min(1, n / m.goal)} height={8} track={colors.surface} color={done ? colors.gold : colors.primary} />
+                </View>
+                <AppText variant="caption" tone={done ? "onGoldSoft" : "textSecondary"} style={styles.tileCount}>
+                  {done ? "✓" : `${n}/${m.goal}`}
+                </AppText>
+              </View>
+            </View>
+            <View style={[styles.xpPill, { backgroundColor: done ? colors.gold : colors.surface }]}>
+              <AppText variant="caption" color={done ? "#2B1D00" : colors.textSecondary} style={styles.xpText}>
+                {t("mission.xp", { xp: MISSION_XP })}
+              </AppText>
+            </View>
           </Pressable>
         );
       })}
+      {/* Truhen-Fach: füllt sich mit den drei Missionen */}
+      <View style={[styles.chestSlot, { backgroundColor: allDone ? colors.goldSoft : colors.surfaceAlt, borderColor: allDone ? colors.gold : colors.border }]}>
+        <AppText style={[styles.chestSlotEmoji, { opacity: allDone ? 1 : 0.45 }]}>🎁</AppText>
+        <View style={styles.flex}>
+          <AppText variant="label" color={allDone ? colors.onGoldSoft : colors.text}>
+            {t("mission.chest")}
+          </AppText>
+          <AppText variant="caption" tone={allDone ? "onGoldSoft" : "textSecondary"}>
+            {allDone ? t("mission.allDone") : t("chest.goal")}
+          </AppText>
+        </View>
+      </View>
       {/* Flamme heute noch nicht sicher → erklären, was sie hält */}
       {day.done.length === 0 && !dailyDone && (
         <AppText variant="caption" tone="textMuted">
           {t("mission.flame")}
-        </AppText>
-      )}
-      {!allDone && (
-        <AppText variant="caption" tone="textSecondary">
-          {t("chest.goal")}
-        </AppText>
-      )}
-      {allDone && (
-        <AppText variant="caption" tone="textSecondary">
-          🎉 {t("mission.allDone")}
         </AppText>
       )}
       {chestsWaiting > 0 && (
@@ -262,6 +288,17 @@ export function TodayPanel() {
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  countPill: { paddingHorizontal: Spacing.sm + 2, paddingVertical: 3, borderRadius: Radius.pill },
+  tile: { flexDirection: "row", alignItems: "center", gap: Spacing.sm + 2, padding: Spacing.sm + 2, borderRadius: Radius.lg, borderWidth: 1.5 },
+  tileIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  tileEmoji: { fontSize: 22, lineHeight: 28 },
+  tileBar: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginTop: 4 },
+  tileCount: { fontWeight: "700", minWidth: 28, textAlign: "right" },
+  xpPill: { paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radius.pill },
+  xpText: { fontWeight: "700" },
+  chestSlot: { flexDirection: "row", alignItems: "center", gap: Spacing.sm + 2, padding: Spacing.sm + 2, borderRadius: Radius.lg, borderWidth: 1.5, borderStyle: "dashed" },
+  chestSlotEmoji: { fontSize: 30, lineHeight: 38 },
   missions: { padding: Spacing.md - 4, borderRadius: Radius.md, borderWidth: 1.5, gap: 6 },
   missionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
   missionRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },

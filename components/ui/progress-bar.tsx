@@ -10,12 +10,15 @@ import { useAppTheme } from "@/providers/app-settings";
 export function ProgressBar({
   value,
   color,
+  track,
   height = 10,
   accessibilityLabel,
 }: {
   /** 0 … 1 */
   value: number;
   color?: string;
+  /** Farbe der Schiene (Standard: etwas abgesetzt von der Fläche). */
+  track?: string;
   height?: number;
   accessibilityLabel?: string;
 }) {
@@ -27,7 +30,7 @@ export function ProgressBar({
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: Math.round(pct * 100) }}
-      style={[styles.track, { height, backgroundColor: colors.surfaceAlt }]}
+      style={[styles.track, { height, backgroundColor: track ?? colors.surfaceAlt }]}
     >
       <View
         style={[

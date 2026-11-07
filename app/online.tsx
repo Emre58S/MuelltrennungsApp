@@ -203,7 +203,7 @@ export default function OnlineScreen() {
         </AppText>
         <ModeRow
           emphasize
-          emoji="🎲"
+          emoji="🌍"
           accent="#1E8A57"
           title={randomTitle}
           desc={randomDesc}

@@ -4,6 +4,7 @@
 // Freunde mit ihrem besten Zeit-Sprint und Survival-Lauf dieser Woche.
 // Server: supabase/freunde.sql (über utils/leaderboard.ts).
 
+import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, TextInput, View } from "react-native";
@@ -12,7 +13,7 @@ import { AppText } from "@/components/ui/app-text";
 
 import { Avatar } from "@/components/areas/people";
 import { Sheet } from "@/components/ui/sheet";
-import { cardEdge } from "@/components/ui/chunky";
+import { Chunky, cardEdge } from "@/components/ui/chunky";
 import { Button } from "@/components/ui/button";
 import { HubScreen } from "@/components/ui/hub";
 import { IconButton } from "@/components/ui/icon-button";
@@ -264,16 +265,39 @@ export function FriendsPanel() {
                     <AppText variant="label" numberOfLines={1}>
                       {f.name}
                     </AppText>
-                    <AppText
-                      variant="caption"
-                      tone="textSecondary"
+                    {/* Bestwerte als kleine Pillen */}
+                    <View
+                      style={styles.pills}
+                      accessible
                       accessibilityLabel={`${t("sprint.title")} ${best(f.sprint)}, ${t("survival.title")} ${best(f.survival)}`}
                     >
-                      ⏱️ {best(f.sprint)} · 🛡️ {best(f.survival)}
-                    </AppText>
+                      <View style={[styles.pill, { backgroundColor: colors.surfaceAlt }]}>
+                        <AppText variant="caption" tone="textSecondary">
+                          ⏱️ {best(f.sprint)}
+                        </AppText>
+                      </View>
+                      <View style={[styles.pill, { backgroundColor: colors.surfaceAlt }]}>
+                        <AppText variant="caption" tone="textSecondary">
+                          🛡️ {best(f.survival)}
+                        </AppText>
+                      </View>
+                    </View>
                   </View>
-                  <IconButton icon="play" label={t("friends.challenge", { name: f.name })} onPress={() => challenge(f)} />
-                  <IconButton icon="x" label={t("friends.remove", { name: f.name })} onPress={() => askRemove(f)} />
+                  {/* Antreten: der Hauptknopf der Karte */}
+                  <Chunky
+                    color="#1E8A57"
+                    depth={4}
+                    radius={Radius.pill}
+                    label={t("friends.challenge", { name: f.name })}
+                    onPress={() => challenge(f)}
+                    faceStyle={styles.playFace}
+                  >
+                    <Feather name="play" size={16} color="#FFFFFF" />
+                    <AppText variant="label" color="#FFFFFF">
+                      {t("friends.go")}
+                    </AppText>
+                  </Chunky>
+                  <IconButton icon="x" label={t("friends.remove", { name: f.name })} onPress={() => askRemove(f)} style={styles.removeBtn} />
                 </View>
               ))}
             </View>
@@ -367,6 +391,10 @@ const styles = StyleSheet.create({
   emptyCard: { alignItems: "center", gap: Spacing.sm, padding: Spacing.lg, borderRadius: Radius.xl, borderWidth: 1 },
   emptyEmoji: { fontSize: 44, lineHeight: 54 },
   friendCards: { gap: Spacing.sm },
+  pills: { flexDirection: "row", gap: 6, marginTop: 4 },
+  pill: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.pill },
+  playFace: { flexDirection: "row", gap: 6, minHeight: 40, paddingHorizontal: Spacing.md },
+  removeBtn: { width: 36, height: 36, borderRadius: 18, opacity: 0.7 },
   friendCard: {
     flexDirection: "row",
     alignItems: "center",
