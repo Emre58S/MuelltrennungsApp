@@ -35,7 +35,7 @@ const LIGHT = new Set([
   "Tablettenblister (leer)",
   "Kaffeekapsel (Alu)",
   "Laub",
-  "Zwiebelschale",
+  "Zwiebel",
   "Teebeutel",
   "Küchenrolle (unbeschichtet)",
   "Zeitung",

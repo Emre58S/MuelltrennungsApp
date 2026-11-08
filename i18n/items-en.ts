@@ -9,12 +9,12 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
   Eierschale: { name: "Eggshell", fact: "Eggshells add lime to compost." },
   Laub: { name: "Leaves" },
   Apfelrest: { name: "Bitten apple" },
-  Karottenschalen: { name: "Carrot peels" },
+  Karotte: { name: "Carrot" },
   "Verwelkte Blumen": { name: "Wilted flowers" },
   Teebeutel: { name: "Tea bag", fact: "Tea bags that contain plastic go in general waste!" },
   Nussschalen: { name: "Nutshells" },
   Maiskolben: { name: "Corn cob" },
-  Zwiebelschale: { name: "Onion skin" },
+  Zwiebel: { name: "Onion" },
   "Altes Brot": { name: "Stale bread" },
   "Küchenrolle (unbeschichtet)": {
     name: "Kitchen roll (uncoated)",
@@ -155,9 +155,9 @@ export const ITEMS_EN: Record<string, { name: string; fact?: string }> = {
   },
   Nagellackentferner: { name: "Nail polish remover" },
   // Neu: typische Irrtümer
-  Kartoffelschalen: {
-    name: "Potato peels",
-    fact: "Peels and vegetable scraps go in the organic bin – they turn into compost.",
+  Kartoffel: {
+    name: "Potato",
+    fact: "Vegetables and vegetable scraps go in the organic bin – they turn into compost.",
   },
   Kronkorken: {
     name: "Bottle cap",

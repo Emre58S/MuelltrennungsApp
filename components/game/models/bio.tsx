@@ -164,7 +164,7 @@ export function renderBioModel(key: string, name: string) {
 
     case "peel": {
       if (name.includes("kartoffel")) {
-        // Kartoffel: braun, knollig, mit Augen; vorn eine geschälte helle Stelle, daneben Schalenstreifen
+        // Ganze Kartoffel (Nutzer, 8.11.: Früchte statt Schalen): braun, knollig, mit Augen und kleinen Keimen
         return (
           <group rotation={[0.45, 0.35, -0.15]}>
             <Part
@@ -174,15 +174,6 @@ export function renderBioModel(key: string, name: string) {
               flat
               color="#B98B54"
               roughness={1}
-            />
-            {/* geschälte Stelle (Vorderseite der Knolle liegt bei z ≈ 0,2) */}
-            <Part
-              geo={G.ball(0.09, 10, 6)}
-              pos={[0.0, 0.02, 0.19]}
-              scale={[1.3, 0.9, 0.3]}
-              flat
-              color="#F2DE9B"
-              roughness={0.9}
             />
             {/* Augen */}
             {(
@@ -194,50 +185,36 @@ export function renderBioModel(key: string, name: string) {
             ).map((p, i) => (
               <Part key={i} geo={G.ball(0.018, 5, 4)} pos={p} color="#5A3C1E" roughness={1} />
             ))}
-            {/* abgeschälte Streifen: braun außen, innen hell */}
-            {(
-              [
-                [0.34, -0.1, 0.1, 0.3],
-                [0.3, 0.1, 0.14, -0.3],
-              ] as [number, number, number, number][]
-            ).map(([x, y, z, r], i) => (
-              <group key={i} position={[x, y, z]} rotation={[1.35, r, 0.3]}>
-                <Part geo={G.wave(0.3, 0.1, 0.03, 9, i + 2)} double color="#8B5E34" roughness={1} />
-              </group>
-            ))}
           </group>
         );
       }
       if (name.includes("zwiebel")) {
-        // Zwiebelschale: dünne, gebogene Schalenblättchen in Kupfer/Braun
+        // Ganze Zwiebel: goldbraune Knolle mit Längsrippen, trockener Spitze oben und Wurzelbüschel unten
         return (
-          <group rotation={[0.4, 0.2, -0.1]}>
-            {(
-              [
-                [-0.1, 0.02, 0, 0.2, 0, 0.18, "#B5651D"],
-                [0.1, 0.04, 0.03, -0.5, 0.8, 0.15, "#C98A4B"],
-                [0.0, -0.06, 0.04, 0.9, -0.4, 0.13, "#9A4E1F"],
-                [0.12, -0.04, -0.02, 1.6, 0.3, 0.1, "#D9A066"],
-              ] as [number, number, number, number, number, number, string][]
-            ).map(([x, y, z, rx, ry, r, col], i) => (
+          <group rotation={[0.35, 0.3, -0.12]}>
+            <Part geo={G.ball(0.22, 16, 12)} scale={[1, 0.88, 1]} color="#C98A3A" roughness={0.9} />
+            {[0, 0.6, 1.2, 1.8, 2.4, 3.0].map((a) => (
               <Part
-                key={i}
-                geo={G.ball(r, 8, 4, 0, 1.0)}
-                pos={[x, y, z]}
-                rot={[rx, ry, 0]}
-                scale={[1, 0.6, 1.4]}
-                double
-                flat
-                color={col}
+                key={a}
+                geo={G.torus(0.2, 0.006, 4, 16, Math.PI)}
+                rot={[0, a, 0]}
+                scale={[1, 0.88, 1]}
+                color="#9A5F1E"
                 roughness={1}
               />
+            ))}
+            {/* trockene Spitze */}
+            <Part geo={G.cyl(0.006, 0.05, 0.17, 8)} pos={[0, 0.27, 0]} rot={[0, 0, 0.18]} color="#8A5A22" roughness={1} />
+            {/* Wurzelbüschel */}
+            {[-0.04, 0, 0.04].map((x) => (
+              <Part key={x} geo={G.cyl(0.004, 0.004, 0.07, 4)} pos={[x, -0.2, 0.01]} rot={[0, 0, x * 6]} color="#EADFCB" roughness={1} />
             ))}
           </group>
         );
       }
       const isCarrot = name.includes("karotte");
       if (isCarrot) {
-        // Möhre (Kegel, Spitze unten) mit Querringen und Grün; geschälte Streifen kringeln daneben.
+        // Ganze Möhre (Nutzer, 8.11.: Früchte statt Schalen): Kegel, Spitze unten, Querringen und Grün.
         // Radius bei Höhe y: 0,012 + 0,088 · (y + 0,3) / 0,6
         return (
           <group rotation={[0.45, 0.35, -0.15]}>
@@ -259,8 +236,6 @@ export function renderBioModel(key: string, name: string) {
                 roughness={1}
               />
             ))}
-            {/* geschälte, hellere Stelle vorn */}
-            <Part geo={G.ball(0.05, 8, 6)} pos={[0, 0.05, 0.062]} scale={[0.8, 2.2, 0.25]} color="#FDBA74" roughness={0.9} />
             {/* Grün oben */}
             {(
               [
@@ -279,17 +254,6 @@ export function renderBioModel(key: string, name: string) {
               />
             ))}
             </group>
-            {/* Schalenstreifen daneben (außerhalb der Möhren-Neigung, damit sie zur Kamera zeigen) */}
-            {(
-              [
-                [0.34, -0.06, 0.1, 0.3],
-                [0.3, -0.24, 0.14, -0.3],
-              ] as [number, number, number, number][]
-            ).map(([x, y, z, r], i) => (
-              <group key={i} position={[x, y, z]} rotation={[1.35, r, 0.3]}>
-                <Part geo={G.wave(0.3, 0.1, 0.03, 9, i + 2)} double color="#FB923C" roughness={0.9} />
-              </group>
-            ))}
           </group>
         );
       }
@@ -600,46 +564,47 @@ export function renderBioModel(key: string, name: string) {
       );
 
     case "kitchenroll":
-      // Benutztes Küchentuch: Blatt mit Prägepunkten, Perforation am Rand und einem Fleck
-      // (Tomatensauce), daneben ein zusammengeknülltes Stück – die volle Rolle sähe nach Ware aus
+      // Küchenrolle (Nutzer, 8.11.): kompakte Rolle wie die Tapetenrolle – weiße Rolle quer, Pappkern
+      // sichtbar, Prägepunkte, ein kurzes Stück abgerollt mit Perforation
       return (
-        <group rotation={[0.85, 0.2, -0.08]}>
-          <Part geo={G.box(0.7, 0.03, 0.5, 0.01)} color="#FFF9EE" roughness={1} />
-          {/* umgeknicktes Eck rechts vorn */}
-          <Part geo={G.box(0.16, 0.02, 0.16, 0.006)} pos={[0.3, 0.03, 0.2]} rot={[0.2, 0.7, 0.35]} color="#F1E8D6" roughness={1} />
-          {/* dünner Rand in Blau (viele Küchentücher haben eine Randlinie) */}
-          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.018, -0.23]} basic color="#93C5FD" />
-          <Part geo={G.box(0.7, 0.004, 0.014, 0.001)} pos={[0, 0.018, 0.0]} basic color="#BFDBFE" />
-          {/* Prägepunkte: Raster aus 5 × 4 flachen Kügelchen auf dem Blatt (Oberseite y ≈ 0,015) */}
-          {Array.from({ length: 20 }, (_, k) => {
-            const cx = (k % 5) * 0.13 - 0.26;
-            const cz = Math.floor(k / 5) * 0.1 - 0.09;
-            return (
-              <Part
-                key={k}
-                geo={G.ball(0.014, 6, 4)}
-                pos={[cx + (Math.floor(k / 5) % 2) * 0.06, 0.02, cz]}
-                scale={[1, 0.5, 1]}
-                color="#E4DACA"
-                roughness={1}
-              />
-            );
-          })}
-          {/* Perforation: Strichreihe am Rand */}
-          {Array.from({ length: 7 }, (_, k) => (
-            <Part
-              key={`p${k}`}
-              geo={G.box(0.03, 0.006, 0.008, 0.002)}
-              pos={[-0.3 + k * 0.1, 0.02, 0.21]}
-              basic
-              color="#B9AD97"
-            />
+        <group rotation={[0.75, -0.35, 0.05]}>
+          {/* Rolle: Radius 0,16, Länge 0,44 (liegt quer) */}
+          <Part geo={G.cyl(0.16, 0.16, 0.44, 24)} rot={[0, 0, Math.PI / 2]} pos={[0, 0.16, -0.06]} color="#FFFDF6" roughness={1} />
+          {/* Pappkern ragt an beiden Enden etwas heraus */}
+          <Part geo={G.cyl(0.06, 0.06, 0.455, 14)} rot={[0, 0, Math.PI / 2]} pos={[0, 0.16, -0.06]} color="#B08B5B" roughness={1} />
+          {/* Hohlraum im Kern (dunkle Scheibe an der rechten Stirnseite) */}
+          <Part geo={G.cyl(0.045, 0.045, 0.46, 12)} rot={[0, 0, Math.PI / 2]} pos={[0, 0.16, -0.06]} color="#6B4F2C" roughness={1} />
+          {/* hellblaue Randlinien an beiden Rollenenden */}
+          {[-0.2, 0.2].map((x) => (
+            <Part key={x} geo={G.cyl(0.162, 0.162, 0.016, 24)} rot={[0, 0, Math.PI / 2]} pos={[x, 0.16, -0.06]} color="#BFDBFE" roughness={1} />
           ))}
-          {/* Fleck: roter Klecks mit hellem Hof, flach auf dem Tuch */}
-          <Part geo={G.ball(0.11, 10, 6)} pos={[0.1, 0.02, -0.04]} scale={[1.2, 0.12, 0.9]} color="#F2B38A" roughness={1} />
-          <Part geo={G.ball(0.07, 10, 6)} pos={[0.1, 0.028, -0.04]} scale={[1.2, 0.12, 0.9]} color="#C2391B" roughness={1} />
-          {/* Zusammengeknüllt daneben */}
-          <Part geo={G.crumple(0.13, 0.28, 17, 1)} pos={[-0.3, 0.1, -0.12]} flat color="#FBF1DF" roughness={1} />
+          {/* Prägepunkte in zwei Reihen rund um die Rolle (Radius 0,16 + Punkthälfte) */}
+          {[-0.09, 0.09].flatMap((x, r) =>
+            Array.from({ length: 12 }, (_, k) => {
+              const a = (k / 12) * Math.PI * 2 + r * 0.26;
+              return (
+                <Part
+                  key={`${r}-${k}`}
+                  geo={G.ball(0.013, 6, 4)}
+                  pos={[x, 0.16 + Math.cos(a) * 0.162, -0.06 + Math.sin(a) * 0.162]}
+                  color="#E4DACA"
+                  roughness={1}
+                />
+              );
+            }),
+          )}
+          {/* kurzes abgerolltes Stück nach vorn mit Perforation */}
+          <group position={[0, 0.0, 0.2]}>
+            <Part geo={G.box(0.4, 0.012, 0.22, 0.004)} color="#FFFDF6" roughness={1} />
+            {Array.from({ length: 8 }, (_, k) => (
+              <Part key={k} geo={G.box(0.03, 0.004, 0.008, 0.001)} pos={[-0.17 + k * 0.049, 0.008, 0.07]} basic color="#B9AD97" />
+            ))}
+            {[-0.12, 0, 0.12].map((x) =>
+              [-0.06, 0.0].map((z) => (
+                <Part key={`${x}${z}`} geo={G.ball(0.012, 6, 4)} pos={[x, 0.008, z]} scale={[1, 0.5, 1]} color="#E4DACA" roughness={1} />
+              )),
+            )}
+          </group>
         </group>
       );
     default:

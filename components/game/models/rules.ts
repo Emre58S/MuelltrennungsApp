@@ -18,7 +18,7 @@ const MODEL_RULES: [RegExp, string][] = [
   [/bananenschale|banane|banana/, "banana"],
   [/kaffee/, "coffee"],
   [/eierschale/, "eggshell"],
-  [/kartoffelschale|karottenschale|zwiebelschale/, "peel"],
+  [/kartoffel|karotte|zwiebel/, "peel"],
   [/teebeutel|\btee/, "teabag"],
   [/brot/, "bread"],
   [/laub/, "leaves"],

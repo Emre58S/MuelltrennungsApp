@@ -51,7 +51,7 @@ export const ITEMS: Item[] = [
   },
   {
     emoji: "🥕",
-    name: "Karottenschalen",
+    name: "Karotte",
     category: "Biomüll",
     difficulty: "leicht",
   },
@@ -82,7 +82,7 @@ export const ITEMS: Item[] = [
   },
   {
     emoji: "🧅",
-    name: "Zwiebelschale",
+    name: "Zwiebel",
     category: "Biomüll",
     difficulty: "leicht",
   },
@@ -520,10 +520,10 @@ export const ITEMS: Item[] = [
   // ── Neu: typische Irrtümer ────────────────────────────────────────
   {
     emoji: "🥔",
-    name: "Kartoffelschalen",
+    name: "Kartoffel",
     category: "Biomüll",
     difficulty: "leicht",
-    fact: "Schalen und Gemüsereste: ab in die Biotonne – daraus wird Kompost.",
+    fact: "Gemüse und Gemüsereste: ab in die Biotonne – daraus wird Kompost.",
   },
   {
     emoji: "🪙",
