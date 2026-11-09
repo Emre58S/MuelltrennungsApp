@@ -55,7 +55,7 @@ Diese Daten speichert die App ausschließlich lokal auf deinem Gerät. Wir bekom
 | Zufälliger Spielercode, Spitzname, eigener Freundes-Code, ggf. noch nicht gesendete Ergebnisse | Online-Funktionen (siehe Abschnitt 4) |
 | Welche Tipps und Hinweise du schon gesehen hast | Damit Hinweise nicht ständig wiederkehren |
 
-Diese Daten löschst du, indem du die App **deinstallierst** oder in den Einstellungen **„Alles zurücksetzen“** wählst. Beachte: „Alles zurücksetzen“ löscht nur die Daten auf deinem Gerät, nicht die Online-Daten auf dem Server (siehe Abschnitt 12).
+Diese Daten löschst du, indem du die App **deinstallierst**. „Alles zurücksetzen“ in den Einstellungen löscht nur XP, Level, Tage in Folge und Bestwerte; Sammelbuch und Sterne bleiben. Die Online-Daten auf dem Server löschst du in den Einstellungen unter **Datenschutz → Online-Daten löschen** (siehe Abschnitt 12).
 
 Die App wird auch **ohne Internetverbindung** gespielt. Online-Ergebnisse werden dann auf dem Gerät gemerkt und später gesendet.
 
@@ -72,6 +72,7 @@ Wenn du Online-Funktionen nutzt, sendet die App Daten an unseren Server (Datenba
 | Ergebnisse in Ranglisten: Bereich (z. B. Tagesaufgabe, Parcours, Zeit, Ohne Fehler), Punktzahl, Zeitpunkt | nach einer Runde in einem Online-Bereich | Ranglisten |
 | Online-Läufe („Gegen die Zeit“, „Ohne Fehler“, Parcours, 10er-Rennen): Modus, Datum, Anzahl richtiger Würfe, benötigte Zeit, ein kurzes Kürzel der Wurfreihenfolge und -ergebnisse, Zeitpunkt | nach einem Online-Lauf | Ranglisten, Wettkampf gegen den „Ghost“ (aufgezeichneter Lauf) eines anderen Spielers, Plausibilitätsprüfung gegen erfundene Ergebnisse |
 | Freundes-Code (6 Zeichen), Freundschaften (Verknüpfung zweier Spielercodes mit Zeitpunkt), Sperren (wer wen entfernt hat) | wenn du Freunde hinzufügst oder entfernst | Freundesfunktion und Herausforderungen |
+| Meldungen: Spielercode der meldenden Person, gemeldeter Spitzname, Bereich (z. B. „zeit“), Zeitpunkt | wenn du in der Rangliste einen Namen meldest | Prüfung und Entfernen unpassender Namen |
 
 ### 4.2 Wer sieht was?
 
@@ -84,7 +85,7 @@ Wenn du Online-Funktionen nutzt, sendet die App Daten an unseren Server (Datenba
 ### 4.3 Hinweise zum Spitznamen
 
 - Wähle bitte **keinen echten Namen** und keine persönlichen Angaben (Adresse, Telefonnummer, Schule o. Ä.).
-- Ein einfacher Filter lehnt beleidigende Namen ab. Er ist nicht perfekt. Wenn dir ein unpassender Name auffällt, schreib uns an [[E-Mail-Adresse]] – wir entfernen ihn.
+- Ein einfacher Filter lehnt beleidigende Namen ab. Er ist nicht perfekt. Wenn dir ein unpassender Name auffällt, halte ihn in der Rangliste **gedrückt** und wähle „Melden“, oder schreib uns an [[E-Mail-Adresse]] – wir prüfen ihn und entfernen ihn, wenn er unpassend ist.
 - Wen du als Freund entfernst, kann sich nicht wieder mit deinem Code eintragen (nur du kannst ihn neu hinzufügen).
 
 ### 4.4 Rechtsgrundlage
@@ -123,8 +124,9 @@ Sonst geben wir deine Daten nicht an Dritte weiter, außer wir sind gesetzlich d
 
 ## 7. Speicherdauer
 
-- **Lokale Daten:** bis du die App deinstallierst oder „Alles zurücksetzen“ wählst.
-- **Online-Daten (Spielercode, Spitzname, Ergebnisse, Läufe, Freundschaften):** wir speichern sie, solange du die Online-Funktionen nutzt, und löschen sie **auf deine Anfrage unverzüglich**. [[Optional, wenn du eine automatische Löschung einrichtest: „Läufe und Ergebnisse, die älter als X Monate sind, werden automatisch gelöscht; Spieler ohne Aktivität seit X Monaten werden gelöscht.“ Wichtig: nur hineinschreiben, wenn es wirklich so eingerichtet ist.]]
+- **Lokale Daten:** bis du die App deinstallierst (XP, Level, Tage in Folge und Bestwerte zusätzlich mit „Alles zurücksetzen“).
+- **Online-Daten (Spielercode, Spitzname, Ergebnisse, Läufe, Freundschaften):** wir speichern sie, solange du die Online-Funktionen nutzt, und löschen sie **auf deine Anfrage unverzüglich** (in der App selbst unter Einstellungen → Datenschutz → Online-Daten löschen). [[Nur eintragen, wenn du den täglichen Aufräum-Job aus supabase/datenschutz.sql (pg_cron) wirklich eingerichtet hast: „Tages-Läufe (Ghost, Parcours) und Tages-Ergebnisse werden nach 30 Tagen automatisch gelöscht; Spieler ohne Aktivität seit 24 Monaten werden automatisch gelöscht.“ Läufe für ‚Gegen die Zeit‘ und ‚Ohne Fehler‘ und feste Ranglisten bleiben, solange der Spieler aktiv ist.]]
+- **Meldungen** über Namen: bis zur Bearbeitung, danach löschen wir sie spätestens nach [[6]] Monaten.
 - **Server-Protokolle** bei Supabase und Expo: nach deren jeweiligen Fristen.
 
 ## 8. Kinder und Jugendliche
@@ -165,7 +167,7 @@ Du hast nach der DSGVO folgende Rechte:
 
 Da es kein Konto gibt, können wir dich nur über den **Spielercode** erkennen. Schreib uns eine E-Mail an **[[E-Mail-Adresse]]** und nenne uns **deinen Freundes-Code** (in der App unter *Online → Freunde*, 6 Zeichen) und deinen Spitznamen. Mit dem Freundes-Code können wir die zu dir gehörenden Online-Daten eindeutig finden, auskunftsweise zusammenstellen, berichtigen oder löschen. Wir antworten **innerhalb eines Monats**.
 
-[[WICHTIG – NUR EINTRAGEN, WENN ES STIMMT: „Alternativ kannst du deine Online-Daten direkt in der App löschen: Einstellungen → Online-Daten löschen.“ Diese Funktion ist im Moment NICHT eingebaut; wenn sie gebaut ist, hier eintragen.]]
+**Direkt in der App:** Einstellungen → Datenschutz → **Online-Daten löschen**. Dabei werden dein Spielercode, Spitzname, Ergebnisse, Läufe, Freundes-Code, Freundschaften und Sperren auf dem Server gelöscht. [[Diese Funktion klappt erst, nachdem du supabase/datenschutz.sql im Supabase-SQL-Editor ausgeführt hast.]]
 
 Wenn du die App deinstallierst, bleiben deine Online-Daten auf dem Server bestehen, bis du ihre Löschung verlangst. Ein neuer Start der App erzeugt einen neuen, unabhängigen Spielercode.
 

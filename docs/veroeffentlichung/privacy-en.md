@@ -52,7 +52,7 @@ This data is stored only locally on your device. We do not receive it and cannot
 | Random player code, nickname, your own friend code, results not yet sent | Online features (see section 4) |
 | Which tips and hints you have already seen | So hints do not keep repeating |
 
-You delete this data by **uninstalling** the app or by choosing **"Reset everything"** in the settings. Note: "Reset everything" deletes only the data on your device, not the online data on the server (see section 12).
+You delete this data by **uninstalling** the app. "Reset everything" in the settings deletes only XP, level, days in a row and best scores; the collection book and stars stay. You delete the online data on the server in the settings under **Privacy → Delete online data** (see section 12).
 
 The app also works **without an internet connection**. Online results are then kept on the device and sent later.
 
@@ -69,6 +69,7 @@ When you use online features, the app sends data to our server (a database hoste
 | Leaderboard results: board (e.g. daily challenge, parcours, time, no mistakes), score, time | after a round in an online area | Leaderboards |
 | Online runs ("Against the clock", "No mistakes", parcours, 10-item race): mode, date, number of correct throws, time needed, a short code of the throw sequence and results, time | after an online run | Leaderboards, racing against another player's recorded run ("ghost"), plausibility check against made-up results |
 | Friend code (6 characters), friendships (link between two player codes with time), blocks (who removed whom) | when you add or remove friends | Friends feature and challenges |
+| Reports: player code of the reporter, reported nickname, area (e.g. "zeit"), time | when you report a name in a leaderboard | Checking and removing inappropriate names |
 
 ### 4.2 Who sees what?
 
@@ -81,7 +82,7 @@ When you use online features, the app sends data to our server (a database hoste
 ### 4.3 About nicknames
 
 - Please do **not use your real name** or personal details (address, phone number, school, etc.).
-- A simple filter rejects offensive names. It is not perfect. If you notice an inappropriate name, write to [[email address]] – we will remove it.
+- A simple filter rejects offensive names. It is not perfect. If you notice an inappropriate name, press and hold it in the leaderboard and choose "Report", or write to [[email address]] – we will check it and remove it if it is inappropriate.
 - Whoever you remove as a friend cannot re-add themselves with your code (only you can add them again).
 
 ### 4.4 Legal basis
@@ -120,8 +121,9 @@ We do not pass your data to third parties otherwise, unless legally required.
 
 ## 7. Storage period
 
-- **Local data:** until you uninstall the app or choose "Reset everything".
-- **Online data (player code, nickname, results, runs, friendships):** we keep it while you use the online features and delete it **promptly on your request**. [[Optional, if you set up automatic deletion: "Runs and results older than X months are deleted automatically; players inactive for X months are deleted." Only write this if it is really set up.]]
+- **Local data:** until you uninstall the app (XP, level, days in a row and best scores also with "Reset everything").
+- **Online data (player code, nickname, results, runs, friendships):** we keep it while you use the online features and delete it **promptly on your request** (in the app itself under Settings → Privacy → Delete online data). [[Only insert if you really set up the daily cleanup job from supabase/datenschutz.sql (pg_cron): "Daily runs (ghost, parcours) and daily results are deleted automatically after 30 days; players inactive for 24 months are deleted automatically." Runs for 'Against the clock' and 'No mistakes' and the fixed leaderboards stay while the player is active.]]
+- **Reports** about names: until handled, then we delete them after [[6]] months at the latest.
 - **Server logs** at Supabase and Expo: according to their retention periods.
 
 ## 8. Children and young people
@@ -162,7 +164,7 @@ Under the GDPR you have the right to:
 
 As there is no account, we can only recognise you by your **player code**. Send an email to **[[email address]]** and tell us **your friend code** (in the app under *Online → Friends*, 6 characters) and your nickname. With the friend code we can find the online data that belongs to you, provide information, correct or delete it. We reply **within one month**.
 
-[[IMPORTANT – ONLY INSERT IF TRUE: "Alternatively you can delete your online data directly in the app: Settings → Delete online data." This function is currently NOT built; insert here once it exists.]]
+**Directly in the app:** Settings → Privacy → **Delete online data**. This deletes your player code, nickname, results, runs, friend code, friendships and blocks on the server. [[This works only after you have run supabase/datenschutz.sql in the Supabase SQL editor.]]
 
 If you uninstall the app, your online data remains on the server until you ask for deletion. A new start of the app creates a new, independent player code.
 

@@ -164,12 +164,12 @@ Note: waste sorting rules differ by region. Follow the rules of your municipalit
 ```
 Anmeldung: Nicht nötig, die App hat kein Benutzerkonto. Es gibt keine Demo-Zugangsdaten.
 Online-Funktionen (Bereich „Online“) nutzen eine anonyme, zufällig erzeugte Spieler-ID und einen frei gewählten Spitznamen; es gibt keinen Chat.
-Nutzergenerierte Inhalte: ausschließlich der Spitzname (2–16 Zeichen). Er wird serverseitig durch einen Wortfilter geprüft; Spieler können Freunde sperren (entfernen); Kontakt für Meldungen: [[E-Mail]].
+Nutzergenerierte Inhalte: ausschließlich der Spitzname (2–16 Zeichen). Er wird serverseitig durch einen Wortfilter geprüft; Spieler können Namen in der Rangliste durch langes Drücken melden und Freunde entfernen/sperren; Kontakt für Meldungen: [[E-Mail]].
 Keine Werbung, kein Tracking, keine In-App-Käufe, keine Berechtigungsabfragen.
 Die App ist ohne Internet spielbar; Online-Funktionen brauchen Internet.
 ```
 
-(Hinweis zu Apples Regel 1.2 „Nutzergenerierte Inhalte“: Apple verlangt Filter, **eine Möglichkeit, Inhalte zu melden**, Sperrmöglichkeit und Kontaktangabe. Filter, Sperren und Kontakt sind vorhanden; **eine Melden-Funktion in der App fehlt noch** – siehe README.md, offene Punkte.)
+(Hinweis zu Apples Regel 1.2 „Nutzergenerierte Inhalte“: Apple verlangt Filter, Meldemöglichkeit, Sperrmöglichkeit und Kontaktangabe. Alles ist vorhanden: Wortfilter (nach Ausführen von `supabase/pruefung.sql`), **Melden per Gedrückt-Halten in der Rangliste** (landet in der Tabelle `reports`, siehe `supabase/datenschutz.sql`), Entfernen/Sperren von Freunden, Kontakt-E-Mail. In die Prüfhinweise oben schreiben: „Report: long-press a name in the leaderboard.“)
 
 ---
 
@@ -205,7 +205,7 @@ Die Angaben müssen zum Text der Datenschutzerklärung passen. Meine Empfehlung 
 ### Google – „Datensicherheit“
 - Erhebt oder teilt die App Daten? **Ja.**
 - **Verschlüsselung bei der Übertragung:** Ja (HTTPS).
-- **Kann der Nutzer die Löschung der Daten beantragen:** Ja – **Web-Adresse oder E-Mail angeben**, wo er das beantragen kann [[URL/E-Mail]]. (Wichtig, siehe README.md: besser eine Lösch-Funktion in der App einbauen.)
+- **Kann der Nutzer die Löschung der Daten beantragen:** Ja – in der App unter *Einstellungen → Datenschutz → Online-Daten löschen*; zusätzlich **Web-Adresse oder E-Mail angeben** [[URL/E-Mail]] (Google verlangt eine Adresse außerhalb der App, die erreichbar ist, auch wenn die App schon gelöscht wurde: nimm die Seite mit der Datenschutzerklärung oder die E-Mail).
 - Datentypen (alle: *Erhoben*, *nicht an Dritte weitergegeben* – Supabase ist ein Auftragsverarbeiter und zählt nach den Google-Regeln nicht als „Weitergabe“; *Zweck: App-Funktionen*; *optional/erforderlich: optional*):
   - **Persönliche Daten → Nutzer-IDs** (Spielercode)
   - **Persönliche Daten → Name** (Spitzname – Google zählt den Spitznamen oft hierunter; im Zweifel ankreuzen)
@@ -227,4 +227,4 @@ Die Angaben müssen zum Text der Datenschutzerklärung passen. Meine Empfehlung 
 - **Inhalte von Dritten / Urheberrecht:** Töne und Musik sind **selbst erzeugt** (`scripts/generate-sfx.mjs`, `scripts/generate-music.mjs`), Gegenstände und Tonnen sind eigene 3D-Modelle, Vorschaubilder selbst gerendert, Schrift Atkinson Hyperlegible Next (SIL Open Font License). Emoji stammen vom System des Geräts.
 - **Regierungs-/Gesundheits-/Finanz-App:** Nein.
 - **News-App:** Nein.
-- **Nutzerkonten:** Nein (daher entfällt Apples Pflicht „Konto in der App löschen“ im engeren Sinn – wir empfehlen trotzdem eine Lösch-Funktion, siehe README.md).
+- **Nutzerkonten:** Nein (daher entfällt Apples Pflicht „Konto in der App löschen“ im engeren Sinn – wir bieten trotzdem „Online-Daten löschen“ in der App).

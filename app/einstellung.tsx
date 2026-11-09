@@ -6,6 +6,7 @@
 import { Feather } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { type ComponentProps, useEffect, useState } from "react";
+import * as WebBrowser from "expo-web-browser";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -14,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { tapHaptic } from "@/components/ui/press";
 import { Segmented } from "@/components/ui/segmented";
 import { PageHeader } from "@/components/ui/page-header";
+import { legalUrl } from "@/constants/legal";
 import { Radius, Spacing, TOUCH_MIN } from "@/constants/theme";
 import { LANGUAGES } from "@/i18n";
 import {
@@ -30,6 +32,7 @@ import {
   setBoolean,
   StorageKeys,
 } from "@/utils/storage";
+import { deleteOnlineData } from "@/utils/leaderboard";
 import { setSfxEnabled } from "@/utils/sfx";
 import { setMusicEnabled } from "@/utils/music";
 
@@ -49,6 +52,8 @@ export default function EinstellungenScreen() {
     learnReason,
     setLearnReason,
   } = useAppSettings();
+  const privacyUrl = legalUrl("privacy", lang);
+  const imprintUrl = legalUrl("imprint", lang);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [musicEnabled, setMusicEnabledState] = useState(true);
 
@@ -243,6 +248,49 @@ export default function EinstellungenScreen() {
                 StorageKeys.STREAK_RESCUE,
                 StorageKeys.TOTAL_CORRECT,
                 StorageKeys.TOTAL_PLAYED,
+              ])
+            }
+          />
+        </Card>
+
+        {/* Datenschutz: Rechtstexte (erscheinen, sobald die Adressen in constants/legal.ts stehen) und
+            Online-Daten löschen (Pflicht für die Stores: der Spieler muss seine Daten selbst entfernen können) */}
+        <SectionLabel text={t("settings.privacy")} />
+        <Card style={styles.group}>
+          {privacyUrl ? (
+            <ActionRow
+              icon="shield"
+              title={t("settings.privacyPolicy")}
+              subtitle={t("settings.privacyPolicy.desc")}
+              onPress={() => void WebBrowser.openBrowserAsync(privacyUrl)}
+            />
+          ) : null}
+          {imprintUrl ? (
+            <ActionRow
+              icon="info"
+              title={t("settings.imprint")}
+              subtitle={t("settings.imprint.desc")}
+              divider={!!privacyUrl}
+              onPress={() => void WebBrowser.openBrowserAsync(imprintUrl)}
+            />
+          ) : null}
+          <ActionRow
+            icon="cloud-off"
+            title={t("settings.deleteOnline")}
+            subtitle={t("settings.deleteOnline.desc")}
+            danger
+            divider={!!privacyUrl || !!imprintUrl}
+            onPress={() =>
+              Alert.alert(t("settings.deleteOnline"), t("settings.deleteOnline.confirm"), [
+                { text: t("common.cancel"), style: "cancel" },
+                {
+                  text: t("settings.reset.button"),
+                  style: "destructive",
+                  onPress: async () => {
+                    const ok = await deleteOnlineData();
+                    Alert.alert(ok ? t("settings.deleteOnline.done") : t("settings.deleteOnline.fail"));
+                  },
+                },
               ])
             }
           />

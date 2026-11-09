@@ -3,7 +3,7 @@
 // Bausteine für Freunde und Rangliste im Arena-Stil: runder Avatar mit Anfangsbuchstabe
 // und das Siegerpodest für die ersten drei Plätze.
 
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { tone } from "@/components/ui/chunky";
@@ -49,11 +49,14 @@ export function Podium({
   rows,
   scoreText,
   youLabel,
+  onReport,
 }: {
   rows: PodiumRow[];
   scoreText: (score: number) => string;
   /** Wort für den eigenen Eintrag („Du“), auch für Screenreader. */
   youLabel: string;
+  /** Gedrückt halten auf einem fremden Namen: melden (Store-Pflicht bei Namen, die andere sehen). */
+  onReport?: (name: string) => void;
 }) {
   const { colors } = useAppTheme();
   // Nach Position, nicht nach Rangnummer: bei Gleichstand (1, 1, 1, 1) bleibt nichts hängen
@@ -65,10 +68,12 @@ export function Podium({
     <View style={styles.podium} accessibilityRole="list">
       {order.map(({ row, i }) => {
         return (
-          <View
+          <Pressable
             key={`${i}-${row.name}`}
             accessible
             accessibilityLabel={`${row.rank}. ${row.name}${row.isMe ? ` (${youLabel})` : ""}, ${scoreText(row.score)}`}
+            onLongPress={!row.isMe && onReport ? () => onReport(row.name) : undefined}
+            delayLongPress={450}
             style={styles.column}
           >
             <AppText style={styles.medal}>{MEDALS[Math.min(Math.max(row.rank, 1), 3) - 1]}</AppText>
@@ -95,7 +100,7 @@ export function Podium({
                 {row.rank}
               </AppText>
             </View>
-          </View>
+          </Pressable>
         );
       })}
     </View>

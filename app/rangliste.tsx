@@ -10,6 +10,7 @@ import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   StyleSheet,
   TextInput,
@@ -41,6 +42,7 @@ import {
   isMissingOnServer,
   leaderboardReady,
   type OnlineMode,
+  reportName,
   setPlayerName,
 } from "@/utils/leaderboard";
 import { sfx } from "@/utils/sfx";
@@ -171,6 +173,21 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
 
   const meVisible = result?.rows.some((r) => r.isMe) ?? false;
 
+  /** Gedrückt halten auf einem fremden Namen: nachfragen, dann melden (landet in „reports“, supabase/datenschutz.sql). */
+  const askReport = (who: string) => {
+    Alert.alert(t("report.title", { name: who }), t("report.confirm"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("report.send"),
+        style: "destructive",
+        onPress: async () => {
+          const ok = await reportName(who, tab.key);
+          Alert.alert(ok ? t("report.done") : t("report.fail"));
+        },
+      },
+    ]);
+  };
+
   return (
     <View style={styles.panel}>
       <>
@@ -255,12 +272,14 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           </AppText>
         ) : (
           <>
-          <Podium rows={result.rows} scoreText={scoreText} youLabel={t("rank.meTag")} />
+          <Podium rows={result.rows} scoreText={scoreText} youLabel={t("rank.meTag")} onReport={askReport} />
           {result.rows.length > 3 && (
           <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
             {result.rows.slice(3, 10).map((row, i) => (
-              <View
+              <Pressable
                 key={`${row.rank}-${row.name}-${i}`}
+                onLongPress={row.isMe ? undefined : () => askReport(row.name)}
+                delayLongPress={450}
                 style={[
                   styles.entry,
                   i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
@@ -277,10 +296,13 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
                 <AppText variant="label" tone={row.isMe ? "onPrimarySoft" : "text"}>
                   {scoreText(row.score)}
                 </AppText>
-              </View>
+              </Pressable>
             ))}
           </View>
           )}
+          <AppText variant="caption" tone="textMuted" center>
+            {t("rank.reportHint")}
+          </AppText>
           </>
         )}
 

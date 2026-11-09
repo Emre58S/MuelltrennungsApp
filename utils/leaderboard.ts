@@ -13,6 +13,7 @@ import { parseSprint } from "@/game/sprint";
 import { PARCOURS } from "@/game/trick-levels";
 import {
   getItem,
+  removeItems,
   getParcoursToday,
   getSprintBest,
   getSurvivalBest,
@@ -113,6 +114,38 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
     return (text ? JSON.parse(text) : null) as T;
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/** Online-Daten löschen: auf dem Server (Spieler samt Ergebnissen, Läufen, Freunden) und die lokalen
+ *  Kennungen. Beim nächsten Online-Zugriff entsteht ein neuer, unabhängiger Spielercode. Der Spielstand
+ *  auf dem Gerät bleibt. Gibt false zurück, wenn der Server nicht erreichbar war (dann bleibt alles). */
+export async function deleteOnlineData(): Promise<boolean> {
+  const player = await getPlayer();
+  if (leaderboardReady) {
+    try {
+      await rpc("delete_player", { p_player: player.id });
+    } catch {
+      return false;
+    }
+  }
+  await removeItems([StorageKeys.PLAYER_ID, StorageKeys.PLAYER_NAME, StorageKeys.PENDING_SCORES]);
+  myFriendCode = null;
+  openCache = null;
+  openGen++;
+  sentGhost = null;
+  return true;
+}
+
+/** Einen unpassenden Namen melden (landet in der Tabelle „reports“, siehe supabase/datenschutz.sql). */
+export async function reportName(name: string, context: string): Promise<boolean> {
+  if (!leaderboardReady) return false;
+  try {
+    const player = await getPlayer();
+    await rpc("report_name", { p_player: player.id, p_name: name, p_context: context.slice(0, 60) });
+    return true;
+  } catch {
+    return false;
   }
 }
 
