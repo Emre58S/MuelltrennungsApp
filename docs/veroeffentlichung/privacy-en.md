@@ -69,7 +69,7 @@ When you use online features, the app sends data to our server (a database hoste
 | Leaderboard results: board (e.g. daily challenge, parcours, time, no mistakes), score, time | after a round in an online area | Leaderboards |
 | Online runs ("Against the clock", "No mistakes", parcours, 10-item race): mode, date, number of correct throws, time needed, a short code of the throw sequence and results, time | after an online run | Leaderboards, racing against another player's recorded run ("ghost"), plausibility check against made-up results |
 | Friend code (6 characters), friendships (link between two player codes with time), blocks (who removed whom) | when you add or remove friends | Friends feature and challenges |
-| Reports: player code of the reporter, reported nickname, area (e.g. "zeit"), time | when you report a name in a leaderboard | Checking and removing inappropriate names |
+| Reports: player code of the reporter, reported nickname, area (e.g. "zeit"), time | when you report a name in a leaderboard | Checking and removing inappropriate names (the reporter's player code stays stored until the report is deleted) |
 
 ### 4.2 Who sees what?
 

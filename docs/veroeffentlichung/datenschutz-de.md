@@ -72,7 +72,7 @@ Wenn du Online-Funktionen nutzt, sendet die App Daten an unseren Server (Datenba
 | Ergebnisse in Ranglisten: Bereich (z. B. Tagesaufgabe, Parcours, Zeit, Ohne Fehler), Punktzahl, Zeitpunkt | nach einer Runde in einem Online-Bereich | Ranglisten |
 | Online-Läufe („Gegen die Zeit“, „Ohne Fehler“, Parcours, 10er-Rennen): Modus, Datum, Anzahl richtiger Würfe, benötigte Zeit, ein kurzes Kürzel der Wurfreihenfolge und -ergebnisse, Zeitpunkt | nach einem Online-Lauf | Ranglisten, Wettkampf gegen den „Ghost“ (aufgezeichneter Lauf) eines anderen Spielers, Plausibilitätsprüfung gegen erfundene Ergebnisse |
 | Freundes-Code (6 Zeichen), Freundschaften (Verknüpfung zweier Spielercodes mit Zeitpunkt), Sperren (wer wen entfernt hat) | wenn du Freunde hinzufügst oder entfernst | Freundesfunktion und Herausforderungen |
-| Meldungen: Spielercode der meldenden Person, gemeldeter Spitzname, Bereich (z. B. „zeit“), Zeitpunkt | wenn du in der Rangliste einen Namen meldest | Prüfung und Entfernen unpassender Namen |
+| Meldungen: Spielercode der meldenden Person, gemeldeter Spitzname, Bereich (z. B. „zeit“), Zeitpunkt | wenn du in der Rangliste einen Namen meldest | Prüfung und Entfernen unpassender Namen (der Spielercode der meldenden Person bleibt bis zur Löschung der Meldung gespeichert) |
 
 ### 4.2 Wer sieht was?
 

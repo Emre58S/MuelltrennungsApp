@@ -50,6 +50,7 @@ export function Podium({
   scoreText,
   youLabel,
   onReport,
+  reportLabel,
 }: {
   rows: PodiumRow[];
   scoreText: (score: number) => string;
@@ -57,6 +58,8 @@ export function Podium({
   youLabel: string;
   /** Gedrückt halten auf einem fremden Namen: melden (Store-Pflicht bei Namen, die andere sehen). */
   onReport?: (name: string) => void;
+  /** Beschriftung der Aktion „Melden“ für Screenreader (dort geht Gedrückt-Halten nicht). */
+  reportLabel?: string;
 }) {
   const { colors } = useAppTheme();
   // Nach Position, nicht nach Rangnummer: bei Gleichstand (1, 1, 1, 1) bleibt nichts hängen
@@ -74,6 +77,8 @@ export function Podium({
             accessibilityLabel={`${row.rank}. ${row.name}${row.isMe ? ` (${youLabel})` : ""}, ${scoreText(row.score)}`}
             onLongPress={!row.isMe && onReport ? () => onReport(row.name) : undefined}
             delayLongPress={450}
+            accessibilityActions={!row.isMe && onReport && reportLabel ? [{ name: "report", label: reportLabel }] : undefined}
+            onAccessibilityAction={() => onReport?.(row.name)}
             style={styles.column}
           >
             <AppText style={styles.medal}>{MEDALS[Math.min(Math.max(row.rank, 1), 3) - 1]}</AppText>

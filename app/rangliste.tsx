@@ -272,7 +272,7 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
           </AppText>
         ) : (
           <>
-          <Podium rows={result.rows} scoreText={scoreText} youLabel={t("rank.meTag")} onReport={askReport} />
+          <Podium rows={result.rows} scoreText={scoreText} youLabel={t("rank.meTag")} onReport={askReport} reportLabel={t("report.send")} />
           {result.rows.length > 3 && (
           <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }, cardEdge(colors.border)]}>
             {result.rows.slice(3, 10).map((row, i) => (
@@ -280,6 +280,8 @@ export function RankingPanel({ startTab }: { startTab?: string }) {
                 key={`${row.rank}-${row.name}-${i}`}
                 onLongPress={row.isMe ? undefined : () => askReport(row.name)}
                 delayLongPress={450}
+                accessibilityActions={row.isMe ? undefined : [{ name: "report", label: t("report.send") }]}
+                onAccessibilityAction={() => askReport(row.name)}
                 style={[
                   styles.entry,
                   i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
