@@ -7,68 +7,56 @@ import { type V3 } from "./shared";
 export function renderGelberSackModel(key: string, name: string) {
   switch (key) {
     case "foil":
-      // Gebrauchte Alufolie: ein zerknittertes, rechteckiges Blatt aus vielen schräg liegenden
-      // Facetten (hell/dunkel im Wechsel, daher glänzt es wie Folie – ein grauer Klumpen sah nach Stein aus),
-      // dazu ein kleines Knäuel und weiße Glanzkanten
+      // Alufolie: die bekannte Schachtel (blau, weißes Etikett) mit der silbernen Rolle oben und einem
+      // herausgezogenen, zerknitterten Folienstück mit Zackenkante – so erkennt man Folie sofort
+      // (ein Knäuel aus Facetten las sich als Stein oder Papier)
       return (
-        <group rotation={[0.9, -0.25, 0.08]}>
-          {(
-            [
-              // x, z, Kippung x, Kippung z, Farbe
-              [-0.3, -0.15, 0.25, -0.2, "#E9EEF5"],
-              [-0.1, -0.17, -0.2, 0.15, "#C8D0DC"],
-              [0.1, -0.14, 0.3, 0.25, "#F7F9FC"],
-              [0.3, -0.16, -0.25, -0.2, "#C9D1DC"],
-              [-0.3, 0.05, -0.2, 0.2, "#D2D9E4"],
-              [-0.1, 0.07, 0.25, -0.25, "#F4F7FB"],
-              [0.1, 0.06, -0.3, -0.1, "#C2CBD8"],
-              [0.3, 0.05, 0.2, 0.3, "#E4EAF2"],
-              [-0.28, 0.25, 0.3, 0.15, "#F1F4F9"],
-              [-0.08, 0.27, -0.25, -0.2, "#CBD3DF"],
-              [0.12, 0.26, 0.2, 0.25, "#DCE3EC"],
-              [0.31, 0.25, -0.2, 0.1, "#F6F8FB"],
-            ] as [number, number, number, number, string][]
-          ).map(([x, z, rx, rz, col], i) => (
-            <Part
-              key={i}
-              geo={G.box(0.23, 0.01, 0.21, 0.002)}
-              pos={[x, 0.01 * (i % 3), z - 0.05]}
-              rot={[rx, 0, rz]}
-              flat
-              color={col}
-              roughness={0.3}
-              metalness={0.2}
-            />
-          ))}
-          {/* kleines Knäuel in der Ecke */}
-          <Part
-            geo={G.crumple(0.11, 1.0, 11, 1)}
-            pos={[0.22, 0.1, 0.2]}
-            flat
-            color="#F2F5FA"
-            roughness={0.3}
-            metalness={0.2}
-          />
-          {/* Glanzkanten */}
-          {(
-            [
-              [-0.2, 0.03, -0.1, 0.5],
-              [0.2, 0.04, 0.0, -0.4],
-              [0.0, 0.04, 0.2, 0.3],
-              [-0.25, 0.04, 0.2, 1.1],
-            ] as [number, number, number, number][]
-          ).map(([x, y, z, r], i) => (
-            <Part
-              key={`g${i}`}
-              geo={G.box(0.22, 0.004, 0.025, 0.001)}
-              pos={[x, y, z]}
-              rot={[0.2, r, 0.1]}
-              basic
-              noDepthWrite
-              color="#FFFFFF"
-              opacity={0.9}
-            />
-          ))}
+        <group rotation={[0.8, -0.3, 0.05]}>
+          {/* Schachtel: x ±0,28, y 0 … 0,14, z ±0,08 */}
+          <Part geo={G.box(0.56, 0.14, 0.16, 0.015)} pos={[0, 0.07, -0.14]} color="#1D6FB8" roughness={0.6} />
+          {/* weißes Etikett mit Streifen vorn (Vorderseite z = −0,06) */}
+          <Part geo={G.box(0.3, 0.07, 0.004, 0.001)} pos={[0, 0.07, -0.062]} basic color="#F8FAFC" />
+          <Part geo={G.box(0.3, 0.015, 0.005, 0.001)} pos={[0, 0.095, -0.06]} basic color="#E11D48" />
+          {/* silberne Folienrolle liegt oben auf der Schachtel */}
+          <Part geo={G.cyl(0.055, 0.055, 0.54, 20)} rot={[0, 0, Math.PI / 2]} pos={[0, 0.17, -0.1]} color="#E3E8EF" roughness={0.25} metalness={0.25} />
+          <Part geo={G.cyl(0.058, 0.058, 0.01, 20)} rot={[0, 0, Math.PI / 2]} pos={[0.272, 0.17, -0.1]} color="#B4BECC" roughness={0.3} />
+          {/* Glanzstreifen auf der Rolle */}
+          <Part geo={G.box(0.5, 0.008, 0.012, 0.002)} pos={[0, 0.222, -0.1]} basic noDepthWrite color="#FFFFFF" opacity={0.9} />
+          {/* herausgezogenes Stück, leicht welliges Blatt nach vorn */}
+          <group position={[0, 0.0, 0.02]}>
+            <Part geo={G.wave(0.52, 0.34, 0.03, 8, 4)} rot={[-Math.PI / 2 + 0.12, 0, 0]} pos={[0, 0.07, 0.0]} double flat color="#DDE3EC" roughness={0.3} metalness={0.2} />
+            {/* helle und dunkle Knitterstreifen */}
+            {(
+              [
+                [-0.18, 0.5, "#FFFFFF", 0.8],
+                [0.0, -0.4, "#8E99AA", 0.5],
+                [0.17, 0.3, "#FFFFFF", 0.8],
+                [-0.06, 0.9, "#8E99AA", 0.5],
+              ] as [number, number, string, number][]
+            ).map(([x, r, col, op], i) => (
+              <Part
+                key={i}
+                geo={G.box(0.2, 0.004, 0.018, 0.001)}
+                pos={[x, 0.09, 0.02 + (i % 2) * 0.1]}
+                rot={[0.1, r, 0]}
+                basic
+                noDepthWrite
+                color={col}
+                opacity={op}
+              />
+            ))}
+            {/* Zackenkante vorn (Schneideleiste) */}
+            {Array.from({ length: 13 }, (_, k) => (
+              <Part
+                key={`z${k}`}
+                geo={G.box(0.016, 0.006, 0.03, 0.001)}
+                pos={[-0.24 + k * 0.04, 0.062, 0.2]}
+                rot={[0.1, 0, k % 2 ? 0.3 : -0.3]}
+                color="#C9D1DC"
+                roughness={0.3}
+              />
+            ))}
+          </group>
         </group>
       );
 
