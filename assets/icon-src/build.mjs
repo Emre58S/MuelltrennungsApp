@@ -24,7 +24,6 @@ function bin(x, y, w, h, body, lid, mono) {
 
 /** Bild: drei Tonnen, ein Papierknäuel fliegt von links in die mittlere Tonne. */
 function art(mono) {
-  const ball = mono ? "#FFFFFF" : "#FFFFFF";
   const trail = mono ? "#FFFFFF" : "#FFFFFF";
   return `
   ${bin(110, 480, 250, 330, "#3D82D9", "#2E69B3", mono)}
