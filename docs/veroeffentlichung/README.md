@@ -38,7 +38,7 @@ Damit nichts vergessen wird, hier die Faktenlage aus dem Code:
 4. **Datenschutz- und Impressum-Link in der App:** **eingebaut** (Einstellungen → Datenschutz), aber unsichtbar, bis du die Web-Adressen in **`constants/legal.ts`** einträgst (`LEGAL_URLS.privacy` / `.imprint`, je Deutsch und Englisch). Dann erscheinen die Zeilen von allein. Google verlangt den Link in der App und im Store, Apple im Store.
 5. **Supabase: zwei SQL-Dateien ausführen**, in dieser Reihenfolge: **`supabase/pruefung.sql`** (Plausibilitätsprüfung der Läufe und Namens-Wortfilter) und danach **`supabase/datenschutz.sql`** (Online-Daten löschen, Namen melden, Aufräum-Funktion). Anleitung: Supabase-Dashboard → *SQL Editor* → *New query* → Dateiinhalt einfügen → *Run*. Mehrfaches Ausführen ist unschädlich. Ohne `pruefung.sql` akzeptiert der Server unmögliche Läufe und jeden Namen; **ohne `datenschutz.sql` zeigen der Knopf „Online-Daten löschen“ und das Melden von Namen in der App eine Fehlermeldung**.
 6. **Auftragsverarbeitungsverträge (AVV/DPA)** abschließen und in den Erklärungen bestätigen: **Supabase** (Dashboard → Organization → Legal/DPA) und **Expo** (Konto-Einstellungen → Legal). Außerdem im Supabase-Dashboard die **Region** des Projekts nachsehen und in die Datenschutzerklärung (Abschnitt 6.1) eintragen.
-7. **App-Icon:** `assets/images/icon.png` und die Android-Icons prüfen. Wenn es noch das Standard-Icon ist, ein endgültiges anfertigen (1024 × 1024 px PNG ohne Transparenz für Apple; Android adaptive Icon: Vorder- und Hintergrund getrennt, `assets/images/android-icon-*.png`). Auch Splash-Screen (`splash-icon.png`) prüfen.
+7. ~~App-Icon~~ **ERLEDIGT (9.11.):** eigenes Icon (drei Tonnen, ein Papierknäuel fliegt hinein) statt des Expo-Standard-Icons. Quellen: `assets/icon-src/build.mjs` (SVG), Bilder erzeugt mit `node assets/icon-src/build.mjs && node tools/make-icons.mjs` (alle sechs Dateien in `assets/images/`: Icon 1024 ohne Transparenz, Android-Vordergrund/-Hintergrund/-Monochrom, Startbild, Favicon). Wenn du ein anderes Icon willst (z. B. von einem Grafiker), die Dateien einfach mit gleichem Namen ersetzen. **Sieh es dir einmal an** (`assets/images/icon.png`) und gib Bescheid, wenn es dir nicht gefällt.
 8. **Store-Einträge ausfüllen** (siehe [store-texte.md](store-texte.md)): Texte DE/EN, Bildschirmfotos, Feature-Grafik, Alters-Fragebogen, Datenschutz-Angaben, Support- und Datenschutz-URL.
 
 ### B2. Sollte vor dem Einreichen (Store-Regeln, Ablehnungsgrund möglich)
@@ -62,7 +62,7 @@ Damit nichts vergessen wird, hier die Faktenlage aus dem Code:
 - **Töne und Musik:** per Skript selbst erzeugt (`scripts/synth.mjs`, `generate-sfx.mjs`, `generate-music.mjs`). Kein Drittanbieter.
 - **3D-Modelle, Vorschaubilder, Aufkleber:** selbst erstellt (Code + Rendern mit `tools/item-shots.mjs`).
 - **Schrift:** Atkinson Hyperlegible Next, Braille Institute, SIL Open Font License 1.1 (über `@expo-google-fonts/atkinson-hyperlegible-next`). Erlaubt kommerzielle Nutzung und Einbettung; eine Nennung in der App ist freundlich, aber nicht zwingend.
-- **Bibliotheken:** React, React Native, Expo, three.js, react-three-fiber u. a. stehen unter MIT-/Apache-Lizenzen. Diese verlangen, dass der Lizenztext mitgeliefert wird. Üblich und ausreichend: eine Seite „Open-Source-Lizenzen“ in der App (z. B. aus `license-checker` erzeugt) oder ein Hinweis auf eine Web-Seite. Empfehlung: bei Gelegenheit ergänzen (nicht blockierend für den Start).
+- **Bibliotheken:** React, React Native, Expo, three.js, react-three-fiber u. a. stehen unter MIT-/BSD-Lizenzen (die Schrift-Bibliothek zusätzlich OFL). Diese verlangen den Hinweis auf Urheber und Lizenz. **Erledigt:** Seite „Open-Source-Lizenzen“ in den Einstellungen (`app/lizenzen.tsx`, Liste erzeugt mit `node tools/make-licenses.mjs` aus den direkten Abhängigkeiten, Link zum Projekt je Eintrag). Bei neuen Abhängigkeiten das Skript erneut laufen lassen. (Die Liste nennt Paket, Version, Lizenz und Projektadresse; die vollen Lizenztexte stehen im jeweiligen Projekt. Das reicht üblicherweise; wer ganz sicher gehen will, lässt es einmal prüfen.)
 - **Emoji:** werden vom Betriebssystem des Geräts dargestellt (Apple Color Emoji / Noto) – nichts mitzuliefern.
 
 ---
@@ -116,7 +116,7 @@ Damit nichts vergessen wird, hier die Faktenlage aus dem Code:
 - [ ] Melden einmal selbst ausprobiert (zwei Geräte), Meldungen in `reports` regelmäßig ansehen
 - [ ] Automatische Löschung/Aufbewahrungsdauer entschieden und im Text korrekt
 - [ ] Supabase-Tarif geprüft (Pausierung!)
-- [ ] App-Icon und Splash endgültig
+- [x] App-Icon und Startbild (neu gezeichnet am 9.11.; bitte ansehen und bestätigen)
 - [ ] Bildschirmfotos (iPhone 6,9"/6,5", Android 2–8, Feature-Grafik 1024×500)
 - [ ] Store-Texte DE/EN eingetragen, Stichwörter, Kategorien
 - [ ] Altersfragebögen und Datenschutz-Angaben (Apple + Google) ausgefüllt

@@ -5,6 +5,7 @@
 
 import { Feather } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import { router } from "expo-router";
 import { type ComponentProps, useEffect, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
@@ -275,11 +276,18 @@ export default function EinstellungenScreen() {
             />
           ) : null}
           <ActionRow
+            icon="file-text"
+            title={t("settings.licenses")}
+            subtitle={t("settings.licenses.desc")}
+            divider={!!privacyUrl || !!imprintUrl}
+            onPress={() => router.push("/lizenzen")}
+          />
+          <ActionRow
             icon="cloud-off"
             title={t("settings.deleteOnline")}
             subtitle={t("settings.deleteOnline.desc")}
             danger
-            divider={!!privacyUrl || !!imprintUrl}
+            divider
             onPress={() =>
               Alert.alert(t("settings.deleteOnline"), t("settings.deleteOnline.confirm"), [
                 { text: t("common.cancel"), style: "cancel" },
