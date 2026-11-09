@@ -509,7 +509,9 @@ function DailyStation({ result }: { result: DailyResult | null }) {
         </View>
       </View>
       <View style={styles.flex}>
-        <AppText variant="label">{t("home.daily")}</AppText>
+        <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+          {t("home.daily")}
+        </AppText>
         <AppText variant="caption" tone="textSecondary">
           {status}
         </AppText>
