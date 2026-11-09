@@ -192,22 +192,24 @@ export function renderBioModel(key: string, name: string) {
         // Ganze Zwiebel: goldbraune Knolle mit Längsrippen, trockener Spitze oben und Wurzelbüschel unten
         return (
           <group rotation={[0.35, 0.3, -0.12]}>
-            <Part geo={G.ball(0.22, 16, 12)} scale={[1, 0.88, 1]} color="#C98A3A" roughness={0.9} />
-            {[0, 0.6, 1.2, 1.8, 2.4, 3.0].map((a) => (
+            <Part geo={G.ball(0.22, 16, 12)} scale={[1.05, 0.85, 1.05]} color="#C98A3A" roughness={0.9} />
+            {/* Hals: zieht sich nach oben zur Spitze zusammen (macht aus der Kugel eine Zwiebel) */}
+            <Part geo={G.cyl(0.035, 0.14, 0.2, 12)} pos={[0, 0.2, 0]} color="#C98A3A" roughness={0.9} />
+            {[0, 0.5, 1.0, 1.5, 2.0, 2.5].map((a) => (
               <Part
                 key={a}
-                geo={G.torus(0.2, 0.006, 4, 16, Math.PI)}
+                geo={G.torus(0.225, 0.011, 4, 16, Math.PI)}
                 rot={[0, a, 0]}
-                scale={[1, 0.88, 1]}
-                color="#9A5F1E"
+                scale={[1.05, 0.85, 1.05]}
+                color="#8A4F14"
                 roughness={1}
               />
             ))}
             {/* trockene Spitze */}
-            <Part geo={G.cyl(0.006, 0.05, 0.17, 8)} pos={[0, 0.27, 0]} rot={[0, 0, 0.18]} color="#8A5A22" roughness={1} />
+            <Part geo={G.cyl(0.004, 0.035, 0.16, 8)} pos={[0, 0.38, 0]} rot={[0, 0, 0.2]} color="#7A4A18" roughness={1} />
             {/* Wurzelbüschel */}
-            {[-0.04, 0, 0.04].map((x) => (
-              <Part key={x} geo={G.cyl(0.004, 0.004, 0.07, 4)} pos={[x, -0.2, 0.01]} rot={[0, 0, x * 6]} color="#EADFCB" roughness={1} />
+            {[-0.06, -0.02, 0.02, 0.06].map((x) => (
+              <Part key={x} geo={G.cyl(0.007, 0.007, 0.1, 4)} pos={[x, -0.2, 0.01]} rot={[0, 0, x * 6]} color="#F1E8D6" roughness={1} />
             ))}
           </group>
         );

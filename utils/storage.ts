@@ -12,6 +12,7 @@ import {
   missionDayFor,
 } from "@/game/missions";
 import { type BinKey } from "@/constants/theme";
+import { migrateItemStats } from "@/game/item-stats-migration";
 import { CHEST_XP, chestReward, type TrailReward } from "@/game/rewards";
 import { goldCount } from "@/game/mastery";
 import { type FlameStatus, flameState, nextStreak } from "@/utils/streak";
@@ -480,7 +481,7 @@ export async function getItemStats(): Promise<ItemStats> {
   const raw = await getItem(StorageKeys.ITEM_STATS);
   if (!raw) return {};
   try {
-    return JSON.parse(raw) as ItemStats;
+    return migrateItemStats(JSON.parse(raw) as ItemStats);
   } catch {
     return {};
   }
