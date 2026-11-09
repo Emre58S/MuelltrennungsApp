@@ -155,6 +155,8 @@ Note: waste sorting rules differ by region. Follow the rules of your municipalit
 - Telefon-Bildschirmfotos: 2 bis 8 Stück, Seitenverhältnis 16:9 bis 9:16, Kantenlänge 320–3840 px.
 - Optional: Tablet-Fotos, Video (YouTube-Link).
 
+**Fertige Entwürfe (9.11.):** In `docs/veroeffentlichung/screenshots/` liegen vier Bilder in genau **1320 × 2868 px** (iPhone 6,9"): `01-pfad.png`, `02-spiel.png`, `03-sammlung.png` (mit Beispiel-Fortschritt gefüllt), `04-tricks.png`. Sie sind aus der Web-Ansicht der App gerendert (`SHOT_DPR=3 SHOT_SCHEME=light node tools/shot.mjs "http://localhost:8095/…" Datei.png "" 9000 440 956`, siehe Kopf von `tools/shot.mjs`) – **ohne** Überschriften und ohne echte Spielernamen. Auf einem echten iPhone sehen Schrift und 3D leicht anders aus; **die besten Store-Bilder entstehen mit Bildschirmfotos vom Gerät** (iPhone 12 hat 1170 × 2532 – Apple akzeptiert 6,5" mit 1284 × 2778; deshalb Bilder vom Gerät mit einem Programm auf diese Größe bringen oder die Entwürfe hier nehmen). Die Online-Rangliste habe ich bewusst **nicht** fotografiert, weil sie echte Spielernamen anderer zeigt.
+
 **Welche Bilder aufnehmen** (Vorschlag, in der Reihenfolge): 1. Pfad mit Welt und Tonnen; 2. Wurf mit Gegenstand in der Luft; 3. Gegen die Zeit; 4. Online-Bereich / Rangliste; 5. Freunde / 10er-Rennen; 6. Sammlung (Regal mit Gegenständen); 7. Belohnungen / Truhe; 8. Dunkles Design. Kurze Überschrift oben auf jedem Bild (Deutsch für den deutschen Eintrag, Englisch für den englischen).
 
 ---
