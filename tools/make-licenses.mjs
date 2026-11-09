@@ -5,7 +5,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 const rows = [];
+// Nur Werkzeuge der Entwicklung, nicht in der fertigen App
+const DEV_ONLY = new Set(["@expo/ngrok", "babel-preset-expo"]);
 for (const name of Object.keys(pkg.dependencies ?? {}).sort()) {
+  if (DEV_ONLY.has(name)) continue;
   let p;
   try {
     p = JSON.parse(readFileSync(`node_modules/${name}/package.json`, "utf8"));

@@ -35,8 +35,10 @@ function art(mono) {
     <circle cx="330" cy="248" r="18" fill="${trail}" opacity="0.65"/>
     <circle cx="408" cy="212" r="26" fill="${trail}" opacity="0.8"/>
   </g>
-  <circle cx="512" cy="228" r="56" fill="${ball}" stroke="${mono ? "#FFFFFF" : "#B8C3D1"}" stroke-width="6"/>
-  ${mono ? "" : `<path d="M470 215 q22 -18 44 -4 M486 250 q26 12 48 -8 M500 200 q10 24 30 30" stroke="#C7D0DB" stroke-width="7" fill="none" stroke-linecap="round"/>`}
+  <g transform="rotate(-22 512 236)">
+    <rect x="456" y="168" width="112" height="136" rx="18" fill="${mono ? "#FFFFFF" : "#E4E9F0"}"/>
+    ${mono ? "" : `<rect x="456" y="212" width="112" height="46" fill="#E11D48"/><rect x="470" y="176" width="14" height="120" rx="7" fill="#FFFFFF" opacity="0.7"/><ellipse cx="512" cy="170" rx="56" ry="13" fill="#B8C3D1"/><ellipse cx="512" cy="168" rx="42" ry="8" fill="#98A5B5"/>`}
+  </g>
   ${mono ? "" : `<path d="M690 190 l10 28 l28 10 l-28 10 l-10 28 l-10 -28 l-28 -10 l28 -10 z" fill="#FFE27A"/><path d="M820 330 l7 18 l18 7 l-18 7 l-7 18 l-7 -18 l-18 -7 l18 -7 z" fill="#FFE27A" opacity="0.9"/>`}`;
 }
 
@@ -49,7 +51,7 @@ const bg = `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offse
 // Voll-Icon (iOS/Store): Hintergrund + Bild
 writeFileSync("assets/icon-src/icon.svg", `${head()}${bg}${art(false)}</svg>`);
 // Android-Vordergrund: Bild auf 64 % verkleinert in der Mitte (sichere Zone), transparent
-const small = (mono) => `<g transform="translate(512 512) scale(0.64) translate(-512 -512)">${art(mono)}</g>`;
+const small = (mono) => `<g transform="translate(512 512) scale(0.74) translate(-512 -512)">${art(mono)}</g>`;
 writeFileSync("assets/icon-src/foreground.svg", `${head()}${small(false)}</svg>`);
 writeFileSync("assets/icon-src/monochrome.svg", `${head()}${small(true)}</svg>`);
 // Android-Hintergrund: nur der Verlauf

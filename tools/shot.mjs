@@ -72,7 +72,7 @@ try {
   await send("Page.enable");
   // Hell-/Dunkelmodus erzwingen: SHOT_SCHEME=light|dark
   if (process.env.SHOT_SCHEME) await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: process.env.SHOT_SCHEME }] });
-  await send("Emulation.setDeviceMetricsOverride", { width: Number(w), height: Number(h), deviceScaleFactor: 1, mobile: true });
+  await send("Emulation.setDeviceMetricsOverride", { width: Number(w), height: Number(h), deviceScaleFactor: Number(process.env.SHOT_DPR ?? 1), mobile: true });
   await send("Page.navigate", { url });
   // Warten, bis die App Text zeigt (Bundle geladen)
   for (let i = 0; i < 90; i++) {

@@ -5,14 +5,12 @@ export type LicenseRow = { name: string; version: string; license: string; url: 
 
 export const LICENSES: LicenseRow[] = [
   { name: "@expo-google-fonts/atkinson-hyperlegible-next", version: "0.4.1", license: "MIT AND OFL-1.1", url: "https://github.com/expo/google-fonts" },
-  { name: "@expo/ngrok", version: "4.1.3", license: "BSD-2-Clause", url: "https://github.com/expo/ngrok" },
   { name: "@expo/vector-icons", version: "15.1.1", license: "MIT", url: "https://github.com/expo/vector-icons" },
   { name: "@react-native-async-storage/async-storage", version: "2.2.0", license: "MIT", url: "https://github.com/react-native-async-storage/async-storage" },
   { name: "@react-navigation/bottom-tabs", version: "7.21.0", license: "MIT", url: "https://github.com/react-navigation/react-navigation" },
   { name: "@react-navigation/elements", version: "2.9.45", license: "MIT", url: "https://github.com/react-navigation/react-navigation" },
   { name: "@react-navigation/native", version: "7.5.1", license: "MIT", url: "https://github.com/react-navigation/react-navigation" },
   { name: "@react-three/fiber", version: "9.8.2", license: "MIT", url: "https://github.com/pmndrs/react-three-fiber" },
-  { name: "babel-preset-expo", version: "58.0.20", license: "MIT", url: "https://github.com/expo/expo" },
   { name: "expo", version: "58.0.19", license: "MIT", url: "https://github.com/expo/expo" },
   { name: "expo-asset", version: "58.0.18", license: "MIT", url: "https://github.com/expo/expo" },
   { name: "expo-audio", version: "58.0.10", license: "MIT", url: "https://github.com/expo/expo" },
