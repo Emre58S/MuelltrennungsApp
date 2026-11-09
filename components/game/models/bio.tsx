@@ -198,7 +198,7 @@ export function renderBioModel(key: string, name: string) {
             {[0, 0.5, 1.0, 1.5, 2.0, 2.5].map((a) => (
               <Part
                 key={a}
-                geo={G.torus(0.225, 0.011, 4, 16, Math.PI)}
+                geo={G.torus(0.218, 0.009, 4, 16, Math.PI)}
                 rot={[0, a, 0]}
                 scale={[1.05, 0.85, 1.05]}
                 color="#8A4F14"
