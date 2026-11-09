@@ -6,6 +6,7 @@ import { writeFileSync } from "node:fs";
 function emblem(cx, cy, r, col, glyph) {
   const g = {
     paper: `<rect x="${cx - r * 0.42}" y="${cy - r * 0.55}" width="${r * 0.84}" height="${r * 1.1}" rx="${r * 0.12}" fill="${col}"/><rect x="${cx - r * 0.24}" y="${cy - r * 0.28}" width="${r * 0.48}" height="${r * 0.1}" rx="${r * 0.05}" fill="#fff"/><rect x="${cx - r * 0.24}" y="${cy}" width="${r * 0.48}" height="${r * 0.1}" rx="${r * 0.05}" fill="#fff"/><rect x="${cx - r * 0.24}" y="${cy + r * 0.28}" width="${r * 0.3}" height="${r * 0.1}" rx="${r * 0.05}" fill="#fff"/>`,
+    bag: `<ellipse cx="${cx}" cy="${cy + r * 0.2}" rx="${r * 0.56}" ry="${r * 0.5}" fill="${col}"/><rect x="${cx - r * 0.14}" y="${cy - r * 0.42}" width="${r * 0.28}" height="${r * 0.4}" fill="${col}"/><ellipse cx="${cx - r * 0.2}" cy="${cy - r * 0.58}" rx="${r * 0.2}" ry="${r * 0.12}" fill="${col}" transform="rotate(-25 ${cx - r * 0.2} ${cy - r * 0.58})"/><ellipse cx="${cx + r * 0.2}" cy="${cy - r * 0.58}" rx="${r * 0.2}" ry="${r * 0.12}" fill="${col}" transform="rotate(25 ${cx + r * 0.2} ${cy - r * 0.58})"/><rect x="${cx - r * 0.2}" y="${cy - r * 0.12}" width="${r * 0.4}" height="${r * 0.09}" rx="${r * 0.04}" fill="#fff"/>`,
     bottle: `<rect x="${cx - r * 0.16}" y="${cy - r * 0.62}" width="${r * 0.32}" height="${r * 0.3}" rx="${r * 0.06}" fill="${col}"/><path d="M${cx - r * 0.16} ${cy - r * 0.36} C${cx - r * 0.5} ${cy - r * 0.2} ${cx - r * 0.42} ${cy - r * 0.05} ${cx - r * 0.42} ${cy + r * 0.1} L${cx - r * 0.42} ${cy + r * 0.52} Q${cx - r * 0.42} ${cy + r * 0.62} ${cx - r * 0.32} ${cy + r * 0.62} L${cx + r * 0.32} ${cy + r * 0.62} Q${cx + r * 0.42} ${cy + r * 0.62} ${cx + r * 0.42} ${cy + r * 0.52} L${cx + r * 0.42} ${cy + r * 0.1} C${cx + r * 0.42} ${cy - r * 0.05} ${cx + r * 0.5} ${cy - r * 0.2} ${cx + r * 0.16} ${cy - r * 0.36} Z" fill="${col}"/>`,
     core: `<circle cx="${cx - r * 0.24}" cy="${cy + r * 0.08}" r="${r * 0.46}" fill="${col}"/><circle cx="${cx + r * 0.24}" cy="${cy + r * 0.08}" r="${r * 0.46}" fill="${col}"/><circle cx="${cx}" cy="${cy + r * 0.22}" r="${r * 0.44}" fill="${col}"/><rect x="${cx - r * 0.05}" y="${cy - r * 0.62}" width="${r * 0.1}" height="${r * 0.3}" rx="${r * 0.05}" fill="${col}" transform="rotate(12 ${cx} ${cy - r * 0.4})"/><path d="M${cx + r * 0.06} ${cy - r * 0.42} Q${cx + r * 0.3} ${cy - r * 0.78} ${cx + r * 0.6} ${cy - r * 0.55} Q${cx + r * 0.32} ${cy - r * 0.3} ${cx + r * 0.06} ${cy - r * 0.42} Z" fill="${col}"/><path d="M${cx - r * 0.1} ${cy - r * 0.18} Q${cx} ${cy - r * 0.02} ${cx + r * 0.1} ${cy - r * 0.18}" stroke="#fff" stroke-width="${r * 0.1}" fill="none" stroke-linecap="round"/>`,
   }[glyph];
@@ -26,7 +27,7 @@ function bin(x, y, w, h, body, lid, mono, grad, glyph) {
   <g>
     <path d="M${x + w * 0.07} ${y + h * 0.2} L${x + w * 0.93} ${y + h * 0.2} L${x + w * 0.83} ${y + h * 0.97} L${x + w * 0.17} ${y + h * 0.97} Z"
       fill="${mono ? "#FFFFFF" : `url(#${grad})`}" stroke="${mono ? "#FFFFFF" : `url(#${grad})`}" stroke-width="26" stroke-linejoin="round"/>
-    ${mono ? ribs : emblem(x + w * 0.5, y + h * 0.56, w * 0.21, lid, glyph)}
+    ${mono ? ribs : glyph === "ribs" ? ribs.replace(/opacity="0"/g, 'opacity="0.35"') : emblem(x + w * 0.5, y + h * 0.56, w * 0.21, lid, glyph)}
     <rect x="${x - w * 0.02}" y="${y + h * 0.06}" width="${w * 1.04}" height="${h * 0.15}" rx="${h * 0.075}" fill="${c(lid)}"/>
     <rect x="${x + w * 0.36}" y="${y - h * 0.02}" width="${w * 0.28}" height="${h * 0.1}" rx="${h * 0.05}" fill="${c(lid)}"/>
   </g>`;
@@ -36,15 +37,15 @@ function bin(x, y, w, h, body, lid, mono, grad, glyph) {
 function defs(mono) {
   if (mono) return "";
   const gr = (id, a, b, c) => `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${a}"/><stop offset="0.45" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient>`;
-  return `<defs>${gr("gB", "#6FA8F0", "#3D82D9", "#2C62AE")}${gr("gG", "#7C8795", "#5B6470", "#434B55")}${gr("gY", "#FFD866", "#F2B632", "#D69A12")}</defs>`;
+  return `<defs>${gr("gB", "#B88457", "#8A5A36", "#6B4226")}${gr("gG", "#7C8795", "#5B6470", "#434B55")}${gr("gY", "#FFD866", "#F2B632", "#D69A12")}</defs>`;
 }
 
 /** Bild: drei Tonnen, ein Papierknäuel fliegt von links in die mittlere Tonne. */
 function art(mono) {
   const trail = mono ? "#FFFFFF" : "#FFFFFF";
   return `
-  ${defs(mono)}${bin(110, 480, 250, 330, "#3D82D9", "#2E69B3", mono, "gB", "paper")}
-  ${bin(664, 480, 250, 330, "#5B6470", "#434B55", mono, "gG", "core")}
+  ${defs(mono)}${bin(110, 480, 250, 330, "#8A5A36", "#6B4226", mono, "gB", "core")}
+  ${bin(664, 480, 250, 330, "#5B6470", "#434B55", mono, "gG", "ribs")}
   ${bin(322, 396, 380, 450, "#F2B632", "#D69A12", mono, "gY", "bottle")}
   <g opacity="${mono ? 1 : 0.9}">
     <circle cx="262" cy="300" r="12" fill="${trail}" opacity="0.5"/>

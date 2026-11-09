@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><g transform="translate(512 512) scale(0.74) translate(-512 -512)">
-  <defs><linearGradient id="gB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6FA8F0"/><stop offset="0.45" stop-color="#3D82D9"/><stop offset="1" stop-color="#2C62AE"/></linearGradient><linearGradient id="gG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7C8795"/><stop offset="0.45" stop-color="#5B6470"/><stop offset="1" stop-color="#434B55"/></linearGradient><linearGradient id="gY" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFD866"/><stop offset="0.45" stop-color="#F2B632"/><stop offset="1" stop-color="#D69A12"/></linearGradient></defs>
+  <defs><linearGradient id="gB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#B88457"/><stop offset="0.45" stop-color="#8A5A36"/><stop offset="1" stop-color="#6B4226"/></linearGradient><linearGradient id="gG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7C8795"/><stop offset="0.45" stop-color="#5B6470"/><stop offset="1" stop-color="#434B55"/></linearGradient><linearGradient id="gY" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFD866"/><stop offset="0.45" stop-color="#F2B632"/><stop offset="1" stop-color="#D69A12"/></linearGradient></defs>
   <g>
     <path d="M127.5 546 L342.5 546 L317.5 800.0999999999999 L152.5 800.0999999999999 Z"
       fill="url(#gB)" stroke="url(#gB)" stroke-width="26" stroke-linejoin="round"/>
-    <circle cx="235" cy="664.8" r="52.5" fill="#FFFFFF" opacity="0.93"/><rect x="212.95" y="635.925" width="44.1" height="57.75000000000001" rx="6.3" fill="#2E69B3"/><rect x="222.4" y="650.0999999999999" width="25.2" height="5.25" rx="2.625" fill="#fff"/><rect x="222.4" y="664.8" width="25.2" height="5.25" rx="2.625" fill="#fff"/><rect x="222.4" y="679.5" width="15.75" height="5.25" rx="2.625" fill="#fff"/>
-    <rect x="105" y="499.8" width="260" height="49.5" rx="24.75" fill="#2E69B3"/>
-    <rect x="200" y="473.4" width="70" height="33" rx="16.5" fill="#2E69B3"/>
+    <circle cx="235" cy="664.8" r="52.5" fill="#FFFFFF" opacity="0.93"/><circle cx="222.4" cy="669" r="24.150000000000002" fill="#6B4226"/><circle cx="247.6" cy="669" r="24.150000000000002" fill="#6B4226"/><circle cx="235" cy="676.3499999999999" r="23.1" fill="#6B4226"/><rect x="232.375" y="632.25" width="5.25" height="15.75" rx="2.625" fill="#6B4226" transform="rotate(12 235 643.8)"/><path d="M238.15 642.75 Q250.75 623.8499999999999 266.5 635.925 Q251.8 649.05 238.15 642.75 Z" fill="#6B4226"/><path d="M229.75 655.3499999999999 Q235 663.75 240.25 655.3499999999999" stroke="#fff" stroke-width="5.25" fill="none" stroke-linecap="round"/>
+    <rect x="105" y="499.8" width="260" height="49.5" rx="24.75" fill="#6B4226"/>
+    <rect x="200" y="473.4" width="70" height="33" rx="16.5" fill="#6B4226"/>
   </g>
   
   <g>
     <path d="M681.5 546 L896.5 546 L871.5 800.0999999999999 L706.5 800.0999999999999 Z"
       fill="url(#gG)" stroke="url(#gG)" stroke-width="26" stroke-linejoin="round"/>
-    <circle cx="789" cy="664.8" r="52.5" fill="#FFFFFF" opacity="0.93"/><circle cx="776.4" cy="669" r="24.150000000000002" fill="#434B55"/><circle cx="801.6" cy="669" r="24.150000000000002" fill="#434B55"/><circle cx="789" cy="676.3499999999999" r="23.1" fill="#434B55"/><rect x="786.375" y="632.25" width="5.25" height="15.75" rx="2.625" fill="#434B55" transform="rotate(12 789 643.8)"/><path d="M792.15 642.75 Q804.75 623.8499999999999 820.5 635.925 Q805.8 649.05 792.15 642.75 Z" fill="#434B55"/><path d="M783.75 655.3499999999999 Q789 663.75 794.25 655.3499999999999" stroke="#fff" stroke-width="5.25" fill="none" stroke-linecap="round"/>
+    <rect x="732" y="579" width="14" height="184.8" rx="7" fill="#FFFFFF" opacity="0.35"/><rect x="782" y="579" width="14" height="184.8" rx="7" fill="#FFFFFF" opacity="0.35"/><rect x="832" y="579" width="14" height="184.8" rx="7" fill="#FFFFFF" opacity="0.35"/>
     <rect x="659" y="499.8" width="260" height="49.5" rx="24.75" fill="#434B55"/>
     <rect x="754" y="473.4" width="70" height="33" rx="16.5" fill="#434B55"/>
   </g>
