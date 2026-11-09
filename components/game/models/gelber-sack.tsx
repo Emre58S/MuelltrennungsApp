@@ -24,7 +24,7 @@ export function renderGelberSackModel(key: string, name: string) {
           <Part geo={G.box(0.5, 0.008, 0.012, 0.002)} pos={[0, 0.222, -0.1]} basic noDepthWrite color="#FFFFFF" opacity={0.9} />
           {/* herausgezogenes Stück, leicht welliges Blatt nach vorn */}
           <group position={[0, 0.0, 0.02]}>
-            <Part geo={G.wave(0.52, 0.34, 0.03, 8, 4)} rot={[-Math.PI / 2 + 0.12, 0, 0]} pos={[0, 0.07, 0.0]} double flat color="#DDE3EC" roughness={0.3} metalness={0.2} />
+            <Part geo={G.wave(0.52, 0.34, 0.03, 8, 4)} rot={[-Math.PI / 2 + 0.12, 0, 0]} pos={[0, 0.07, 0.0]} double flat color="#B9C3D1" roughness={0.3} metalness={0.2} />
             {/* helle und dunkle Knitterstreifen */}
             {(
               [
