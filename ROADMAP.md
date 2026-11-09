@@ -21,7 +21,11 @@ Noch offen:
 - Pfad mit Bild auf 375×667 prüfen (feste Modi-Kacheln + Band + Leiste: Platz?).
 - „Ghost in allen Modi“ (Nutzer): Gegen den eigenen Bestlauf/einen Gegner in jedem Modus – noch nicht umgesetzt.
 - Weitere Texte kürzen; Animationen (Gold-Spur bei Perfekt-Treffern, Boss-Sieg).
-- Vom Nutzer nötig: Datenschutz/Impressum, Bundle-ID/Package, App-Icon, iPad-Entscheidung.
+- **Veröffentlichung (9.11.):** Bundle-ID `de.phildevs.muellsortieren` ist eingetragen. Entwürfe für Datenschutz (DE/EN),
+  Impressum, Store-Texte und die Gesamt-Checkliste liegen in `docs/veroeffentlichung/` (README.md dort lesen). Offene Code-Punkte:
+  EAS-Variablen für `production` fehlen (sonst keine Online-Funktionen im Store-Build!), Datenschutz-/Impressum-Link in den
+  Einstellungen, Online-Daten löschen (SQL `delete_player` + Knopf), Name melden (Apple 1.2), Aufbewahrung/automatische Löschung.
+- Vom Nutzer nötig: Apple-/Google-Konto, Platzhalter in den Rechtstexten, Web-Adresse für die Texte, App-Icon, Supabase-Tarif/AVV.
 
 ## Prüfung 6.11. – was vor dem Release noch fehlt (Gesamtdurchgang: Code, Bilder, SQL, Texte)
 
