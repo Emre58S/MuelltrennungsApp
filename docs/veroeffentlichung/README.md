@@ -1,4 +1,4 @@
-# „Müll Sortieren“ veröffentlichen – Gesamtplan und Checkliste
+# „Dunk the Junk“ veröffentlichen – Gesamtplan und Checkliste
 
 Stand: 9.11.2026. In diesem Ordner liegt alles für den Start in den Stores:
 

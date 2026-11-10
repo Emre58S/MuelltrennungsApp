@@ -38,8 +38,8 @@ function feature(title, sub, tags) {
 
 const JOBS = [
   { out: "store-icon-512.png", w: 512, h: 512, html: `<div style="width:512px;height:512px">${iconSvg.replace(/width="1024" height="1024"/, 'width="512" height="512"')}</div>` },
-  { out: "feature-de.png", w: 1024, h: 500, html: feature("Müll Sortieren", "Mülltrennung spielend lernen", ["3D-Wurfspiel", "ohne Anmeldung", "kostenlos"]) },
-  { out: "feature-en.png", w: 1024, h: 500, html: feature("Müll Sortieren", "Learn waste sorting by playing", ["3D throwing game", "no sign-up", "free"]) },
+  { out: "feature-de.png", w: 1024, h: 500, html: feature("Dunk the Junk", "Mülltrennung spielend lernen", ["3D-Wurfspiel", "ohne Anmeldung", "kostenlos"]) },
+  { out: "feature-en.png", w: 1024, h: 500, html: feature("Dunk the Junk", "Learn waste sorting by playing", ["3D throwing game", "no sign-up", "free"]) },
 ];
 
 async function render(job) {

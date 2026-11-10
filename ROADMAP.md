@@ -341,6 +341,7 @@ EAS `auto` und `preview`. Große Umbauten laufen hinter einem Schalter und gehen
 
 ### Phase F – Release (ganz am Ende, großenteils Nutzer-Aufgaben)
 - [ ] **F16 Ergebnis als Bild teilen** (← R8a, braucht Abhängigkeit view-shot o. ä. – **du entscheidest**).
+- [x] **App-Name (Emre, 10.11.): „Dunk the Junk“** (statt „Müll Sortieren“) – in app.json `name`, Store-Texten, Rechtstext-Entwürfen, Teilen-Text und Store-Grafik. `slug` (`muell-sortieren`) und Bundle-ID bleiben, sonst bricht das EAS-Projekt. **Offen für Philipp:** die schon veröffentlichten Rechtstexte (GitHub Pages) nennen noch „Müll Sortieren“ – dort auch umbenennen; Name in App Store Connect so anlegen.
 - [ ] **F17 App-Symbol + Startbild** (← R7a, Entwurf von mir, Auswahl von dir).
 - [ ] **F18 Leistung älteres iPhone** (← R7f, du testest, ich optimiere).
 - [ ] **F19 Datenschutz + Impressum** (← R7d, **deine Angaben**), Link in Einstellungen.

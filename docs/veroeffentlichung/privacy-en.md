@@ -1,5 +1,5 @@
 <!--
-DRAFT – Privacy Policy "Müll Sortieren" (English). Draft dated 9 Nov 2026.
+DRAFT – Privacy Policy "Dunk the Junk" (English). Draft dated 9 Nov 2026.
 Written from the actual code (utils/leaderboard.ts, utils/storage.ts, supabase/*.sql, app.json, package.json).
 I am not a lawyer – have it checked before publishing.
 
@@ -11,7 +11,7 @@ HOW TO USE
 4. Keep it in sync with datenschutz-de.md. If the app's data handling changes, update both.
 -->
 
-# Privacy Policy for the app "Müll Sortieren"
+# Privacy Policy for the app "Dunk the Junk"
 
 Last updated: [[DD Month YYYY]]
 
@@ -30,7 +30,7 @@ We have not appointed a data protection officer because we are not legally requi
 
 ## 2. In short
 
-- "Müll Sortieren" is a learning game about waste sorting. You can play it **without signing up** and **without an account**.
+- "Dunk the Junk" is a learning game about waste sorting. You can play it **without signing up** and **without an account**.
 - The app contains **no advertising**, **no tracking** and **no third-party analytics or crash-reporting services**.
 - The app asks for **no permissions**: no access to camera, microphone, location, contacts, photos or messages.
 - Your game progress (progress, points, settings) stays **on your device**.

@@ -1,5 +1,5 @@
 <!--
-ENTWURF – Impressum „Müll Sortieren“. Stand des Entwurfs: 9.11.2026. Kein Rechtsrat – bitte prüfen.
+ENTWURF – Impressum „Dunk the Junk“. Stand des Entwurfs: 9.11.2026. Kein Rechtsrat – bitte prüfen.
 
 WARUM EIN IMPRESSUM?
 Wer in Deutschland (oder für deutsche Nutzer) eine App oder Website „geschäftsmäßig“ anbietet, braucht ein

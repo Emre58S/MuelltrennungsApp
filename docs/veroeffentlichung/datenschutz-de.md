@@ -1,5 +1,5 @@
 <!--
-ENTWURF – Datenschutzerklärung „Müll Sortieren“ (Deutsch)
+ENTWURF – Datenschutzerklärung „Dunk the Junk“ (Deutsch)
 Stand des Entwurfs: 9.11.2026. Geschrieben anhand des tatsächlichen Codes (utils/leaderboard.ts,
 utils/storage.ts, supabase/*.sql, app.json, package.json). Ich bin kein Anwalt – bitte vor der
 Veröffentlichung prüfen (z. B. mit einem Generator wie eRecht24 abgleichen oder kurz juristisch prüfen lassen).
@@ -14,7 +14,7 @@ SO BENUTZT DU DIESE DATEI
    diese Erklärung SOFORT anpassen und das Datum unten aktualisieren.
 -->
 
-# Datenschutzerklärung für die App „Müll Sortieren“
+# Datenschutzerklärung für die App „Dunk the Junk“
 
 Stand: [[TT.MM.JJJJ]]
 
@@ -33,7 +33,7 @@ Einen Datenschutzbeauftragten haben wir nicht benannt, weil wir dazu gesetzlich 
 
 ## 2. Das Wichtigste in Kürze
 
-- „Müll Sortieren“ ist ein Lernspiel zur Mülltrennung. Du kannst es **ohne Anmeldung** und **ohne Konto** spielen.
+- „Dunk the Junk“ ist ein Lernspiel zur Mülltrennung. Du kannst es **ohne Anmeldung** und **ohne Konto** spielen.
 - Die App enthält **keine Werbung**, **kein Tracking** und **keine Analyse- oder Absturz-Dienste von Drittanbietern**.
 - Die App fragt **keine Berechtigungen** ab: kein Zugriff auf Kamera, Mikrofon, Standort, Kontakte, Fotos oder Nachrichten.
 - Dein Spielstand (Fortschritt, Punkte, Einstellungen) bleibt **auf deinem Gerät**.

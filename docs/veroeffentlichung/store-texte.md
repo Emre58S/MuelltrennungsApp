@@ -1,4 +1,4 @@
-# Store-Einträge „Müll Sortieren“ – alle Texte und Antworten
+# Store-Einträge „Dunk the Junk“ – alle Texte und Antworten
 
 Entwurf vom 9.11.2026. Alles hier ist für **Apple App Store Connect** und die **Google Play Console** gedacht.
 Zeichenlimits stehen dabei (Stand meines Wissens – beim Eintragen prüfen, die Stores ändern sie manchmal).
@@ -9,8 +9,8 @@ Zeichenlimits stehen dabei (Stand meines Wissens – beim Eintragen prüfen, die
 
 | Feld | Eintrag |
 |---|---|
-| App-Name (Apple max. 30 Zeichen, Google max. 30) | **Müll Sortieren** (13 Zeichen) |
-| Name englisch (falls getrennt lokalisiert) | **Müll Sortieren – Waste Sorting** (29 Zeichen) |
+| App-Name (Apple max. 30 Zeichen, Google max. 30) | **Dunk the Junk** (13 Zeichen) |
+| Name englisch (falls getrennt lokalisiert) | **Dunk the Junk** (gleich, keine eigene Übersetzung nötig) |
 | Bundle-ID / Paketname | `de.phildevs.muellsortieren` (steht schon in `app.json`) |
 | Version | 1.0.0 (Build-Nummer zählt EAS automatisch, `appVersionSource: remote`, `autoIncrement`) |
 | Primäre Sprache | Deutsch; zusätzlich Englisch anlegen |
@@ -42,7 +42,7 @@ Alternativ: `Wirf Müll in die richtige Tonne` (31 – zu lang), `Richtig trenne
 ### Beschreibung (max. 4000 Zeichen)
 
 ```
-Wohin gehört die Bananenschale? Und die Chipstüte? Mit „Müll Sortieren“ lernst du Mülltrennung als Spiel: Wische den Gegenstand in die richtige Tonne – schnell, mit Köpfchen und mit Spaß.
+Wohin gehört die Bananenschale? Und die Chipstüte? Mit „Dunk the Junk“ lernst du Mülltrennung als Spiel: Wische den Gegenstand in die richtige Tonne – schnell, mit Köpfchen und mit Spaß.
 
 SO FUNKTIONIERT'S
 Ein Gegenstand erscheint. Du wischst ihn in die richtige Tonne: Papier, Gelber Sack, Glas, Bio, Restmüll oder Sondermüll. Triffst du richtig, sammelst du Punkte und Sterne. Landet er in der falschen Tonne, erfährst du freundlich, warum – so lernst du nebenbei.
@@ -79,10 +79,10 @@ Hinweis: Die Regeln zur Mülltrennung sind regional verschieden. Maßgeblich sin
 ### Stichwörter (Apple, max. 100 Zeichen, Komma ohne Leerzeichen)
 `Mülltrennung,Recycling,Müll,Tonne,Lernspiel,Umwelt,Kinder,sortieren,Biomüll,Gelber Sack,Papier,Glas` (100)
 
-(Der App-Name und die Kategorie zählen schon als Stichwörter – nicht wiederholen. Wort „Müll Sortieren“ weglassen.)
+(Der App-Name und die Kategorie zählen schon als Stichwörter – nicht wiederholen. Wort „Dunk the Junk“ weglassen.)
 
 ### „Neu in dieser Version“ (Version 1.0.0)
-`Erste Version von „Müll Sortieren“. Viel Spaß beim Sortieren!`
+`Erste Version von „Dunk the Junk“. Viel Spaß beim Sortieren!`
 
 ---
 
@@ -100,7 +100,7 @@ Hinweis: Die Regeln zur Mülltrennung sind regional verschieden. Maßgeblich sin
 ### Description (max. 4000 characters)
 
 ```
-Where does the banana peel go? And the crisp bag? With “Müll Sortieren” you learn waste sorting as a game: swipe each item into the right bin – fast, clever and fun.
+Where does the banana peel go? And the crisp bag? With “Dunk the Junk” you learn waste sorting as a game: swipe each item into the right bin – fast, clever and fun.
 
 HOW IT WORKS
 An item appears. You swipe it into the right bin: paper, yellow bag (packaging), glass, organic, general waste or hazardous waste. Hit the right bin and you collect points and stars. If it lands in the wrong bin, you are told kindly why – so you learn as you play.
@@ -138,7 +138,7 @@ Note: waste sorting rules differ by region. Follow the rules of your municipalit
 `recycling,waste,sorting,bin,trash,learning,kids,environment,organic,paper,glass,plastic,garbage` (95)
 
 ### What's new (version 1.0.0)
-`First version of “Müll Sortieren”. Have fun sorting!`
+`First version of “Dunk the Junk”. Have fun sorting!`
 
 ---
 
